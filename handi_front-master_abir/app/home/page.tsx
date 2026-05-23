@@ -4,6 +4,21 @@ import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
+import {
+  ArrowRight,
+  Bookmark,
+  BrainCircuit,
+  BriefcaseBusiness,
+  CalendarClock,
+  CheckCircle2,
+  FileText,
+  MessageCircle,
+  ShieldCheck,
+  Sparkles,
+  UserRoundCheck,
+  WandSparkles,
+} from "lucide-react";
 import { AuthenticatedWorkspace } from "@/components/authenticated-workspace";
 import { useI18n } from "@/components/i18n-provider";
 import { ButtonLink } from "@/components/ui/button";
@@ -1674,13 +1689,12 @@ function CandidateHome({
   }, [utilisateur]);
 
   const total = Object.values(statsMap).reduce((sum, count) => sum + count, 0);
-  const pending = statsMap.pending || 0;
   const shortlistAndInterview = (statsMap.shortlisted || 0) + (statsMap.interview_scheduled || 0);
   const firstName = utilisateurNom.split(" ")[0] || utilisateurNom || "HandiTalents";
   const applicationsValue = applicationsCount ?? total;
   const interviewsValue = interviewsCount ?? shortlistAndInterview;
   const favoritesValue = favoritesCount ?? 0;
-  const responseWaiting = Math.max(applicationsValue - pending - interviewsValue, 0);
+  const responseWaiting = Math.max(applicationsValue - (statsMap.pending || 0) - interviewsValue, 0);
   const spotlightRecommendations = recommendations.slice(0, 3);
   const dashboardErrorMessage = [erreurStats, applicationsError, interviewsError, favoritesError, recommendationError]
     .filter(Boolean)
@@ -1799,159 +1813,396 @@ function CandidateHome({
       .slice(0, 3);
   })();
 
+  const profileCompletion = Math.min(
+    98,
+    Math.max(52, Math.round(58 + Math.min(applicationsValue, 10) * 2 + Math.min(interviewsValue, 4) * 5 + Math.min(favoritesValue, 6))),
+  );
+
+  const skillSignals = [
+    { label: "Design UI/UX", level: "Avance", value: 86 },
+    { label: "Analyse de donnees", level: "Intermediaire", value: 68 },
+    { label: "Communication", level: "Avance", value: 78 },
+    { label: "Prototypage", level: "Intermediaire", value: 61 },
+  ];
+
   return (
-    <div className="candidate-home-clean" aria-label="Tableau de bord candidat">
-      <section className="candidate-home-clean__summary" aria-label="Apercu rapide">
-        <article className="candidate-home-clean__summary-card">
-          <p>Candidatures</p>
-          <strong>{applicationsValue}</strong>
-          <span>Envoyees au total</span>
-        </article>
-        <article className="candidate-home-clean__summary-card">
-          <p>Entretiens</p>
-          <strong>{interviewsValue}</strong>
-          <span>A venir</span>
-        </article>
-        <article className="candidate-home-clean__summary-card">
-          <p>Favoris</p>
-          <strong>{favoritesValue}</strong>
-          <span>Offres enregistrees</span>
-        </article>
-        <article className="candidate-home-clean__summary-card">
-          <p>En attente</p>
-          <strong>{responseWaiting}</strong>
-          <span>Reponses entreprises</span>
-        </article>
-      </section>
+    <main className="relative mx-auto w-full max-w-[1400px] px-4 pb-10 pt-0 sm:px-6 lg:px-8" aria-label="Tableau de bord candidat">
+      <motion.section
+        initial={{ opacity: 0, y: 18 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.55, ease: "easeOut" }}
+        className="relative overflow-hidden rounded-[34px] border border-[#e9e2f7] bg-white p-6 shadow-[0_24px_80px_-35px_rgba(53,6,62,0.35)] lg:p-10"
+      >
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_86%_26%,rgba(165,130,248,0.14),transparent_40%)]" />
+        <div className="relative grid items-center gap-8 lg:grid-cols-12">
+          <motion.div
+            initial={{ opacity: 0, x: -24 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.08 }}
+            className="space-y-6 lg:col-span-5"
+          >
+            <span className="inline-flex items-center gap-2 rounded-full border border-[#d8caf6] bg-white/80 px-4 py-1 text-xs font-medium tracking-[0.08em] text-[#5f3a8a] backdrop-blur">
+              <Sparkles className="h-3.5 w-3.5" />
+              Votre avenir, sans limites
+            </span>
 
-      <section className="candidate-home-clean__hero" aria-labelledby="candidate-home-hero-title">
-        <div className="candidate-home-clean__hero-copy">
-          <h1 id="candidate-home-hero-title">
-            Bienvenue, <span>{firstName} !</span>
-            <br />
-            Prete pour votre prochaine
-            <br />
-            opportunite ?
-          </h1>
-          <p>
-            Decouvrez des offres inclusives, developpez vos competences
-            <br />
-            et avancez dans votre carriere avec confiance.
-          </p>
-          <div className="candidate-home-clean__hero-actions">
-            <ButtonLink href="/offres">Voir les offres d&apos;emploi</ButtonLink>
-            <ButtonLink href="/candidat/cv" variant="secondary">
-              Completer mon profil
-            </ButtonLink>
-          </div>
-          <div className="candidate-home-clean__hero-kpis" aria-label="Indicateurs rapides">
-            <span>{applicationsValue} candidatures</span>
-            <span>{interviewsValue} entretiens</span>
-            <span>{favoritesValue} favoris</span>
-          </div>
-        </div>
-        <div className="candidate-home-clean__hero-media">
-          <Image
-            src="/images/candidate-home-hero.png"
-            alt="Candidate travaillant sur un ordinateur portable depuis son fauteuil roulant"
-            width={960}
-            height={540}
-            className="candidate-home-clean__hero-image"
-            priority
-          />
-        </div>
-      </section>
+            <div className="space-y-4">
+              <p className="text-sm font-medium text-[#6d5a86]">Bienvenue, {firstName}</p>
+              <h1
+                id="candidate-home-hero-title"
+                className="text-balance font-[600] leading-[1.05] text-[#1f1230] sm:text-4xl lg:text-5xl"
+                style={{ fontFamily: "Manrope, sans-serif" }}
+              >
+                Trouvez l&apos;opportunité
+                <br />
+                qui vous correspond.
+              </h1>
+              <p className="max-w-xl text-[15px] leading-relaxed text-[#5c5171]" style={{ fontFamily: "IBM Plex Sans, sans-serif" }}>
+                Des entreprises inclusives recherchent des talents comme le vôtre.
+              </p>
+            </div>
 
-      <section className="candidate-home-clean__lower" aria-label="Offres suggerees et activite recente">
-        <article className="candidate-home-clean__panel">
-          <div className="candidate-home-clean__panel-head">
-            <h3>Offres suggerees</h3>
-            <Link href="/offres">Voir toutes les offres</Link>
+            <div className="flex flex-wrap gap-3">
+              <ButtonLink
+                href="/offres"
+                className="shadow-[0_14px_28px_-16px_rgba(53,6,62,0.85)] transition-transform duration-300 hover:-translate-y-0.5"
+              >
+                Découvrir les offres
+              </ButtonLink>
+              <ButtonLink
+                href="/candidat/cv"
+                variant="secondary"
+                className="border border-[#d8caf6] bg-white/80 text-[#35063E] transition-transform duration-300 hover:-translate-y-0.5"
+              >
+                Compléter mon profil
+              </ButtonLink>
+            </div>
+
+            <div className="flex items-center gap-3 text-sm text-[#5e4e79]" style={{ fontFamily: "IBM Plex Sans, sans-serif" }}>
+              <div className="flex -space-x-2">
+                {["A", "N", "E", "T"].map((label, idx) => (
+                  <span
+                    key={`${label}-${idx}`}
+                    className="grid h-8 w-8 place-items-center rounded-full border-2 border-white bg-gradient-to-br from-[#9f6dff] to-[#35063E] text-xs font-semibold text-white"
+                  >
+                    {label}
+                  </span>
+                ))}
+              </div>
+              <span>+120 entreprises inclusives vous attendent</span>
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, x: 24 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.62, delay: 0.14 }}
+            className="relative lg:col-span-7"
+          >
+            <div className="relative mx-auto max-w-[860px] overflow-hidden rounded-[28px] lg:rounded-[34px]">
+              <div className="pointer-events-none absolute -inset-8 bg-gradient-to-tr from-[#7d49cf]/20 via-[#d8caf6]/10 to-[#84b7ff]/12 blur-3xl" />
+              <Image
+                src="/uploads/candidate-hero-futuristic.png"
+                alt="Professionnel en fauteuil roulant utilisant une tablette dans un espace de travail moderne"
+                width={1536}
+                height={1024}
+                className="h-[360px] w-full object-cover object-[66%_50%] sm:h-[430px] lg:h-[500px]"
+                style={{
+                  maskImage:
+                    "linear-gradient(to left, rgba(0,0,0,1) 58%, rgba(0,0,0,0.68) 74%, rgba(0,0,0,0.15) 92%, rgba(0,0,0,0) 100%)",
+                  WebkitMaskImage:
+                    "linear-gradient(to left, rgba(0,0,0,1) 58%, rgba(0,0,0,0.68) 74%, rgba(0,0,0,0.15) 92%, rgba(0,0,0,0) 100%)",
+                }}
+                priority
+              />
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#f8f4ff] via-transparent to-[#6a39ce]/12" />
+
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.45, delay: 0.45 }}
+                className="absolute left-6 top-4 rounded-2xl border border-white/50 bg-white/60 px-4 py-3 text-[#2b1a43] shadow-[0_14px_35px_-22px_rgba(53,6,62,0.8)] backdrop-blur-xl lg:left-10 lg:top-6"
+              >
+                <p className="text-[10px] uppercase tracking-[0.08em] text-[#6c5c89]">Entretiens à venir</p>
+                <p className="text-[25px] font-semibold leading-none">2</p>
+                <p className="mt-1 text-[11px] text-[#74668e]">Voir le calendrier</p>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.45, delay: 0.52 }}
+                className="absolute right-4 top-14 rounded-2xl border border-white/50 bg-white/65 px-4 py-3 text-[#2b1a43] shadow-[0_14px_35px_-22px_rgba(53,6,62,0.8)] backdrop-blur-xl lg:right-7 lg:top-16"
+              >
+                <p className="text-[10px] uppercase tracking-[0.08em] text-[#6c5c89]">Profil complété</p>
+                <p className="text-[26px] font-semibold leading-none">92%</p>
+                <p className="mt-1 text-[11px] text-[#74668e]">Excellent</p>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.45, delay: 0.6 }}
+                className="absolute left-6 top-[43%] rounded-2xl border border-white/50 bg-white/60 px-4 py-3 text-[#2b1a43] shadow-[0_14px_35px_-22px_rgba(53,6,62,0.8)] backdrop-blur-xl lg:left-9 lg:top-[45%]"
+              >
+                <p className="text-[10px] uppercase tracking-[0.08em] text-[#6c5c89]">Offres adaptées</p>
+                <p className="text-[25px] font-semibold leading-none">24</p>
+                <p className="mt-1 text-[11px] text-[#74668e]">Nouvelles offres</p>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.45, delay: 0.66 }}
+                className="absolute bottom-8 right-4 flex items-center gap-2 rounded-2xl border border-white/50 bg-white/62 px-4 py-2.5 text-[#2b1a43] shadow-[0_14px_35px_-22px_rgba(53,6,62,0.8)] backdrop-blur-xl lg:right-7 lg:bottom-10"
+              >
+                <ShieldCheck className="h-4 w-4 text-[#6f4bb6]" />
+                <p className="text-sm font-semibold">Accessibilité activée</p>
+              </motion.div>
+            </div>
+          </motion.div>
+        </div>
+      </motion.section>
+
+      <section className="mt-7 grid gap-6 lg:grid-cols-12">
+        <motion.article
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, delay: 0.2 }}
+          className="rounded-[28px] border border-[#e8ddfb] bg-white/90 p-5 shadow-[0_16px_42px_-28px_rgba(53,6,62,0.45)] lg:col-span-8"
+        >
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-[#23143a]" style={{ fontFamily: "Manrope, sans-serif" }}>
+              Offres suggérées
+            </h2>
+            <Link href="/offres" className="inline-flex items-center gap-1 text-sm font-medium text-[#5f31ac] hover:underline">
+              Voir toutes les offres
+              <ArrowRight className="h-4 w-4" />
+            </Link>
           </div>
 
           {loadingRecommendations ? (
-            <div className="candidate-home-clean__empty" aria-live="polite">
-              Chargement des offres suggerees...
+            <div className="rounded-2xl border border-dashed border-[#d8caf6] bg-[#faf7ff] p-5 text-sm text-[#6a5d82]">
+              Chargement des offres suggérées...
             </div>
           ) : recommendationItems.length === 0 ? (
-            <div className="candidate-home-clean__empty" aria-live="polite">
-              Aucune offre suggeree disponible pour le moment.
+            <div className="rounded-2xl border border-dashed border-[#d8caf6] bg-[#faf7ff] p-5 text-sm text-[#6a5d82]">
+              Aucune offre suggérée disponible pour le moment.
             </div>
           ) : (
-            <ul className="candidate-home-clean__jobs-list">
-              {recommendationItems.map((item) => (
-                <li key={item.id} className="candidate-home-clean__job-item">
-                  <div className="candidate-home-clean__job-mark" aria-hidden="true">
-                    {item.mark}
-                  </div>
-                  <div className="candidate-home-clean__job-copy">
-                    <Link href={item.href} className="candidate-home-clean__job-title">
-                      {item.title}
-                    </Link>
-                    <p>{item.company}</p>
-                    <div className="candidate-home-clean__job-tags">
-                      {item.tags.map((tag, tagIndex) => (
-                        <span key={`${item.id}-${tag}-${tagIndex}`}>{tag}</span>
-                      ))}
+            <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {recommendationItems.map((item, index) => (
+                <motion.li
+                  key={item.id}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: 0.24 + index * 0.05 }}
+                  whileHover={{ y: -4 }}
+                  className="group rounded-2xl border border-[#ebe4fb] bg-gradient-to-b from-white to-[#f9f6ff] p-4 shadow-[0_10px_24px_-20px_rgba(53,6,62,0.5)] transition"
+                >
+                  <div className="mb-3 flex items-start justify-between gap-3">
+                    <div className="grid h-10 w-10 place-items-center rounded-xl bg-[#efe4ff] text-sm font-semibold text-[#4f2b83]">
+                      {item.mark}
                     </div>
-                  </div>
-                  <div className="candidate-home-clean__job-meta">
-                    <small>{item.published}</small>
-                    <button type="button" className="candidate-home-clean__bookmark" aria-label={`Ajouter ${item.title} aux favoris`}>
-                      ⌁
+                    <button
+                      type="button"
+                      className="rounded-lg p-1.5 text-[#6b5a87] transition hover:bg-[#efe7ff] hover:text-[#4f2b83]"
+                      aria-label={`Ajouter ${item.title} aux favoris`}
+                    >
+                      <Bookmark className="h-4 w-4" />
                     </button>
+                  </div>
+                  <Link href={item.href} className="line-clamp-2 text-sm font-semibold text-[#25133d] group-hover:text-[#4f2b83]">
+                    {item.title}
+                  </Link>
+                  <p className="mt-1 text-xs text-[#6c607f]">{item.company}</p>
+                  <div className="mt-3 flex flex-wrap gap-1.5">
+                    {item.tags.map((tag, tagIndex) => (
+                      <span key={`${item.id}-${tag}-${tagIndex}`} className="rounded-full bg-[#f0e7ff] px-2.5 py-1 text-[11px] text-[#5f4a82]">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                  <p className="mt-3 text-[11px] text-[#7f7297]">{item.published}</p>
+                </motion.li>
+              ))}
+            </ul>
+          )}
+        </motion.article>
+
+        <motion.article
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, delay: 0.25 }}
+          className="rounded-[28px] border border-[#e8ddfb] bg-white/90 p-5 shadow-[0_16px_42px_-28px_rgba(53,6,62,0.45)] lg:col-span-4"
+        >
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-[#23143a]" style={{ fontFamily: "Manrope, sans-serif" }}>
+              Activité récente
+            </h2>
+            <Link href="/candidat/candidatures" className="text-sm font-medium text-[#5f31ac] hover:underline">
+              Voir tout
+            </Link>
+          </div>
+
+          {recentActivity.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-[#d8caf6] bg-[#faf7ff] p-5 text-sm text-[#6a5d82]">
+              Aucune activité récente à afficher.
+            </div>
+          ) : (
+            <ol className="space-y-3">
+              {recentActivity.map((event, index) => {
+                const EventIcon = event.key.startsWith("message")
+                  ? MessageCircle
+                  : event.key.startsWith("interview")
+                    ? CalendarClock
+                    : event.tone === "green"
+                      ? CheckCircle2
+                      : Sparkles;
+
+                return (
+                  <motion.li
+                    key={event.key}
+                    initial={{ opacity: 0, x: 8 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.3, delay: 0.28 + index * 0.05 }}
+                    className="flex gap-3 rounded-2xl border border-[#efe7ff] bg-[#fcfaff] p-3"
+                  >
+                    <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#efe4ff] text-[#6337ac]" aria-hidden="true">
+                      <EventIcon className="h-4 w-4" />
+                    </span>
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-[#281743]">{event.title}</p>
+                      {event.detail ? <p className="mt-0.5 line-clamp-2 text-xs text-[#6d6184]">{event.detail}</p> : null}
+                      <p className="mt-1 text-[11px] text-[#8a7ca4]">{formatRelativeDate(event.at)}</p>
+                    </div>
+                  </motion.li>
+                );
+              })}
+            </ol>
+          )}
+
+          {(responseWaiting > 0 || favoritesValue > 0) && (
+            <p className="mt-4 rounded-xl bg-[#f5efff] px-3 py-2 text-xs text-[#5f4a82]">
+              {responseWaiting} candidature(s) en attente et {favoritesValue} en favoris.
+            </p>
+          )}
+        </motion.article>
+      </section>
+
+      <section className="mt-6 grid gap-6 lg:grid-cols-12">
+        <motion.article
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, delay: 0.3 }}
+          className="rounded-[28px] bg-gradient-to-br from-[#35063E] via-[#4d1b67] to-[#6f38a6] p-5 text-white shadow-[0_20px_44px_-20px_rgba(53,6,62,0.8)] lg:col-span-4"
+        >
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-lg font-semibold" style={{ fontFamily: "Manrope, sans-serif" }}>
+              Suivi de votre profil
+            </h2>
+            <WandSparkles className="h-5 w-5 text-[#d9c9fb]" />
+          </div>
+          <div className="flex items-center gap-5">
+            <div
+              className="grid h-28 w-28 place-items-center rounded-full"
+              style={{ background: `conic-gradient(#e8d9ff ${profileCompletion * 3.6}deg, rgba(255,255,255,0.18) 0deg)` }}
+              aria-label={`Progression du profil ${profileCompletion}%`}
+            >
+              <div className="grid h-20 w-20 place-items-center rounded-full bg-[#2a0534] text-center">
+                <strong className="text-2xl">{profileCompletion}%</strong>
+              </div>
+            </div>
+            <div className="space-y-2 text-sm text-[#f0e6ff]">
+              <p>Votre profil est presque prêt pour capter les meilleures opportunités.</p>
+              <ButtonLink href="/candidat/cv" variant="secondary" size="sm" className="border-white/30 bg-white/10 text-white hover:bg-white/20">
+                Continuer maintenant
+              </ButtonLink>
+            </div>
+          </div>
+        </motion.article>
+
+        <div className="grid gap-6 lg:col-span-8 lg:grid-cols-2">
+          <motion.article
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, delay: 0.34 }}
+            className="rounded-[28px] border border-[#e8ddfb] bg-white/90 p-5 shadow-[0_16px_42px_-28px_rgba(53,6,62,0.45)]"
+          >
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-[#23143a]" style={{ fontFamily: "Manrope, sans-serif" }}>
+                Ressources premium
+              </h2>
+              <Link href="/candidat/cv" className="text-sm font-medium text-[#5f31ac] hover:underline">
+                Voir tout
+              </Link>
+            </div>
+
+            <div className="space-y-3">
+              <Link href="/candidat/cv" className="group flex items-center gap-3 rounded-2xl border border-[#eee7fc] bg-[#fbf9ff] p-3 transition hover:-translate-y-0.5">
+                <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#efe4ff] text-[#5c33a7]">
+                  <FileText className="h-5 w-5" />
+                </span>
+                <div>
+                  <p className="text-sm font-semibold text-[#2a1a43]">Améliorer mon CV</p>
+                  <p className="text-xs text-[#6d6283]">Optimisez votre profil pour être mieux recommandé.</p>
+                </div>
+              </Link>
+
+              <Link href="/candidat/candidatures" className="group flex items-center gap-3 rounded-2xl border border-[#eee7fc] bg-[#fbf9ff] p-3 transition hover:-translate-y-0.5">
+                <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#efe4ff] text-[#5c33a7]">
+                  <BrainCircuit className="h-5 w-5" />
+                </span>
+                <div>
+                  <p className="text-sm font-semibold text-[#2a1a43]">Préparer un entretien</p>
+                  <p className="text-xs text-[#6d6283]">Travaillez vos questions et vos réponses en confiance.</p>
+                </div>
+              </Link>
+
+              <Link href="/messages" className="group flex items-center gap-3 rounded-2xl border border-[#eee7fc] bg-[#fbf9ff] p-3 transition hover:-translate-y-0.5">
+                <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#efe4ff] text-[#5c33a7]">
+                  <BriefcaseBusiness className="h-5 w-5" />
+                </span>
+                <div>
+                  <p className="text-sm font-semibold text-[#2a1a43]">Renforcer ma posture</p>
+                  <p className="text-xs text-[#6d6283]">Messages clés pour valoriser vos compétences avec clarté.</p>
+                </div>
+              </Link>
+            </div>
+          </motion.article>
+
+          <motion.article
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, delay: 0.38 }}
+            className="rounded-[28px] border border-[#e8ddfb] bg-white/90 p-5 shadow-[0_16px_42px_-28px_rgba(53,6,62,0.45)]"
+          >
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-[#23143a]" style={{ fontFamily: "Manrope, sans-serif" }}>
+                Vos compétences clés
+              </h2>
+              <UserRoundCheck className="h-5 w-5 text-[#7047ba]" />
+            </div>
+
+            <ul className="space-y-3">
+              {skillSignals.map((skill) => (
+                <li key={skill.label} className="space-y-1.5">
+                  <div className="flex items-center justify-between text-xs text-[#695d82]">
+                    <span className="font-medium text-[#2d1b48]">{skill.label}</span>
+                    <span>{skill.level}</span>
+                  </div>
+                  <div className="h-2 rounded-full bg-[#efe7fc]">
+                    <div className="h-full rounded-full bg-gradient-to-r from-[#6a3abb] to-[#a67bff]" style={{ width: `${skill.value}%` }} />
                   </div>
                 </li>
               ))}
             </ul>
-          )}
-          <Link href="/offres" className="candidate-home-clean__footer-link">
-            Explorer toutes les offres
-          </Link>
-        </article>
-
-        <article className="candidate-home-clean__panel">
-          <div className="candidate-home-clean__panel-head">
-            <h3>Activite recente</h3>
-            <span />
-          </div>
-
-          {recentActivity.length === 0 ? (
-            <div className="candidate-home-clean__empty" aria-live="polite">
-              Aucune activite recente a afficher.
-            </div>
-          ) : (
-            <ol className="candidate-home-clean__timeline">
-              {recentActivity.map((event) => (
-                <li key={event.key}>
-                  <span
-                    aria-hidden="true"
-                    className={`candidate-home-clean__dot${event.tone === "green" ? " is-green" : ""}`}
-                  />
-                  <div>
-                    <strong>{event.title}</strong>
-                    {event.detail ? <p>{event.detail}</p> : null}
-                    <small>{formatRelativeDate(event.at)}</small>
-                  </div>
-                </li>
-              ))}
-            </ol>
-          )}
-
-          <Link href="/candidat/candidatures" className="candidate-home-clean__footer-link">
-            Voir toute l&apos;activite
-          </Link>
-
-          {responseWaiting > 0 || favoritesValue > 0 ? (
-            <p className="candidate-home-clean__activity-note">
-              {responseWaiting} candidature(s) en attente et {favoritesValue} en favoris.
-            </p>
-          ) : null}
-        </article>
+          </motion.article>
+        </div>
       </section>
 
-      {dashboardErrorMessage ? <div className="message message-erreur">{dashboardErrorMessage}</div> : null}
-    </div>
+      {dashboardErrorMessage ? <div className="mt-6 message message-erreur">{dashboardErrorMessage}</div> : null}
+    </main>
   );
 }
 function buildOfferMark(company?: string) {

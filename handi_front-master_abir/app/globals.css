@@ -2741,6 +2741,10 @@ button {
     overflow: hidden;
   }
 
+  .app-shell-candidat {
+    padding-top: 12px;
+  }
+
   .app-shell-candidat-collapsed,
   .app-shell-admin-collapsed,
   .app-shell-entreprise-collapsed {
@@ -2782,7 +2786,7 @@ button {
   }
 
   .app-shell-candidat .app-main {
-    padding: 14px 0 20px;
+    padding: 0 0 20px;
     scrollbar-width: none;
     -ms-overflow-style: none;
   }
@@ -14323,4 +14327,3 @@ button {
     padding: 20px 16px;
   }
 }
-
