@@ -43,9 +43,11 @@ export function FormulaireConnexion() {
         localStorage.setItem("token_auth", resultat.donnees.token);
         localStorage.setItem("utilisateur_connecte", JSON.stringify(resultat.donnees.utilisateur ?? null));
 
-        // Immediate redirect to the workspace
+        const role = resultat.donnees.utilisateur?.role;
+        const destination = role === "inspecteur" || role === "aneti" ? "/supervision" : "/home";
+
         setMessage(t("login.signInSuccess"));
-        router.push("/home");
+        router.push(destination);
         return;
       }
     } catch (cause) {

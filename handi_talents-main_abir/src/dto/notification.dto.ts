@@ -1,6 +1,13 @@
 export interface CreerNotificationDto {
   id_utilisateur: string;
-  type: "candidature_status_change" | "interview_scheduled" | "new_message" | "offre_favorite_updated" | "system";
+  type:
+    | "candidature_status_change"
+    | "interview_scheduled"
+    | "new_message"
+    | "offre_favorite_updated"
+    | "system"
+    | "bien_etre_entretien"
+    | "interview_prep_ready";
   titre: string;
   message: string;
   data?: string; // JSON stringifié

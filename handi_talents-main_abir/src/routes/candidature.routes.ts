@@ -3,12 +3,14 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { CandidatureController } from "../controllers/candidature.controller";
+import { InterviewPrepController } from "../controllers/interview-prep.controller";
 import { authMiddleware } from "../middleware/auth.middleware";
 import { roleMiddleware } from "../middleware/role.middleware";
 import { RoleUtilisateur } from "../types/enums";
 
 const router = Router();
 const candidatureController = new CandidatureController();
+const interviewPrepController = new InterviewPrepController();
 
 const uploadDirCandidatures = path.join(__dirname, "..", "..", "public", "uploads", "candidatures");
 if (!fs.existsSync(uploadDirCandidatures)) {
@@ -44,5 +46,17 @@ router.post("/:id/refuser", roleMiddleware([RoleUtilisateur.ENTREPRISE]), candid
 router.post("/:id/accepter", roleMiddleware([RoleUtilisateur.ENTREPRISE]), candidatureController.accepter);
 router.get("/statistiques", roleMiddleware([RoleUtilisateur.ENTREPRISE]), candidatureController.obtenirStatistiques);
 router.get("/mes-statistiques", roleMiddleware([RoleUtilisateur.CANDIDAT]), candidatureController.obtenirStatistiquesCandidat);
+
+// Feature 02 — Predicteur de questions d'entretien (candidat proprietaire uniquement)
+router.get(
+  "/:id/interview-prep",
+  roleMiddleware([RoleUtilisateur.CANDIDAT]),
+  interviewPrepController.getDossier,
+);
+router.post(
+  "/:id/interview-prep/regenerate",
+  roleMiddleware([RoleUtilisateur.CANDIDAT]),
+  interviewPrepController.regenerate,
+);
 
 export default router;

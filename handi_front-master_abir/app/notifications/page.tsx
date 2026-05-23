@@ -18,9 +18,17 @@ type NotificationItem = {
   created_at: string;
   data?: {
     id_entretien?: string;
+    id_candidature?: string;
+    id_offre?: string;
     offre?: string;
     date_heure?: string;
     motif?: string | null;
+    category?: string;
+    scheduled_for?: string;
+    cta?: {
+      label?: string;
+      href?: string;
+    };
   } | null;
 };
 
@@ -114,6 +122,35 @@ function NotificationsPage() {
     }
   };
 
+  const construireActionNotification = (notification: NotificationItem) => {
+    const isBienEtre =
+      notification.type === "bien_etre_entretien" || notification.data?.category === "interview_wellbeing_prompt";
+    const isInterviewPrep =
+      notification.type === "interview_prep_ready" || notification.data?.category === "interview_prep_ready";
+
+    if (isInterviewPrep) {
+      const fallbackHref = notification.data?.id_candidature
+        ? `/candidat/candidatures/${notification.data.id_candidature}/preparation-entretien`
+        : "/candidat/candidatures";
+      return {
+        href: notification.data?.cta?.href || fallbackHref,
+        label: notification.data?.cta?.label || "Voir mes questions d'entretien",
+      };
+    }
+
+    if (isBienEtre) {
+      const fallbackHref = notification.data?.id_entretien
+        ? `/candidat/entretiens/${notification.data.id_entretien}/bien-etre`
+        : "/candidat/entretiens";
+      return {
+        href: notification.data?.cta?.href || fallbackHref,
+        label: notification.data?.cta?.label || "Ouvrir ma preparation 5 min",
+      };
+    }
+
+    return { href: destinationEntretiens, label: "Open related section" };
+  };
+
   return (
     <div className="app-page">
       <PageHeader
@@ -159,7 +196,9 @@ function NotificationsPage() {
             </div>
           </Card>
 
-          {notifications.map((notification) => (
+          {notifications.map((notification) => {
+            const action = construireActionNotification(notification);
+            return (
             <Card key={notification.id} padding="lg">
               <div className="notification-item">
                 <div className="notification-meta">
@@ -185,6 +224,11 @@ function NotificationsPage() {
                         {new Date(notification.data.date_heure).toLocaleString("en-US")}
                       </p>
                     ) : null}
+                    {notification.data.scheduled_for ? (
+                      <p style={{ marginTop: 8 }}>
+                        Scheduled for: {new Date(notification.data.scheduled_for).toLocaleString("en-US")}
+                      </p>
+                    ) : null}
                     {notification.data.motif ? <p style={{ marginTop: 8 }}>Reason: {notification.data.motif}</p> : null}
                   </div>
                 ) : null}
@@ -196,13 +240,14 @@ function NotificationsPage() {
                   >
                     {notification.lu ? "Mark as unread" : "Mark as read"}
                   </Button>
-                  <ButtonLink href={destinationEntretiens} variant="ghost">
-                    Open related section
+                  <ButtonLink href={action.href} variant="ghost">
+                    {action.label}
                   </ButtonLink>
                 </div>
               </div>
             </Card>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

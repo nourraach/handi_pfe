@@ -1,4 +1,4 @@
-﻿export * from "./utilisateur.schema";
+export * from "./utilisateur.schema";
 export * from "./candidat.schema";
 export * from "./entreprise.schema";
 export * from "./admin.schema";
@@ -20,5 +20,5 @@ export * from "./chat.schema";
 export * from "./compliance-report.schema";
 export * from "./recommendation.schema";
 export * from "./candidate-matching-consent.schema";
-
-
+export * from "./session-bien-etre-entretien.schema";
+export * from "./interview-questions-dossier.schema";

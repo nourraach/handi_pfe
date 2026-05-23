@@ -6,7 +6,9 @@ export const typeNotificationEnum = pgEnum("type_notification", [
   "interview_scheduled", 
   "new_message",
   "offre_favorite_updated",
-  "system"
+  "system",
+  "bien_etre_entretien",
+  "interview_prep_ready",
 ]);
 
 export const notificationTable = pgTable("notification", {

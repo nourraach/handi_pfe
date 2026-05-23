@@ -59,12 +59,7 @@ export class NotificationService {
     }
   }
 
-  async notifierChangementStatut(
-    idUtilisateur: string | number,
-    nouveauStatut: string,
-    titreOffre: string,
-    options?: { motifRefus?: string | null; source?: "ia" | "manual" }
-  ) {
+  async notifierChangementStatut(idUtilisateur: string | number, nouveauStatut: string, titreOffre: string) {
     const messages: Record<string, string> = {
       pending: "Votre candidature a ete recue et est en cours d'etude",
       shortlisted: "Votre candidature a ete preselectionnee",
@@ -73,23 +68,12 @@ export class NotificationService {
       accepted: "Felicitations ! Votre candidature a ete acceptee",
     };
 
-    const suffixeOrigine = options?.source === "ia" ? " (decision automatique IA)" : "";
-    const detailsMotif =
-      nouveauStatut === "rejected" && options?.motifRefus
-        ? ` Motif: ${options.motifRefus}`
-        : "";
-
     await this.creerNotification({
       id_utilisateur: String(idUtilisateur),
       type: "candidature_status_change",
       titre: "Mise a jour de candidature",
-      message: `${messages[nouveauStatut] || "Le statut de votre candidature a change"}${suffixeOrigine} pour l'offre "${titreOffre}".${detailsMotif}`,
-      data: JSON.stringify({
-        statut: nouveauStatut,
-        offre: titreOffre,
-        motif_refus: options?.motifRefus ?? null,
-        source: options?.source ?? "manual",
-      }),
+      message: `${messages[nouveauStatut] || "Le statut de votre candidature a change"} pour l'offre "${titreOffre}"`,
+      data: JSON.stringify({ statut: nouveauStatut, offre: titreOffre }),
     });
   }
 
@@ -170,6 +154,30 @@ export class NotificationService {
       titre: "Offre favorite mise a jour",
       message: `L'offre "${titreOffre}" dans vos favoris a ete ${modification}`,
       data: JSON.stringify({ offre: titreOffre, modification }),
+    });
+  }
+
+  async notifierRappelPreparationEntretien(
+    idUtilisateur: string | number,
+    idEntretien: string,
+    titreOffre: string,
+    dateHeure: Date,
+  ) {
+    await this.creerNotification({
+      id_utilisateur: String(idUtilisateur),
+      type: "bien_etre_entretien",
+      titre: "Entretien demain : preparation optionnelle",
+      message: "Votre entretien est demain. Voulez-vous vous preparer en 5 minutes ?",
+      data: JSON.stringify({
+        id_entretien: idEntretien,
+        offre: titreOffre,
+        category: "interview_wellbeing_prompt",
+        cta: {
+          label: "Commencer ma preparation 5 min",
+          href: `/candidat/entretiens/${idEntretien}/bien-etre`,
+        },
+        scheduled_for: dateHeure.toISOString(),
+      }),
     });
   }
 }

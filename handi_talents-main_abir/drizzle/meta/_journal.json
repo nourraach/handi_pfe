@@ -57,6 +57,13 @@
       "when": 1777287600000,
       "tag": "0009_add_utilisateur_gouvernorat_delegation",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1778875412329,
+      "tag": "0008_opposite_killraven",
+      "breakpoints": true
     }
   ]
 }

@@ -31,6 +31,7 @@ import adminCandidatureRoutes from "./routes/admin-candidature.routes";
 import { accountMemberRoutes } from "./routes/account-member.routes";
 import { entrepriseCandidatureExportRoutes } from "./routes/entreprise-candidature-export.routes";
 import adminEntretienRoutes from "./routes/admin-entretien.routes";
+import adminOffrePublicationRoutes from "./routes/admin-offre-publication.routes";
 import testEntretienRoutes from "./routes/test-entretien.routes";
 import chatRoutes from "./routes/chat.routes";
 import { supervisionRoutes } from "./routes/supervision.routes";
@@ -38,6 +39,7 @@ import { enterpriseReportingRoutes } from "./routes/enterprise-reporting.routes"
 import entrepriseCandidatsRoutes from "./routes/entreprise-candidats.routes";
 import avisEntrepriseRoutes from "./routes/avis-entreprise.routes";
 import recommendationRoutes from "./routes/recommendation.routes";
+import bienEtreInterneRoutes from "./routes/bien-etre-interne.routes";
 
 export const app = express();
 
@@ -175,6 +177,7 @@ app.get("/api/tests-psychologiques/candidat/tests-disponibles", async (req, res)
 
 app.use("/api/tests-psychologiques", testPsychologiqueRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/admin", adminOffrePublicationRoutes);
 app.use("/api/admin", gestionUtilisateursRoutes);
 app.use("/api", profilRoutes);
 app.use("/api/entreprises/membres", accountMemberRoutes);
@@ -203,6 +206,7 @@ app.use("/api/admin", adminEntretienRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/supervision", supervisionRoutes);
 app.use("/api/entreprise/reports-requests", enterpriseReportingRoutes);
+app.use("/api/interne/bien-etre", bienEtreInterneRoutes);
 
 // Simple enterprise job offers routes (inline to avoid TypeScript issues)
 app.get("/api/entreprise/offres", async (req, res) => {

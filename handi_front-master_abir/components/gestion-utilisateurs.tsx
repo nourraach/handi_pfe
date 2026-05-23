@@ -628,7 +628,8 @@ function ModalUtilisateur({ utilisateur, modeCreation, onSave, onCancel }: Modal
     delegation: utilisateur?.delegation || utilisateur?.region || "",
   });
 
-  const roleInterne = formData.role === "inspecteur" || formData.role === "aneti";
+  const roleInterne = formData.role === "inspecteur";
+  const roleInvitation = modeCreation && (formData.role === "inspecteur" || formData.role === "aneti");
   const delegationOptions =
     formData.gouvernorat && formData.gouvernorat in TUNISIAN_GOVERNORATES
       ? TUNISIAN_GOVERNORATES[formData.gouvernorat as keyof typeof TUNISIAN_GOVERNORATES]
@@ -636,6 +637,12 @@ function ModalUtilisateur({ utilisateur, modeCreation, onSave, onCancel }: Modal
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
+    if (roleInvitation) {
+      const payload: Partial<Utilisateur> = { ...formData };
+      delete payload.statut;
+      onSave(payload);
+      return;
+    }
     onSave(formData);
   };
 
@@ -676,7 +683,7 @@ function ModalUtilisateur({ utilisateur, modeCreation, onSave, onCancel }: Modal
                 setFormData((prev) => ({
                   ...prev,
                   role: prochainRole,
-                  ...(prochainRole === "inspecteur" || prochainRole === "aneti"
+                  ...(prochainRole === "inspecteur"
                     ? {}
                     : {
                         gouvernorat: "",
@@ -694,19 +701,27 @@ function ModalUtilisateur({ utilisateur, modeCreation, onSave, onCancel }: Modal
             </select>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-            <select
-              value={formData.statut}
-              onChange={(event) => setFormData((prev) => ({ ...prev, statut: event.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="actif">Active</option>
-              <option value="inactif">Inactive</option>
-              <option value="en_attente">Pending</option>
-              <option value="suspendu">Suspended</option>
-            </select>
-          </div>
+          {!roleInvitation && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+              <select
+                value={formData.statut}
+                onChange={(event) => setFormData((prev) => ({ ...prev, statut: event.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="actif">Active</option>
+                <option value="inactif">Inactive</option>
+                <option value="en_attente">Pending</option>
+                <option value="suspendu">Suspended</option>
+              </select>
+            </div>
+          )}
+
+          {roleInvitation && (
+            <div className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+              Le compte sera cree en attente d&apos;activation. Un email sera envoye pour definir le mot de passe et activer l&apos;acces.
+            </div>
+          )}
 
           {roleInterne && (
             <div>
@@ -749,7 +764,7 @@ function ModalUtilisateur({ utilisateur, modeCreation, onSave, onCancel }: Modal
                   </option>
                 ))}
               </select>
-              <p className="mt-2 text-xs text-gray-500">La delegation est obligatoire pour les comptes Inspecteur et ANETI.</p>
+              <p className="mt-2 text-xs text-gray-500">La delegation est obligatoire pour les comptes Inspecteur.</p>
             </div>
           )}
 
@@ -777,7 +792,7 @@ function ModalUtilisateur({ utilisateur, modeCreation, onSave, onCancel }: Modal
             </div>
           )}
 
-          {modeCreation && (
+          {modeCreation && !roleInvitation && (
             <div className="rounded-md border border-purple-100 bg-purple-50 px-4 py-3 text-sm text-purple-900">
               L&apos;admin ne definit plus le mot de passe ici. Un email securise sera envoye automatiquement afin que le nouvel utilisateur puisse le choisir.
             </div>

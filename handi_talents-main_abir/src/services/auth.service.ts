@@ -317,6 +317,11 @@ export class AuthService {
       throw new ErreurApi("Utilisateur introuvable.", 404);
     }
 
+    if (user.statut === StatutUtilisateur.INACTIF) {
+      await this.utilisateurRepository.mettreAJourStatut(info.user_id as string, StatutUtilisateur.ACTIF, null);
+      return { message: "Mot de passe defini. Votre compte est maintenant actif." };
+    }
+
     return { message: "Mot de passe reinitialise." };
   }
 
