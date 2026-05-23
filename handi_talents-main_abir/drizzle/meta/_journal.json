@@ -1,0 +1,62 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1773488193411,
+      "tag": "0000_happy_proudstar",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1773611168817,
+      "tag": "0001_graceful_texas_twister",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1773612458558,
+      "tag": "0002_cheerful_gladiator",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1773614126504,
+      "tag": "0003_strong_reaper",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1773783419123,
+      "tag": "0004_lazy_shatterstar",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1774030082030,
+      "tag": "0005_flat_old_lace",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1775481843709,
+      "tag": "0006_tiresome_sheva_callister",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1777287600000,
+      "tag": "0009_add_utilisateur_gouvernorat_delegation",
+      "breakpoints": true
+    }
+  ]
+}

@@ -1,0 +1,588 @@
+{
+  "id": "edec302f-9b4d-4705-9035-fd12d752d998",
+  "prevId": "ccee2880-8db1-4bd0-b4dc-9139727dc4db",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.admin": {
+      "name": "admin",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "id_utilisateur": {
+          "name": "id_utilisateur",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "poste": {
+          "name": "poste",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "departement": {
+          "name": "departement",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "date_embauche": {
+          "name": "date_embauche",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "permissions": {
+          "name": "permissions",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "notifications_email": {
+          "name": "notifications_email",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": true
+        },
+        "notifications_sms": {
+          "name": "notifications_sms",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "admin_id_utilisateur_utilisateur_id_utilisateur_fk": {
+          "name": "admin_id_utilisateur_utilisateur_id_utilisateur_fk",
+          "tableFrom": "admin",
+          "tableTo": "utilisateur",
+          "columnsFrom": [
+            "id_utilisateur"
+          ],
+          "columnsTo": [
+            "id_utilisateur"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "admin_id_utilisateur_unique": {
+          "name": "admin_id_utilisateur_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "id_utilisateur"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.candidat": {
+      "name": "candidat",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "id_utilisateur": {
+          "name": "id_utilisateur",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "type_handicap": {
+          "name": "type_handicap",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "num_carte_handicap": {
+          "name": "num_carte_handicap",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "date_expiration_carte_handicap": {
+          "name": "date_expiration_carte_handicap",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "niveau_academique": {
+          "name": "niveau_academique",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "secteur": {
+          "name": "secteur",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "type_licence": {
+          "name": "type_licence",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "preference_communication": {
+          "name": "preference_communication",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "age": {
+          "name": "age",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "competences": {
+          "name": "competences",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "experience": {
+          "name": "experience",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "formation": {
+          "name": "formation",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "handicap": {
+          "name": "handicap",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "disponibilite": {
+          "name": "disponibilite",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "salaire_souhaite": {
+          "name": "salaire_souhaite",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cv_url": {
+          "name": "cv_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "candidat_id_utilisateur_utilisateur_id_utilisateur_fk": {
+          "name": "candidat_id_utilisateur_utilisateur_id_utilisateur_fk",
+          "tableFrom": "candidat",
+          "tableTo": "utilisateur",
+          "columnsFrom": [
+            "id_utilisateur"
+          ],
+          "columnsTo": [
+            "id_utilisateur"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "candidat_id_utilisateur_unique": {
+          "name": "candidat_id_utilisateur_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "id_utilisateur"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.entreprise": {
+      "name": "entreprise",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "id_utilisateur": {
+          "name": "id_utilisateur",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nom_entreprise": {
+          "name": "nom_entreprise",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "patente": {
+          "name": "patente",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "rne": {
+          "name": "rne",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "statut_validation": {
+          "name": "statut_validation",
+          "type": "statut_validation_entreprise",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'invalide'"
+        },
+        "profil_publique": {
+          "name": "profil_publique",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "url_site": {
+          "name": "url_site",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "date_fondation": {
+          "name": "date_fondation",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nbr_employe": {
+          "name": "nbr_employe",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nbr_employe_handicape": {
+          "name": "nbr_employe_handicape",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "secteur_activite": {
+          "name": "secteur_activite",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "taille_entreprise": {
+          "name": "taille_entreprise",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "siret": {
+          "name": "siret",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "site_web": {
+          "name": "site_web",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "politique_handicap": {
+          "name": "politique_handicap",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "contact_rh_nom": {
+          "name": "contact_rh_nom",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "contact_rh_email": {
+          "name": "contact_rh_email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "contact_rh_telephone": {
+          "name": "contact_rh_telephone",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "entreprise_id_utilisateur_utilisateur_id_utilisateur_fk": {
+          "name": "entreprise_id_utilisateur_utilisateur_id_utilisateur_fk",
+          "tableFrom": "entreprise",
+          "tableTo": "utilisateur",
+          "columnsFrom": [
+            "id_utilisateur"
+          ],
+          "columnsTo": [
+            "id_utilisateur"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "entreprise_id_utilisateur_unique": {
+          "name": "entreprise_id_utilisateur_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "id_utilisateur"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.utilisateur": {
+      "name": "utilisateur",
+      "schema": "",
+      "columns": {
+        "id_utilisateur": {
+          "name": "id_utilisateur",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "nom": {
+          "name": "nom",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "mdp": {
+          "name": "mdp",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "telephone": {
+          "name": "telephone",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "addresse": {
+          "name": "addresse",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "statut": {
+          "name": "statut",
+          "type": "statut_utilisateur",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'en_attente'"
+        },
+        "role": {
+          "name": "role",
+          "type": "role_utilisateur",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "genre": {
+          "name": "genre",
+          "type": "genre_utilisateur",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "token_activation": {
+          "name": "token_activation",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "utilisateur_email_unique": {
+          "name": "utilisateur_email_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "email"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {
+    "public.statut_validation_entreprise": {
+      "name": "statut_validation_entreprise",
+      "schema": "public",
+      "values": [
+        "valide",
+        "invalide"
+      ]
+    },
+    "public.genre_utilisateur": {
+      "name": "genre_utilisateur",
+      "schema": "public",
+      "values": [
+        "homme",
+        "femme"
+      ]
+    },
+    "public.role_utilisateur": {
+      "name": "role_utilisateur",
+      "schema": "public",
+      "values": [
+        "admin",
+        "aneti",
+        "inspecteur",
+        "candidat",
+        "entreprise"
+      ]
+    },
+    "public.statut_utilisateur": {
+      "name": "statut_utilisateur",
+      "schema": "public",
+      "values": [
+        "en_attente",
+        "approuve",
+        "actif",
+        "refuse"
+      ]
+    }
+  },
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

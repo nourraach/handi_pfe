@@ -1,0 +1,1800 @@
+{
+  "id": "26c9840e-0858-4a8f-89ae-806db66ac108",
+  "prevId": "cf78cd7a-99e6-45eb-8782-2a6d4be43652",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.admin": {
+      "name": "admin",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "id_utilisateur": {
+          "name": "id_utilisateur",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "poste": {
+          "name": "poste",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "departement": {
+          "name": "departement",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "date_embauche": {
+          "name": "date_embauche",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "permissions": {
+          "name": "permissions",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "notifications_email": {
+          "name": "notifications_email",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": true
+        },
+        "notifications_sms": {
+          "name": "notifications_sms",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "admin_id_utilisateur_utilisateur_id_utilisateur_fk": {
+          "name": "admin_id_utilisateur_utilisateur_id_utilisateur_fk",
+          "tableFrom": "admin",
+          "tableTo": "utilisateur",
+          "columnsFrom": [
+            "id_utilisateur"
+          ],
+          "columnsTo": [
+            "id_utilisateur"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "admin_id_utilisateur_unique": {
+          "name": "admin_id_utilisateur_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "id_utilisateur"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.audit_actions_admin": {
+      "name": "audit_actions_admin",
+      "schema": "",
+      "columns": {
+        "id_action": {
+          "name": "id_action",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "admin_id": {
+          "name": "admin_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "utilisateur_cible_id": {
+          "name": "utilisateur_cible_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "type_action": {
+          "name": "type_action",
+          "type": "type_action",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "anciennes_valeurs": {
+          "name": "anciennes_valeurs",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "nouvelles_valeurs": {
+          "name": "nouvelles_valeurs",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "commentaire": {
+          "name": "commentaire",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "date_action": {
+          "name": "date_action",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "audit_actions_admin_admin_id_utilisateur_id_utilisateur_fk": {
+          "name": "audit_actions_admin_admin_id_utilisateur_id_utilisateur_fk",
+          "tableFrom": "audit_actions_admin",
+          "tableTo": "utilisateur",
+          "columnsFrom": [
+            "admin_id"
+          ],
+          "columnsTo": [
+            "id_utilisateur"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "audit_actions_admin_utilisateur_cible_id_utilisateur_id_utilisateur_fk": {
+          "name": "audit_actions_admin_utilisateur_cible_id_utilisateur_id_utilisateur_fk",
+          "tableFrom": "audit_actions_admin",
+          "tableTo": "utilisateur",
+          "columnsFrom": [
+            "utilisateur_cible_id"
+          ],
+          "columnsTo": [
+            "id_utilisateur"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.candidat": {
+      "name": "candidat",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "id_utilisateur": {
+          "name": "id_utilisateur",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "type_handicap": {
+          "name": "type_handicap",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "num_carte_handicap": {
+          "name": "num_carte_handicap",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "date_expiration_carte_handicap": {
+          "name": "date_expiration_carte_handicap",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "niveau_academique": {
+          "name": "niveau_academique",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "secteur": {
+          "name": "secteur",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "type_licence": {
+          "name": "type_licence",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "preference_communication": {
+          "name": "preference_communication",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "age": {
+          "name": "age",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "competences": {
+          "name": "competences",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "experience": {
+          "name": "experience",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "formation": {
+          "name": "formation",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "handicap": {
+          "name": "handicap",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "disponibilite": {
+          "name": "disponibilite",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "salaire_souhaite": {
+          "name": "salaire_souhaite",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cv_url": {
+          "name": "cv_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "candidat_id_utilisateur_utilisateur_id_utilisateur_fk": {
+          "name": "candidat_id_utilisateur_utilisateur_id_utilisateur_fk",
+          "tableFrom": "candidat",
+          "tableTo": "utilisateur",
+          "columnsFrom": [
+            "id_utilisateur"
+          ],
+          "columnsTo": [
+            "id_utilisateur"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "candidat_id_utilisateur_unique": {
+          "name": "candidat_id_utilisateur_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "id_utilisateur"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.candidature": {
+      "name": "candidature",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "id_candidat": {
+          "name": "id_candidat",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "id_offre": {
+          "name": "id_offre",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "date_postulation": {
+          "name": "date_postulation",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "statut": {
+          "name": "statut",
+          "type": "statut_candidature",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'pending'"
+        },
+        "motif_refus": {
+          "name": "motif_refus",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "score_test": {
+          "name": "score_test",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "lettre_motivation": {
+          "name": "lettre_motivation",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cv_url": {
+          "name": "cv_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "notes_entreprise": {
+          "name": "notes_entreprise",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "candidature_id_candidat_candidat_id_fk": {
+          "name": "candidature_id_candidat_candidat_id_fk",
+          "tableFrom": "candidature",
+          "tableTo": "candidat",
+          "columnsFrom": [
+            "id_candidat"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "candidature_id_offre_offre_emploi_id_fk": {
+          "name": "candidature_id_offre_offre_emploi_id_fk",
+          "tableFrom": "candidature",
+          "tableTo": "offre_emploi",
+          "columnsFrom": [
+            "id_offre"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.critere_eligibilite": {
+      "name": "critere_eligibilite",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "id_offre": {
+          "name": "id_offre",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "type_critere": {
+          "name": "type_critere",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "valeur_requise": {
+          "name": "valeur_requise",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "niveau_minimum": {
+          "name": "niveau_minimum",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "obligatoire": {
+          "name": "obligatoire",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "critere_eligibilite_id_offre_offre_emploi_id_fk": {
+          "name": "critere_eligibilite_id_offre_offre_emploi_id_fk",
+          "tableFrom": "critere_eligibilite",
+          "tableTo": "offre_emploi",
+          "columnsFrom": [
+            "id_offre"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.entreprise": {
+      "name": "entreprise",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "id_utilisateur": {
+          "name": "id_utilisateur",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nom_entreprise": {
+          "name": "nom_entreprise",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "patente": {
+          "name": "patente",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "rne": {
+          "name": "rne",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "statut_validation": {
+          "name": "statut_validation",
+          "type": "statut_validation_entreprise",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'invalide'"
+        },
+        "profil_publique": {
+          "name": "profil_publique",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "url_site": {
+          "name": "url_site",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "date_fondation": {
+          "name": "date_fondation",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nbr_employe": {
+          "name": "nbr_employe",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nbr_employe_handicape": {
+          "name": "nbr_employe_handicape",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "secteur_activite": {
+          "name": "secteur_activite",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "taille_entreprise": {
+          "name": "taille_entreprise",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "siret": {
+          "name": "siret",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "site_web": {
+          "name": "site_web",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "politique_handicap": {
+          "name": "politique_handicap",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "contact_rh_nom": {
+          "name": "contact_rh_nom",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "contact_rh_email": {
+          "name": "contact_rh_email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "contact_rh_telephone": {
+          "name": "contact_rh_telephone",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "entreprise_id_utilisateur_utilisateur_id_utilisateur_fk": {
+          "name": "entreprise_id_utilisateur_utilisateur_id_utilisateur_fk",
+          "tableFrom": "entreprise",
+          "tableTo": "utilisateur",
+          "columnsFrom": [
+            "id_utilisateur"
+          ],
+          "columnsTo": [
+            "id_utilisateur"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "entreprise_id_utilisateur_unique": {
+          "name": "entreprise_id_utilisateur_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "id_utilisateur"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.entretien": {
+      "name": "entretien",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "id_candidature": {
+          "name": "id_candidature",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "date_heure": {
+          "name": "date_heure",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "type": {
+          "name": "type",
+          "type": "type_entretien",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "lieu_visio": {
+          "name": "lieu_visio",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "lieu": {
+          "name": "lieu",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "statut": {
+          "name": "statut",
+          "type": "statut_entretien",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'planifie'"
+        },
+        "notes": {
+          "name": "notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "duree_prevue": {
+          "name": "duree_prevue",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "contact_entreprise": {
+          "name": "contact_entreprise",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "entretien_id_candidature_candidature_id_fk": {
+          "name": "entretien_id_candidature_candidature_id_fk",
+          "tableFrom": "entretien",
+          "tableTo": "candidature",
+          "columnsFrom": [
+            "id_candidature"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.favoris": {
+      "name": "favoris",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "id_candidat": {
+          "name": "id_candidat",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "id_offre": {
+          "name": "id_offre",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "favoris_id_candidat_candidat_id_fk": {
+          "name": "favoris_id_candidat_candidat_id_fk",
+          "tableFrom": "favoris",
+          "tableTo": "candidat",
+          "columnsFrom": [
+            "id_candidat"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "favoris_id_offre_offre_emploi_id_fk": {
+          "name": "favoris_id_offre_offre_emploi_id_fk",
+          "tableFrom": "favoris",
+          "tableTo": "offre_emploi",
+          "columnsFrom": [
+            "id_offre"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.utilisateur": {
+      "name": "utilisateur",
+      "schema": "",
+      "columns": {
+        "id_utilisateur": {
+          "name": "id_utilisateur",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "nom": {
+          "name": "nom",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "mdp": {
+          "name": "mdp",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "telephone": {
+          "name": "telephone",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "addresse": {
+          "name": "addresse",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "statut": {
+          "name": "statut",
+          "type": "statut_utilisateur",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'en_attente'"
+        },
+        "role": {
+          "name": "role",
+          "type": "role_utilisateur",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "genre": {
+          "name": "genre",
+          "type": "genre_utilisateur",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "token_activation": {
+          "name": "token_activation",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "derniere_connexion": {
+          "name": "derniere_connexion",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "profil_complete": {
+          "name": "profil_complete",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "utilisateur_email_unique": {
+          "name": "utilisateur_email_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "email"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.option_reponse": {
+      "name": "option_reponse",
+      "schema": "",
+      "columns": {
+        "id_option": {
+          "name": "id_option",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "id_question": {
+          "name": "id_question",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "texte_option": {
+          "name": "texte_option",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "est_correcte": {
+          "name": "est_correcte",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "score_option": {
+          "name": "score_option",
+          "type": "numeric(5, 2)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'0'"
+        },
+        "ordre": {
+          "name": "ordre",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "option_reponse_id_question_question_id_question_fk": {
+          "name": "option_reponse_id_question_question_id_question_fk",
+          "tableFrom": "option_reponse",
+          "tableTo": "question",
+          "columnsFrom": [
+            "id_question"
+          ],
+          "columnsTo": [
+            "id_question"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.question": {
+      "name": "question",
+      "schema": "",
+      "columns": {
+        "id_question": {
+          "name": "id_question",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "id_test": {
+          "name": "id_test",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "contenu_question": {
+          "name": "contenu_question",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "type_question": {
+          "name": "type_question",
+          "type": "type_question",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "score_question": {
+          "name": "score_question",
+          "type": "numeric(5, 2)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "ordre": {
+          "name": "ordre",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "obligatoire": {
+          "name": "obligatoire",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "question_id_test_test_psychologique_id_test_fk": {
+          "name": "question_id_test_test_psychologique_id_test_fk",
+          "tableFrom": "question",
+          "tableTo": "test_psychologique",
+          "columnsFrom": [
+            "id_test"
+          ],
+          "columnsTo": [
+            "id_test"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.resultat_test": {
+      "name": "resultat_test",
+      "schema": "",
+      "columns": {
+        "id_resultat": {
+          "name": "id_resultat",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "id_test": {
+          "name": "id_test",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "id_candidat": {
+          "name": "id_candidat",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "score_obtenu": {
+          "name": "score_obtenu",
+          "type": "numeric(5, 2)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "pourcentage": {
+          "name": "pourcentage",
+          "type": "numeric(5, 2)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "temps_passe_minutes": {
+          "name": "temps_passe_minutes",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "est_visible": {
+          "name": "est_visible",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": true
+        },
+        "date_passage": {
+          "name": "date_passage",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "reponses": {
+          "name": "reponses",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "resultat_test_id_test_test_psychologique_id_test_fk": {
+          "name": "resultat_test_id_test_test_psychologique_id_test_fk",
+          "tableFrom": "resultat_test",
+          "tableTo": "test_psychologique",
+          "columnsFrom": [
+            "id_test"
+          ],
+          "columnsTo": [
+            "id_test"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "resultat_test_id_candidat_candidat_id_utilisateur_fk": {
+          "name": "resultat_test_id_candidat_candidat_id_utilisateur_fk",
+          "tableFrom": "resultat_test",
+          "tableTo": "candidat",
+          "columnsFrom": [
+            "id_candidat"
+          ],
+          "columnsTo": [
+            "id_utilisateur"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.tentative_test": {
+      "name": "tentative_test",
+      "schema": "",
+      "columns": {
+        "id_tentative": {
+          "name": "id_tentative",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "id_test": {
+          "name": "id_test",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "id_candidat": {
+          "name": "id_candidat",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "date_tentative": {
+          "name": "date_tentative",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "est_termine": {
+          "name": "est_termine",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "date_debut": {
+          "name": "date_debut",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "date_fin": {
+          "name": "date_fin",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "tentative_test_id_test_test_psychologique_id_test_fk": {
+          "name": "tentative_test_id_test_test_psychologique_id_test_fk",
+          "tableFrom": "tentative_test",
+          "tableTo": "test_psychologique",
+          "columnsFrom": [
+            "id_test"
+          ],
+          "columnsTo": [
+            "id_test"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "tentative_test_id_candidat_candidat_id_utilisateur_fk": {
+          "name": "tentative_test_id_candidat_candidat_id_utilisateur_fk",
+          "tableFrom": "tentative_test",
+          "tableTo": "candidat",
+          "columnsFrom": [
+            "id_candidat"
+          ],
+          "columnsTo": [
+            "id_utilisateur"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.test_psychologique": {
+      "name": "test_psychologique",
+      "schema": "",
+      "columns": {
+        "id_test": {
+          "name": "id_test",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "titre": {
+          "name": "titre",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "type_test": {
+          "name": "type_test",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "score_total": {
+          "name": "score_total",
+          "type": "numeric(5, 2)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "duree_minutes": {
+          "name": "duree_minutes",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "statut": {
+          "name": "statut",
+          "type": "statut_test",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'actif'"
+        },
+        "date_debut_validite": {
+          "name": "date_debut_validite",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "date_fin_validite": {
+          "name": "date_fin_validite",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "instructions": {
+          "name": "instructions",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "test_psychologique_created_by_utilisateur_id_utilisateur_fk": {
+          "name": "test_psychologique_created_by_utilisateur_id_utilisateur_fk",
+          "tableFrom": "test_psychologique",
+          "tableTo": "utilisateur",
+          "columnsFrom": [
+            "created_by"
+          ],
+          "columnsTo": [
+            "id_utilisateur"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.offre_emploi": {
+      "name": "offre_emploi",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "id_entreprise": {
+          "name": "id_entreprise",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "titre": {
+          "name": "titre",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "localisation": {
+          "name": "localisation",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "type_poste": {
+          "name": "type_poste",
+          "type": "type_poste",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "salaire_min": {
+          "name": "salaire_min",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "salaire_max": {
+          "name": "salaire_max",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "competences_requises": {
+          "name": "competences_requises",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "experience_requise": {
+          "name": "experience_requise",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "niveau_etude": {
+          "name": "niveau_etude",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "statut": {
+          "name": "statut",
+          "type": "statut_offre",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'active'"
+        },
+        "date_limite": {
+          "name": "date_limite",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "accessibilite_handicap": {
+          "name": "accessibilite_handicap",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": true
+        },
+        "amenagements_possibles": {
+          "name": "amenagements_possibles",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "offre_emploi_id_entreprise_entreprise_id_fk": {
+          "name": "offre_emploi_id_entreprise_entreprise_id_fk",
+          "tableFrom": "offre_emploi",
+          "tableTo": "entreprise",
+          "columnsFrom": [
+            "id_entreprise"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.notification": {
+      "name": "notification",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "id_utilisateur": {
+          "name": "id_utilisateur",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "type": {
+          "name": "type",
+          "type": "type_notification",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "titre": {
+          "name": "titre",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "message": {
+          "name": "message",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "lu": {
+          "name": "lu",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "data": {
+          "name": "data",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "notification_id_utilisateur_utilisateur_id_utilisateur_fk": {
+          "name": "notification_id_utilisateur_utilisateur_id_utilisateur_fk",
+          "tableFrom": "notification",
+          "tableTo": "utilisateur",
+          "columnsFrom": [
+            "id_utilisateur"
+          ],
+          "columnsTo": [
+            "id_utilisateur"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {
+    "public.type_action": {
+      "name": "type_action",
+      "schema": "public",
+      "values": [
+        "creation",
+        "modification",
+        "suppression",
+        "changement_statut",
+        "reset_password"
+      ]
+    },
+    "public.statut_candidature": {
+      "name": "statut_candidature",
+      "schema": "public",
+      "values": [
+        "pending",
+        "shortlisted",
+        "interview_scheduled",
+        "rejected",
+        "accepted"
+      ]
+    },
+    "public.statut_validation_entreprise": {
+      "name": "statut_validation_entreprise",
+      "schema": "public",
+      "values": [
+        "valide",
+        "invalide"
+      ]
+    },
+    "public.statut_entretien": {
+      "name": "statut_entretien",
+      "schema": "public",
+      "values": [
+        "planifie",
+        "confirme",
+        "reporte",
+        "annule",
+        "termine"
+      ]
+    },
+    "public.type_entretien": {
+      "name": "type_entretien",
+      "schema": "public",
+      "values": [
+        "visio",
+        "presentiel",
+        "telephonique"
+      ]
+    },
+    "public.genre_utilisateur": {
+      "name": "genre_utilisateur",
+      "schema": "public",
+      "values": [
+        "homme",
+        "femme"
+      ]
+    },
+    "public.role_utilisateur": {
+      "name": "role_utilisateur",
+      "schema": "public",
+      "values": [
+        "admin",
+        "aneti",
+        "inspecteur",
+        "candidat",
+        "entreprise"
+      ]
+    },
+    "public.statut_utilisateur": {
+      "name": "statut_utilisateur",
+      "schema": "public",
+      "values": [
+        "en_attente",
+        "approuve",
+        "actif",
+        "refuse",
+        "suspendu",
+        "inactif"
+      ]
+    },
+    "public.statut_test": {
+      "name": "statut_test",
+      "schema": "public",
+      "values": [
+        "actif",
+        "inactif",
+        "archive"
+      ]
+    },
+    "public.type_question": {
+      "name": "type_question",
+      "schema": "public",
+      "values": [
+        "choix_multiple",
+        "vrai_faux",
+        "echelle_likert",
+        "texte_libre"
+      ]
+    },
+    "public.statut_offre": {
+      "name": "statut_offre",
+      "schema": "public",
+      "values": [
+        "active",
+        "inactive",
+        "pourvue",
+        "expiree"
+      ]
+    },
+    "public.type_poste": {
+      "name": "type_poste",
+      "schema": "public",
+      "values": [
+        "cdi",
+        "cdd",
+        "stage",
+        "freelance",
+        "temps_partiel",
+        "temps_plein"
+      ]
+    },
+    "public.type_notification": {
+      "name": "type_notification",
+      "schema": "public",
+      "values": [
+        "candidature_status_change",
+        "interview_scheduled",
+        "new_message",
+        "offre_favorite_updated",
+        "system"
+      ]
+    }
+  },
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

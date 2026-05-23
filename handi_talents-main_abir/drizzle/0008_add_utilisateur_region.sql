@@ -1,0 +1,2 @@
+ALTER TABLE utilisateur
+  ADD COLUMN IF NOT EXISTS region TEXT;
