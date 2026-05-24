@@ -1834,18 +1834,26 @@ function CandidateHome({
         className="relative overflow-hidden rounded-[34px] border border-[#e9e2f7] bg-white p-6 shadow-[0_24px_80px_-35px_rgba(53,6,62,0.35)] lg:p-10"
       >
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_86%_26%,rgba(165,130,248,0.14),transparent_40%)]" />
-        <div className="relative grid items-center gap-8 lg:grid-cols-12">
+
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-[62%] overflow-hidden rounded-r-[34px]" aria-hidden="true">
+          <Image
+            src="/uploads/candidate-hero-futuristic.png"
+            alt=""
+            width={1536}
+            height={1024}
+            className="h-full w-full object-cover object-[66%_50%]"
+            priority
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-white via-white/42 to-[#6a39ce]/16" />
+        </div>
+
+        <div className="relative min-h-[440px] lg:min-h-[460px]">
           <motion.div
             initial={{ opacity: 0, x: -24 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, delay: 0.08 }}
-            className="space-y-6 lg:col-span-5"
+            className="relative z-10 max-w-[46%] space-y-5 pt-8"
           >
-            <span className="inline-flex items-center gap-2 rounded-full border border-[#d8caf6] bg-white/80 px-4 py-1 text-xs font-medium tracking-[0.08em] text-[#5f3a8a] backdrop-blur">
-              <Sparkles className="h-3.5 w-3.5" />
-              Votre avenir, sans limites
-            </span>
-
             <div className="space-y-4">
               <p className="text-sm font-medium text-[#6d5a86]">Bienvenue, {firstName}</p>
               <h1
@@ -1877,89 +1885,49 @@ function CandidateHome({
                 Compléter mon profil
               </ButtonLink>
             </div>
-
-            <div className="flex items-center gap-3 text-sm text-[#5e4e79]" style={{ fontFamily: "IBM Plex Sans, sans-serif" }}>
-              <div className="flex -space-x-2">
-                {["A", "N", "E", "T"].map((label, idx) => (
-                  <span
-                    key={`${label}-${idx}`}
-                    className="grid h-8 w-8 place-items-center rounded-full border-2 border-white bg-gradient-to-br from-[#9f6dff] to-[#35063E] text-xs font-semibold text-white"
-                  >
-                    {label}
-                  </span>
-                ))}
-              </div>
-              <span>+120 entreprises inclusives vous attendent</span>
-            </div>
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0, x: 24 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.62, delay: 0.14 }}
-            className="relative lg:col-span-7"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, delay: 0.45 }}
+            className="absolute left-[50%] top-6 rounded-2xl border border-white/50 bg-white/60 px-4 py-3 text-[#2b1a43] shadow-[0_14px_35px_-22px_rgba(53,6,62,0.8)] backdrop-blur-xl"
           >
-            <div className="relative mx-auto max-w-[860px] overflow-hidden rounded-[28px] lg:rounded-[34px]">
-              <div className="pointer-events-none absolute -inset-8 bg-gradient-to-tr from-[#7d49cf]/20 via-[#d8caf6]/10 to-[#84b7ff]/12 blur-3xl" />
-              <Image
-                src="/uploads/candidate-hero-futuristic.png"
-                alt="Professionnel en fauteuil roulant utilisant une tablette dans un espace de travail moderne"
-                width={1536}
-                height={1024}
-                className="h-[360px] w-full object-cover object-[66%_50%] sm:h-[430px] lg:h-[500px]"
-                style={{
-                  maskImage:
-                    "linear-gradient(to left, rgba(0,0,0,1) 58%, rgba(0,0,0,0.68) 74%, rgba(0,0,0,0.15) 92%, rgba(0,0,0,0) 100%)",
-                  WebkitMaskImage:
-                    "linear-gradient(to left, rgba(0,0,0,1) 58%, rgba(0,0,0,0.68) 74%, rgba(0,0,0,0.15) 92%, rgba(0,0,0,0) 100%)",
-                }}
-                priority
-              />
-              <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#f8f4ff] via-transparent to-[#6a39ce]/12" />
+            <p className="text-[10px] uppercase tracking-[0.08em] text-[#6c5c89]">Entretiens à venir</p>
+            <p className="text-[25px] font-semibold leading-none">2</p>
+            <p className="mt-1 text-[11px] text-[#74668e]">Voir le calendrier</p>
+          </motion.div>
 
-              <motion.div
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.45, delay: 0.45 }}
-                className="absolute left-6 top-4 rounded-2xl border border-white/50 bg-white/60 px-4 py-3 text-[#2b1a43] shadow-[0_14px_35px_-22px_rgba(53,6,62,0.8)] backdrop-blur-xl lg:left-10 lg:top-6"
-              >
-                <p className="text-[10px] uppercase tracking-[0.08em] text-[#6c5c89]">Entretiens à venir</p>
-                <p className="text-[25px] font-semibold leading-none">2</p>
-                <p className="mt-1 text-[11px] text-[#74668e]">Voir le calendrier</p>
-              </motion.div>
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, delay: 0.52 }}
+            className="absolute right-6 top-16 rounded-2xl border border-white/50 bg-white/65 px-4 py-3 text-[#2b1a43] shadow-[0_14px_35px_-22px_rgba(53,6,62,0.8)] backdrop-blur-xl"
+          >
+            <p className="text-[10px] uppercase tracking-[0.08em] text-[#6c5c89]">Profil complété</p>
+            <p className="text-[26px] font-semibold leading-none">92%</p>
+            <p className="mt-1 text-[11px] text-[#74668e]">Excellent</p>
+          </motion.div>
 
-              <motion.div
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.45, delay: 0.52 }}
-                className="absolute right-4 top-14 rounded-2xl border border-white/50 bg-white/65 px-4 py-3 text-[#2b1a43] shadow-[0_14px_35px_-22px_rgba(53,6,62,0.8)] backdrop-blur-xl lg:right-7 lg:top-16"
-              >
-                <p className="text-[10px] uppercase tracking-[0.08em] text-[#6c5c89]">Profil complété</p>
-                <p className="text-[26px] font-semibold leading-none">92%</p>
-                <p className="mt-1 text-[11px] text-[#74668e]">Excellent</p>
-              </motion.div>
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, delay: 0.6 }}
+            className="absolute left-[50%] top-[46%] rounded-2xl border border-white/50 bg-white/60 px-4 py-3 text-[#2b1a43] shadow-[0_14px_35px_-22px_rgba(53,6,62,0.8)] backdrop-blur-xl"
+          >
+            <p className="text-[10px] uppercase tracking-[0.08em] text-[#6c5c89]">Offres adaptées</p>
+            <p className="text-[25px] font-semibold leading-none">24</p>
+            <p className="mt-1 text-[11px] text-[#74668e]">Nouvelles offres</p>
+          </motion.div>
 
-              <motion.div
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.45, delay: 0.6 }}
-                className="absolute left-6 top-[43%] rounded-2xl border border-white/50 bg-white/60 px-4 py-3 text-[#2b1a43] shadow-[0_14px_35px_-22px_rgba(53,6,62,0.8)] backdrop-blur-xl lg:left-9 lg:top-[45%]"
-              >
-                <p className="text-[10px] uppercase tracking-[0.08em] text-[#6c5c89]">Offres adaptées</p>
-                <p className="text-[25px] font-semibold leading-none">24</p>
-                <p className="mt-1 text-[11px] text-[#74668e]">Nouvelles offres</p>
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.45, delay: 0.66 }}
-                className="absolute bottom-8 right-4 flex items-center gap-2 rounded-2xl border border-white/50 bg-white/62 px-4 py-2.5 text-[#2b1a43] shadow-[0_14px_35px_-22px_rgba(53,6,62,0.8)] backdrop-blur-xl lg:right-7 lg:bottom-10"
-              >
-                <ShieldCheck className="h-4 w-4 text-[#6f4bb6]" />
-                <p className="text-sm font-semibold">Accessibilité activée</p>
-              </motion.div>
-            </div>
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, delay: 0.66 }}
+            className="absolute bottom-10 right-7 flex items-center gap-2 rounded-2xl border border-white/50 bg-white/62 px-4 py-2.5 text-[#2b1a43] shadow-[0_14px_35px_-22px_rgba(53,6,62,0.8)] backdrop-blur-xl"
+          >
+            <ShieldCheck className="h-4 w-4 text-[#6f4bb6]" />
+            <p className="text-sm font-semibold">Accessibilité activée</p>
           </motion.div>
         </div>
       </motion.section>

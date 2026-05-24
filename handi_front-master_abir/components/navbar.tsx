@@ -222,7 +222,7 @@ export function Navbar({
   const [candidateProfilePhoto, setCandidateProfilePhoto] = useState<string | null>(null);
   const [navigationMenuOuvert, setNavigationMenuOuvert] = useState<string | null>(null);
   const [keyboardBuffer, setKeyboardBuffer] = useState("");
-  const [keyboardGuideVisible, setKeyboardGuideVisible] = useState(true);
+  const [keyboardGuideVisible, setKeyboardGuideVisible] = useState(false);
   const headerRef = useRef<HTMLElement | null>(null);
   const profileShellRef = useRef<HTMLDivElement | null>(null);
   const keyboardBufferTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -375,10 +375,8 @@ export function Navbar({
 
   const candidateSidebarItems = useMemo<CandidateSidebarItem[]>(
     () => [
-      { id: "home", label: "Accueil", subtitle: "Tableau de bord", icon: "dashboard", href: "/home" },
       { id: "jobs", label: "Offres d'emploi", subtitle: "Recherche", icon: "applications", href: "/offres" },
       { id: "applications", label: "Candidatures", subtitle: "Suivi", icon: "applications", href: "/candidat/candidatures" },
-      { id: "profile-settings", label: "Profil & Parametres", subtitle: "Compte", icon: "profile", href: "/profil" },
       { id: "tests", label: "Tests & evaluations", subtitle: "Progression", icon: "tests", href: "/candidat/tests-psychologiques" },
       { id: "cv", label: "CV Builder", subtitle: "Documents", icon: "cv", href: "/candidat/cv" },
       { id: "messages", label: "Messagerie", subtitle: "Inbox", icon: "messages", href: "/messages", badgeCount: notificationsNonLues },

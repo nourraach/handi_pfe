@@ -1,7 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState, type CSSProperties } from "react";
-import { triggerAccessibilityPanel } from "@/components/accessibility-widget";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useI18n } from "@/components/i18n-provider";
 import { PassageTest } from "@/components/passage-test";
 import { RouteProtegee } from "@/components/route-protegee";
@@ -55,9 +54,26 @@ type TestEnCours = {
   }>;
 };
 
-type FilterKey = "all" | "recommended" | "short" | "easy" | "accessible";
+type FilterKey = "all" | "pending" | "in_progress" | "completed" | "recommended";
 type Difficulty = "easy" | "medium" | "hard";
-type IconName = "users" | "code" | "chart" | "brain" | "spark" | "clock" | "accessibility" | "calendar" | "check" | "eye" | "eyeOff";
+type IconName =
+  | "users"
+  | "code"
+  | "chart"
+  | "brain"
+  | "spark"
+  | "clock"
+  | "accessibility"
+  | "calendar"
+  | "check"
+  | "eye"
+  | "eyeOff"
+  | "bookmark"
+  | "question"
+  | "search"
+  | "star"
+  | "filter"
+  | "more";
 
 type EnhancedTest = TestDisponible & {
   duration: number;
@@ -78,10 +94,7 @@ type EnhancedResult = Resultat & {
   visible: boolean;
 };
 
-const RESULTAT_UUID_REGEX =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const TESTS_PER_PAGE = 4;
-const RESULTS_PER_PAGE = 5;
+const TESTS_PER_PAGE = 6;
 
 function toNumber(value: unknown) {
   const parsed = Number(value);
@@ -162,12 +175,6 @@ function describeTest(
   };
 }
 
-function getScoreRingColor(score: number) {
-  if (score >= 80) return "#6d2a95";
-  if (score >= 50) return "#22a06b";
-  return "#f59e0b";
-}
-
 function getDifficultyClass(difficulty: Difficulty) {
   if (difficulty === "easy") return "is-easy";
   if (difficulty === "hard") return "is-hard";
@@ -191,10 +198,9 @@ function CandidateAssessmentsPage() {
   const [resultats, setResultats] = useState<Resultat[]>([]);
   const [testEnCours, setTestEnCours] = useState<TestEnCours | null>(null);
   const [testDemarrageId, setTestDemarrageId] = useState<string | null>(null);
-  const [visibiliteResultatId, setVisibiliteResultatId] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState<FilterKey>("all");
+  const [searchQuery, setSearchQuery] = useState("");
   const [testsPage, setTestsPage] = useState(1);
-  const [resultsPage, setResultsPage] = useState(1);
 
   const localeCode = locale === "ar" ? "ar-TN" : locale === "en" ? "en-US" : "fr-FR";
   const dateFormatter = useMemo(
@@ -209,13 +215,13 @@ function CandidateAssessmentsPage() {
 
   const filters: Array<{ key: FilterKey; label: string }> = useMemo(
     () => [
-      { key: "all", label: t("assessments.candidate.dashboard.filters.all") },
-      { key: "recommended", label: t("assessments.candidate.dashboard.filters.recommended") },
-      { key: "short", label: t("assessments.candidate.dashboard.filters.short") },
-      { key: "easy", label: t("assessments.candidate.dashboard.filters.easy") },
-      { key: "accessible", label: t("assessments.candidate.dashboard.filters.accessible") },
+      { key: "all", label: "Tous" },
+      { key: "pending", label: "A passer" },
+      { key: "in_progress", label: "En cours" },
+      { key: "completed", label: "Completes" },
+      { key: "recommended", label: "Recommandes" },
     ],
-    [t],
+    [],
   );
 
   const charger = useCallback(async () => {
@@ -309,39 +315,44 @@ function CandidateAssessmentsPage() {
       });
   }, [dateFormatter, resultats, t]);
 
+  const latestResultByTestId = useMemo(() => {
+    const map = new Map<string, EnhancedResult>();
+    for (const result of results) {
+      const testId = result.test?.id_test;
+      if (!testId || map.has(testId)) continue;
+      map.set(testId, result);
+    }
+    return map;
+  }, [results]);
+
   const filteredTests = useMemo(() => {
     return tests.filter((test) => {
+      const haystack = `${test.titre || ""} ${test.summary || ""} ${test.description || ""} ${test.type_test || ""}`.toLowerCase();
+      const normalizedQuery = searchQuery.trim().toLowerCase();
+      const hasCompleted = Boolean(latestResultByTestId.get(test.id_test) || test.deja_passe);
+      const isInProgress = testDemarrageId === test.id_test;
+      if (normalizedQuery && !haystack.includes(normalizedQuery)) return false;
+      if (activeFilter === "pending") return !hasCompleted && !isInProgress;
+      if (activeFilter === "in_progress") return isInProgress;
+      if (activeFilter === "completed") return hasCompleted;
       if (activeFilter === "recommended") return test.recommended;
-      if (activeFilter === "short") return test.duration <= 20;
-      if (activeFilter === "easy") return test.difficulty === "easy";
-      if (activeFilter === "accessible") return test.accessible;
       return true;
     });
-  }, [activeFilter, tests]);
+  }, [activeFilter, latestResultByTestId, searchQuery, testDemarrageId, tests]);
   const testsTotalPages = Math.max(1, Math.ceil(filteredTests.length / TESTS_PER_PAGE));
-  const resultsTotalPages = Math.max(1, Math.ceil(results.length / RESULTS_PER_PAGE));
   const currentTestsPage = Math.min(testsPage, testsTotalPages);
-  const currentResultsPage = Math.min(resultsPage, resultsTotalPages);
   const visibleTests = useMemo(() => {
     const start = (currentTestsPage - 1) * TESTS_PER_PAGE;
     return filteredTests.slice(start, start + TESTS_PER_PAGE);
   }, [currentTestsPage, filteredTests]);
-  const visibleResults = useMemo(() => {
-    const start = (currentResultsPage - 1) * RESULTS_PER_PAGE;
-    return results.slice(start, start + RESULTS_PER_PAGE);
-  }, [currentResultsPage, results]);
 
   useEffect(() => {
     setTestsPage(1);
-  }, [activeFilter]);
+  }, [activeFilter, searchQuery]);
 
   useEffect(() => {
     setTestsPage((current) => Math.min(current, testsTotalPages));
   }, [testsTotalPages]);
-
-  useEffect(() => {
-    setResultsPage((current) => Math.min(current, resultsTotalPages));
-  }, [resultsTotalPages]);
 
   const commencerTest = async (idTest: string) => {
     try {
@@ -378,46 +389,6 @@ function CandidateAssessmentsPage() {
     }
   };
 
-  const toggleVisibilite = async (id: string, actuel?: boolean) => {
-    if (!RESULTAT_UUID_REGEX.test(id)) {
-      setErreur(t("assessments.candidate.updateVisibilityError"));
-      return;
-    }
-
-    try {
-      setMessage(null);
-      setErreur(null);
-      setVisibiliteResultatId(id);
-
-      const res = await authenticatedFetch(
-        construireUrlApi(`/api/tests-psychologiques/candidat/resultats/${id}/visibilite`),
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ est_visible: !actuel }),
-        },
-      );
-      const data = await res.json().catch(() => ({}));
-
-      if (!res.ok) {
-        throw new Error(data.message || t("assessments.candidate.updateVisibilityError"));
-      }
-
-      setResultats((current) =>
-        current.map((item) =>
-          item.id_resultat === id ? { ...item, est_visible: !actuel } : item,
-        ),
-      );
-      setMessage(t("assessments.candidate.updatedVisibility"));
-    } catch (error: unknown) {
-      setErreur(
-        error instanceof Error ? error.message : t("assessments.candidate.updateVisibilityError"),
-      );
-    } finally {
-      setVisibiliteResultatId(null);
-    }
-  };
-
   if (loading) {
     return (
       <main className="page-centree section-page app-theme">
@@ -448,48 +419,11 @@ function CandidateAssessmentsPage() {
   return (
     <div className="tests-page">
       <div className="tests-page__frame">
-        <header className="tests-page__header">
-          <div>
-            <h1>{t("assessments.candidate.dashboard.title")}</h1>
-            <p>{t("assessments.candidate.dashboard.subtitle")}</p>
-            <span className="tests-page__underline" aria-hidden="true" />
-          </div>
-
-          <div className="tests-page__actions">
-            <button
-              type="button"
-              className="tests-page__btn tests-page__btn--accessibility"
-              onClick={() => triggerAccessibilityPanel("open")}
-            >
-              <AppIcon name="accessibility" size={16} />
-              <span>{t("assessments.candidate.dashboard.accessibility")}</span>
-            </button>
-            <button
-              type="button"
-              className="tests-page__btn tests-page__btn--circle"
-              aria-label={t("assessments.candidate.dashboard.help")}
-            >
-              ?
-            </button>
-            <button
-              type="button"
-              className="tests-page__btn tests-page__btn--avatar"
-              aria-label={t("assessments.candidate.dashboard.profile")}
-            >
-              MD
-            </button>
-          </div>
-        </header>
-
         {erreur ? <div className="tests-page__message tests-page__message--error">{erreur}</div> : null}
         {message ? <div className="tests-page__message tests-page__message--info">{message}</div> : null}
 
-        <div className="tests-page__grid">
-          <section className="tests-page__card tests-page__card--left">
-            <div className="tests-page__card-head">
-              <h2>{t("assessments.candidate.dashboard.availableTests")}</h2>
-            </div>
-
+        <section className="tests-page__single-card">
+          <div className="tests-page__toolbar">
             <div className="tests-page__filters" role="tablist" aria-label={t("assessments.candidate.dashboard.filtersLabel")}>
               {filters.map((filter) => (
                 <button
@@ -503,160 +437,68 @@ function CandidateAssessmentsPage() {
                 </button>
               ))}
             </div>
-
-            {filteredTests.length === 0 ? (
-              <div className="tests-page__empty">
-                <strong>{t("assessments.candidate.dashboard.emptyTestsTitle")}</strong>
-                <p>{t("assessments.candidate.dashboard.emptyTestsDescription")}</p>
-              </div>
-            ) : (
-              <>
-                <div className="tests-page__list">
-                  {visibleTests.map((test) => (
-                    <TestCard
-                      key={test.id_test}
-                      test={test}
-                      t={t}
-                      isStarting={testDemarrageId === test.id_test}
-                      onStart={() => void commencerTest(test.id_test)}
-                    />
-                  ))}
-                </div>
-
-                {testsTotalPages > 1 ? (
-                  <Pagination
-                    page={currentTestsPage}
-                    totalPages={testsTotalPages}
-                    onChange={setTestsPage}
-                    t={t}
-                    ariaLabel={t("assessments.candidate.dashboard.testsPaginationLabel")}
-                  />
-                ) : null}
-              </>
-            )}
-          </section>
-
-          <aside className="tests-page__card">
-            <div className="tests-page__card-head">
-              <h2>{t("assessments.candidate.dashboard.myResults")}</h2>
+            <div className="tests-page__toolbar-actions">
+              <label className="tests-page__search" aria-label="Rechercher un test">
+                <AppIcon name="search" size={14} />
+                <input
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                  placeholder="Rechercher un test..."
+                />
+              </label>
+              <button type="button" className="tests-page__ghost">
+                <AppIcon name="filter" size={14} />
+                Filtrer
+              </button>
             </div>
+          </div>
 
-            {visibleResults.length === 0 ? (
-              <div className="tests-page__empty">
-                <strong>{t("assessments.candidate.dashboard.emptyResultsTitle")}</strong>
-                <p>{t("assessments.candidate.dashboard.emptyResultsDescription")}</p>
-              </div>
-            ) : (
-              <>
-                <div className="tests-page__list">
-                  {visibleResults.map((result) => (
-                    <ResultCard
-                      key={result.id_resultat}
-                      result={result}
-                      t={t}
-                      isUpdating={visibiliteResultatId === result.id_resultat}
-                      onToggleVisibility={() => void toggleVisibilite(result.id_resultat, result.visible)}
-                    />
-                  ))}
-                </div>
-
-                {resultsTotalPages > 1 ? (
-                  <Pagination
-                    page={currentResultsPage}
-                    totalPages={resultsTotalPages}
-                    onChange={setResultsPage}
-                    t={t}
-                    ariaLabel={t("assessments.candidate.dashboard.resultsPaginationLabel")}
+          {filteredTests.length === 0 ? (
+            <div className="tests-page__empty">
+              <strong>{t("assessments.candidate.dashboard.emptyTestsTitle")}</strong>
+              <p>{t("assessments.candidate.dashboard.emptyTestsDescription")}</p>
+            </div>
+          ) : (
+            <>
+              <div className="tests-page__list tests-page__list--single">
+                {visibleTests.map((test) => (
+                  <TestCard
+                    key={test.id_test}
+                    test={test}
+                    isStarting={testDemarrageId === test.id_test}
+                    result={latestResultByTestId.get(test.id_test)}
+                    onStart={() => void commencerTest(test.id_test)}
                   />
-                ) : null}
-              </>
-            )}
+                ))}
+              </div>
 
-          </aside>
-        </div>
+              {testsTotalPages > 1 ? (
+                <Pagination
+                  page={currentTestsPage}
+                  totalPages={testsTotalPages}
+                  onChange={setTestsPage}
+                  t={t}
+                  ariaLabel={t("assessments.candidate.dashboard.testsPaginationLabel")}
+                />
+              ) : null}
+            </>
+          )}
+        </section>
       </div>
 
       <style jsx>{`
         .tests-page {
-          min-height: 100vh;
-          background: linear-gradient(180deg, #fcfbff 0%, #f6f4fb 100%);
-          padding: 24px;
+          min-height: 100%;
+          background: transparent;
+          padding: 6px 8px 20px;
           color: #1c1637;
         }
 
         .tests-page__frame {
-          max-width: 1480px;
+          max-width: 1400px;
           margin: 0 auto;
           display: grid;
-          gap: 20px;
-        }
-
-        .tests-page__header {
-          display: flex;
-          justify-content: space-between;
-          gap: 16px;
-          align-items: flex-start;
-        }
-
-        .tests-page__header h1 {
-          margin: 0;
-          font-size: clamp(1.9rem, 2.5vw, 2.9rem);
-          line-height: 1.1;
-        }
-
-        .tests-page__header p {
-          margin: 12px 0 0;
-          color: #655d81;
-          font-size: 1.05rem;
-        }
-
-        .tests-page__underline {
-          margin-top: 14px;
-          display: block;
-          width: 36px;
-          height: 3px;
-          border-radius: 999px;
-          background: #6d2a95;
-        }
-
-        .tests-page__actions {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          flex-wrap: wrap;
-          justify-content: flex-end;
-        }
-
-        .tests-page__btn {
-          border: 1px solid #e2ddf3;
-          background: #fff;
-          color: #4f4872;
-          border-radius: 16px;
-          min-height: 46px;
-          font-weight: 700;
-          transition: all 0.2s ease;
-        }
-
-        .tests-page__btn:hover {
-          transform: translateY(-1px);
-          box-shadow: 0 10px 24px rgba(86, 48, 145, 0.12);
-        }
-
-        .tests-page__btn--accessibility {
-          padding: 0 14px;
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-        }
-
-        .tests-page__btn--circle {
-          width: 46px;
-        }
-
-        .tests-page__btn--avatar {
-          width: 46px;
-          border-radius: 50%;
-          color: #6d2a95;
+          gap: 18px;
         }
 
         .tests-page__message {
@@ -678,40 +520,61 @@ function CandidateAssessmentsPage() {
           color: #643aaf;
         }
 
-        .tests-page__grid {
-          display: grid;
-          grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-          gap: 20px;
-          align-items: stretch;
-        }
-
-        .tests-page__card {
-          background: #fff;
-          border: 1px solid rgba(109, 42, 149, 0.1);
-          border-radius: 24px;
-          padding: 18px;
-          box-shadow: 0 16px 44px rgba(80, 44, 133, 0.08);
+        .tests-page__single-card {
+          background: #ffffff;
+          border: 1px solid rgba(109, 42, 149, 0.08);
+          border-radius: 22px;
+          padding: 16px;
+          box-shadow: 0 12px 32px rgba(80, 44, 133, 0.06);
           display: flex;
           flex-direction: column;
           gap: 14px;
-          min-height: 680px;
-          height: 100%;
         }
 
-        .tests-page__card--left {
-          gap: 16px;
-        }
-
-        .tests-page__card-head {
+        .tests-page__toolbar {
           display: flex;
           align-items: center;
           justify-content: space-between;
           gap: 12px;
+          flex-wrap: nowrap;
         }
 
-        .tests-page__card-head h2 {
-          margin: 0;
-          font-size: 1.85rem;
+        .tests-page__toolbar-actions {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          margin-left: auto;
+          flex-shrink: 0;
+        }
+
+        .tests-page__list--single {
+          gap: 10px;
+        }
+
+        .tests-page__search {
+          min-width: 250px;
+          border: 1px solid #e4dcf6;
+          border-radius: 12px;
+          background: #fff;
+          color: #8577ac;
+          min-height: 40px;
+          padding: 0 12px;
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .tests-page__search input {
+          border: 0;
+          background: transparent;
+          width: 100%;
+          font-size: 0.84rem;
+          color: #5f4f8b;
+          outline: none;
+        }
+
+        .tests-page__search input::placeholder {
+          color: #8f83b3;
         }
 
         .tests-page__link {
@@ -719,13 +582,19 @@ function CandidateAssessmentsPage() {
           background: transparent;
           color: #6637b6;
           font-weight: 700;
-          font-size: 0.95rem;
+          font-size: 0.88rem;
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
         }
 
         .tests-page__filters {
           display: flex;
-          flex-wrap: wrap;
-          gap: 10px;
+          flex-wrap: nowrap;
+          gap: 8px;
+          min-width: 0;
+          overflow-x: auto;
+          padding-bottom: 2px;
         }
 
         .tests-page__filter {
@@ -733,15 +602,31 @@ function CandidateAssessmentsPage() {
           border-radius: 999px;
           background: #fff;
           color: #5b5376;
-          min-height: 38px;
-          padding: 0 16px;
+          min-height: 34px;
+          padding: 0 14px;
           font-weight: 700;
+          font-size: 0.8rem;
         }
 
         .tests-page__filter.is-active {
           color: #fff;
           border-color: transparent;
-          background: linear-gradient(135deg, #5528bd, #8b63df);
+          background: linear-gradient(135deg, #5d32d1, #7e56e7);
+        }
+
+        .tests-page__all-tests {
+          width: 100%;
+          border: 1px solid #e4dcf6;
+          background: #f6f2ff;
+          color: #3f2a77;
+          border-radius: 12px;
+          min-height: 44px;
+          font-size: 0.95rem;
+          font-weight: 800;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
         }
 
         .tests-page__list {
@@ -755,14 +640,92 @@ function CandidateAssessmentsPage() {
           border: 1px dashed #d9d1ef;
           background: #faf8ff;
           border-radius: 18px;
-          padding: 16px;
+          padding: 18px;
           display: grid;
-          gap: 6px;
+          gap: 8px;
+          justify-items: start;
         }
 
         .tests-page__empty p {
           margin: 0;
           color: #676084;
+        }
+
+        .tests-page__empty--results {
+          min-height: 100%;
+          justify-content: center;
+          justify-items: center;
+          text-align: center;
+          border-style: solid;
+          border-color: #e3dcf3;
+          background: linear-gradient(180deg, #fcfbff 0%, #f8f5ff 100%);
+        }
+
+        .tests-page__empty-illustration {
+          position: relative;
+          width: 180px;
+          height: 160px;
+          margin-bottom: 8px;
+        }
+
+        .tests-page__empty-glow {
+          position: absolute;
+          inset: 14px;
+          border-radius: 999px;
+          background: radial-gradient(circle, rgba(151, 120, 240, 0.22), transparent 70%);
+        }
+
+        .tests-page__empty-card {
+          position: absolute;
+          left: 44px;
+          top: 44px;
+          width: 92px;
+          height: 92px;
+          border-radius: 24px;
+          display: grid;
+          place-items: center;
+          color: #6c46ce;
+          border: 1px solid #e0d5f7;
+          background: linear-gradient(140deg, #ffffff, #f3ecff);
+          box-shadow: 0 14px 28px rgba(110, 64, 190, 0.16);
+        }
+
+        .tests-page__empty-magnifier {
+          position: absolute;
+          right: 34px;
+          top: 26px;
+          width: 44px;
+          height: 44px;
+          border-radius: 16px;
+          display: grid;
+          place-items: center;
+          color: #6442c4;
+          background: #f1e8ff;
+          border: 1px solid #e0d5f7;
+        }
+
+        .tests-page__btn--primary-inline {
+          margin-top: 4px;
+          border: 0;
+          padding: 0 18px;
+          background: linear-gradient(135deg, #5d2fd2, #7f5de8);
+          color: white;
+          box-shadow: 0 12px 26px rgba(101, 65, 201, 0.28);
+        }
+
+        .tests-page__empty-help {
+          margin-top: 2px;
+          font-size: 0.82rem;
+          color: #7a6b9b;
+        }
+
+        .tests-page__empty-help button {
+          border: 0;
+          background: transparent;
+          color: #5f34ba;
+          font-weight: 700;
+          cursor: pointer;
+          text-decoration: underline;
         }
 
         .tests-page__visibility {
@@ -807,9 +770,12 @@ function CandidateAssessmentsPage() {
           color: #6d2a95;
           background: #fff;
           min-height: 40px;
-          padding: 0 12px;
+          padding: 0 14px;
           font-weight: 700;
           white-space: nowrap;
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
         }
 
         .tests-page :global(button) {
@@ -821,40 +787,28 @@ function CandidateAssessmentsPage() {
           box-shadow: 0 0 0 2px rgba(109, 42, 149, 0.2), 0 0 0 5px rgba(109, 42, 149, 0.08);
         }
 
-        @media (max-width: 1200px) {
-          .tests-page__grid {
-            grid-template-columns: 1fr;
-          }
-
-          .tests-page__card {
-            min-height: auto;
-          }
-        }
-
         @media (max-width: 760px) {
           .tests-page {
             padding: 12px;
           }
 
-          .tests-page__header {
+          .tests-page__toolbar {
             flex-direction: column;
             align-items: stretch;
           }
 
-          .tests-page__actions {
-            justify-content: flex-start;
+          .tests-page__toolbar-actions {
+            margin-left: 0;
+            width: 100%;
           }
 
-          .tests-page__card {
-            padding: 14px;
-          }
-
-          .tests-page__visibility {
-            grid-template-columns: 1fr;
+          .tests-page__search {
+            min-width: 0;
+            width: 100%;
           }
 
           .tests-page__ghost {
-            width: 100%;
+            justify-content: center;
           }
         }
       `}</style>
@@ -955,16 +909,19 @@ function Pagination({
 
 function TestCard({
   test,
-  t,
   isStarting,
+  result,
   onStart,
 }: {
   test: EnhancedTest;
-  t: (key: string, replacements?: Record<string, string | number>) => string;
   isStarting: boolean;
+  result?: EnhancedResult;
   onStart: () => void;
 }) {
-  const difficultyLabel = t(`assessments.candidate.dashboard.difficulty.${test.difficulty}`);
+  const difficultyLabel = test.difficulty === "hard" ? "Difficile" : test.difficulty === "easy" ? "Facile" : "Moyen";
+  const isCompleted = Boolean(result || test.deja_passe);
+  const isInProgress = isStarting;
+  const progress = isInProgress ? 45 : 0;
 
   return (
     <article className="test-card">
@@ -975,370 +932,225 @@ function TestCard({
       <div className="test-card__main">
         <h3>{test.titre}</h3>
         <p>{test.summary}</p>
-        <div className="test-card__meta">
-          <span className={`test-card__pill ${getDifficultyClass(test.difficulty)}`}>
-            {difficultyLabel}
-          </span>
-          <span className="test-card__duration">
-            <AppIcon name="clock" size={14} />
-            {t("assessments.candidate.dashboard.minutes", { value: test.duration })}
-          </span>
-        </div>
+      </div>
+
+      <div className="test-card__meta">
+        <span className={`test-card__pill ${getDifficultyClass(test.difficulty)}`}>
+          <AppIcon name="chart" size={12} />
+          {difficultyLabel}
+        </span>
+        <span className="test-card__duration">
+          <AppIcon name="clock" size={12} />
+          {test.duration} min
+        </span>
+      </div>
+
+      <div className="test-card__status-column">
+        {isCompleted ? (
+          <>
+            <span className="test-card__status-badge is-completed">Complete</span>
+            <strong>{result?.score ?? 0}%</strong>
+            <small>{result?.dateLabel ? `Complete le ${result.dateLabel}` : "Complete"}</small>
+          </>
+        ) : isInProgress ? (
+          <>
+            <span className="test-card__status-badge is-progress">En cours</span>
+            <div className="test-card__progress">
+              <span style={{ width: `${progress}%` }} />
+            </div>
+            <small>{progress}%</small>
+          </>
+        ) : (
+          <span className="test-card__status-badge is-pending">A passer</span>
+        )}
       </div>
 
       <div className="test-card__action">
-        {test.peut_passer === false ? (
-          <span className="test-card__status is-unavailable">
-            {t("assessments.candidate.dashboard.status.unavailable")}
-          </span>
-        ) : test.deja_passe ? (
-          <span className="test-card__status is-completed">
-            {t("assessments.candidate.dashboard.status.completed")}
-          </span>
-        ) : (
-          <button type="button" className="test-card__btn" disabled={isStarting} onClick={onStart}>
-            {isStarting
-              ? t("assessments.candidate.dashboard.starting")
-              : t("assessments.candidate.dashboard.startTest")}
-          </button>
-        )}
+        <button
+          type="button"
+          className={`test-card__btn ${isCompleted ? "test-card__btn--ghost" : ""}`}
+          disabled={isStarting}
+          onClick={isCompleted ? undefined : onStart}
+        >
+          {isStarting ? "Chargement..." : isCompleted ? "Voir les resultats" : isInProgress ? "Continuer le test" : "Commencer le test"}
+        </button>
+        <button type="button" className="test-card__bookmark" aria-label="Plus d'actions">
+          <AppIcon name="more" size={15} />
+        </button>
       </div>
 
       <style jsx>{`
         .test-card {
-          border: 1px solid #e6dff4;
+          border: 1px solid #e8e2f7;
           border-radius: 18px;
           background: #fff;
-          padding: 14px;
+          padding: 14px 16px;
           display: grid;
-          grid-template-columns: auto minmax(0, 1fr) auto;
+          grid-template-columns: 64px minmax(220px, 1.5fr) 130px 170px 190px;
           gap: 12px;
           align-items: center;
         }
 
         .test-card__icon {
-          width: 58px;
-          height: 58px;
-          border-radius: 16px;
-          background: linear-gradient(135deg, rgba(109, 42, 149, 0.08), rgba(171, 141, 246, 0.2));
-          color: #6d2a95;
+          width: 56px;
+          height: 56px;
+          border-radius: 14px;
+          background: linear-gradient(135deg, #f4ecff, #eef1ff);
+          color: #5f39bd;
           display: grid;
           place-items: center;
-          flex-shrink: 0;
         }
 
         .test-card__main h3 {
           margin: 0;
-          font-size: 1.36rem;
-          line-height: 1.15;
+          font-size: 1.05rem;
+          line-height: 1.2;
+          color: #25184d;
         }
 
         .test-card__main p {
-          margin: 8px 0;
-          color: #5f587b;
+          margin: 6px 0 0;
+          color: #6b618e;
+          font-size: 0.88rem;
           line-height: 1.45;
-          font-size: 0.95rem;
         }
 
         .test-card__meta {
-          display: flex;
-          flex-wrap: wrap;
-          align-items: center;
+          display: grid;
           gap: 8px;
         }
 
         .test-card__pill,
-        .test-card__duration,
-        .test-card__status {
+        .test-card__duration {
           display: inline-flex;
           align-items: center;
           gap: 6px;
-          border-radius: 999px;
-          font-size: 0.79rem;
+          font-size: 0.82rem;
           font-weight: 700;
-          min-height: 28px;
+          color: #6d6391;
+        }
+
+        .test-card__status-column {
+          display: grid;
+          gap: 7px;
+          justify-items: start;
+        }
+
+        .test-card__status-badge {
+          border-radius: 999px;
+          min-height: 24px;
           padding: 0 10px;
+          display: inline-flex;
+          align-items: center;
+          font-size: 0.72rem;
+          font-weight: 800;
         }
 
-        .test-card__pill {
-          background: #efe8ff;
-          color: #6d2a95;
+        .test-card__status-badge.is-completed {
+          background: #e7faed;
+          color: #188651;
         }
 
-        .test-card__pill.is-easy {
-          background: #eaf9ef;
-          color: #1f8f60;
+        .test-card__status-badge.is-progress {
+          background: #e9efff;
+          color: #365fcb;
         }
 
-        .test-card__pill.is-hard {
-          background: #fff0f1;
-          color: #ba4158;
+        .test-card__status-badge.is-pending {
+          background: #f3ecff;
+          color: #6c44c5;
         }
 
-        .test-card__duration {
-          background: #f6f3ff;
-          color: #665e84;
+        .test-card__status-column strong {
+          color: #1ba25a;
+          font-size: 1.85rem;
+          line-height: 1;
+        }
+
+        .test-card__status-column small {
+          color: #7a6fa0;
+          font-size: 0.8rem;
+          font-weight: 600;
+        }
+
+        .test-card__progress {
+          width: 100%;
+          max-width: 120px;
+          height: 6px;
+          border-radius: 999px;
+          background: #e1d8f7;
+          overflow: hidden;
+        }
+
+        .test-card__progress span {
+          display: block;
+          height: 100%;
+          border-radius: inherit;
+          background: linear-gradient(90deg, #4c1bf4, #7b57ed);
         }
 
         .test-card__action {
           display: flex;
+          align-items: center;
           justify-content: flex-end;
-          min-width: 152px;
-        }
-
-        .test-card__btn {
-          border: 1px solid #c9b7f4;
-          background: #fff;
-          color: #5b2ab5;
-          border-radius: 12px;
-          min-height: 42px;
-          padding: 0 16px;
-          font-weight: 700;
-          min-width: 138px;
-        }
-
-        .test-card__status {
-          color: #5f587b;
-          background: #f7f5fd;
-        }
-
-        .test-card__status.is-completed {
-          color: #207b5a;
-          background: #eaf9ef;
-        }
-
-        .test-card__status.is-unavailable {
-          color: #9b3550;
-          background: #fff2f5;
-        }
-
-        @media (max-width: 860px) {
-          .test-card {
-            grid-template-columns: auto minmax(0, 1fr);
-          }
-
-          .test-card__action {
-            grid-column: 1 / -1;
-            justify-content: flex-start;
-          }
-        }
-      `}</style>
-    </article>
-  );
-}
-
-function ResultCard({
-  result,
-  t,
-  isUpdating,
-  onToggleVisibility,
-}: {
-  result: EnhancedResult;
-  t: (key: string, replacements?: Record<string, string | number>) => string;
-  isUpdating: boolean;
-  onToggleVisibility: () => void;
-}) {
-  const ringStyle = {
-    ["--ring-value" as string]: `${result.score}`,
-    ["--ring-color" as string]: getScoreRingColor(result.score),
-  } as CSSProperties;
-
-  const difficultyLabel = t(`assessments.candidate.dashboard.difficulty.${result.difficulty}`);
-  const visibilityLabel = result.visible
-    ? t("assessments.candidate.visible")
-    : t("assessments.candidate.private");
-
-  return (
-    <article className="result-card">
-      <div className="result-card__icon">
-        <div className="result-card__ring" style={ringStyle}>
-          <span>{result.score}%</span>
-        </div>
-      </div>
-
-      <div className="result-card__main">
-        <h3>{result.title}</h3>
-        <p>{result.dateLabel}</p>
-        <div className="result-card__meta">
-          <span className="result-card__duration">
-            <AppIcon name="clock" size={13} />
-            {t("assessments.candidate.dashboard.minutes", { value: result.timeSpent })}
-          </span>
-          <span className={`result-card__pill ${getDifficultyClass(result.difficulty)}`}>{difficultyLabel}</span>
-          <span className="result-card__pill">{visibilityLabel}</span>
-        </div>
-      </div>
-
-      <div className="result-card__side">
-        <span className={`result-card__status ${result.passed ? "is-passed" : "is-failed"}`}>
-          {result.passed
-            ? t("assessments.candidate.dashboard.status.passed")
-            : t("assessments.candidate.dashboard.status.notPassed")}
-        </span>
-        <button
-          type="button"
-          className="result-card__visibility"
-          onClick={onToggleVisibility}
-          disabled={isUpdating || result.peut_modifier_visibilite === false}
-        >
-          <AppIcon name={result.visible ? "eye" : "eyeOff"} size={14} />
-          <span>
-            {isUpdating
-              ? t("assessments.candidate.dashboard.updating")
-              : t("assessments.candidate.dashboard.toggleVisibility")}
-          </span>
-        </button>
-      </div>
-
-      <style jsx>{`
-        .result-card {
-          border: 1px solid #e6dff4;
-          border-radius: 18px;
-          background: #fff;
-          padding: 14px;
-          display: grid;
-          grid-template-columns: auto minmax(0, 1fr) auto;
-          gap: 12px;
-          align-items: center;
-        }
-
-        .result-card__icon {
-          width: 58px;
-          height: 58px;
-          border-radius: 16px;
-          background: linear-gradient(135deg, rgba(109, 42, 149, 0.08), rgba(171, 141, 246, 0.2));
-          display: grid;
-          place-items: center;
-          flex-shrink: 0;
-        }
-
-        .result-card__ring {
-          width: 50px;
-          height: 50px;
-          border-radius: 50%;
-          background: conic-gradient(var(--ring-color) calc(var(--ring-value) * 1%), #ede7fb 0);
-          display: grid;
-          place-items: center;
-          position: relative;
-        }
-
-        .result-card__ring::before {
-          content: "";
-          position: absolute;
-          inset: 6px;
-          border-radius: 50%;
-          background: #fff;
-        }
-
-        .result-card__ring span {
-          position: relative;
-          z-index: 1;
-          font-size: 0.62rem;
-          font-weight: 800;
-          color: #2c2250;
-        }
-
-        .result-card__main h3 {
-          margin: 0;
-          font-size: 1.36rem;
-          line-height: 1.15;
-        }
-
-        .result-card__main p {
-          margin: 8px 0;
-          color: #5f587b;
-          line-height: 1.45;
-          font-size: 0.95rem;
-        }
-
-        .result-card__meta {
-          display: flex;
-          flex-wrap: wrap;
-          align-items: center;
           gap: 8px;
         }
 
-        .result-card__pill,
-        .result-card__duration,
-        .result-card__status {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          border-radius: 999px;
-          font-size: 0.79rem;
-          font-weight: 700;
-          min-height: 28px;
-          padding: 0 10px;
-        }
-
-        .result-card__pill {
-          background: #efe8ff;
-          color: #6d2a95;
-        }
-
-        .result-card__pill.is-easy {
-          background: #eaf9ef;
-          color: #1f8f60;
-        }
-
-        .result-card__pill.is-hard {
-          background: #ffeef1;
-          color: #b13a57;
-        }
-
-        .result-card__duration {
-          background: #f4f0ff;
-          color: #5e5483;
-        }
-
-        .result-card__side {
-          display: grid;
-          gap: 10px;
-          justify-items: end;
-        }
-
-        .result-card__status {
-          min-height: 28px;
-          padding: 0 10px;
-        }
-
-        .result-card__status.is-passed {
-          color: #1d8a5d;
-          background: #eaf9ef;
-        }
-
-        .result-card__status.is-failed {
-          color: #a73852;
-          background: #fff0f4;
-        }
-
-        .result-card__visibility {
-          border: 1px solid #d6c8f2;
+        .test-card__bookmark {
+          width: 34px;
+          height: 34px;
+          border-radius: 10px;
+          border: 1px solid #ded4f7;
           background: #fff;
-          color: #5f4b87;
-          border-radius: 12px;
-          min-height: 38px;
-          padding: 0 12px;
-          font-size: 0.79rem;
-          font-weight: 700;
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
+          color: #6a4ac5;
+          display: grid;
+          place-items: center;
         }
 
-        .result-card__visibility:disabled {
-          opacity: 0.65;
-          cursor: not-allowed;
+        .test-card__btn {
+          border: 0;
+          border-radius: 10px;
+          min-height: 38px;
+          padding: 0 14px;
+          background: linear-gradient(135deg, #5f2fe3, #7b57ee);
+          color: #fff;
+          font-size: 0.86rem;
+          font-weight: 800;
+          white-space: nowrap;
+        }
+
+        .test-card__btn--ghost {
+          background: #fff;
+          color: #5c35bc;
+          border: 1px solid #d9cefa;
+        }
+
+        @media (max-width: 1180px) {
+          .test-card {
+            grid-template-columns: 56px minmax(0, 1fr) auto;
+          }
+
+          .test-card__meta,
+          .test-card__status-column {
+            grid-column: 2;
+          }
+
+          .test-card__action {
+            grid-column: 3;
+            grid-row: 1 / span 3;
+            align-self: center;
+          }
         }
 
         @media (max-width: 760px) {
-          .result-card {
+          .test-card {
             grid-template-columns: 1fr;
-            align-items: start;
           }
 
-          .result-card__side {
-            justify-items: start;
+          .test-card__action {
+            grid-column: auto;
+            grid-row: auto;
+            justify-content: flex-start;
           }
         }
       `}</style>
@@ -1460,6 +1272,49 @@ function AppIcon({
           <path d="M10.6 10.6A2 2 0 0 0 12 14a2 2 0 0 0 1.4-.6" />
           <path d="M9.9 5.2A10.7 10.7 0 0 1 12 5c6.5 0 10 7 10 7a18.4 18.4 0 0 1-3.2 4.1" />
           <path d="M6 6.8A18 18 0 0 0 2 12s3.5 7 10 7c1.7 0 3.1-.4 4.3-1" />
+        </svg>
+      );
+    case "bookmark":
+      return (
+        <svg {...props}>
+          <path d="M7 4h10a1 1 0 0 1 1 1v15l-6-3-6 3V5a1 1 0 0 1 1-1Z" />
+        </svg>
+      );
+    case "question":
+      return (
+        <svg {...props}>
+          <path d="M12 18h.01" />
+          <path d="M9.5 9a2.5 2.5 0 1 1 4.3 1.7c-.6.63-1.3 1.08-1.8 1.8-.2.3-.3.64-.3 1" />
+          <circle cx="12" cy="12" r="9" />
+        </svg>
+      );
+    case "search":
+      return (
+        <svg {...props}>
+          <circle cx="11" cy="11" r="7" />
+          <path d="m20 20-3.5-3.5" />
+        </svg>
+      );
+    case "star":
+      return (
+        <svg {...props}>
+          <path d="m12 3 2.2 4.5 4.9.7-3.6 3.5.9 4.9L12 14.2 7.6 16.6l.9-4.9L4.9 8.2l4.9-.7L12 3Z" />
+        </svg>
+      );
+    case "filter":
+      return (
+        <svg {...props}>
+          <path d="M4 6h16" />
+          <path d="M7 12h10" />
+          <path d="M10 18h4" />
+        </svg>
+      );
+    case "more":
+      return (
+        <svg {...props}>
+          <circle cx="12" cy="6" r="1.5" />
+          <circle cx="12" cy="12" r="1.5" />
+          <circle cx="12" cy="18" r="1.5" />
         </svg>
       );
     default:

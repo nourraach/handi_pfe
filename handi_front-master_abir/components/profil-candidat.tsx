@@ -1,6 +1,16 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import {
+  CalendarClock,
+  FileText,
+  Mail,
+  Phone,
+  ShieldCheck,
+  Upload,
+  Wallet,
+} from "lucide-react";
 import { useI18n } from "@/components/i18n-provider";
 import { construireUrlApi } from "@/lib/config";
 import { UtilisateurConnecte } from "@/types/api";
@@ -216,40 +226,6 @@ export function ProfilCandidat({ utilisateur }: ProfilCandidatProps) {
     }));
   };
 
-  const documents = useMemo(
-    () => [
-      {
-        label: t("profile.candidate.documents.cv"),
-        value: profil.cv_url ? t("profile.candidate.documents.available") : t("profile.candidate.documents.notUploaded"),
-        accent: !!profil.cv_url,
-      },
-      {
-        label: t("profile.candidate.documents.disabilityCard"),
-        value: profil.carte_handicap_url
-          ? t("profile.candidate.documents.uploaded")
-          : t("profile.candidate.documents.notUploaded"),
-        accent: !!profil.carte_handicap_url,
-      },
-      {
-        label: t("profile.candidate.documents.videoCv"),
-        value: profil.video_cv_url
-          ? t("profile.candidate.documents.uploaded")
-          : t("profile.candidate.documents.notUploaded"),
-        accent: !!profil.video_cv_url,
-      },
-      {
-        label: t("profile.candidate.documents.profilePicture"),
-        value: photoFile
-          ? photoFile.name
-          : profil.photo_profil_url
-            ? t("profile.candidate.documents.uploaded")
-            : t("profile.candidate.documents.notUploaded"),
-        accent: !!photoFile || !!profil.photo_profil_url,
-      },
-    ],
-    [photoFile, profil.carte_handicap_url, profil.cv_url, profil.photo_profil_url, profil.video_cv_url, t],
-  );
-
   const initials = profil.nom
     .split(" ")
     .filter(Boolean)
@@ -279,6 +255,20 @@ export function ProfilCandidat({ utilisateur }: ProfilCandidatProps) {
         ? profil.photo_profil_url
         : construireUrlApi(profil.photo_profil_url)
       : null);
+  const documentsReadyCount = [
+    !!profil.cv_url,
+    !!profil.carte_handicap_url,
+    !!profil.video_cv_url,
+    !!photoFile || !!profil.photo_profil_url,
+  ].filter(Boolean).length;
+  const infoRows = [
+    { label: t("profile.candidate.fields.name"), key: "nom" as const },
+    { label: t("profile.candidate.fields.email"), key: "email" as const },
+    { label: t("profile.candidate.fields.phone"), key: "telephone" as const },
+    { label: t("profile.candidate.fields.address"), key: "addresse" as const },
+    { label: t("profile.candidate.fields.availability"), key: "disponibilite" as const },
+    { label: t("profile.candidate.fields.expectedSalary"), key: "salaire_souhaite" as const },
+  ];
 
   return (
     <section className="candidate-profile-medical">
@@ -309,220 +299,204 @@ export function ProfilCandidat({ utilisateur }: ProfilCandidatProps) {
       {message ? <div className="message message-info">{message}</div> : null}
       {erreur ? <div className="message message-erreur">{erreur}</div> : null}
 
-      <div className="candidate-profile-layout">
-        <aside className="candidate-profile-sidebar">
-          <article className="candidate-profile-card candidate-profile-identity">
-            <div className="candidate-profile-photo-shell">
-              {resolvedPhotoSource ? (
-                <img src={resolvedPhotoSource} alt={profil.nom || t("profile.candidate.candidateName")} className="candidate-profile-photo" />
-              ) : (
-                <div className="candidate-profile-photo-fallback">{initials || "C"}</div>
-              )}
-            </div>
-
-            <div className="candidate-profile-identity-copy">
-              <strong>{profil.nom || t("profile.candidate.candidateName")}</strong>
-              <span>{profil.email || "candidate@email.com"}</span>
-              <span>{profil.telephone || t("profile.candidate.phoneNotProvided")}</span>
-            </div>
-
-            <label className="candidate-profile-upload">
-              <span>{t("profile.candidate.addPicture")}</span>
+      <motion.article
+        className="candidate-profile-card candidate-profile-hero"
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35, ease: "easeOut" }}
+      >
+        <div className="candidate-profile-hero-main">
+          <div className="candidate-profile-photo-shell">
+            {resolvedPhotoSource ? (
+              <img src={resolvedPhotoSource} alt={profil.nom || t("profile.candidate.candidateName")} className="candidate-profile-photo" />
+            ) : (
+              <div className="candidate-profile-photo-fallback">{initials || "C"}</div>
+            )}
+          </div>
+          <div className="candidate-profile-identity-copy">
+            <strong>{profil.nom || t("profile.candidate.candidateName")}</strong>
+            <span><Mail size={14} /> {profil.email || "candidat@handitalents.com"}</span>
+            <span><Phone size={14} /> {profil.telephone || t("profile.candidate.phoneNotProvided")}</span>
+            <label className="candidate-profile-upload candidate-profile-upload-inline">
+              <span><Upload size={14} /> {t("profile.candidate.addPicture")}</span>
               <input
                 type="file"
                 accept=".png,.jpg,.jpeg,.webp"
                 onChange={(event) => setPhotoFile(event.target.files?.[0] || null)}
               />
             </label>
-            <p className="candidate-profile-upload-note">
-              {t("profile.candidate.uploadNote")}
-            </p>
-          </article>
+          </div>
+        </div>
+        <div className="candidate-profile-hero-stats">
+          <div className="candidate-profile-mini-stat">
+            <div
+              className="candidate-profile-ring"
+              style={{ ["--completion" as string]: `${completionPercent}%` }}
+              aria-label={`${completionPercent}%`}
+            >
+              <span>{completionPercent}%</span>
+            </div>
+            <span>{t("profile.candidate.completion")}</span>
+            <strong>{completionPercent}%</strong>
+          </div>
+          <div className="candidate-profile-mini-stat">
+            <CalendarClock size={18} />
+            <span>{t("profile.candidate.availability")}</span>
+            <strong>{profil.disponibilite || t("profile.candidate.notProvided")}</strong>
+          </div>
+          <div className="candidate-profile-mini-stat">
+            <FileText size={18} />
+            <span>{t("profile.candidate.documentsReady")}</span>
+            <strong>{documentsReadyCount}/4</strong>
+          </div>
+          <div className="candidate-profile-mini-stat">
+            <Wallet size={18} />
+            <span>{t("profile.candidate.expectedSalary")}</span>
+            <strong>{profil.salaire_souhaite || t("profile.candidate.notProvided")}</strong>
+          </div>
+        </div>
+      </motion.article>
 
-          <article className="candidate-profile-card candidate-profile-quickfacts">
-            <div className="candidate-profile-card-head">
-              <strong>{t("profile.candidate.summary")}</strong>
-            </div>
-            <div className="candidate-profile-quickfact-list">
-              <div className="candidate-profile-quickfact">
-                <span>{t("profile.candidate.completion")}</span>
-                <strong>{completionPercent}%</strong>
+      <div className="candidate-profile-grid">
+        <motion.article className="candidate-profile-card candidate-profile-section candidate-profile-general" whileHover={{ y: -2 }} transition={{ duration: 0.2 }}>
+          <div className="candidate-profile-card-head">
+            <strong>{t("profile.candidate.generalInfo")}</strong>
+          </div>
+          <div className="candidate-profile-info-compact">
+            {infoRows.map((row) => (
+              <div key={row.key} className="candidate-profile-field candidate-profile-field-row">
+                <span className="candidate-profile-label">{row.label}</span>
+                {modeEdition ? (
+                  <input
+                    type="text"
+                    value={profil[row.key] || ""}
+                    onChange={(event) => setProfil((prev) => ({ ...prev, [row.key]: event.target.value }))}
+                    className="candidate-profile-input"
+                  />
+                ) : (
+                  <p>{profil[row.key] || t("profile.candidate.notProvided")}</p>
+                )}
               </div>
-              <div className="candidate-profile-quickfact">
-                <span>{t("profile.candidate.availability")}</span>
-                <strong>{profil.disponibilite || t("profile.candidate.notProvided")}</strong>
-              </div>
-              <div className="candidate-profile-quickfact">
-                <span>{t("profile.candidate.documentsReady")}</span>
-                <strong>{documents.filter((item) => item.accent).length}/4</strong>
-              </div>
-              <div className="candidate-profile-quickfact">
-                <span>{t("profile.candidate.expectedSalary")}</span>
-                <strong>{profil.salaire_souhaite || t("profile.candidate.notProvided")}</strong>
-              </div>
-            </div>
-          </article>
-        </aside>
+            ))}
+          </div>
+        </motion.article>
 
-        <div className="candidate-profile-content">
-          <article className="candidate-profile-card candidate-profile-section">
-            <div className="candidate-profile-card-head">
-              <strong>{t("profile.candidate.generalInfo")}</strong>
+        <motion.article className="candidate-profile-card candidate-profile-section candidate-profile-accessibility" whileHover={{ y: -2 }} transition={{ duration: 0.2 }}>
+          <div className="candidate-profile-card-head">
+            <strong>{t("profile.candidate.supportAccessibility")}</strong>
+          </div>
+          <div className="candidate-profile-stack">
+            <div className="candidate-profile-support-chip">
+              <ShieldCheck size={14} />
+              <span>{profil.handicap || t("profile.candidate.notProvided")}</span>
             </div>
-            <div className="candidate-profile-info-grid">
-              <InfoField label={t("profile.candidate.fields.name")} value={profil.nom} edit={modeEdition} onChange={(value) => setProfil({ ...profil, nom: value })} />
-              <InfoField label={t("profile.candidate.fields.email")} value={profil.email} edit={modeEdition} onChange={(value) => setProfil({ ...profil, email: value })} />
-              <InfoField label={t("profile.candidate.fields.phone")} value={profil.telephone} edit={modeEdition} onChange={(value) => setProfil({ ...profil, telephone: value })} />
-              <InfoField label={t("profile.candidate.fields.address")} value={profil.addresse} edit={modeEdition} onChange={(value) => setProfil({ ...profil, addresse: value })} />
-              <InfoField label={t("profile.candidate.fields.availability")} value={profil.disponibilite} edit={modeEdition} onChange={(value) => setProfil({ ...profil, disponibilite: value })} />
-              <InfoField label={t("profile.candidate.fields.expectedSalary")} value={profil.salaire_souhaite} edit={modeEdition} onChange={(value) => setProfil({ ...profil, salaire_souhaite: value })} />
-            </div>
-          </article>
 
-          <div className="candidate-profile-two-col">
-            <article className="candidate-profile-card candidate-profile-section">
-              <div className="candidate-profile-card-head">
-                <strong>{t("profile.candidate.supportAccessibility")}</strong>
+            <div className="candidate-profile-accessibility-grid">
+              <div>
+                <span className="candidate-profile-label">{t("profile.candidate.accessibilityPreferences")}</span>
+                <div className="candidate-profile-chip-grid">
+                  {PREFERENCES.map((preference) => {
+                    const active = profil.preferences_accessibilite.includes(preference);
+                    return (
+                      <button
+                        key={preference}
+                        type="button"
+                        className={`candidate-profile-chip ${active ? "candidate-profile-chip-active" : ""}`}
+                        onClick={() => modeEdition && togglePref(preference)}
+                      >
+                        {t(`profile.candidate.preferences.${preference}`)}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-              <div className="candidate-profile-stack">
-                <InfoField
-                  label={t("profile.candidate.supportNeeds")}
-                  value={profil.handicap}
-                  edit={modeEdition}
-                  onChange={(value) => setProfil({ ...profil, handicap: value })}
-                  textarea
+              <div>
+                <span className="candidate-profile-label">{t("profile.candidate.informationVisibility")}</span>
+                <div className="candidate-profile-toggle-list">
+                  {VISIBILITY_FIELDS.map((item) => (
+                    <label key={item.key} className="candidate-profile-toggle-item">
+                      <span>{t(item.labelKey)}</span>
+                      <input
+                        type="checkbox"
+                        checked={!!profil.visibilite[item.key]}
+                        onChange={() => toggleVisibilite(item.key)}
+                        disabled={!modeEdition}
+                      />
+                    </label>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.article>
+
+        <motion.article className="candidate-profile-card candidate-profile-section candidate-profile-skills" whileHover={{ y: -2 }} transition={{ duration: 0.2 }}>
+          <div className="candidate-profile-card-head">
+            <strong>{t("profile.candidate.skillsExperience")}</strong>
+          </div>
+          <div className="candidate-profile-stack">
+            <div>
+              <span className="candidate-profile-label">{t("profile.candidate.skills")}</span>
+              <div className="candidate-profile-skill-entry">
+                <input
+                  type="text"
+                  value={nouvelleCompetence}
+                  onChange={(event) => setNouvelleCompetence(event.target.value)}
+                  placeholder={t("profile.candidate.addSkillPlaceholder")}
+                  disabled={!modeEdition}
                 />
-
-                <div>
-                  <span className="candidate-profile-label">{t("profile.candidate.accessibilityPreferences")}</span>
-                  <div className="candidate-profile-chip-grid">
-                    {PREFERENCES.map((preference) => {
-                      const active = profil.preferences_accessibilite.includes(preference);
-                      return (
-                        <button
-                          key={preference}
-                          type="button"
-                          className={`candidate-profile-chip ${active ? "candidate-profile-chip-active" : ""}`}
-                          onClick={() => modeEdition && togglePref(preference)}
-                        >
-                          {t(`profile.candidate.preferences.${preference}`)}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                <div>
-                  <span className="candidate-profile-label">{t("profile.candidate.informationVisibility")}</span>
-                  <div className="candidate-profile-toggle-list">
-                    {VISIBILITY_FIELDS.map((item) => (
-                      <label key={item.key} className="candidate-profile-toggle-item">
-                        <input
-                          type="checkbox"
-                          checked={!!profil.visibilite[item.key]}
-                          onChange={() => toggleVisibilite(item.key)}
-                          disabled={!modeEdition}
-                        />
-                        <span>{t(item.labelKey)}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
+                <button type="button" className="candidate-profile-button candidate-profile-button-secondary" onClick={ajouterCompetence} disabled={!modeEdition}>
+                  {t("profile.candidate.addSkill")}
+                </button>
               </div>
-            </article>
-
-            <article className="candidate-profile-card candidate-profile-section">
-              <div className="candidate-profile-card-head">
-                <strong>{t("profile.candidate.filesReadiness")}</strong>
-              </div>
-              <div className="candidate-profile-file-list">
-                {documents.map((item) => (
-                  <div key={item.label} className="candidate-profile-file-item">
-                    <div>
-                      <strong>{item.label}</strong>
-                      <span>{item.value}</span>
-                    </div>
-                    <span className={`candidate-profile-status ${item.accent ? "candidate-profile-status-active" : ""}`}>
-                      {item.accent ? t("profile.candidate.documents.ready") : t("profile.candidate.documents.pending")}
-                    </span>
-                  </div>
+              <div className="candidate-profile-chip-grid">
+                {profil.competences.map((competence) => (
+                  <span key={competence} className="candidate-profile-chip candidate-profile-chip-soft">
+                    {competence}
+                    {modeEdition ? (
+                      <button type="button" onClick={() => retirerCompetence(competence)} aria-label={`Remove ${competence}`}>
+                        x
+                      </button>
+                    ) : null}
+                  </span>
                 ))}
               </div>
-            </article>
+            </div>
+            <InfoField
+              label={t("profile.candidate.education")}
+              value={profil.formation}
+              edit={modeEdition}
+              onChange={(value) => setProfil({ ...profil, formation: value })}
+              textarea
+            />
+            <InfoField
+              label={t("profile.candidate.experience")}
+              value={profil.experience}
+              edit={modeEdition}
+              onChange={(value) => setProfil({ ...profil, experience: value })}
+              textarea
+            />
           </div>
+        </motion.article>
 
-          <article className="candidate-profile-card candidate-profile-section">
-            <div className="candidate-profile-card-head">
-              <strong>{t("profile.candidate.skillsExperience")}</strong>
-            </div>
-            <div className="candidate-profile-split">
-              <div className="candidate-profile-stack">
-                <div>
-                  <span className="candidate-profile-label">{t("profile.candidate.skills")}</span>
-                  <div className="candidate-profile-skill-entry">
-                    <input
-                      type="text"
-                      value={nouvelleCompetence}
-                      onChange={(event) => setNouvelleCompetence(event.target.value)}
-                      placeholder={t("profile.candidate.addSkillPlaceholder")}
-                      disabled={!modeEdition}
-                    />
-                    <button type="button" className="candidate-profile-button candidate-profile-button-secondary" onClick={ajouterCompetence} disabled={!modeEdition}>
-                      {t("profile.candidate.addSkill")}
-                    </button>
-                  </div>
-                  <div className="candidate-profile-chip-grid">
-                    {profil.competences.map((competence) => (
-                      <span key={competence} className="candidate-profile-chip candidate-profile-chip-soft">
-                        {competence}
-                        {modeEdition ? (
-                          <button type="button" onClick={() => retirerCompetence(competence)} aria-label={`Remove ${competence}`}>
-                            x
-                          </button>
-                        ) : null}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                <InfoField
-                  label={t("profile.candidate.education")}
-                  value={profil.formation}
-                  edit={modeEdition}
-                  onChange={(value) => setProfil({ ...profil, formation: value })}
-                  textarea
-                />
-              </div>
-
-              <InfoField
-                label={t("profile.candidate.experience")}
-                value={profil.experience}
-                edit={modeEdition}
-                onChange={(value) => setProfil({ ...profil, experience: value })}
-                textarea
-              />
-            </div>
-          </article>
-
-          <article className="candidate-profile-card candidate-profile-section">
-            <div className="candidate-profile-card-head">
-              <strong>{t("profile.candidate.uploadSection")}</strong>
-            </div>
-            <div className="candidate-profile-stack">
-              <label className="candidate-profile-upload">
-                <span>{t("profile.candidate.documents.disabilityCard")}</span>
-                <input type="file" accept=".pdf,.png,.jpg,.jpeg" onChange={(event) => setCarteFile(event.target.files?.[0] || null)} />
-              </label>
-              <label className="candidate-profile-upload">
-                <span>{t("profile.candidate.documents.videoCv")}</span>
-                <input type="file" accept="video/*" onChange={(event) => setVideoFile(event.target.files?.[0] || null)} />
-              </label>
-              <button type="button" className="candidate-profile-button candidate-profile-button-primary" onClick={envoyerDocuments}>
-                {t("profile.candidate.uploadDocuments")}
-              </button>
-            </div>
-          </article>
-        </div>
+        <motion.article className="candidate-profile-card candidate-profile-section candidate-profile-upload-block" whileHover={{ y: -2 }} transition={{ duration: 0.2 }}>
+          <div className="candidate-profile-card-head">
+            <strong>{t("profile.candidate.uploadSection")}</strong>
+          </div>
+          <div className="candidate-profile-upload-inline-list">
+            <label className="candidate-profile-upload candidate-profile-upload-compact">
+              <span>{t("profile.candidate.documents.disabilityCard")}</span>
+              <input type="file" accept=".pdf,.png,.jpg,.jpeg" onChange={(event) => setCarteFile(event.target.files?.[0] || null)} />
+            </label>
+            <label className="candidate-profile-upload candidate-profile-upload-compact">
+              <span>{t("profile.candidate.documents.videoCv")}</span>
+              <input type="file" accept="video/*" onChange={(event) => setVideoFile(event.target.files?.[0] || null)} />
+            </label>
+            <button type="button" className="candidate-profile-button candidate-profile-button-primary candidate-profile-upload-submit" onClick={envoyerDocuments}>
+              {t("profile.candidate.uploadDocuments")}
+            </button>
+          </div>
+        </motion.article>
       </div>
     </section>
   );

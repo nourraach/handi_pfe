@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
 import { AuthenticatedWorkspace } from "@/components/authenticated-workspace";
 import { useI18n } from "@/components/i18n-provider";
@@ -32,10 +31,6 @@ type Recipient = {
   role: RecipientRole;
   email: string;
   subtitle?: string;
-};
-
-type ProfileResponse = {
-  photo_profil_url?: string;
 };
 
 const READ_STATE_KEY = "candidate_message_read_state_v1";
@@ -82,31 +77,6 @@ function FilterIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
       <path d="M5 7h14M8 12h8M10.5 17h3" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function CallIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path
-        d="M6.6 4h2.8l1.5 4.4-1.9 1.6a14 14 0 0 0 5 5l1.6-1.9 4.4 1.5v2.8c0 .7-.6 1.3-1.3 1.3A15.7 15.7 0 0 1 5.3 5.3C5.3 4.6 5.9 4 6.6 4Z"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-function InfoIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="1.8" />
-      <path d="M12 10v6" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-      <circle cx="12" cy="7.25" r="1.15" fill="currentColor" />
     </svg>
   );
 }
@@ -233,7 +203,6 @@ function MessagesPage() {
   const [replyDraft, setReplyDraft] = useState("");
   const [status, setStatus] = useState<string | null>(null);
   const [threadSearch, setThreadSearch] = useState("");
-  const [userPhotoUrl, setUserPhotoUrl] = useState<string | null>(null);
   const [isComposerOpen, setIsComposerOpen] = useState(false);
   const [readState, setReadState] = useState<Record<string, string>>(() => {
     if (typeof window === "undefined") {
@@ -303,49 +272,6 @@ function MessagesPage() {
       }
     } catch (error: unknown) {
       setStatus(error instanceof Error ? error.message : t("messages.loadConversationsError"));
-    }
-  };
-
-  const chargerPhotoUtilisateur = async () => {
-    if (!utilisateur?.id_utilisateur) {
-      return;
-    }
-
-    const endpointByRole: Record<string, string> = {
-      candidat: `/api/candidats/profil/${utilisateur.id_utilisateur}`,
-      entreprise: `/api/entreprises/profil/${utilisateur.id_utilisateur}`,
-      admin: `/api/admin/profil/${utilisateur.id_utilisateur}`,
-      inspecteur: `/api/admin/profil/${utilisateur.id_utilisateur}`,
-      aneti: `/api/admin/profil/${utilisateur.id_utilisateur}`,
-    };
-
-    const endpoint = endpointByRole[utilisateur.role];
-    if (!endpoint) {
-      setUserPhotoUrl(null);
-      return;
-    }
-
-    try {
-      const res = await authenticatedFetch(construireUrlApi(endpoint));
-      const data = await res.json();
-      if (!res.ok) {
-        setUserPhotoUrl(null);
-        return;
-      }
-
-      const donnees = (data.donnees || {}) as ProfileResponse;
-      if (!donnees.photo_profil_url) {
-        setUserPhotoUrl(null);
-        return;
-      }
-
-      setUserPhotoUrl(
-        donnees.photo_profil_url.startsWith("data:")
-          ? donnees.photo_profil_url
-          : construireUrlApi(donnees.photo_profil_url),
-      );
-    } catch {
-      setUserPhotoUrl(null);
     }
   };
 
@@ -522,9 +448,6 @@ function MessagesPage() {
   const chargerConversationsInitiales = useEffectEvent(() => {
     void chargerConversations();
   });
-  const chargerPhotoUtilisateurInitiale = useEffectEvent(() => {
-    void chargerPhotoUtilisateur();
-  });
   const chargerContactsAdminInitial = useEffectEvent(() => {
     void chargerContactsAdmin();
   });
@@ -537,10 +460,6 @@ function MessagesPage() {
       }
     };
   }, []);
-
-  useEffect(() => {
-    chargerPhotoUtilisateurInitiale();
-  }, [utilisateur?.id_utilisateur, utilisateur?.role]);
 
   useEffect(() => {
     if (!isCandidate) {
@@ -604,18 +523,7 @@ function MessagesPage() {
               <em>2</em>
             </button>
             <div className="msg-user-chip" aria-label={utilisateur?.nom || t("messages.messagingSpace")}>
-              {userPhotoUrl ? (
-                <Image
-                  src={userPhotoUrl}
-                  alt={utilisateur?.nom || t("messages.messagingSpace")}
-                  className="msg-user-avatar"
-                  width={40}
-                  height={40}
-                  unoptimized
-                />
-              ) : (
-                <span>{utilisateur?.nom?.slice(0, 2).toUpperCase() || "U"}</span>
-              )}
+              <span>{utilisateur?.nom?.slice(0, 2).toUpperCase() || "U"}</span>
             </div>
           </div>
         </header>
@@ -718,22 +626,6 @@ function MessagesPage() {
               </div>
 
               <div className="msg-chat-actions">
-                <button
-                  type="button"
-                  className="msg-icon-btn"
-                  aria-label={t("messages.callAction")}
-                  disabled={!hasActiveConversation}
-                >
-                  <CallIcon />
-                </button>
-                <button
-                  type="button"
-                  className="msg-icon-btn"
-                  aria-label={t("messages.infoAction")}
-                  disabled={!hasActiveConversation}
-                >
-                  <InfoIcon />
-                </button>
                 <button
                   type="button"
                   className="msg-icon-btn"
@@ -841,17 +733,17 @@ function MessagesPage() {
           --incoming: #f4f2f8;
           background: var(--bg);
           border-radius: 18px;
-          block-size: calc(100dvh - 28px);
-          max-block-size: calc(100dvh - 28px);
-          min-block-size: 620px;
+          block-size: max(100%, calc(100dvh - 24px));
+          max-block-size: none;
+          min-block-size: calc(100dvh - 24px);
           overflow: hidden;
           font-family: Inter, Poppins, system-ui, -apple-system, sans-serif;
         }
 
         .msg-shell {
           display: grid;
-          grid-template-rows: auto auto minmax(0, 1fr);
-          gap: 14px;
+          grid-template-rows: auto minmax(0, 1fr);
+          gap: 10px;
           block-size: 100%;
           padding: 6px;
           overflow: hidden;
@@ -1535,4 +1427,3 @@ function MessagesPage() {
     </div>
   );
 }
-
