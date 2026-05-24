@@ -2442,7 +2442,7 @@ button {
 .app-shell-admin .app-main {
   width: auto;
   margin: 0;
-  padding: 0 0 40px;
+  padding: 16px 0 40px;
 }
 
 .app-shell-admin .section-page {
@@ -2813,7 +2813,7 @@ body:has(.app-shell-admin)::-webkit-scrollbar,
   }
 
   .app-shell-admin .app-main {
-    padding-top: 0;
+    padding-top: 16px;
     scrollbar-width: none;
     -ms-overflow-style: none;
   }
