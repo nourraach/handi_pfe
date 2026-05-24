@@ -48,7 +48,7 @@ function ProfilContent() {
 
   return (
     <div className="app-page">
-      {utilisateur.role === "candidat" ? (
+      {utilisateur.role === "candidat" || utilisateur.role === "admin" ? (
         renderProfilComponent()
       ) : (
         <>

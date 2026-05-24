@@ -29,13 +29,13 @@ router.get(
 
 router.get(
   "/reports",
-  roleMiddleware([RoleUtilisateur.INSPECTEUR, RoleUtilisateur.ANETI]),
+  roleMiddleware([RoleUtilisateur.ADMIN, RoleUtilisateur.INSPECTEUR, RoleUtilisateur.ANETI]),
   controller.listReports
 );
 
 router.get(
   "/reports/:id",
-  roleMiddleware([RoleUtilisateur.INSPECTEUR, RoleUtilisateur.ANETI]),
+  roleMiddleware([RoleUtilisateur.ADMIN, RoleUtilisateur.INSPECTEUR, RoleUtilisateur.ANETI]),
   controller.getReportDetail
 );
 

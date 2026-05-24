@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { AuthenticatedWorkspace } from "@/components/authenticated-workspace";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { EmptyState, LoadingState, PageHeader } from "@/components/ui/layout";
+import { EmptyState, LoadingState } from "@/components/ui/layout";
 import { authenticatedFetch } from "@/lib/auth-utils";
 import { construireUrlApi } from "@/lib/config";
 
@@ -30,11 +30,265 @@ type OffrePublique = {
   nom_entreprise?: string;
 };
 
+type FavoriteCardData = {
+  favori: FavoriItem;
+  offre?: OffrePublique;
+  title: string;
+  company: string;
+  location: string;
+  contract: string;
+};
+
 const tndNumberFormatter = new Intl.NumberFormat("fr-TN", {
   maximumFractionDigits: 0,
 });
 
+const favoritePageStyles = `
+  .favorites-page {
+    display: grid;
+    gap: 22px;
+  }
+
+  .favorites-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 6px 0 2px;
+  }
+
+  .favorites-eyebrow {
+    margin: 0 0 8px;
+    color: var(--app-primary);
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .favorites-title {
+    margin: 0;
+    color: var(--app-text);
+    font-family: var(--app-heading);
+    font-size: clamp(2rem, 4vw, 3rem);
+    line-height: 1.05;
+  }
+
+  .favorites-subtitle {
+    max-width: 620px;
+    margin: 10px 0 0;
+    color: var(--app-muted);
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+
+  .favorites-toolbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 14px;
+    align-items: center;
+    padding: 14px;
+    border: 1px solid var(--app-border);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.82);
+    box-shadow: var(--shadow-1);
+  }
+
+  .favorites-search {
+    min-height: 46px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 14px;
+    border: 1px solid rgba(var(--app-primary-rgb), 0.12);
+    border-radius: 8px;
+    background: #fff;
+  }
+
+  .favorites-search span {
+    color: var(--app-primary);
+    font-size: 1.05rem;
+  }
+
+  .favorites-search input {
+    width: 100%;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--app-text);
+    font: inherit;
+  }
+
+  .favorites-count {
+    min-height: 46px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 16px;
+    border-radius: 8px;
+    background: rgba(var(--app-primary-rgb), 0.08);
+    color: var(--app-primary);
+    font-weight: 800;
+    white-space: nowrap;
+  }
+
+  .favorites-list {
+    display: grid;
+    gap: 14px;
+  }
+
+  .favorite-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 18px;
+    align-items: center;
+    padding: 18px;
+    border: 1px solid var(--app-border);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.94);
+    box-shadow: var(--shadow-1);
+  }
+
+  .favorite-card__main {
+    min-width: 0;
+  }
+
+  .favorite-card__topline {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+  }
+
+  .favorite-card__badge {
+    display: inline-flex;
+    align-items: center;
+    min-height: 26px;
+    padding: 0 10px;
+    border-radius: 999px;
+    background: rgba(var(--app-primary-rgb), 0.09);
+    color: var(--app-primary);
+    font-size: 0.78rem;
+    font-weight: 800;
+  }
+
+  .favorite-card__date {
+    color: var(--app-muted);
+    font-size: 0.86rem;
+  }
+
+  .favorite-card__title {
+    margin: 0;
+    color: var(--app-text);
+    font-family: var(--app-heading);
+    font-size: 1.25rem;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+  }
+
+  .favorite-card__company {
+    margin: 8px 0 0;
+    color: var(--app-muted);
+    line-height: 1.5;
+  }
+
+  .favorite-card__meta {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 14px;
+  }
+
+  .favorite-card__chip {
+    display: inline-flex;
+    align-items: center;
+    min-height: 28px;
+    padding: 0 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(var(--app-primary-rgb), 0.1);
+    color: #51496c;
+    background: rgba(255, 255, 255, 0.86);
+    font-size: 0.86rem;
+    font-weight: 700;
+  }
+
+  .favorite-card__actions {
+    display: grid;
+    justify-items: stretch;
+    gap: 10px;
+    min-width: 150px;
+  }
+
+  .favorite-detail-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    background: rgba(15, 23, 42, 0.5);
+    backdrop-filter: blur(6px);
+  }
+
+  .favorite-detail-card {
+    width: min(100%, 780px);
+    max-height: min(90vh, 820px);
+    overflow-y: auto;
+  }
+
+  .favorite-detail-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 18px;
+    align-items: flex-start;
+  }
+
+  @media (max-width: 760px) {
+    .favorites-header,
+    .favorite-card {
+      grid-template-columns: 1fr;
+      align-items: stretch;
+    }
+
+    .favorites-header {
+      display: grid;
+    }
+
+    .favorites-toolbar {
+      grid-template-columns: 1fr;
+    }
+
+    .favorite-card__actions {
+      min-width: 0;
+    }
+  }
+`;
+
 const formatSalaryAmount = (value: number) => tndNumberFormatter.format(value);
+
+const formatSalaryRange = (offre?: OffrePublique) => {
+  if (!offre) {
+    return null;
+  }
+  return `${formatSalaryAmount(offre.salaire_min)} - ${formatSalaryAmount(offre.salaire_max)} TND`;
+};
+
+const formatDate = (date?: string) => {
+  if (!date) {
+    return "Saved";
+  }
+
+  const parsed = new Date(date);
+  if (Number.isNaN(parsed.getTime())) {
+    return "Saved";
+  }
+
+  return `Saved ${parsed.toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+  })}`;
+};
 
 export default function PageProtegee() {
   return (
@@ -48,6 +302,7 @@ function FavorisPage() {
   const [favoris, setFavoris] = useState<FavoriItem[]>([]);
   const [offres, setOffres] = useState<OffrePublique[]>([]);
   const [selectedOffre, setSelectedOffre] = useState<OffrePublique | null>(null);
+  const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [erreur, setErreur] = useState<string | null>(null);
 
@@ -102,91 +357,141 @@ function FavorisPage() {
     [offres],
   );
 
+  const favoriteCards = useMemo<FavoriteCardData[]>(
+    () =>
+      favoris.map((favori) => {
+        const offre = offresById.get(favori.id_offre);
+        return {
+          favori,
+          offre,
+          title: favori.titre || offre?.titre || "Opportunity",
+          company: favori.nom_entreprise || offre?.nom_entreprise || "Company",
+          location: offre?.localisation || "Location not specified",
+          contract: offre?.type_poste ? offre.type_poste.toUpperCase() : "Contract not specified",
+        };
+      }),
+    [favoris, offresById],
+  );
+
+  const filteredFavorites = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    if (!query) {
+      return favoriteCards;
+    }
+
+    return favoriteCards.filter((item) =>
+      [item.title, item.company, item.location, item.contract].some((value) =>
+        value.toLowerCase().includes(query),
+      ),
+    );
+  }, [favoriteCards, search]);
+
   if (loading) {
     return <LoadingState title="Loading your favorites" description="Collecting saved opportunities from your workspace." />;
   }
 
   return (
-    <div className="app-page">
-      <PageHeader
-        badge="Saved roles"
-        title="Your favorite jobs, ready to revisit."
-        description="Keep the opportunities that match your pace, interests, and access needs in one curated shortlist."
-        actions={<Button onClick={charger} variant="secondary">Refresh</Button>}
-      />
+    <div className="app-page favorites-page">
+      <style>{favoritePageStyles}</style>
+
+      <header className="favorites-header">
+        <div>
+          <p className="favorites-eyebrow">Saved roles</p>
+          <h1 className="favorites-title">Favorite jobs</h1>
+          <p className="favorites-subtitle">
+            Keep the jobs you like in one simple list, then come back when you are ready to apply.
+          </p>
+        </div>
+        <Button onClick={charger} variant="secondary">Refresh</Button>
+      </header>
 
       {erreur ? <div className="message message-erreur">{erreur}</div> : null}
 
       {favoris.length === 0 ? (
-        <EmptyState title="No saved jobs yet" description="Save an opportunity from the jobs page and it will appear here." />
+        <EmptyState
+          title="No saved jobs yet"
+          description="Save an opportunity from the jobs page and it will appear here."
+          action={<ButtonLink href="/offres">Browse jobs</ButtonLink>}
+        />
       ) : (
-        <div className="surface-grid surface-grid-3">
-          {favoris.map((favori) => {
-            const offre = offresById.get(favori.id_offre);
+        <>
+          <div className="favorites-toolbar">
+            <label className="favorites-search">
+              <span aria-hidden="true">⌕</span>
+              <input
+                type="search"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Search favorite jobs"
+                aria-label="Search favorite jobs"
+              />
+            </label>
+            <div className="favorites-count">
+              {filteredFavorites.length} of {favoris.length} saved
+            </div>
+          </div>
 
-            return (
-              <Card key={favori.id} interactive padding="lg">
-                <div className="stack-lg">
-                  <div>
-                    <p className="badge">Favorite</p>
-                    <h2 style={{ margin: 0, fontSize: "1.25rem", fontFamily: "var(--app-heading)" }}>
-                      {favori.titre || offre?.titre || "Opportunity"}
-                    </h2>
-                    <p className="texte-secondaire" style={{ margin: "10px 0 0" }}>
-                      {favori.nom_entreprise || offre?.nom_entreprise || "Company"}
-                    </p>
-                    {offre ? (
-                      <p className="texte-secondaire" style={{ margin: "8px 0 0" }}>
-                        {offre.localisation} • {offre.type_poste.toUpperCase()}
-                      </p>
-                    ) : null}
+          {filteredFavorites.length === 0 ? (
+            <EmptyState
+              title="No favorites match your search"
+              description="Try another job title, company, location, or contract type."
+              action={<Button variant="secondary" onClick={() => setSearch("")}>Clear search</Button>}
+            />
+          ) : (
+            <div className="favorites-list">
+              {filteredFavorites.map(({ favori, offre, title, company, location, contract }) => (
+                <article key={favori.id} className="favorite-card">
+                  <div className="favorite-card__main">
+                    <div className="favorite-card__topline">
+                      <span className="favorite-card__badge">Favorite</span>
+                      <span className="favorite-card__date">{formatDate(favori.created_at)}</span>
+                    </div>
+
+                    <h2 className="favorite-card__title">{title}</h2>
+                    <p className="favorite-card__company">{company}</p>
+
+                    <div className="favorite-card__meta">
+                      <span className="favorite-card__chip">{location}</span>
+                      <span className="favorite-card__chip">{contract}</span>
+                      {formatSalaryRange(offre) ? <span className="favorite-card__chip">{formatSalaryRange(offre)}</span> : null}
+                    </div>
                   </div>
 
-                  <div className="page-header-actions">
+                  <div className="favorite-card__actions">
                     <Button variant="secondary" onClick={() => setSelectedOffre(offre ?? null)} disabled={!offre}>
                       View details
                     </Button>
                     <ButtonLink href="/offres" variant="ghost">Open jobs</ButtonLink>
+                    <Button variant="danger" onClick={() => retirer(favori.id_offre)}>
+                      Remove
+                    </Button>
                   </div>
-
-                  <Button variant="danger" onClick={() => retirer(favori.id_offre)}>
-                    Remove favorite
-                  </Button>
-                </div>
-              </Card>
-            );
-          })}
-        </div>
+                </article>
+              ))}
+            </div>
+          )}
+        </>
       )}
 
       {selectedOffre ? (
         <div
+          className="favorite-detail-overlay"
           aria-modal="true"
           role="dialog"
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 50,
-            display: "grid",
-            placeItems: "center",
-            padding: "24px",
-            background: "rgba(15, 23, 42, 0.52)",
-            backdropFilter: "blur(6px)",
-          }}
           onClick={() => setSelectedOffre(null)}
         >
           <Card
+            className="favorite-detail-card"
             padding="lg"
-            style={{ width: "min(100%, 820px)", maxHeight: "min(90vh, 860px)", overflowY: "auto" }}
             onClick={(event) => event.stopPropagation()}
           >
             <div className="stack-lg">
-              <div className="page-header-actions" style={{ justifyContent: "space-between", alignItems: "flex-start" }}>
+              <div className="favorite-detail-head">
                 <div>
                   <p className="badge" style={{ marginBottom: "12px" }}>Favorite job</p>
                   <h2 style={{ margin: 0, fontSize: "1.45rem", fontFamily: "var(--app-heading)" }}>{selectedOffre.titre}</h2>
                   <p className="texte-secondaire" style={{ margin: "10px 0 0" }}>
-                    {selectedOffre.nom_entreprise || "Company"} • {selectedOffre.localisation}
+                    {selectedOffre.nom_entreprise || "Company"} - {selectedOffre.localisation}
                   </p>
                 </div>
                 <Button variant="ghost" onClick={() => setSelectedOffre(null)}>Close</Button>

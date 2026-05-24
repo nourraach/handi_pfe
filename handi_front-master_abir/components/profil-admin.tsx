@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useEffectEvent, useMemo, useState } from "react";
+import { motion } from "framer-motion";
+import { Bell, Mail, Phone, ShieldCheck } from "lucide-react";
 import { useI18n } from "@/components/i18n-provider";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { construireUrlApi } from "@/lib/config";
 import { UtilisateurConnecte } from "@/types/api";
 
@@ -164,165 +164,185 @@ export function ProfilAdmin({ utilisateur }: ProfilAdminProps) {
   const roleLabel = t(`common.roles.${utilisateur.role}`);
   const departement = resolveOptionLabel(profil.departement, departements) || valeurParDefaut;
   const dateEmbauche = formatDateValue(profil.date_embauche, dateFormatter, valeurParDefaut);
+  const initials = (profil.nom || utilisateur.nom || "AD")
+    .split(" ")
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
 
   return (
-    <div className="stack-lg">
-      <Card tone="accent" padding="lg" className="profile-overview-card">
-        <div className="profile-surface-head">
-          <div className="page-header-copy">
-            <p className="badge">{t("profile.admin.title")}</p>
-            <h2 className="page-title page-title-sm">{profil.nom || utilisateur.nom || valeurParDefaut}</h2>
-            <p className="page-description">
-              {roleLabel} • {departement}
-            </p>
-          </div>
-          <div className="profile-surface-actions">
-            <Button variant="secondary" onClick={() => setModeEdition((courant) => !courant)}>
-              {modeEdition ? t("profile.candidate.exitEdit") : t("common.actions.edit")}
-            </Button>
-          </div>
+    <section className="candidate-profile-medical admin-profile-medical">
+      <div className="candidate-profile-topbar">
+        <div>
+          <p className="candidate-profile-kicker">{t("profile.admin.title")}</p>
+          <h2>Admin profile</h2>
         </div>
-
-        <div className="details-grid">
-          <OverviewFact label={t("profile.admin.fields.email")} value={profil.email || utilisateur.email || valeurParDefaut} />
-          <OverviewFact label={t("profile.admin.fields.jobTitle")} value={profil.poste || valeurParDefaut} />
-          <OverviewFact label={t("profile.admin.fields.department")} value={departement} />
-          <OverviewFact label={t("profile.admin.fields.hireDate")} value={dateEmbauche} />
+        <div className="candidate-profile-actions">
+          <button
+            type="button"
+            className="candidate-profile-button candidate-profile-button-secondary"
+            onClick={() => setModeEdition((courant) => !courant)}
+          >
+            {modeEdition ? t("profile.candidate.exitEdit") : t("common.actions.edit")}
+          </button>
+          <button
+            type="button"
+            className="candidate-profile-button candidate-profile-button-primary"
+            onClick={sauvegarderProfil}
+            disabled={chargement}
+          >
+            {chargement ? t("profile.candidate.saving") : t("common.actions.save")}
+          </button>
         </div>
-      </Card>
+      </div>
 
       {message ? <div className="message message-info">{message}</div> : null}
       {erreur ? <div className="message message-erreur">{erreur}</div> : null}
 
-      <Card className="profile-surface">
-        <div className="profile-surface-head">
-          <div>
+      <motion.article
+        className="candidate-profile-card candidate-profile-hero admin-profile-hero"
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35, ease: "easeOut" }}
+      >
+        <div className="candidate-profile-hero-main">
+          <div className="candidate-profile-photo-shell">
+            <div className="candidate-profile-photo-fallback">{initials || "A"}</div>
+          </div>
+          <div className="candidate-profile-identity-copy">
+            <strong>{profil.nom || utilisateur.nom || valeurParDefaut}</strong>
+            <span><Mail size={14} /> {profil.email || utilisateur.email || "admin@handitalents.com"}</span>
+            <span><Phone size={14} /> {profil.telephone || t("profile.candidate.phoneNotProvided")}</span>
+            <span><ShieldCheck size={14} /> {roleLabel} - {departement}</span>
+          </div>
+        </div>
+      </motion.article>
+
+      <div className="candidate-profile-grid">
+        <motion.article className="candidate-profile-card candidate-profile-section candidate-profile-general" whileHover={{ y: -2 }} transition={{ duration: 0.2 }}>
+          <div className="candidate-profile-card-head">
             <strong>{t("profile.admin.personalTitle")}</strong>
           </div>
-        </div>
+          <div className="candidate-profile-info-compact">
+            <EditableField
+              label={t("profile.admin.fields.fullName")}
+              value={profil.nom}
+              edit={modeEdition}
+              emptyValue={valeurParDefaut}
+              onChange={(value) => setProfil((courant) => ({ ...courant, nom: value }))}
+            />
+            <EditableField
+              label={t("profile.admin.fields.email")}
+              value={profil.email}
+              edit={modeEdition}
+              type="email"
+              emptyValue={valeurParDefaut}
+              onChange={(value) => setProfil((courant) => ({ ...courant, email: value }))}
+            />
+            <EditableField
+              label={t("profile.admin.fields.phone")}
+              value={profil.telephone}
+              edit={modeEdition}
+              emptyValue={valeurParDefaut}
+              onChange={(value) => setProfil((courant) => ({ ...courant, telephone: value }))}
+            />
+            <EditableField
+              label={t("profile.admin.fields.address")}
+              value={profil.addresse}
+              edit={modeEdition}
+              textarea
+              emptyValue={valeurParDefaut}
+              onChange={(value) => setProfil((courant) => ({ ...courant, addresse: value }))}
+            />
+          </div>
+        </motion.article>
 
-        <div className="surface-grid surface-grid-2">
-          <EditableField
-            label={t("profile.admin.fields.fullName")}
-            value={profil.nom}
-            edit={modeEdition}
-            emptyValue={valeurParDefaut}
-            onChange={(value) => setProfil((courant) => ({ ...courant, nom: value }))}
-          />
-          <EditableField
-            label={t("profile.admin.fields.email")}
-            value={profil.email}
-            edit={modeEdition}
-            type="email"
-            emptyValue={valeurParDefaut}
-            onChange={(value) => setProfil((courant) => ({ ...courant, email: value }))}
-          />
-          <EditableField
-            label={t("profile.admin.fields.phone")}
-            value={profil.telephone}
-            edit={modeEdition}
-            emptyValue={valeurParDefaut}
-            onChange={(value) => setProfil((courant) => ({ ...courant, telephone: value }))}
-          />
-          <EditableField
-            label={t("profile.admin.fields.address")}
-            value={profil.addresse}
-            edit={modeEdition}
-            textarea
-            emptyValue={valeurParDefaut}
-            onChange={(value) => setProfil((courant) => ({ ...courant, addresse: value }))}
-          />
-        </div>
-      </Card>
-
-      <Card className="profile-surface">
-        <div className="profile-surface-head">
-          <div>
+        <motion.article className="candidate-profile-card candidate-profile-section candidate-profile-accessibility" whileHover={{ y: -2 }} transition={{ duration: 0.2 }}>
+          <div className="candidate-profile-card-head">
             <strong>{t("profile.admin.workTitle")}</strong>
           </div>
-        </div>
+          <div className="candidate-profile-info-compact">
+            <EditableField
+              label={t("profile.admin.fields.jobTitle")}
+              value={profil.poste}
+              edit={modeEdition}
+              placeholder={t("profile.admin.placeholders.jobTitle")}
+              emptyValue={valeurParDefaut}
+              onChange={(value) => setProfil((courant) => ({ ...courant, poste: value }))}
+            />
+            <EditableSelect
+              label={t("profile.admin.fields.department")}
+              value={profil.departement}
+              edit={modeEdition}
+              options={departements}
+              placeholder={t("profile.admin.placeholders.selectDepartment")}
+              emptyValue={valeurParDefaut}
+              onChange={(value) => setProfil((courant) => ({ ...courant, departement: value }))}
+            />
+            <EditableField
+              label={t("profile.admin.fields.hireDate")}
+              value={profil.date_embauche}
+              edit={modeEdition}
+              type="date"
+              emptyValue={valeurParDefaut}
+              onChange={(value) => setProfil((courant) => ({ ...courant, date_embauche: value }))}
+              renderValue={dateEmbauche}
+            />
+          </div>
+        </motion.article>
 
-        <div className="surface-grid surface-grid-2">
-          <EditableField
-            label={t("profile.admin.fields.jobTitle")}
-            value={profil.poste}
-            edit={modeEdition}
-            placeholder={t("profile.admin.placeholders.jobTitle")}
-            emptyValue={valeurParDefaut}
-            onChange={(value) => setProfil((courant) => ({ ...courant, poste: value }))}
-          />
-          <EditableSelect
-            label={t("profile.admin.fields.department")}
-            value={profil.departement}
-            edit={modeEdition}
-            options={departements}
-            placeholder={t("profile.admin.placeholders.selectDepartment")}
-            emptyValue={valeurParDefaut}
-            onChange={(value) => setProfil((courant) => ({ ...courant, departement: value }))}
-          />
-          <EditableField
-            label={t("profile.admin.fields.hireDate")}
-            value={profil.date_embauche}
-            edit={modeEdition}
-            type="date"
-            emptyValue={valeurParDefaut}
-            onChange={(value) => setProfil((courant) => ({ ...courant, date_embauche: value }))}
-            renderValue={dateEmbauche}
-          />
-        </div>
-      </Card>
+        <motion.article className="candidate-profile-card candidate-profile-section candidate-profile-skills admin-profile-operations" whileHover={{ y: -2 }} transition={{ duration: 0.2 }}>
+          <div className="candidate-profile-card-head">
+            <strong>Admin workspace</strong>
+          </div>
+          <div className="candidate-profile-stack">
+            <div className="candidate-profile-support-chip">
+              <ShieldCheck size={14} />
+              <span>Secure account with platform management permissions.</span>
+            </div>
+            <div className="candidate-profile-chip-grid">
+              <span className="candidate-profile-chip candidate-profile-chip-active">User management</span>
+              <span className="candidate-profile-chip candidate-profile-chip-active">Job validation</span>
+              <span className="candidate-profile-chip candidate-profile-chip-active">Analytics access</span>
+              <span className="candidate-profile-chip candidate-profile-chip-soft">Admin role</span>
+            </div>
+          </div>
+        </motion.article>
 
-      <Card className="profile-surface">
-        <div className="profile-surface-head">
-          <div>
+        <motion.article className="candidate-profile-card candidate-profile-section candidate-profile-upload-block" whileHover={{ y: -2 }} transition={{ duration: 0.2 }}>
+          <div className="candidate-profile-card-head">
             <strong>{t("profile.admin.notificationsTitle")}</strong>
           </div>
-        </div>
-
-        <div className="space-y-4">
-          <PreferenceRow
-            title={t("profile.admin.notifications.emailTitle")}
-            description={t("profile.admin.notifications.emailDescription")}
-            enabled={profil.notifications_email}
-            edit={modeEdition}
-            enabledLabel={t("profile.admin.notifications.enabled")}
-            disabledLabel={t("profile.admin.notifications.disabled")}
-            onToggle={(checked) => setProfil((courant) => ({ ...courant, notifications_email: checked }))}
-          />
-          <PreferenceRow
-            title={t("profile.admin.notifications.smsTitle")}
-            description={t("profile.admin.notifications.smsDescription")}
-            enabled={profil.notifications_sms}
-            edit={modeEdition}
-            enabledLabel={t("profile.admin.notifications.enabled")}
-            disabledLabel={t("profile.admin.notifications.disabled")}
-            onToggle={(checked) => setProfil((courant) => ({ ...courant, notifications_sms: checked }))}
-          />
-        </div>
-      </Card>
-
-      {modeEdition ? (
-        <Card className="profile-surface">
-          <div className="profile-surface-actions" style={{ justifyContent: "flex-end" }}>
-            <Button variant="ghost" onClick={() => setModeEdition(false)}>
-              {t("common.actions.cancel")}
-            </Button>
-            <Button onClick={sauvegarderProfil} disabled={chargement}>
-              {chargement ? t("profile.candidate.saving") : t("common.actions.save")}
-            </Button>
+          <div className="candidate-profile-stack">
+            <div className="candidate-profile-support-chip">
+              <Bell size={14} />
+              <span>Choose how the platform reaches you for operational updates.</span>
+            </div>
+            <div className="candidate-profile-toggle-list">
+              <PreferenceRow
+                title={t("profile.admin.notifications.emailTitle")}
+                description={t("profile.admin.notifications.emailDescription")}
+                enabled={profil.notifications_email}
+                edit={modeEdition}
+                enabledLabel={t("profile.admin.notifications.enabled")}
+                disabledLabel={t("profile.admin.notifications.disabled")}
+                onToggle={(checked) => setProfil((courant) => ({ ...courant, notifications_email: checked }))}
+              />
+              <PreferenceRow
+                title={t("profile.admin.notifications.smsTitle")}
+                description={t("profile.admin.notifications.smsDescription")}
+                enabled={profil.notifications_sms}
+                edit={modeEdition}
+                enabledLabel={t("profile.admin.notifications.enabled")}
+                disabledLabel={t("profile.admin.notifications.disabled")}
+                onToggle={(checked) => setProfil((courant) => ({ ...courant, notifications_sms: checked }))}
+              />
+            </div>
           </div>
-        </Card>
-      ) : null}
-    </div>
-  );
-}
-
-function OverviewFact({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="detail-box">
-      <strong>{label}</strong>
-      <span>{value}</span>
-    </div>
+        </motion.article>
+      </div>
+    </section>
   );
 }
 
@@ -348,16 +368,16 @@ function EditableField({
   renderValue?: string;
 }) {
   return (
-    <div className="groupe-champ">
-      <label>{label}</label>
+    <div className="candidate-profile-field candidate-profile-field-row">
+      <span className="candidate-profile-label">{label}</span>
       {edit ? (
         textarea ? (
           <textarea
             value={value}
             onChange={(event) => onChange(event.target.value)}
-            rows={4}
+            rows={3}
             placeholder={placeholder}
-            className="champ-zone"
+            className="candidate-profile-input candidate-profile-input-area"
           />
         ) : (
           <input
@@ -365,11 +385,11 @@ function EditableField({
             value={value}
             onChange={(event) => onChange(event.target.value)}
             placeholder={placeholder}
-            className="champ"
+            className="candidate-profile-input"
           />
         )
       ) : (
-        <div className="profile-field-value">{(renderValue ?? value) || emptyValue}</div>
+        <p>{(renderValue ?? value) || emptyValue}</p>
       )}
     </div>
   );
@@ -393,10 +413,10 @@ function EditableSelect({
   emptyValue: string;
 }) {
   return (
-    <div className="groupe-champ">
-      <label>{label}</label>
+    <div className="candidate-profile-field candidate-profile-field-row">
+      <span className="candidate-profile-label">{label}</span>
       {edit ? (
-        <select value={value} onChange={(event) => onChange(event.target.value)} className="champ-select">
+        <select value={value} onChange={(event) => onChange(event.target.value)} className="candidate-profile-input">
           <option value="">{placeholder}</option>
           {options.map((option) => (
             <option key={option.value} value={option.value}>
@@ -405,7 +425,7 @@ function EditableSelect({
           ))}
         </select>
       ) : (
-        <div className="profile-field-value">{resolveOptionLabel(value, options) || emptyValue}</div>
+        <p>{resolveOptionLabel(value, options) || emptyValue}</p>
       )}
     </div>
   );
@@ -429,22 +449,19 @@ function PreferenceRow({
   onToggle: (checked: boolean) => void;
 }) {
   return (
-    <div className="profile-preference-row">
-      <div className="profile-preference-copy">
+    <label className="candidate-profile-toggle-item admin-profile-toggle-item">
+      <span>
         <strong>{title}</strong>
-        <p>{description}</p>
-      </div>
+        <small>{description}</small>
+      </span>
       {edit ? (
-        <label className="relative inline-flex items-center cursor-pointer shrink-0">
-          <input type="checkbox" checked={enabled} onChange={(event) => onToggle(event.target.checked)} className="sr-only peer" />
-          <div className="w-12 h-7 rounded-full bg-slate-200 transition peer-checked:bg-slate-800 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-slate-300 after:absolute after:left-[3px] after:top-[3px] after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow-sm after:transition peer-checked:after:translate-x-5 rtl:peer-checked:after:-translate-x-5" />
-        </label>
+        <input type="checkbox" checked={enabled} onChange={(event) => onToggle(event.target.checked)} />
       ) : (
-        <span className={`status-pill ${enabled ? "message-info" : "message-neutre"}`}>
+        <em className={enabled ? "admin-profile-status-active" : "admin-profile-status-muted"}>
           {enabled ? enabledLabel : disabledLabel}
-        </span>
+        </em>
       )}
-    </div>
+    </label>
   );
 }
 

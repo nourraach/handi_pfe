@@ -23,7 +23,7 @@ export class SupervisionService {
   }
 
   private assertSupervisionRole(utilisateur: JwtPayloadUtilisateur) {
-    if (![RoleUtilisateur.INSPECTEUR, RoleUtilisateur.ANETI].includes(utilisateur.role)) {
+    if (![RoleUtilisateur.ADMIN, RoleUtilisateur.INSPECTEUR, RoleUtilisateur.ANETI].includes(utilisateur.role)) {
       throw new ErreurApi("Acces interdit a la supervision", 403);
     }
   }

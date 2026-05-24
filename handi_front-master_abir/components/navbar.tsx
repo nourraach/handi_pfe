@@ -388,15 +388,12 @@ export function Navbar({
   const adminSidebarItems = useMemo<CandidateSidebarItem[]>(
     () => [
       { id: "admin-dashboard", label: "Dashboard", subtitle: "Vue globale", icon: "dashboard", href: "/home" },
-      { id: "admin-candidates", label: "Candidates", subtitle: "Demandes", icon: "profile", href: "/admin/demandes-en-attente" },
       { id: "admin-employers", label: "Employers", subtitle: "Entreprises", icon: "skills", href: "/admin/comptes" },
       { id: "admin-jobs", label: "Job Postings", subtitle: "Validation", icon: "cv", href: "/admin/offres-publication" },
-      { id: "admin-apps", label: "Applications", subtitle: "Suivi", icon: "applications", href: "/admin/statistiques" },
-      { id: "admin-interviews", label: "Interviews", subtitle: "Stats", icon: "tests", href: "/admin/statistiques" },
-      { id: "admin-a11y", label: "Accessibility", subtitle: "Conformite", icon: "accessibility", href: "/admin/statistiques" },
-      { id: "admin-reports", label: "Reports", subtitle: "Analytique", icon: "achievements", href: "/admin/statistiques" },
+      { id: "admin-apps", label: "Applications", subtitle: "Statuts", icon: "applications", href: "/admin/applications" },
+      { id: "admin-interviews", label: "Interviews", subtitle: "Planning", icon: "tests", href: "/admin/entretiens" },
+      { id: "admin-reports", label: "Reports", subtitle: "Entreprises", icon: "achievements", href: "/admin/reports" },
       { id: "admin-users", label: "Users", subtitle: "Gestion", icon: "messages", href: "/admin/utilisateurs" },
-      { id: "admin-settings", label: "Settings", subtitle: "Compte", icon: "settings", href: "/profil" },
     ],
     [],
   );

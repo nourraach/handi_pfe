@@ -65,28 +65,6 @@ type WorkflowPoint = {
   refusees: number;
 };
 
-type AdminApplicationRecord = {
-  id?: string;
-  statut?: string;
-  date_postulation?: string;
-  created_at?: string;
-  candidat?: {
-    utilisateur?: {
-      nom?: string;
-      prenom?: string;
-    };
-  };
-  offre?: {
-    titre?: string;
-    entreprise?: {
-      nom_entreprise?: string;
-      utilisateur?: {
-        nom?: string;
-      };
-    };
-  };
-};
-
 type EntrepriseOffreStat = {
   statut?: string;
 };
@@ -301,7 +279,6 @@ function HomeContent() {
   const [adminStats, setAdminStats] = useState<StatistiquesAdmin | null>(null);
   const [adminWorkflow, setAdminWorkflow] = useState<WorkflowPoint[]>([]);
   const [adminOverview, setAdminOverview] = useState<SupervisionOverview | null>(null);
-  const [adminApplications, setAdminApplications] = useState<AdminApplicationRecord[]>([]);
   const [loadingStats, setLoadingStats] = useState(false);
   const [erreurStats, setErreurStats] = useState<string | null>(null);
 
@@ -331,20 +308,18 @@ function HomeContent() {
             setAdminStats(null);
             setAdminWorkflow([]);
             setAdminOverview(null);
-            setAdminApplications([]);
           }
           return;
         }
 
         if (utilisateur.role === "admin") {
-          const [pendingResult, userStatsResult, applicationsResult, workflowResult, overviewResult, applicationsListResult] =
+          const [pendingResult, userStatsResult, applicationsResult, workflowResult, overviewResult] =
             await Promise.allSettled([
               fetchApiData<PendingRequestsPayload>("/api/admin/demandes-en-attente"),
               fetchApiData<AdminUserStatistics>("/api/admin/utilisateurs/statistiques?periode=mois"),
               fetchApiData<StatistiquesAdmin>("/api/admin/candidatures/statistiques-globales"),
               fetchApiData<WorkflowPoint[]>("/api/admin/workflow-recrutement?periode=30"),
               fetchSupervisionResource<SupervisionOverview>("/statistics/overview"),
-              fetchApiData<AdminApplicationRecord[]>("/api/admin/candidatures/toutes?page=1&limit=5"),
             ]);
 
           const cards: WorkspaceStatCard[] = [];
@@ -399,11 +374,6 @@ function HomeContent() {
                 : [],
             );
             setAdminOverview(overviewResult.status === "fulfilled" ? overviewResult.value : null);
-            setAdminApplications(
-              applicationsListResult.status === "fulfilled" && Array.isArray(applicationsListResult.value)
-                ? applicationsListResult.value
-                : [],
-            );
           }
           return;
         }
@@ -472,7 +442,6 @@ function HomeContent() {
             setAdminStats(null);
             setAdminWorkflow([]);
             setAdminOverview(null);
-            setAdminApplications([]);
           }
           return;
         }
@@ -516,7 +485,6 @@ function HomeContent() {
             setAdminStats(null);
             setAdminWorkflow([]);
             setAdminOverview(null);
-            setAdminApplications([]);
           }
           return;
         }
@@ -527,7 +495,6 @@ function HomeContent() {
           setAdminStats(null);
           setAdminWorkflow([]);
           setAdminOverview(null);
-          setAdminApplications([]);
         }
       } catch (error: unknown) {
         if (active) {
@@ -536,7 +503,6 @@ function HomeContent() {
           setAdminStats(null);
           setAdminWorkflow([]);
           setAdminOverview(null);
-          setAdminApplications([]);
           setErreurStats(
             error instanceof Error
               ? error.message
@@ -600,9 +566,7 @@ function HomeContent() {
         utilisateurNom={utilisateur.nom}
         stats={workspaceStats}
         adminStats={adminStats}
-        adminWorkflow={adminWorkflow}
         adminOverview={adminOverview}
-        adminApplications={adminApplications}
         loadingStats={loadingStats}
         erreurStats={erreurStats}
       />
@@ -1008,18 +972,14 @@ function AdminDashboardHome({
   utilisateurNom,
   stats,
   adminStats,
-  adminWorkflow,
   adminOverview,
-  adminApplications,
   loadingStats,
   erreurStats,
 }: {
   utilisateurNom: string;
   stats: WorkspaceStatCard[];
   adminStats: StatistiquesAdmin | null;
-  adminWorkflow: WorkflowPoint[];
   adminOverview: SupervisionOverview | null;
-  adminApplications: AdminApplicationRecord[];
   loadingStats: boolean;
   erreurStats: string | null;
 }) {
@@ -1028,12 +988,9 @@ function AdminDashboardHome({
   const shortlisted = adminStats ? sumStatuses(adminStats.stats_par_statut, ["shortlisted", "shortlistees", "shortlistee"]) : 0;
   const interviews = adminStats ? sumStatuses(adminStats.stats_par_statut, ["interviews", "interview", "entretiens", "entretien"]) : 0;
   const accepted = adminStats ? sumStatuses(adminStats.stats_par_statut, ["accepted", "acceptees", "acceptee"]) : 0;
-  const rejected = adminStats ? sumStatuses(adminStats.stats_par_statut, ["rejected", "refusees", "refusee"]) : 0;
   const totalApplications = adminStats?.total_candidatures ?? 0;
-  const activeJobs =
-    adminOverview?.totals.total_offers ??
-    adminStats?.entreprises_actives.reduce((sum, item) => sum + (item.nombre_offres ?? 0), 0) ??
-    0;
+  const totalCompanies = adminOverview?.totals.total_companies ?? adminStats?.entreprises_actives.length ?? 0;
+  const reportCount = adminOverview?.totals.total_reports ?? 0;
   const accessibilityScore =
     typeof adminOverview?.rates?.compliance_validation_rate === "number"
       ? Math.round(adminOverview.rates.compliance_validation_rate)
@@ -1054,203 +1011,162 @@ function AdminDashboardHome({
     { label: "Inclusion rate", value: Math.round(adminOverview?.rates.inclusion_rate ?? Math.min(100, Math.max(25, accessibilityScore - 5))) },
   ];
 
-  const timeline = adminWorkflow.slice(-12);
-  const buildSparkPath = (points: number[]) => {
-    const max = Math.max(...points, 1);
-    return points
-      .map((value, index) => {
-        const x = (index / Math.max(points.length - 1, 1)) * 100;
-        const y = 100 - (value / max) * 100;
-        return `${index === 0 ? "M" : "L"} ${x.toFixed(2)} ${y.toFixed(2)}`;
-      })
-      .join(" ");
-  };
-
-  const metricIcon = (name: "candidates" | "jobs" | "applications" | "accessibility") => {
+  const metricIcon = (name: "candidates" | "jobs" | "applications" | "accessibility" | "clipboard" | "hire" | "shield" | "inclusion" | "target" | "user" | "eye" | "report") => {
     if (name === "candidates") {
       return (
         <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M8 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm8 0a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM3.5 20v-1a5 5 0 0 1 5-5h.5a5 5 0 0 1 5 5v1M14 20v-.7a4.3 4.3 0 0 1 4.3-4.3h.2a4 4 0 0 1 4 4v1" />
+          <circle cx="8" cy="8" r="3" />
+          <circle cx="16" cy="8" r="3" />
+          <path d="M3.5 20a4.5 4.5 0 0 1 9 0M11.5 20a4.5 4.5 0 0 1 9 0" />
         </svg>
       );
     }
     if (name === "jobs") {
       return (
         <svg viewBox="0 0 24 24" aria-hidden="true">
-          <rect x="3" y="6" width="18" height="14" rx="2.5" />
-          <path d="M8 6V4.8A1.8 1.8 0 0 1 9.8 3h4.4A1.8 1.8 0 0 1 16 4.8V6M3 11h18" />
+          <rect x="4" y="7" width="16" height="12" rx="2" />
+          <path d="M9 7V5.8A1.8 1.8 0 0 1 10.8 4h2.4A1.8 1.8 0 0 1 15 5.8V7M4 12h16" />
         </svg>
       );
     }
     if (name === "applications") {
       return (
         <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M7 3h7l5 5v13H7z" />
-          <path d="M14 3v5h5M10 12h6M10 16h6" />
+          <path d="M7 3h7l4 4v14H7z" />
+          <path d="M14 3v5h4M10 12h5M10 16h5" />
+        </svg>
+      );
+    }
+    if (name === "clipboard") {
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <rect x="7" y="4" width="10" height="17" rx="2" />
+          <path d="M10 4.5h4M10 11l1.3 1.3L15 8.8M10 16h4" />
+        </svg>
+      );
+    }
+    if (name === "hire") {
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="9" cy="8" r="3" />
+          <path d="M3.8 19a5.2 5.2 0 0 1 10.4 0M17 10v6M14 13h6" />
+        </svg>
+      );
+    }
+    if (name === "shield") {
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 3.8 18 6v5.2c0 4-2.4 7.4-6 8.8-3.6-1.4-6-4.8-6-8.8V6z" />
+          <path d="m9 12 2 2 4-4" />
+        </svg>
+      );
+    }
+    if (name === "inclusion") {
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="8" cy="8" r="2.5" />
+          <circle cx="16" cy="8" r="2.5" />
+          <path d="M4 19a4 4 0 0 1 8 0M12 19a4 4 0 0 1 8 0" />
+        </svg>
+      );
+    }
+    if (name === "target") {
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="7" />
+          <circle cx="12" cy="12" r="3" />
+          <path d="M16 8 20 4M18 4h2v2" />
+        </svg>
+      );
+    }
+    if (name === "user") {
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="10" cy="8" r="3" />
+          <path d="M4.5 19a5.5 5.5 0 0 1 11 0M18 10v6M15 13h6" />
+        </svg>
+      );
+    }
+    if (name === "eye") {
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M3 12s3.2-5.5 9-5.5S21 12 21 12s-3.2 5.5-9 5.5S3 12 3 12Z" />
+          <circle cx="12" cy="12" r="2.4" />
+        </svg>
+      );
+    }
+    if (name === "report") {
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M7 19V9M12 19V5M17 19v-7" />
         </svg>
       );
     }
     return (
       <svg viewBox="0 0 24 24" aria-hidden="true">
         <circle cx="12" cy="12" r="8" />
-        <path d="M12 8v4l3 2M7.5 12h9M12 7.5v9" />
+        <path d="M12 8v8M8 12h8" />
       </svg>
     );
   };
 
-  const chartSeries = timeline.map(
-    (point) =>
-      (point.nouvelles ?? 0) +
-      (point.shortlistees ?? 0) +
-      (point.entretiens ?? 0) +
-      (point.acceptees ?? 0),
-  );
-  const chartMax = Math.max(...chartSeries, 10);
-  const chartPath =
-    chartSeries.length > 0
-      ? chartSeries
-          .map((value, index) => {
-            const x = (index / Math.max(chartSeries.length - 1, 1)) * 100;
-            const y = 100 - (value / chartMax) * 100;
-            return `${index === 0 ? "M" : "L"} ${x.toFixed(2)} ${y.toFixed(2)}`;
-          })
-          .join(" ")
-      : "";
-
-  const trendValue = (metric: "nouvelles" | "shortlistees" | "entretiens" | "acceptees") => {
-    if (timeline.length < 2) {
-      return 0;
-    }
-    const first = timeline[0][metric] ?? 0;
-    const last = timeline[timeline.length - 1][metric] ?? 0;
-    if (first === 0 && last === 0) {
-      return 0;
-    }
-    if (first === 0) {
-      return 100;
-    }
-    return ((last - first) / first) * 100;
-  };
-
-  const sparkFromMetric = (metric: "nouvelles" | "shortlistees" | "entretiens" | "acceptees") => {
-    const values = timeline.map((point) => Number(point[metric] ?? 0)).slice(-7);
-    if (values.length >= 2 && values.some((value) => value > 0)) {
-      return values;
-    }
-    return [1, 1, 1, 1, 1, 1, 1];
-  };
-
-  const displayCandidates = totalApplications;
-  const displayActiveJobs = activeJobs;
-  const displayApplications = pendingApplications + shortlisted + interviews + accepted + rejected;
-  const displayAccessibility = accessibilityScore;
-
-  const kpiCards = [
-    {
-      icon: metricIcon("candidates"),
-      label: "Total Candidates",
-      value: displayCandidates.toLocaleString(),
-      trend: trendValue("nouvelles"),
-      spark: sparkFromMetric("nouvelles"),
-      tone: "purple",
-    },
-    {
-      icon: metricIcon("jobs"),
-      label: "Active Jobs",
-      value: displayActiveJobs.toLocaleString(),
-      trend: stats.length > 0 ? 8.7 : 0,
-      spark: sparkFromMetric("shortlistees"),
-      tone: "violet",
-    },
-    {
-      icon: metricIcon("applications"),
-      label: "Applications",
-      value: displayApplications.toLocaleString(),
-      trend: trendValue("shortlistees"),
-      spark: sparkFromMetric("entretiens"),
-      tone: "blue",
-    },
-    {
-      icon: metricIcon("accessibility"),
-      label: "Accessibility Score",
-      value: `${displayAccessibility}%`,
-      trend: trendValue("acceptees"),
-      spark: sparkFromMetric("acceptees"),
-      tone: "green",
-    },
+  const accessibilityItems = [
+    { ...statusItems[0], icon: metricIcon("clipboard"), tone: "purple" },
+    { ...statusItems[1], icon: metricIcon("hire"), tone: "green" },
+    { ...statusItems[2], icon: metricIcon("shield"), tone: "blue" },
+    { ...statusItems[3], icon: metricIcon("inclusion"), tone: "orange" },
   ];
 
-  const mapAdminStatus = (status: string | undefined) => {
-    const normalized = normalizeStatus(status || "pending");
-    if (normalized === "shortlisted" || normalized === "accepted") {
-      return { tone: "shortlisted", label: "Shortlisted" as const };
-    }
-    if (normalized === "interview_scheduled" || normalized === "interview" || normalized === "en_attente") {
-      return { tone: "reviewing", label: "Reviewing" as const };
-    }
-    if (normalized === "rejected" || normalized === "refusee" || normalized === "refusees") {
-      return { tone: "new", label: "Rejected" as const };
-    }
-    return { tone: "new", label: "New" as const };
-  };
+  const focusItems = [
+    { label: "Pending review", value: pendingApplications, total: Math.max(totalApplications, 1), tone: "purple" },
+    { label: "Shortlisted", value: shortlisted, total: Math.max(totalApplications, 1), tone: "blue" },
+    { label: "Interviews", value: interviews, total: Math.max(totalApplications, 1), tone: "green" },
+    { label: "Accepted", value: accepted, total: Math.max(totalApplications, 1), tone: "orange" },
+  ];
 
-  const recentRows = adminApplications.map((item, index) => {
-    const nom = item.candidat?.utilisateur?.nom || item.candidat?.utilisateur?.prenom || `Candidate ${index + 1}`;
-    const company = item.offre?.entreprise?.nom_entreprise || item.offre?.entreprise?.utilisateur?.nom || "Entreprise";
-    const mapped = mapAdminStatus(item.statut);
-    const dateValue = item.date_postulation || item.created_at || "";
-    return {
-      id: item.id || `${nom}-${item.offre?.titre || "offer"}-${index}`,
-      initials: buildOfferMark(nom),
-      candidate: nom,
-      jobTitle: item.offre?.titre || "Poste non renseigne",
-      company,
-      date: dateValue ? formatDate(dateValue) : "—",
-      status: mapped.tone,
-      statusLabel: mapped.label,
-    };
-  });
+  const quickActions = [
+    { href: "/admin/candidatures", label: "Review pending applications", icon: metricIcon("applications") },
+    { href: "/entreprise/offres", label: "Manage job postings", icon: metricIcon("jobs") },
+    { href: "/home#admin-stats", label: "View accessibility feedback", icon: metricIcon("accessibility") },
+    { href: "/admin/statistiques", label: "Open analytics report", icon: metricIcon("report") },
+  ];
 
   const platformActivity = [
-    adminStats?.entreprises_actives[0]
-      ? {
-          id: "activity-company",
-          icon: "🏢",
-          title: "Nouvelle activite entreprise",
-          detail: adminStats.entreprises_actives[0].entreprise_nom,
-          time: "maintenant",
-          tone: "green",
-        }
-      : null,
-    timeline.length > 0
-      ? {
-          id: "activity-applications",
-          icon: "📥",
-          title: `${timeline[timeline.length - 1].nouvelles ?? 0} nouvelles candidatures`,
-          detail: `Le ${formatDate(timeline[timeline.length - 1].date)}`,
-          time: "jour actuel",
-          tone: "purple",
-        }
-      : null,
     {
       id: "activity-shortlist",
-      icon: "✅",
+      icon: metricIcon("clipboard"),
       title: `${shortlisted} candidat(s) shortlisté(s)`,
-      detail: "Pipeline de recrutement",
+      detail: "Recruitment pipeline",
       time: "sur 30 jours",
-      tone: "blue",
+      tone: "green",
     },
     {
       id: "activity-accepted",
-      icon: "🎯",
-      title: `${accepted} candidature(s) acceptee(s)`,
+      icon: metricIcon("target"),
+      title: `${accepted} candidature(s) acceptée(s)`,
       detail: "Taux de recrutement en progression",
       time: "sur 30 jours",
       tone: "orange",
     },
-  ].filter(Boolean) as Array<{
+    {
+      id: "activity-users",
+      icon: metricIcon("user"),
+      title: `${totalCompanies} company account(s) monitored`,
+      detail: "Inscrit sur la plateforme",
+      time: "sur 30 jours",
+      tone: "blue",
+    },
+    {
+      id: "activity-feedback",
+      icon: metricIcon("eye"),
+      title: `${reportCount} accessibility feedback item(s)`,
+      detail: "Reçus récemment",
+      time: "sur 30 jours",
+      tone: "purple",
+    },
+  ] as Array<{
     id: string;
-    icon: string;
+    icon: JSX.Element;
     title: string;
     detail: string;
     time: string;
@@ -1270,139 +1186,71 @@ function AdminDashboardHome({
 
   return (
     <main className="page-centree section-page app-theme">
-      <div className="admin-home-v2">
-        <section className="admin-home-v2__top">
-          <div className="admin-home-v2__welcome">
-            <h1>Good morning, {firstName} 👋</h1>
-            <p>Here&apos;s what&apos;s happening on HandiTalents today.</p>
+      <div className="admin-command">
+        <section className="admin-command__hero">
+          <div className="admin-command__hero-copy">
+            <p className="admin-command__eyebrow">Inclusive hiring operations</p>
+            <h1>Admin command center</h1>
+            <p>{firstName}, track decisions, accessibility quality, and hiring momentum from one polished workspace.</p>
+            <div className="admin-command__hero-actions">
+              <Link href="/admin/candidatures">Review queue</Link>
+              <Link href="/admin/statistiques">View reports</Link>
+            </div>
           </div>
-          <div className="admin-home-v2__actions">
-            <label className="admin-home-v2__search" aria-label="Search">
-              <span aria-hidden="true">🔎</span>
-              <input type="search" placeholder="Search..." />
-            </label>
-            <button type="button" className="admin-home-v2__icon-btn" aria-label="Notifications">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M15 18H5.5a1 1 0 0 1-.8-1.6l1.6-2.2V10a5.7 5.7 0 0 1 11.4 0v4.2l1.6 2.2a1 1 0 0 1-.8 1.6H9" />
-                <path d="M13.8 18a2.1 2.1 0 0 1-3.6 0" />
-              </svg>
-              <small>{pendingApplications}</small>
-            </button>
-            <button type="button" className="admin-home-v2__primary-btn">
-              + Add New
-            </button>
-          </div>
+
         </section>
 
         {erreurStats ? <div className="message message-erreur">{erreurStats}</div> : null}
 
-        <section className="admin-home-v2__kpis">
-          {kpiCards.map((item) => (
-            <article key={item.label} className={`admin-home-v2__kpi admin-home-v2__kpi--${item.tone}`}>
-              <header>
-                <span className="admin-home-v2__kpi-icon" aria-hidden="true">
-                  {item.icon}
-                </span>
-                <div>
-                  <p>{item.label}</p>
-                  <strong>{item.value}</strong>
-                </div>
-              </header>
-              <footer>
-                <div className="admin-home-v2__kpi-footer-trend">
-                  <span className={item.trend >= 0 ? "is-positive" : "is-negative"}>
-                    {item.trend >= 0 ? "↗" : "↘"} {Math.abs(item.trend).toFixed(1)}%
-                  </span>
-                  <small>from last month</small>
-                </div>
-                <svg className="admin-home-v2__kpi-spark" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-                  <path d={buildSparkPath(item.spark)} />
-                </svg>
-              </footer>
-            </article>
-          ))}
-        </section>
-
-        <section className="admin-home-v2__main">
-          <article className="admin-home-v2__panel">
-            <header className="admin-home-v2__panel-head">
-              <h2>Recent Applications</h2>
-              <Link href="/admin/candidatures">View all</Link>
-            </header>
-            {recentRows.length === 0 ? (
-              <p className="admin-home-v2__empty">Aucune activité récente disponible.</p>
-            ) : (
-              <div className="admin-home-v2__table-wrap">
-                <table className="admin-home-v2__table">
-                  <thead>
-                    <tr>
-                      <th>Candidate</th>
-                      <th>Job Title</th>
-                      <th>Company</th>
-                      <th>Date</th>
-                      <th>Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {recentRows.map((row) => (
-                      <tr key={row.id}>
-                        <td>
-                          <div className="admin-home-v2__candidate-cell">
-                            <span>{row.initials}</span>
-                            <strong>{row.candidate}</strong>
-                          </div>
-                        </td>
-                        <td>{row.jobTitle}</td>
-                        <td>{row.company}</td>
-                        <td>{row.date}</td>
-                        <td>
-                          <span className={`admin-home-v2__status admin-home-v2__status--${row.status}`}>{row.statusLabel}</span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+        <section className="admin-command__grid">
+          <article className="admin-command__card admin-command__card--focus">
+            <header className="admin-command__card-head">
+              <div>
+                <p className="admin-command__section-label">Priority lane</p>
+                <h2>Recruitment flow</h2>
               </div>
-            )}
+              <Link href="/admin/candidatures">Open queue</Link>
+            </header>
+
+            <div className="admin-command__focus-list">
+              {focusItems.map((item) => (
+                <div key={item.label} className="admin-command__focus-row">
+                  <div>
+                    <span>{item.label}</span>
+                    <strong>{item.value.toLocaleString()}</strong>
+                  </div>
+                  <i aria-hidden="true">
+                    <span className={`admin-command__focus-fill admin-command__focus-fill--${item.tone}`} style={{ width: `${Math.max(4, (item.value / item.total) * 100)}%` }} />
+                  </i>
+                </div>
+              ))}
+            </div>
+
+            <div className="admin-command__spotlight">
+              <span aria-hidden="true">{metricIcon("shield")}</span>
+              <div>
+                <strong>Keep decisions moving with accessible hiring checks.</strong>
+                <p>Prioritize pending reviews and compliance feedback before they pile up.</p>
+              </div>
+            </div>
           </article>
 
-          <article className="admin-home-v2__panel">
-            <header className="admin-home-v2__panel-head">
-              <h2>Applications Overview</h2>
-              <span>This month</span>
-            </header>
-            {chartSeries.length === 0 ? (
-              <p className="admin-home-v2__empty">Aucune donnée workflow récente.</p>
-            ) : (
-              <div className="admin-home-v2__chart">
-                <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-label="Applications trend chart">
-                  <path d={chartPath} />
-                </svg>
-                <div className="admin-home-v2__chart-meta">
-                  <small>{timeline[0] ? formatDate(timeline[0].date) : "Debut"}</small>
-                  <strong>
-                    {timeline[timeline.length - 1] ? chartSeries[chartSeries.length - 1].toLocaleString() : 0} applications
-                  </strong>
-                  <small>{timeline[timeline.length - 1] ? formatDate(timeline[timeline.length - 1].date) : "Fin"}</small>
-                </div>
+          <article className="admin-command__card admin-command__card--access">
+            <header className="admin-command__card-head">
+              <div>
+                <p className="admin-command__section-label">Quality</p>
+                <h2>Accessibility signals</h2>
               </div>
-            )}
-          </article>
-        </section>
-
-        <section className="admin-home-v2__footer-grid">
-          <article className="admin-home-v2__panel">
-            <header className="admin-home-v2__panel-head">
-              <h2>Accessibility At a Glance</h2>
-              <Link href="/home#admin-stats">View all</Link>
+              <Link href="/home#admin-stats">Details</Link>
             </header>
-            <div className="admin-home-v2__accessibility">
-              <div className="admin-home-v2__donut" style={{ ["--progress" as string]: `${accessibilityScore}` }}>
+
+            <div className="admin-command__score">
+              <div className="admin-command__ring" style={{ ["--progress" as string]: `${accessibilityScore}%` }}>
                 <strong>{accessibilityScore}%</strong>
-                <span>Overall Score</span>
+                <span>Score</span>
               </div>
               <ul>
-                {statusItems.map((item) => (
+                {accessibilityItems.map((item) => (
                   <li key={item.label}>
                     <span>{item.label}</span>
                     <strong>{item.value}%</strong>
@@ -1412,27 +1260,35 @@ function AdminDashboardHome({
             </div>
           </article>
 
-          <article className="admin-home-v2__panel">
-            <header className="admin-home-v2__panel-head">
-              <h2>Quick Actions</h2>
+          <article className="admin-command__card admin-command__card--actions">
+            <header className="admin-command__card-head">
+              <div>
+                <p className="admin-command__section-label">Actions</p>
+              <h2>Quick actions</h2>
+              </div>
             </header>
-            <nav className="admin-home-v2__quick" aria-label="Quick admin actions">
-              <Link href="/admin/candidatures">Review pending applications</Link>
-              <Link href="/entreprise/offres">Manage job postings</Link>
-              <Link href="/home#admin-stats">View accessibility feedback</Link>
-              <Link href="/admin/statistiques">Generate platform report</Link>
+            <nav className="admin-command__actions" aria-label="Quick admin actions">
+              {quickActions.map((item) => (
+                <Link href={item.href} key={item.href}>
+                  <span aria-hidden="true">{item.icon}</span>
+                  <span>{item.label}</span>
+                </Link>
+              ))}
             </nav>
           </article>
 
-          <article className="admin-home-v2__panel">
-            <header className="admin-home-v2__panel-head">
-              <h2>Platform Activity</h2>
+          <article className="admin-command__card admin-command__card--activity">
+            <header className="admin-command__card-head">
+              <div>
+                <p className="admin-command__section-label">Live overview</p>
+                <h2>Platform activity</h2>
+              </div>
               <Link href="/home#admin-stats">View all</Link>
             </header>
-            <ul className="admin-home-v2__activity">
+            <ul className="admin-command__activity">
               {platformActivity.map((item) => (
                 <li key={item.id}>
-                  <span className={`admin-home-v2__activity-icon admin-home-v2__activity-icon--${item.tone}`}>{item.icon}</span>
+                  <span className={`admin-command__activity-icon admin-command__activity-icon--${item.tone}`} aria-hidden="true">{item.icon}</span>
                   <div>
                     <strong>{item.title}</strong>
                     <p>{item.detail}</p>
