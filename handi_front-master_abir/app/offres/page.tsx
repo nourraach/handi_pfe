@@ -1286,6 +1286,7 @@ const jobsStudioScopedStyles = `
     }
   }
 
+  .jobs-simple-card__save,
   .jobs-simple-card__apply,
   .jobs-simple-card__ghost {
     min-height: 40px;
@@ -1293,9 +1294,39 @@ const jobsStudioScopedStyles = `
     transition: transform 150ms ease, background-color 150ms ease, border-color 150ms ease, color 150ms ease;
   }
 
+  .jobs-simple-card__save:active,
   .jobs-simple-card__apply:active,
   .jobs-simple-card__ghost:active {
     transform: scale(0.98);
+  }
+
+  .jobs-simple-card__save {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-width: 112px;
+    border: 1px solid #ddd4ee;
+    background: #fff;
+    color: #5f5784;
+    font-size: 14px;
+    font-weight: 800;
+  }
+
+  .jobs-simple-card__save:hover {
+    border-color: #c9bcdf;
+    color: #4e3a74;
+  }
+
+  .jobs-simple-card__save.is-active {
+    border-color: rgba(90, 66, 191, 0.24);
+    background: rgba(90, 66, 191, 0.1);
+    color: #4d1ca1;
+  }
+
+  .jobs-simple-card__save svg {
+    width: 15px;
+    height: 15px;
   }
 
   .jobs-simple-card__apply {
@@ -1728,6 +1759,11 @@ const jobsStudioScopedStyles = `
 
     .jobs-simple-card__apply {
       min-height: 48px;
+      width: 100%;
+    }
+
+    .jobs-simple-card__save {
+      min-height: 44px;
       width: 100%;
     }
 
@@ -2277,6 +2313,7 @@ export default function OffresPage() {
           <div className="jobs-studio-grid is-list">
             {offresVisibles.map((offre) => {
               const matchPercent = computeMatchPercent(offre.id_offre);
+              const estFavori = favoris.has(offre.id_offre);
 
               return (
                 <article key={offre.id_offre} className="jobs-simple-card" tabIndex={0}>
@@ -2330,6 +2367,16 @@ export default function OffresPage() {
 
                   <div className="jobs-simple-card__right">
                     <p className="jobs-simple-card__salary">{formatSalaryRange(offre)}</p>
+                    <button
+                      type="button"
+                      className={`jobs-simple-card__save ${estFavori ? "is-active" : ""}`}
+                      onClick={() => void toggleFavori(offre.id_offre)}
+                      aria-pressed={estFavori}
+                      aria-label={`${estFavori ? "Retirer" : "Sauvegarder"} l'offre ${offre.titre}`}
+                    >
+                      <BookmarkIcon />
+                      {estFavori ? "Saved" : "Save"}
+                    </button>
                     <button
                       type="button"
                       className="jobs-simple-card__apply"
@@ -2660,7 +2707,6 @@ export default function OffresPage() {
 
   return utilisateur ? <AppShell utilisateur={utilisateur}>{contenu}</AppShell> : <main className="page-centree section-page app-theme">{contenu}</main>;
 }
-
 
 
 

@@ -430,29 +430,6 @@ const applicationsPageStyles = `
     gap: 12px;
   }
 
-  .applications-hub-save {
-    width: 34px;
-    height: 34px;
-    border-radius: 10px;
-    border: 1px solid #ddd4ee;
-    background: #fff;
-    color: #6b5b8c;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition: border-color 150ms ease, color 150ms ease;
-  }
-
-  .applications-hub-save:hover {
-    border-color: #c9bcdf;
-    color: #4e3a74;
-  }
-
-  .applications-hub-save svg {
-    width: 15px;
-    height: 15px;
-  }
-
   .applications-hub-status {
     display: inline-flex;
     align-items: center;
@@ -725,14 +702,6 @@ function BuildingIcon(props: SVGProps<SVGSVGElement>) {
       <path d="M17 7h.01" />
       <path d="M17 11h.01" />
       <path d="M14 20v-4h2v4" />
-    </svg>
-  );
-}
-
-function BookmarkIcon(props: SVGProps<SVGSVGElement>) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...props}>
-      <path d="M7 4.75A1.75 1.75 0 0 1 8.75 3h6.5A1.75 1.75 0 0 1 17 4.75V20l-5-3-5 3z" />
     </svg>
   );
 }
@@ -1063,9 +1032,6 @@ function MesCandidaturesPage() {
                       </div>
 
                       <div className="applications-hub-cardactions">
-                        <button type="button" className="applications-hub-save" aria-label="Sauvegarder">
-                          <BookmarkIcon />
-                        </button>
                         <Button className="applications-hub-detailsbutton">{copy.viewDetails}</Button>
                       </div>
                     </Card>
