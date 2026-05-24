@@ -5,7 +5,7 @@ import { OffreEmploiRepository } from "../repositories/offre-emploi.repository";
 import { EntretienRepository } from "../repositories/entretien.repository";
 import { reponseSucces, reponseErreur } from "../utils/reponse";
 import { asString } from "../utils/request-helpers";
-import { sql, eq, ne, gte, ilike, and } from "drizzle-orm";
+import { sql, eq, ne, gte, ilike, and, desc, inArray } from "drizzle-orm";
 import { db } from "../db";
 import { 
   candidatureTable, 
@@ -31,6 +31,63 @@ export class AdminCandidatureController {
       }
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 20;
+      const conditions: any[] = [];
+
+      if (role === "inspecteur" && region) {
+        conditions.push(ilike(utilisateurTable.addresse, `%${region}%`));
+      }
+
+      if (role === "aneti") {
+        conditions.push(inArray(candidatureTable.statut, ["shortlisted", "accepted"] as any));
+      }
+
+      const candidaturesAvecDetails = await db
+        .select({
+          candidature: candidatureTable,
+          candidat: {
+            id: candidatTable.id,
+            id_utilisateur: utilisateurTable.id_utilisateur,
+            nom: utilisateurTable.nom,
+            email: utilisateurTable.email,
+            telephone: utilisateurTable.telephone,
+            addresse: utilisateurTable.addresse,
+            region: utilisateurTable.region,
+            gouvernorat: utilisateurTable.gouvernorat,
+            delegation: utilisateurTable.delegation,
+            competences: candidatTable.competences,
+            experience: candidatTable.experience,
+            handicap: candidatTable.handicap,
+            cv_url: candidatTable.cv_url,
+          },
+          offre: {
+            id: offreEmploiTable.id,
+            titre: offreEmploiTable.titre,
+            localisation: offreEmploiTable.localisation,
+            type_poste: offreEmploiTable.type_poste,
+            statut: offreEmploiTable.statut,
+            entreprise: {
+              id: entrepriseTable.id,
+              id_utilisateur: entrepriseTable.id_utilisateur,
+              nom: entrepriseTable.nom_entreprise,
+              nom_entreprise: entrepriseTable.nom_entreprise,
+              statut_validation: entrepriseTable.statut_validation,
+              contact_rh_nom: entrepriseTable.contact_rh_nom,
+              contact_rh_email: entrepriseTable.contact_rh_email,
+              contact_rh_telephone: entrepriseTable.contact_rh_telephone,
+            },
+          },
+        })
+        .from(candidatureTable)
+        .innerJoin(candidatTable, eq(candidatureTable.id_candidat, candidatTable.id))
+        .innerJoin(utilisateurTable, eq(candidatTable.id_utilisateur, utilisateurTable.id_utilisateur))
+        .innerJoin(offreEmploiTable, eq(candidatureTable.id_offre, offreEmploiTable.id))
+        .innerJoin(entrepriseTable, eq(offreEmploiTable.id_entreprise, entrepriseTable.id))
+        .where(conditions.length > 0 ? and(...conditions) : undefined)
+        .orderBy(desc(candidatureTable.date_postulation))
+        .limit(limit)
+        .offset((page - 1) * limit);
+
+      return reponseSucces(res, 200, "Candidatures recuperees avec succes", candidaturesAvecDetails);
 
       // Récupérer toutes les candidatures avec détails
       let candidatures = await db.query.candidatureTable.findMany({
