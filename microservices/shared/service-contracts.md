@@ -34,6 +34,7 @@ AUTH_SERVICE_ENABLED=true
 USER_SERVICE_ENABLED=true
 JOB_SERVICE_ENABLED=true
 APPLICATION_SERVICE_ENABLED=true
+INTERVIEW_SERVICE_ENABLED=true
 ```
 
 Disabled services fall back to `core-service` through the generic `/api/*` proxy.

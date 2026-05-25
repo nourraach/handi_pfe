@@ -96,6 +96,23 @@ services:
     depends_on:
       - postgres
 
+  interview-service:
+    image: node:22-alpine
+    working_dir: /app
+    command: sh -c "npm install && npm run db:migrate && npm run dev"
+    environment:
+      PORT: 4105
+      FRONTEND_URL: http://localhost:3000
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/handitalents
+      JWT_SECRET: votre_secret_jwt
+      JWT_EXPIRES_IN: 1d
+    ports:
+      - "4105:4105"
+    volumes:
+      - ./microservices/interview-service:/app
+    depends_on:
+      - postgres
+
   api-gateway:
     image: node:22-alpine
     working_dir: /app
@@ -111,6 +128,8 @@ services:
       JOB_SERVICE_URL: http://job-service:4103
       APPLICATION_SERVICE_ENABLED: "true"
       APPLICATION_SERVICE_URL: http://application-service:4104
+      INTERVIEW_SERVICE_ENABLED: "true"
+      INTERVIEW_SERVICE_URL: http://interview-service:4105
       CORE_SERVICE_URL: http://core-service:5000
     ports:
       - "4000:4000"
@@ -122,6 +141,7 @@ services:
       - user-service
       - job-service
       - application-service
+      - interview-service
 
 volumes:
   microservices_pgdata:

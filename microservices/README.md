@@ -11,10 +11,10 @@ Initial services:
 - `user-service`: account, profile, admin user-management, and pending registration workflow.
 - `job-service`: first job-domain slice for offers, enterprise offer management, publication review, favorites, and recommendations.
 - `application-service`: candidatures, enterprise application views, admin application tracking, exports, and candidate search.
+- `interview-service`: interview scheduling, admin interview views, interview tests, and interview wellbeing flows.
 - `core-service`: compatibility wrapper for the current backend.
 
 Planned services:
 
-- `interview-service`
 - `reporting-service`
 - `notification-service`

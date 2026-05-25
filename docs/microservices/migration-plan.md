@@ -131,6 +131,13 @@ It also supports routing application traffic to `application-service` with `APPL
 - `/api/admin/workflow-recrutement`
 - `/api/admin/detection-abus`
 
+It also supports routing interview traffic to `interview-service` with `INTERVIEW_SERVICE_ENABLED=true`:
+
+- `/api/entretiens/*`
+- `/api/admin/entretiens/*`
+- `/api/tests-entretien/*`
+- `/api/interne/bien-etre/*`
+
 For this milestone, extracted services still use the same PostgreSQL database as `core-service` so behavior can be validated before later database separation.
 
 Some legacy inline offer endpoints in `handi_talents-main_abir/src/app.ts`, such as `/api/offres/publiques`, still fall back to `core-service` until they are replaced by route-module implementations.
