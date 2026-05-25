@@ -8,5 +8,4 @@ Planned ownership:
 - password reset/session token tables
 - JWT signing and verification contract
 
-During milestone 1, this folder is scaffolded only. The current backend still serves auth until the route extraction is complete.
-
+The service now owns `/api/auth/*` locally. The gateway still starts with `AUTH_SERVICE_ENABLED=false` until the database-backed login/register flows are tested end to end.
