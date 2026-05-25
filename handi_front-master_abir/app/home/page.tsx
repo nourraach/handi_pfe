@@ -1125,7 +1125,7 @@ function AdminDashboardHome({
   ];
 
   const quickActions = [
-    { href: "/admin/candidatures", label: "Review pending applications", icon: metricIcon("applications") },
+    { href: "/admin/demandes-en-attente", label: "Review pending requests", icon: metricIcon("applications") },
     { href: "/entreprise/offres", label: "Manage job postings", icon: metricIcon("jobs") },
     { href: "/home#admin-stats", label: "View accessibility feedback", icon: metricIcon("accessibility") },
     { href: "/admin/statistiques", label: "Open analytics report", icon: metricIcon("report") },
@@ -1193,7 +1193,7 @@ function AdminDashboardHome({
             <h1>Admin command center</h1>
             <p>{firstName}, track decisions, accessibility quality, and hiring momentum from one polished workspace.</p>
             <div className="admin-command__hero-actions">
-              <Link href="/admin/candidatures">Review queue</Link>
+              <Link href="/admin/demandes-en-attente">Review queue</Link>
               <Link href="/admin/statistiques">View reports</Link>
             </div>
           </div>
@@ -1209,7 +1209,7 @@ function AdminDashboardHome({
                 <p className="admin-command__section-label">Priority lane</p>
                 <h2>Recruitment flow</h2>
               </div>
-              <Link href="/admin/candidatures">Open queue</Link>
+              <Link href="/admin/demandes-en-attente">Open queue</Link>
             </header>
 
             <div className="admin-command__focus-list">

@@ -388,6 +388,7 @@ export function Navbar({
   const adminSidebarItems = useMemo<CandidateSidebarItem[]>(
     () => [
       { id: "admin-dashboard", label: "Dashboard", subtitle: "Vue globale", icon: "dashboard", href: "/home" },
+      { id: "admin-pending-requests", label: "Pending Requests", subtitle: "Inscriptions", icon: "messages", href: "/admin/demandes-en-attente" },
       { id: "admin-employers", label: "Employers", subtitle: "Entreprises", icon: "skills", href: "/admin/comptes" },
       { id: "admin-jobs", label: "Job Postings", subtitle: "Validation", icon: "cv", href: "/admin/offres-publication" },
       { id: "admin-apps", label: "Applications", subtitle: "Statuts", icon: "applications", href: "/admin/applications" },
