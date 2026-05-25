@@ -130,6 +130,23 @@ services:
     depends_on:
       - postgres
 
+  notification-service:
+    image: node:22-alpine
+    working_dir: /app
+    command: sh -c "npm install && npm run db:migrate && npm run dev"
+    environment:
+      PORT: 4107
+      FRONTEND_URL: http://localhost:3000
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/handitalents
+      JWT_SECRET: votre_secret_jwt
+      JWT_EXPIRES_IN: 1d
+    ports:
+      - "4107:4107"
+    volumes:
+      - ./microservices/notification-service:/app
+    depends_on:
+      - postgres
+
   api-gateway:
     image: node:22-alpine
     working_dir: /app
@@ -149,6 +166,8 @@ services:
       INTERVIEW_SERVICE_URL: http://interview-service:4105
       REPORTING_SERVICE_ENABLED: "true"
       REPORTING_SERVICE_URL: http://reporting-service:4106
+      NOTIFICATION_SERVICE_ENABLED: "true"
+      NOTIFICATION_SERVICE_URL: http://notification-service:4107
       CORE_SERVICE_URL: http://core-service:5000
     ports:
       - "4000:4000"
@@ -162,6 +181,7 @@ services:
       - application-service
       - interview-service
       - reporting-service
+      - notification-service
 
 volumes:
   microservices_pgdata:

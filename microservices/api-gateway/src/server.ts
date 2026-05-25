@@ -11,12 +11,14 @@ const jobServiceEnabled = process.env.JOB_SERVICE_ENABLED === "true";
 const applicationServiceEnabled = process.env.APPLICATION_SERVICE_ENABLED === "true";
 const interviewServiceEnabled = process.env.INTERVIEW_SERVICE_ENABLED === "true";
 const reportingServiceEnabled = process.env.REPORTING_SERVICE_ENABLED === "true";
+const notificationServiceEnabled = process.env.NOTIFICATION_SERVICE_ENABLED === "true";
 const authServiceUrl = process.env.AUTH_SERVICE_URL || "http://localhost:4101";
 const userServiceUrl = process.env.USER_SERVICE_URL || "http://localhost:4102";
 const jobServiceUrl = process.env.JOB_SERVICE_URL || "http://localhost:4103";
 const applicationServiceUrl = process.env.APPLICATION_SERVICE_URL || "http://localhost:4104";
 const interviewServiceUrl = process.env.INTERVIEW_SERVICE_URL || "http://localhost:4105";
 const reportingServiceUrl = process.env.REPORTING_SERVICE_URL || "http://localhost:4106";
+const notificationServiceUrl = process.env.NOTIFICATION_SERVICE_URL || "http://localhost:4107";
 const coreServiceUrl = process.env.CORE_SERVICE_URL || "http://localhost:5000";
 
 const app = express();
@@ -56,6 +58,7 @@ const reportingServicePrefixes = [
   "/api/entreprise/reports-requests",
   "/api/avis-entreprises",
 ];
+const notificationServicePrefixes = ["/api/notifications"];
 
 app.use(
   cors({
@@ -75,6 +78,7 @@ app.get("/health", (_req, res) => {
       application: applicationServiceEnabled ? applicationServiceUrl : coreServiceUrl,
       interview: interviewServiceEnabled ? interviewServiceUrl : coreServiceUrl,
       reporting: reportingServiceEnabled ? reportingServiceUrl : coreServiceUrl,
+      notification: notificationServiceEnabled ? notificationServiceUrl : coreServiceUrl,
       core: coreServiceUrl,
     },
   });
@@ -110,6 +114,11 @@ const reportingProxy = createProxyMiddleware({
   changeOrigin: true,
 });
 
+const notificationProxy = createProxyMiddleware({
+  target: notificationServiceUrl,
+  changeOrigin: true,
+});
+
 const coreProxy = createProxyMiddleware({
   target: coreServiceUrl,
   changeOrigin: true,
@@ -138,6 +147,10 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 
   if (reportingServiceEnabled && reportingServicePrefixes.some((prefix) => req.path.startsWith(prefix))) {
     return reportingProxy(req, res, next);
+  }
+
+  if (notificationServiceEnabled && notificationServicePrefixes.some((prefix) => req.path.startsWith(prefix))) {
+    return notificationProxy(req, res, next);
   }
 
   return next();

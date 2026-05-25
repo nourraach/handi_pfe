@@ -13,8 +13,12 @@ Initial services:
 - `application-service`: candidatures, enterprise application views, admin application tracking, exports, and candidate search.
 - `interview-service`: interview scheduling, admin interview views, interview tests, and interview wellbeing flows.
 - `reporting-service`: supervision dashboards, enterprise compliance reports, and company reviews.
+- `notification-service`: authenticated in-app notification reads and state changes.
 - `core-service`: compatibility wrapper for the current backend.
 
 Planned services:
 
-- `notification-service`
+Later services:
+
+- `communication-service`
+- `assessment-service`
