@@ -148,6 +148,10 @@ It also supports routing notification traffic to `notification-service` with `NO
 
 - `/api/notifications/*`
 
+It also supports routing assessment traffic to `assessment-service` with `ASSESSMENT_SERVICE_ENABLED=true`:
+
+- `/api/tests-psychologiques/*`
+
 For this milestone, extracted services still use the same PostgreSQL database as `core-service` so behavior can be validated before later database separation.
 
 Some legacy inline offer endpoints in `handi_talents-main_abir/src/app.ts`, such as `/api/offres/publiques`, still fall back to `core-service` until they are replaced by route-module implementations.

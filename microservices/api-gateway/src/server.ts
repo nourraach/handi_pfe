@@ -12,6 +12,7 @@ const applicationServiceEnabled = process.env.APPLICATION_SERVICE_ENABLED === "t
 const interviewServiceEnabled = process.env.INTERVIEW_SERVICE_ENABLED === "true";
 const reportingServiceEnabled = process.env.REPORTING_SERVICE_ENABLED === "true";
 const notificationServiceEnabled = process.env.NOTIFICATION_SERVICE_ENABLED === "true";
+const assessmentServiceEnabled = process.env.ASSESSMENT_SERVICE_ENABLED === "true";
 const authServiceUrl = process.env.AUTH_SERVICE_URL || "http://localhost:4101";
 const userServiceUrl = process.env.USER_SERVICE_URL || "http://localhost:4102";
 const jobServiceUrl = process.env.JOB_SERVICE_URL || "http://localhost:4103";
@@ -19,6 +20,7 @@ const applicationServiceUrl = process.env.APPLICATION_SERVICE_URL || "http://loc
 const interviewServiceUrl = process.env.INTERVIEW_SERVICE_URL || "http://localhost:4105";
 const reportingServiceUrl = process.env.REPORTING_SERVICE_URL || "http://localhost:4106";
 const notificationServiceUrl = process.env.NOTIFICATION_SERVICE_URL || "http://localhost:4107";
+const assessmentServiceUrl = process.env.ASSESSMENT_SERVICE_URL || "http://localhost:4108";
 const coreServiceUrl = process.env.CORE_SERVICE_URL || "http://localhost:5000";
 
 const app = express();
@@ -59,6 +61,7 @@ const reportingServicePrefixes = [
   "/api/avis-entreprises",
 ];
 const notificationServicePrefixes = ["/api/notifications"];
+const assessmentServicePrefixes = ["/api/tests-psychologiques"];
 
 app.use(
   cors({
@@ -79,6 +82,7 @@ app.get("/health", (_req, res) => {
       interview: interviewServiceEnabled ? interviewServiceUrl : coreServiceUrl,
       reporting: reportingServiceEnabled ? reportingServiceUrl : coreServiceUrl,
       notification: notificationServiceEnabled ? notificationServiceUrl : coreServiceUrl,
+      assessment: assessmentServiceEnabled ? assessmentServiceUrl : coreServiceUrl,
       core: coreServiceUrl,
     },
   });
@@ -119,6 +123,11 @@ const notificationProxy = createProxyMiddleware({
   changeOrigin: true,
 });
 
+const assessmentProxy = createProxyMiddleware({
+  target: assessmentServiceUrl,
+  changeOrigin: true,
+});
+
 const coreProxy = createProxyMiddleware({
   target: coreServiceUrl,
   changeOrigin: true,
@@ -151,6 +160,10 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 
   if (notificationServiceEnabled && notificationServicePrefixes.some((prefix) => req.path.startsWith(prefix))) {
     return notificationProxy(req, res, next);
+  }
+
+  if (assessmentServiceEnabled && assessmentServicePrefixes.some((prefix) => req.path.startsWith(prefix))) {
+    return assessmentProxy(req, res, next);
   }
 
   return next();

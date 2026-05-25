@@ -14,6 +14,7 @@ Initial services:
 - `interview-service`: interview scheduling, admin interview views, interview tests, and interview wellbeing flows.
 - `reporting-service`: supervision dashboards, enterprise compliance reports, and company reviews.
 - `notification-service`: authenticated in-app notification reads and state changes.
+- `assessment-service`: psychological test administration, candidate tests, and test results.
 - `core-service`: compatibility wrapper for the current backend.
 
 Planned services:
@@ -21,4 +22,3 @@ Planned services:
 Later services:
 
 - `communication-service`
-- `assessment-service`
