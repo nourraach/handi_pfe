@@ -10,11 +10,13 @@ const userServiceEnabled = process.env.USER_SERVICE_ENABLED === "true";
 const jobServiceEnabled = process.env.JOB_SERVICE_ENABLED === "true";
 const applicationServiceEnabled = process.env.APPLICATION_SERVICE_ENABLED === "true";
 const interviewServiceEnabled = process.env.INTERVIEW_SERVICE_ENABLED === "true";
+const reportingServiceEnabled = process.env.REPORTING_SERVICE_ENABLED === "true";
 const authServiceUrl = process.env.AUTH_SERVICE_URL || "http://localhost:4101";
 const userServiceUrl = process.env.USER_SERVICE_URL || "http://localhost:4102";
 const jobServiceUrl = process.env.JOB_SERVICE_URL || "http://localhost:4103";
 const applicationServiceUrl = process.env.APPLICATION_SERVICE_URL || "http://localhost:4104";
 const interviewServiceUrl = process.env.INTERVIEW_SERVICE_URL || "http://localhost:4105";
+const reportingServiceUrl = process.env.REPORTING_SERVICE_URL || "http://localhost:4106";
 const coreServiceUrl = process.env.CORE_SERVICE_URL || "http://localhost:5000";
 
 const app = express();
@@ -49,6 +51,11 @@ const interviewServicePrefixes = [
   "/api/tests-entretien",
   "/api/interne/bien-etre",
 ];
+const reportingServicePrefixes = [
+  "/api/supervision",
+  "/api/entreprise/reports-requests",
+  "/api/avis-entreprises",
+];
 
 app.use(
   cors({
@@ -67,6 +74,7 @@ app.get("/health", (_req, res) => {
       job: jobServiceEnabled ? jobServiceUrl : coreServiceUrl,
       application: applicationServiceEnabled ? applicationServiceUrl : coreServiceUrl,
       interview: interviewServiceEnabled ? interviewServiceUrl : coreServiceUrl,
+      reporting: reportingServiceEnabled ? reportingServiceUrl : coreServiceUrl,
       core: coreServiceUrl,
     },
   });
@@ -97,6 +105,11 @@ const interviewProxy = createProxyMiddleware({
   changeOrigin: true,
 });
 
+const reportingProxy = createProxyMiddleware({
+  target: reportingServiceUrl,
+  changeOrigin: true,
+});
+
 const coreProxy = createProxyMiddleware({
   target: coreServiceUrl,
   changeOrigin: true,
@@ -121,6 +134,10 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 
   if (interviewServiceEnabled && interviewServicePrefixes.some((prefix) => req.path.startsWith(prefix))) {
     return interviewProxy(req, res, next);
+  }
+
+  if (reportingServiceEnabled && reportingServicePrefixes.some((prefix) => req.path.startsWith(prefix))) {
+    return reportingProxy(req, res, next);
   }
 
   return next();

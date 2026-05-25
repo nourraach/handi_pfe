@@ -12,9 +12,9 @@ Initial services:
 - `job-service`: first job-domain slice for offers, enterprise offer management, publication review, favorites, and recommendations.
 - `application-service`: candidatures, enterprise application views, admin application tracking, exports, and candidate search.
 - `interview-service`: interview scheduling, admin interview views, interview tests, and interview wellbeing flows.
+- `reporting-service`: supervision dashboards, enterprise compliance reports, and company reviews.
 - `core-service`: compatibility wrapper for the current backend.
 
 Planned services:
 
-- `reporting-service`
 - `notification-service`
