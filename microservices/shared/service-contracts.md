@@ -33,6 +33,7 @@ The gateway can progressively switch route ownership without changing the fronte
 AUTH_SERVICE_ENABLED=true
 USER_SERVICE_ENABLED=true
 JOB_SERVICE_ENABLED=true
+APPLICATION_SERVICE_ENABLED=true
 ```
 
 Disabled services fall back to `core-service` through the generic `/api/*` proxy.

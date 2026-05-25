@@ -10,11 +10,11 @@ Initial services:
 - `auth-service`: first extracted domain.
 - `user-service`: account, profile, admin user-management, and pending registration workflow.
 - `job-service`: first job-domain slice for offers, enterprise offer management, publication review, favorites, and recommendations.
+- `application-service`: candidatures, enterprise application views, admin application tracking, exports, and candidate search.
 - `core-service`: compatibility wrapper for the current backend.
 
 Planned services:
 
-- `application-service`
 - `interview-service`
 - `reporting-service`
 - `notification-service`

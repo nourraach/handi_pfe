@@ -8,9 +8,11 @@ const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
 const authServiceEnabled = process.env.AUTH_SERVICE_ENABLED === "true";
 const userServiceEnabled = process.env.USER_SERVICE_ENABLED === "true";
 const jobServiceEnabled = process.env.JOB_SERVICE_ENABLED === "true";
+const applicationServiceEnabled = process.env.APPLICATION_SERVICE_ENABLED === "true";
 const authServiceUrl = process.env.AUTH_SERVICE_URL || "http://localhost:4101";
 const userServiceUrl = process.env.USER_SERVICE_URL || "http://localhost:4102";
 const jobServiceUrl = process.env.JOB_SERVICE_URL || "http://localhost:4103";
+const applicationServiceUrl = process.env.APPLICATION_SERVICE_URL || "http://localhost:4104";
 const coreServiceUrl = process.env.CORE_SERVICE_URL || "http://localhost:5000";
 
 const app = express();
@@ -31,6 +33,14 @@ const jobServicePrefixes = [
   "/api/favoris",
   "/api/recommandations",
 ];
+const applicationServicePrefixes = [
+  "/api/candidatures",
+  "/api/entreprise/candidatures",
+  "/api/entreprise/candidats",
+  "/api/admin/candidatures",
+  "/api/admin/workflow-recrutement",
+  "/api/admin/detection-abus",
+];
 
 app.use(
   cors({
@@ -47,6 +57,7 @@ app.get("/health", (_req, res) => {
       auth: authServiceEnabled ? authServiceUrl : coreServiceUrl,
       user: userServiceEnabled ? userServiceUrl : coreServiceUrl,
       job: jobServiceEnabled ? jobServiceUrl : coreServiceUrl,
+      application: applicationServiceEnabled ? applicationServiceUrl : coreServiceUrl,
       core: coreServiceUrl,
     },
   });
@@ -67,6 +78,11 @@ const jobProxy = createProxyMiddleware({
   changeOrigin: true,
 });
 
+const applicationProxy = createProxyMiddleware({
+  target: applicationServiceUrl,
+  changeOrigin: true,
+});
+
 const coreProxy = createProxyMiddleware({
   target: coreServiceUrl,
   changeOrigin: true,
@@ -83,6 +99,10 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 
   if (jobServiceEnabled && jobServicePrefixes.some((prefix) => req.path.startsWith(prefix))) {
     return jobProxy(req, res, next);
+  }
+
+  if (applicationServiceEnabled && applicationServicePrefixes.some((prefix) => req.path.startsWith(prefix))) {
+    return applicationProxy(req, res, next);
   }
 
   return next();
