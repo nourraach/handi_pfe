@@ -101,4 +101,4 @@ The first milestone is not to split every table immediately. It is:
 4. Frontend uses the gateway.
 5. Health checks prove service availability.
 
-The gateway starts in compatibility mode with `AUTH_SERVICE_ENABLED=false`, so production-like frontend traffic can still go to `core-service` until the database-backed auth flows are tested end to end. The extracted `auth-service` already exposes `/api/auth/*` and can be enabled with `AUTH_SERVICE_ENABLED=true`.
+The gateway now supports routing `/api/auth/*` to the extracted `auth-service` with `AUTH_SERVICE_ENABLED=true`. For this milestone, auth uses the same PostgreSQL database as `core-service` so login/register behavior can be validated before later database separation.

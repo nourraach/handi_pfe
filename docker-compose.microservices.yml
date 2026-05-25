@@ -31,11 +31,11 @@ services:
   auth-service:
     image: node:22-alpine
     working_dir: /app
-    command: sh -c "npm install && npm run dev"
+    command: sh -c "npm install && npm run db:migrate && npm run dev"
     environment:
       PORT: 4101
       FRONTEND_URL: http://localhost:3000
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/handitalents_auth
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/handitalents
       JWT_SECRET: votre_secret_jwt
       JWT_EXPIRES_IN: 1d
     ports:
@@ -52,7 +52,7 @@ services:
     environment:
       PORT: 4000
       FRONTEND_URL: http://localhost:3000
-      AUTH_SERVICE_ENABLED: "false"
+      AUTH_SERVICE_ENABLED: "true"
       AUTH_SERVICE_URL: http://auth-service:4101
       CORE_SERVICE_URL: http://core-service:5000
     ports:
@@ -65,4 +65,3 @@ services:
 
 volumes:
   microservices_pgdata:
-
