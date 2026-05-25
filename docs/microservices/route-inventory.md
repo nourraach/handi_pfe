@@ -40,13 +40,13 @@ The following routes are defined directly in `src/app.ts` and should be moved to
 - `GET /api/offres/publiques`
 - `POST /api/entreprise/offres`
 - `PATCH /api/entreprise/offres/:id/statut`
-- `GET /api/admin/demandes-en-attente`
-- `POST /api/admin/approuver/:id`
-- `POST /api/admin/refuser/:id`
-- `GET /api/candidats/profil/:id`
-- `PUT /api/candidats/profil`
-- `GET /api/entreprises/profil/:id`
-- `PUT /api/entreprises/profil`
+- `GET /api/admin/demandes-en-attente` - extracted behind `user-service`
+- `POST /api/admin/approuver/:id` - extracted behind `user-service`
+- `POST /api/admin/refuser/:id` - extracted behind `user-service`
+- `GET /api/candidats/profil/:id` - extracted behind `user-service`
+- `PUT /api/candidats/profil` - extracted behind `user-service`
+- `GET /api/entreprises/profil/:id` - extracted behind `user-service`
+- `PUT /api/entreprises/profil` - extracted behind `user-service`
 
 ## Database Boundary Draft
 
@@ -61,4 +61,3 @@ The following routes are defined directly in `src/app.ts` and should be moved to
 | `notification-service` | `notification`, email/SMS delivery logs later |
 
 The first migration phase can keep one physical PostgreSQL server while separating schemas/databases progressively.
-

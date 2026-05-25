@@ -101,4 +101,17 @@ The first milestone is not to split every table immediately. It is:
 4. Frontend uses the gateway.
 5. Health checks prove service availability.
 
-The gateway now supports routing `/api/auth/*` to the extracted `auth-service` with `AUTH_SERVICE_ENABLED=true`. For this milestone, auth uses the same PostgreSQL database as `core-service` so login/register behavior can be validated before later database separation.
+The gateway now supports routing `/api/auth/*` to the extracted `auth-service` with `AUTH_SERVICE_ENABLED=true`.
+
+It also supports routing account/profile traffic to `user-service` with `USER_SERVICE_ENABLED=true`:
+
+- `/api/admin/demandes-en-attente`
+- `/api/admin/approuver/*`
+- `/api/admin/refuser/*`
+- `/api/admin/utilisateurs/*`
+- `/api/candidats/profil/*`
+- `/api/entreprises/profil/*`
+- `/api/admin/profil/*`
+- `/api/entreprises/membres/*`
+
+For this milestone, extracted services still use the same PostgreSQL database as `core-service` so behavior can be validated before later database separation.
