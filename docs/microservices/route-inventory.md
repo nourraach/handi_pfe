@@ -36,10 +36,10 @@ This file records the current backend route surface before extraction.
 
 The following routes are defined directly in `src/app.ts` and should be moved to route modules before service extraction:
 
-- `GET /api/entreprise/offres`
+- `GET /api/entreprise/offres` - extracted behind `job-service` through the modular route; inline fallback still exists in `core-service`
 - `GET /api/offres/publiques`
-- `POST /api/entreprise/offres`
-- `PATCH /api/entreprise/offres/:id/statut`
+- `POST /api/entreprise/offres` - extracted behind `job-service` through the modular route; inline fallback still exists in `core-service`
+- `PATCH /api/entreprise/offres/:id/statut` - extracted behind `job-service` through the modular route; inline fallback still exists in `core-service`
 - `GET /api/admin/demandes-en-attente` - extracted behind `user-service`
 - `POST /api/admin/approuver/:id` - extracted behind `user-service`
 - `POST /api/admin/refuser/:id` - extracted behind `user-service`

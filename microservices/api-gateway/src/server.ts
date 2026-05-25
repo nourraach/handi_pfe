@@ -7,8 +7,10 @@ const port = Number(process.env.PORT || 4000);
 const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
 const authServiceEnabled = process.env.AUTH_SERVICE_ENABLED === "true";
 const userServiceEnabled = process.env.USER_SERVICE_ENABLED === "true";
+const jobServiceEnabled = process.env.JOB_SERVICE_ENABLED === "true";
 const authServiceUrl = process.env.AUTH_SERVICE_URL || "http://localhost:4101";
 const userServiceUrl = process.env.USER_SERVICE_URL || "http://localhost:4102";
+const jobServiceUrl = process.env.JOB_SERVICE_URL || "http://localhost:4103";
 const coreServiceUrl = process.env.CORE_SERVICE_URL || "http://localhost:5000";
 
 const app = express();
@@ -21,6 +23,13 @@ const userServicePrefixes = [
   "/api/entreprises/profil",
   "/api/admin/profil",
   "/api/entreprises/membres",
+];
+const jobServicePrefixes = [
+  "/api/offres-emploi",
+  "/api/entreprise/offres",
+  "/api/admin/offres/publication",
+  "/api/favoris",
+  "/api/recommandations",
 ];
 
 app.use(
@@ -37,6 +46,7 @@ app.get("/health", (_req, res) => {
     routes: {
       auth: authServiceEnabled ? authServiceUrl : coreServiceUrl,
       user: userServiceEnabled ? userServiceUrl : coreServiceUrl,
+      job: jobServiceEnabled ? jobServiceUrl : coreServiceUrl,
       core: coreServiceUrl,
     },
   });
@@ -52,6 +62,11 @@ const userProxy = createProxyMiddleware({
   changeOrigin: true,
 });
 
+const jobProxy = createProxyMiddleware({
+  target: jobServiceUrl,
+  changeOrigin: true,
+});
+
 const coreProxy = createProxyMiddleware({
   target: coreServiceUrl,
   changeOrigin: true,
@@ -64,6 +79,10 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 
   if (userServiceEnabled && userServicePrefixes.some((prefix) => req.path.startsWith(prefix))) {
     return userProxy(req, res, next);
+  }
+
+  if (jobServiceEnabled && jobServicePrefixes.some((prefix) => req.path.startsWith(prefix))) {
+    return jobProxy(req, res, next);
   }
 
   return next();

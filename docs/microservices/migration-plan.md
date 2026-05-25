@@ -114,4 +114,14 @@ It also supports routing account/profile traffic to `user-service` with `USER_SE
 - `/api/admin/profil/*`
 - `/api/entreprises/membres/*`
 
+It also supports routing the first job domain slice to `job-service` with `JOB_SERVICE_ENABLED=true`:
+
+- `/api/offres-emploi/*`
+- `/api/entreprise/offres/*`
+- `/api/admin/offres/publication/*`
+- `/api/favoris/*`
+- `/api/recommandations/*`
+
 For this milestone, extracted services still use the same PostgreSQL database as `core-service` so behavior can be validated before later database separation.
+
+Some legacy inline offer endpoints in `handi_talents-main_abir/src/app.ts`, such as `/api/offres/publiques`, still fall back to `core-service` until they are replaced by route-module implementations.
