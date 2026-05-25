@@ -24,6 +24,7 @@ api-gateway
   |-- interview-service
   |-- reporting-service
   |-- notification-service
+  |-- communication-service
   |-- core-service temporary fallback
 ```
 
@@ -46,7 +47,7 @@ The existing backend remains available as `core-service` while domains are extra
 | `/api/tests-psychologiques/*` | `assessment-service` or `interview-service` | Keep separate if time allows. |
 | `/api/supervision/*`, `/api/entreprise/reports-requests/*`, `/api/avis-entreprises/*` | `reporting-service` | Compliance reports, supervision, company reviews. |
 | `/api/notifications/*` | `notification-service` | In-app notifications, emails/SMS later. |
-| `/api/chat/*` | `communication-service` or `notification-service` | Can stay in `core-service` until later. |
+| `/api/chat/*` | `communication-service` | Conversations, messages, recipient search, and SSE stream. |
 
 ## Week Plan
 
@@ -151,6 +152,10 @@ It also supports routing notification traffic to `notification-service` with `NO
 It also supports routing assessment traffic to `assessment-service` with `ASSESSMENT_SERVICE_ENABLED=true`:
 
 - `/api/tests-psychologiques/*`
+
+It also supports routing chat traffic to `communication-service` with `COMMUNICATION_SERVICE_ENABLED=true`:
+
+- `/api/chat/*`
 
 For this milestone, extracted services still use the same PostgreSQL database as `core-service` so behavior can be validated before later database separation.
 

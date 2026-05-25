@@ -15,10 +15,5 @@ Initial services:
 - `reporting-service`: supervision dashboards, enterprise compliance reports, and company reviews.
 - `notification-service`: authenticated in-app notification reads and state changes.
 - `assessment-service`: psychological test administration, candidate tests, and test results.
+- `communication-service`: chat conversations, recipient search, messages, and SSE conversation stream.
 - `core-service`: compatibility wrapper for the current backend.
-
-Planned services:
-
-Later services:
-
-- `communication-service`

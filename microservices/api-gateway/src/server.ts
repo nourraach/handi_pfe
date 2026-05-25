@@ -13,6 +13,7 @@ const interviewServiceEnabled = process.env.INTERVIEW_SERVICE_ENABLED === "true"
 const reportingServiceEnabled = process.env.REPORTING_SERVICE_ENABLED === "true";
 const notificationServiceEnabled = process.env.NOTIFICATION_SERVICE_ENABLED === "true";
 const assessmentServiceEnabled = process.env.ASSESSMENT_SERVICE_ENABLED === "true";
+const communicationServiceEnabled = process.env.COMMUNICATION_SERVICE_ENABLED === "true";
 const authServiceUrl = process.env.AUTH_SERVICE_URL || "http://localhost:4101";
 const userServiceUrl = process.env.USER_SERVICE_URL || "http://localhost:4102";
 const jobServiceUrl = process.env.JOB_SERVICE_URL || "http://localhost:4103";
@@ -21,6 +22,7 @@ const interviewServiceUrl = process.env.INTERVIEW_SERVICE_URL || "http://localho
 const reportingServiceUrl = process.env.REPORTING_SERVICE_URL || "http://localhost:4106";
 const notificationServiceUrl = process.env.NOTIFICATION_SERVICE_URL || "http://localhost:4107";
 const assessmentServiceUrl = process.env.ASSESSMENT_SERVICE_URL || "http://localhost:4108";
+const communicationServiceUrl = process.env.COMMUNICATION_SERVICE_URL || "http://localhost:4109";
 const coreServiceUrl = process.env.CORE_SERVICE_URL || "http://localhost:5000";
 
 const app = express();
@@ -62,6 +64,7 @@ const reportingServicePrefixes = [
 ];
 const notificationServicePrefixes = ["/api/notifications"];
 const assessmentServicePrefixes = ["/api/tests-psychologiques"];
+const communicationServicePrefixes = ["/api/chat"];
 
 app.use(
   cors({
@@ -83,6 +86,7 @@ app.get("/health", (_req, res) => {
       reporting: reportingServiceEnabled ? reportingServiceUrl : coreServiceUrl,
       notification: notificationServiceEnabled ? notificationServiceUrl : coreServiceUrl,
       assessment: assessmentServiceEnabled ? assessmentServiceUrl : coreServiceUrl,
+      communication: communicationServiceEnabled ? communicationServiceUrl : coreServiceUrl,
       core: coreServiceUrl,
     },
   });
@@ -128,6 +132,11 @@ const assessmentProxy = createProxyMiddleware({
   changeOrigin: true,
 });
 
+const communicationProxy = createProxyMiddleware({
+  target: communicationServiceUrl,
+  changeOrigin: true,
+});
+
 const coreProxy = createProxyMiddleware({
   target: coreServiceUrl,
   changeOrigin: true,
@@ -164,6 +173,10 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 
   if (assessmentServiceEnabled && assessmentServicePrefixes.some((prefix) => req.path.startsWith(prefix))) {
     return assessmentProxy(req, res, next);
+  }
+
+  if (communicationServiceEnabled && communicationServicePrefixes.some((prefix) => req.path.startsWith(prefix))) {
+    return communicationProxy(req, res, next);
   }
 
   return next();
