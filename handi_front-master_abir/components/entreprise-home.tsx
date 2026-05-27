@@ -261,10 +261,10 @@ export function EntrepriseHome({ utilisateurNom, stats, loadingStats, erreurStat
           <p>Voici un aperçu de vos recrutements et de vos candidatures</p>
         </div>
         <div className="enterprise-top-actions">
-          <button type="button" className="icon-button" aria-label="Notifications">
+          <Link href="/notifications" className="icon-button" aria-label="Notifications">
             <IconBell />
             <span className="badge-dot">{notifications.length}</span>
-          </button>
+          </Link>
           <button type="button" className="date-button" aria-label="Date actuelle">
             <IconCalendar />
             <span>{todayFr()}</span>
@@ -273,6 +273,21 @@ export function EntrepriseHome({ utilisateurNom, stats, loadingStats, erreurStat
       </header>
 
       {erreurStats ? <div className="enterprise-dashboard-error">{erreurStats}</div> : null}
+
+      <section className="priority-actions" aria-label="Actions principales entreprise">
+        <Link href="/entreprise/candidatures" className="priority-action">
+          <strong>Traiter les candidatures</strong>
+          <span>Filtrer, shortlister, accepter ou refuser les profils recus.</span>
+        </Link>
+        <Link href="/entreprise/entretiens" className="priority-action">
+          <strong>Planifier les entretiens</strong>
+          <span>Organiser les rendez-vous avec les candidats shortlistes.</span>
+        </Link>
+        <Link href="/notifications" className="priority-action">
+          <strong>Voir les notifications</strong>
+          <span>Suivre les alertes liees aux candidatures et entretiens.</span>
+        </Link>
+      </section>
 
       <section className="kpi-grid">
         {kpis.map((kpi) => (
@@ -452,6 +467,49 @@ export function EntrepriseHome({ utilisateurNom, stats, loadingStats, erreurStat
           font-size: 0.7rem;
           font-weight: 700;
           border: 2px solid #fff;
+        }
+
+        .priority-actions {
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 12px;
+        }
+
+        .priority-action {
+          display: grid;
+          gap: 6px;
+          min-height: 104px;
+          align-content: center;
+          border: 1px solid var(--border);
+          border-radius: 18px;
+          background: #fff;
+          padding: 16px;
+          color: var(--text);
+          text-decoration: none;
+          box-shadow: 0 12px 24px rgba(31, 28, 52, 0.05);
+          transition: transform 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
+        }
+
+        .priority-action:hover {
+          transform: translateY(-1px);
+          border-color: rgba(53, 6, 62, 0.2);
+          box-shadow: var(--shadow-2);
+        }
+
+        .priority-action:focus-visible {
+          outline: none;
+          box-shadow: var(--ring-focus);
+        }
+
+        .priority-action strong {
+          color: #20243a;
+          font-size: 1rem;
+        }
+
+        .priority-action span {
+          color: #60657f;
+          font-size: 0.85rem;
+          line-height: 1.45;
         }
 
         .enterprise-dashboard-error {
@@ -695,6 +753,7 @@ export function EntrepriseHome({ utilisateurNom, stats, loadingStats, erreurStat
 
         @media (max-width: 1220px) {
           .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+          .priority-actions { grid-template-columns: 1fr; }
         }
 
         @media (max-width: 860px) {
@@ -722,6 +781,5 @@ function mapOfferStatus(raw?: string) {
   if (status === "pourvue") return "Pourvue";
   return raw || "En cours";
 }
-
 
 
