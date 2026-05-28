@@ -1,0 +1,780 @@
+\documentclass[12pt,a4paper]{report}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[french]{babel}
+\usepackage{newtxtext,newtxmath}
+\usepackage{microtype}
+\usepackage[a4paper,top=2.5cm,bottom=2.5cm,left=2.7cm,right=2.4cm]{geometry}
+\usepackage{setspace}
+\onehalfspacing
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{multirow}
+\usepackage[table]{xcolor}
+\usepackage{colortbl}
+\usepackage{caption}
+\usepackage{enumitem}
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta,shapes.geometric,fit}
+\usepackage{mdframed}
+\usepackage[most]{tcolorbox}
+\usepackage{placeins}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+
+\definecolor{mainblue}{RGB}{0,102,204}
+\definecolor{darkblue}{RGB}{0,55,110}
+\definecolor{lightblue}{RGB}{230,242,255}
+\definecolor{softblue}{RGB}{242,248,255}
+\definecolor{graytitle}{RGB}{70,70,70}
+\definecolor{rowgray}{RGB}{245,247,250}
+\definecolor{successgreen}{RGB}{39,174,96}
+\definecolor{warningorange}{RGB}{230,126,34}
+\definecolor{dangerred}{RGB}{192,57,43}
+\definecolor{purple}{RGB}{142,68,173}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=mainblue,
+  urlcolor=mainblue,
+  citecolor=mainblue,
+  pdftitle={Sprint 3 - Supervision, Reporting, Messagerie et Audit},
+  pdfauthor={HandiTalents}
+}
+
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{3}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\textit{HandiTalents}}
+\fancyhead[R]{\textit{Sprint 3 : Supervision, Reporting, Messagerie et Audit}}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+\setlength{\headheight}{14.5pt}
+
+\titleformat{\chapter}[display]
+{\bfseries\Huge\color{mainblue}}
+{\filleft\Large\chaptername~\thechapter}
+{1ex}
+{\titlerule\vspace{1.5ex}\filright}
+[\vspace{1ex}\titlerule]
+\titleformat{\section}{\Large\bfseries\color{mainblue}}{\thesection}{0.8em}{}
+\titleformat{\subsection}{\large\bfseries\color{darkblue}}{\thesubsection}{0.8em}{}
+\titleformat{\subsubsection}{\normalsize\bfseries\color{graytitle}}{\thesubsubsection}{0.8em}{}
+
+\captionsetup{font=small,labelfont=bf,textfont=it,justification=centering,skip=8pt}
+\setlist[itemize]{leftmargin=1.5em,itemsep=3pt,topsep=3pt}
+\setlist[enumerate]{leftmargin=1.8em,itemsep=3pt,topsep=3pt}
+
+\newtcolorbox{analysisbox}[1][]{enhanced,breakable,colback=white,colframe=mainblue!45,
+  coltitle=white,fonttitle=\bfseries,title=#1,boxrule=0.6pt,arc=2mm,
+  left=7pt,right=7pt,top=6pt,bottom=6pt}
+
+\newcommand{\safeimage}[2]{%
+  \IfFileExists{#2}{%
+    \includegraphics[width=#1]{#2}%
+  }{%
+    \fbox{%
+      \parbox[c][5cm][c]{#1}{\centering\small Image manquante\\\texttt{\detokenize{#2}}}%
+    }%
+  }%
+}
+
+\newcommand{\framedimage}[2]{%
+\begin{mdframed}[linecolor=mainblue!40,linewidth=0.6pt,roundcorner=4pt,
+  backgroundcolor=white,innertopmargin=5pt,innerbottommargin=5pt,
+  innerleftmargin=5pt,innerrightmargin=5pt]
+  \centering\safeimage{#1}{#2}
+\end{mdframed}}
+
+\newcommand{\bigscreen}[4]{%
+\begin{figure}[H]
+  \centering
+  \framedimage{#1}{#2}
+  \caption{#3}
+  \label{#4}
+\end{figure}
+\FloatBarrier
+}
+
+\newcommand{\badgePending}{\colorbox{warningorange!18}{\textcolor{warningorange}{\textbf{Submitted}}}}
+\newcommand{\badgeValidated}{\colorbox{successgreen!15}{\textcolor{successgreen}{\textbf{Validated}}}}
+\newcommand{\badgeRejected}{\colorbox{dangerred!15}{\textcolor{dangerred}{\textbf{Rejected}}}}
+\newcommand{\badgeActive}{\colorbox{mainblue!15}{\textcolor{mainblue}{\textbf{Active}}}}
+\newcommand{\badgeSuspended}{\colorbox{dangerred!15}{\textcolor{dangerred}{\textbf{Suspended}}}}
+\newcommand{\badgeArchived}{\colorbox{graytitle!15}{\textcolor{graytitle}{\textbf{Archived}}}}
+
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+
+\begin{document}
+
+\begin{titlepage}
+  \centering
+  \vspace*{3.4cm}
+  {\Huge\bfseries\color{mainblue} Sprint 3 \\[0.4cm]
+  Supervision inclusive, Reporting, Messagerie temps réel et Audit\par}
+  \vspace{1.2cm}
+  \rule{12cm}{0.7pt}
+  \vspace{1.2cm}
+  {\Large Mise en place des modules de gouvernance, de conformité,
+  de communication et de traçabilité de HandiTalents.\par}
+  \vfill
+\end{titlepage}
+
+\chapter{Sprint 3 : Supervision inclusive, Reporting, Messagerie et Audit}
+
+\section{Introduction}
+
+Après l'authentification et la gestion des profils au Sprint~1, puis les tests Soft Skills,
+les candidatures et les entretiens au Sprint~2, le Sprint~3 consolide HandiTalents par des
+fonctionnalités transverses. Ce sprint apporte une vraie couche de gouvernance : supervision
+inclusive pour les acteurs institutionnels, reporting réglementaire pour les entreprises,
+messagerie temps réel pour la collaboration, gestion avancée des utilisateurs pour
+l'administrateur et audit complet pour la traçabilité.
+
+L'objectif n'est pas seulement d'ajouter des écrans. Il s'agit de rendre la plateforme plus
+pilotable, plus vérifiable et plus crédible dans un contexte de recrutement inclusif.
+Chaque fonctionnalité a été pensée avec un contrôle d'accès strict, des données filtrées
+selon le rôle et une exposition claire des workflows métier.
+
+\section{Phase de préparation}
+
+\subsection{Objectif}
+
+L'objectif du Sprint~3 est de transformer HandiTalents en une plateforme de supervision
+et de conformité à part entière.
+
+\textbf{Du point de vue technique}, ce sprint vise à :
+\begin{itemize}
+  \item exposer des endpoints sécurisés pour la supervision, le reporting entreprise,
+  la messagerie, la gestion des utilisateurs, les membres d'équipe et l'audit ;
+  \item structurer les parcours autour du RBAC et du filtrage territorial ;
+  \item stocker et relier proprement les rapports, conversations, messages, membres et
+  événements d'audit ;
+  \item diffuser les messages en temps réel via SSE ;
+  \item enregistrer les opérations sensibles dans \texttt{audit\_actions\_admin}.
+\end{itemize}
+
+\textbf{Du point de vue fonctionnel}, ce sprint vise à :
+\begin{itemize}
+  \item permettre à l'inspecteur territorial et à l'ANETI de suivre la plateforme avec
+  des tableaux de bord adaptés à leur périmètre ;
+  \item permettre aux entreprises de créer, suivre et transmettre leurs rapports de
+  conformité ;
+  \item permettre aux utilisateurs authentifiés d'échanger sans rechargement de page ;
+  \item permettre à l'administrateur de gérer les comptes avec audit et réinitialisation ;
+  \item permettre à l'entreprise d'organiser ses membres internes.
+\end{itemize}
+
+\subsection{Backlog du Sprint~3}
+
+Le tableau~\ref{tab:sprint3_backlog} présente les user stories retenues pour ce sprint.
+La définition de terminé précise les comportements attendus et les critères de validation.
+
+\begin{longtable}{|>{\centering\arraybackslash}p{2.7cm}|>{\centering\arraybackslash}p{1.3cm}|>{\raggedright\arraybackslash}p{4.8cm}|>{\raggedright\arraybackslash}p{4.8cm}|>{\centering\arraybackslash}p{1.2cm}|}
+\caption{Backlog du Sprint~3 : Supervision, Reporting, Messagerie et Audit}
+\label{tab:sprint3_backlog}\\
+\hline
+\rowcolor{mainblue!15}
+\textbf{Thème} & \textbf{US} & \textbf{User Story} & \textbf{Definition of Done} & \textbf{Est.} \\
+\hline
+\endfirsthead
+\hline
+\rowcolor{mainblue!15}
+\textbf{Thème} & \textbf{US} & \textbf{User Story} & \textbf{Definition of Done} & \textbf{Est.} \\
+\hline
+\endhead
+
+\multirow{4}{2.7cm}{\centering\textbf{Supervision\\inclusive}}
+& US-01 & En tant qu'inspecteur ou agent ANETI, je veux consulter un dashboard avec KPIs afin de suivre le recrutement inclusif. & Les indicateurs sont visibles selon le rôle : vision territoriale pour l'inspecteur et nationale pour l'ANETI. & 3j \\
+\cline{2-5}
+& US-02 & En tant qu'acteur de supervision, je veux visualiser le pipeline de recrutement afin d'identifier les points de friction. & Les volumes par étape sont lisibles et filtrables par période, entreprise et territoire. & 2j \\
+\cline{2-5}
+& US-03 & En tant qu'acteur de supervision, je veux consulter les rapports de conformité afin de les valider ou les rejeter. & La liste et le détail des rapports sont accessibles, le rejet impose une recommandation. & 3j \\
+\cline{2-5}
+& US-04 & En tant qu'acteur de supervision, je veux exporter les données filtrées afin de produire des analyses externes. & L'export CSV/Excel applique les filtres actifs et les règles RBAC. & 1.5j \\
+\hline
+
+\multirow{2}{2.7cm}{\centering\textbf{Reporting\\entreprise}}
+& US-05 & En tant qu'entreprise, je veux consulter mon hub de conformité afin de suivre ma situation réglementaire. & Les rapports, indicateurs et canaux de publication sont visibles depuis l'espace entreprise. & 2j \\
+\cline{2-5}
+& US-06 & En tant qu'entreprise, je veux créer et soumettre un rapport de conformité. & Le rapport est enregistré avec le statut \texttt{submitted} et devient exploitable côté supervision. & 3j \\
+\hline
+
+\multirow{2}{2.7cm}{\centering\textbf{Gestion\\utilisateurs}}
+& US-07 & En tant qu'administrateur, je veux gérer les utilisateurs de la plateforme. & La liste, la recherche, la création, la modification, la suppression, les statuts et l'export sont disponibles. & 4j \\
+\cline{2-5}
+& US-08 & En tant qu'administrateur, je veux réinitialiser le mot de passe d'un utilisateur. & Un accès temporaire est généré et l'opération est enregistrée dans l'audit. & 1j \\
+\hline
+
+\multirow{2}{2.7cm}{\centering\textbf{Messagerie}}
+& US-09 & En tant qu'utilisateur authentifié, je veux créer une conversation et envoyer des messages. & Les conversations sont persistées, les participants contrôlés et l'historique est paginé. & 2.5j \\
+\cline{2-5}
+& US-10 & En tant qu'utilisateur, je veux recevoir les messages en temps réel. & Le flux SSE diffuse immédiatement les nouveaux messages aux participants connectés. & 2.5j \\
+\hline
+
+\multirow{1}{2.7cm}{\centering\textbf{Equipe\\entreprise}}
+& US-11 & En tant qu'entreprise, je veux gérer les membres de mon équipe. & L'ajout, la modification et la suppression des membres fonctionnent dans le périmètre de l'entreprise. & 2j \\
+\hline
+
+\multirow{2}{2.7cm}{\centering\textbf{Audit}}
+& US-12 & En tant que système, je veux tracer les actions sensibles. & Les valeurs avant/après, l'acteur, la cible, le type d'action et la date sont enregistrés. & 2j \\
+\cline{2-5}
+& US-13 & En tant qu'administrateur, je veux consulter l'historique des actions. & L'historique d'audit est consultable avec filtres par type et période. & 1j \\
+\hline
+\rowcolor{mainblue!10}
+\multicolumn{4}{|r|}{\textbf{Total estimé}} & \textbf{29.5j} \\
+\hline
+\end{longtable}
+
+\section{Phase de mise en \oe uvre}
+
+\subsection{Modélisation fonctionnelle}
+
+\subsubsection{Diagramme de cas d'utilisation du Sprint~3}
+
+Le diagramme de cas d'utilisation présente les cinq familles d'acteurs du sprint :
+\textbf{inspecteur territorial}, \textbf{agent ANETI}, \textbf{entreprise},
+\textbf{administrateur} et \textbf{utilisateur authentifié}. Les cas sensibles passent
+par l'authentification et les droits sont ajustés selon le rôle. L'inspecteur opère sur
+son territoire, l'ANETI sur l'ensemble de la plateforme et l'administrateur sur les
+comptes, l'audit et la gouvernance.
+
+\bigscreen{0.95\textwidth}{images/sprint3_usecase.png}%
+{Diagramme de cas d'utilisation global — Sprint~3}{fig:s3_usecase}
+
+\small
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.15}
+\begin{longtable}{|L{1.3cm}|L{3.9cm}|L{3.1cm}|L{6.1cm}|}
+\caption{Description textuelle des cas d'utilisation — Sprint~3}
+\label{tab:s3_uc_description}\\
+\hline
+\rowcolor{mainblue!15}
+\textbf{ID} & \textbf{Cas d'utilisation} & \textbf{Acteur(s)} & \textbf{Description} \\
+\hline
+\endfirsthead
+\hline
+\rowcolor{mainblue!15}
+\textbf{ID} & \textbf{Cas d'utilisation} & \textbf{Acteur(s)} & \textbf{Description} \\
+\hline
+\endhead
+UC-01 & Consulter le dashboard de supervision & Inspecteur, ANETI & Affichage des KPIs du recrutement inclusif avec un périmètre dépendant du rôle. \\
+\hline
+UC-02 & Visualiser le pipeline de recrutement & Inspecteur, ANETI & Suivi des candidatures, shortlists, entretiens et recrutements par entreprise. \\
+\hline
+UC-03 & Analyser les offres d'emploi & Inspecteur, ANETI & Consultation des indicateurs de performance et de conversion des offres. \\
+\hline
+UC-04 & Exporter les données & Inspecteur, ANETI & Export des données filtrées selon les droits et le territoire. \\
+\hline
+UC-05 & Gérer les rapports de conformité & Admin, Inspecteur, ANETI & Consultation, validation, rejet et ajout de recommandations. \\
+\hline
+UC-06 & Créer un rapport de conformité & Entreprise & Saisie et soumission d'un rapport réglementaire avec statut initial \texttt{submitted}. \\
+\hline
+UC-07 & Gérer les membres d'équipe & Entreprise & Administration des membres associés à l'espace entreprise. \\
+\hline
+UC-08 & Gérer les utilisateurs & Administrateur & CRUD, statuts, export, réinitialisation de mot de passe et recherche. \\
+\hline
+UC-09 & Consulter l'historique d'audit & Administrateur & Consultation des actions sensibles liées aux comptes et aux statuts. \\
+\hline
+UC-10 & Echanger par messagerie temps réel & Utilisateur authentifié & Création de conversations, envoi de messages et réception via SSE. \\
+\hline
+\end{longtable}
+\normalsize
+
+\subsubsection{Diagramme de classes du Sprint~3}
+
+Le diagramme de classes enrichit le noyau métier avec les entités de conformité,
+de messagerie, d'équipe et d'audit. Il permet d'identifier clairement les relations
+entre les rapports, les recommandations, les conversations, les participants et les
+actions administratives tracées.
+
+\bigscreen{0.95\textwidth}{images/sprint3_class_diagram.png}%
+{Diagramme de classes global — Sprint~3}{fig:s3_classes}
+
+\begin{table}[H]
+\centering
+\caption{Entités principales du Sprint~3}
+\label{tab:s3_entites}
+\renewcommand{\arraystretch}{1.35}
+\rowcolors{2}{rowgray}{white}
+\begin{tabularx}{\textwidth}{|L{4cm}|Y|}
+\hline
+\rowcolor{mainblue!15}
+\textbf{Entité} & \textbf{Rôle métier} \\
+\hline
+ComplianceReport & Rapport soumis par une entreprise et traité par les acteurs de supervision. \\
+\hline
+ComplianceRecommendation & Recommandation associée à un rapport, notamment en cas de rejet. \\
+\hline
+Conversation & Canal de discussion entre utilisateurs authentifiés. \\
+\hline
+ConversationParticipant & Association entre un utilisateur et une conversation pour sécuriser l'accès. \\
+\hline
+Message & Message envoyé dans une conversation et diffusé aux participants connectés. \\
+\hline
+AccountMember & Membre de l'équipe entreprise avec coordonnées et rôle interne. \\
+\hline
+AuditActionAdmin & Trace d'une action administrative sensible, avec valeurs avant et après. \\
+\hline
+\end{tabularx}
+\end{table}
+
+\subsection{Conception}
+
+\subsubsection{Diagramme de séquence — Soumission et validation d'un rapport de conformité}
+
+Le premier flux couvre la création d'un rapport par l'entreprise puis son traitement
+par un acteur de supervision. La séquence montre une logique simple mais solide :
+saisie, persistante, consultation, décision et notification.
+
+\bigscreen{0.95\textwidth}{images/sprint3_sequence_report.png}%
+{Diagramme de séquence — Soumission et validation d'un rapport de conformité}{fig:s3_seq_report}
+
+\textbf{Déroulement du flux :}
+\begin{enumerate}
+  \item L'entreprise prépare son rapport et l'envoie via \texttt{POST /api/entreprise/reports-requests/reports}.
+  \item Le backend persiste le rapport avec le statut \texttt{submitted} et conserve la structure de version.
+  \item L'inspecteur ou l'ANETI récupère la liste via \texttt{GET /api/supervision/reports}.
+  \item Le rapport est ensuite validé ou rejeté via \texttt{POST /api/supervision/reports/\{id\}/validate} ou \texttt{POST /api/supervision/reports/\{id\}/reject}.
+  \item En cas de rejet, une recommandation devient obligatoire et l'entreprise est notifiée.
+\end{enumerate}
+
+\subsubsection{Diagramme de séquence — Messagerie temps réel}
+
+Le second flux décrit la messagerie temps réel. L'objectif est d'éviter toute
+expérience lourde côté utilisateur : la conversation est créée une seule fois, puis
+les messages circulent via SSE sans rechargement.
+
+\bigscreen{0.95\textwidth}{images/sprint3_sequence_chat.png}%
+{Diagramme de séquence — Messagerie temps réel via SSE}{fig:s3_seq_chat}
+
+\textbf{Déroulement du flux :}
+\begin{enumerate}
+  \item Un utilisateur crée une conversation et ajoute les participants autorisés.
+  \item Le frontend ouvre un flux SSE sur \texttt{GET /api/chat/conversations/\{id\}/stream?token=JWT}.
+  \item Un message est envoyé via \texttt{POST /api/chat/conversations/\{id\}/messages}.
+  \item Le backend persiste le message puis le diffuse immédiatement aux abonnés connectés.
+  \item Les autres participants voient le contenu apparaître sans rechargement.
+\end{enumerate}
+
+\subsubsection{Diagramme de séquence — Gestion des utilisateurs et audit}
+
+Ce dernier flux est essentiel pour la gouvernance : toute opération sensible effectuée
+par l'administrateur doit laisser une trace. Cela concerne les changements de statut,
+les modifications de profil et la réinitialisation de mot de passe.
+
+\bigscreen{0.95\textwidth}{images/sprint3_sequence_audit.png}%
+{Diagramme de séquence — Gestion des utilisateurs et traçabilité audit}{fig:s3_seq_audit}
+
+\textbf{Déroulement du flux :}
+\begin{enumerate}
+  \item L'administrateur modifie un utilisateur ou lance une réinitialisation de mot de passe.
+  \item Le backend récupère d'abord l'état précédent pour pouvoir comparer avant/après.
+  \item La modification est appliquée puis une entrée est enregistrée dans \texttt{audit\_actions\_admin}.
+  \item Si nécessaire, un accès temporaire ou une notification est généré.
+  \item L'action reste traçable dans l'historique exploitable par l'administrateur.
+\end{enumerate}
+
+\subsection{Architecture et organisation technique}
+
+Le Sprint~3 s'appuie sur une organisation par domaines fonctionnels. Même si le projet
+reste encore monolithique sur certains aspects, la séparation en routes et services permet
+de préparer une architecture plus distribuée et plus robuste.
+
+\begin{table}[H]
+\centering
+\caption{Modules techniques du Sprint~3}
+\label{tab:s3_services}
+\renewcommand{\arraystretch}{1.35}
+\rowcolors{2}{rowgray}{white}
+\begin{tabularx}{\textwidth}{|L{4.1cm}|L{4.8cm}|Y|}
+\hline
+\rowcolor{mainblue!15}
+\textbf{Module} & \textbf{Endpoints principaux} & \textbf{Responsabilité} \\
+\hline
+Supervision & \texttt{/api/supervision/*} & KPIs, pipeline, rapports, offres, candidats et export. \\
+\hline
+Reporting entreprise & \texttt{/api/entreprise/reports-requests/*} & Contexte de conformité, historique et création de rapports. \\
+\hline
+Messagerie & \texttt{/api/chat/*} & Conversations, participants, messages et flux SSE. \\
+\hline
+Gestion utilisateurs & \texttt{/api/admin/utilisateurs/*} & CRUD, statuts, export, reset password et historique utilisateur. \\
+\hline
+Equipe entreprise & \texttt{/api/entreprises/membres/*} & Gestion des membres associés à une entreprise. \\
+\hline
+Audit & \texttt{audit\_actions\_admin} & Traçabilité des actions sensibles administratives. \\
+\hline
+\end{tabularx}
+\end{table}
+
+\subsection{Réalisation}
+
+\subsubsection{Module 1 — Supervision inclusive}
+
+Ce module est le plus visible pour les acteurs institutionnels. Il regroupe les
+indicateurs de recrutement inclusif, la vue pipeline, la performance des offres et la
+liste des rapports à traiter. L'objectif de l'interface n'est pas d'être décorative,
+mais lisible et utile pour prendre des décisions.
+
+\paragraph{Workflow du module}
+
+\begin{table}[H]
+\centering
+\caption{Workflow du module Supervision inclusive}
+\label{tab:s3_workflow_supervision}
+\renewcommand{\arraystretch}{1.35}
+\rowcolors{2}{rowgray}{white}
+\begin{tabularx}{\textwidth}{|L{4cm}|Y|}
+\hline
+\rowcolor{mainblue!15}
+\textbf{Étape} & \textbf{Description} \\
+\hline
+Chargement du tableau de bord & L'acteur de supervision accède aux indicateurs selon son rôle et son périmètre. \\
+\hline
+Lecture des KPIs & Le système affiche les volumes, taux et tendances utiles au pilotage. \\
+\hline
+Exploration du pipeline & Les candidatures, shortlists et entretiens sont visualisés par entreprise et par période. \\
+\hline
+Gestion des rapports & Les rapports de conformité sont ouverts, analysés, validés ou rejetés. \\
+\hline
+Export des données & Les données filtrées sont exportées pour les besoins de contrôle ou d'analyse. \\
+\hline
+\end{tabularx}
+\end{table}
+
+\paragraph{Interfaces réalisées}
+
+Les écrans retenus pour ce module mettent en avant les fonctions les plus représentatives :
+le \textbf{dashboard de supervision}, la \textbf{vue pipeline}, la \textbf{liste des rapports}
+et l'\textbf{export des données}. Ces interfaces illustrent clairement le rôle du module
+dans le pilotage de la plateforme.
+
+\bigscreen{0.92\textwidth}{images/supervision_dashboard.png}%
+{Dashboard de supervision inclusive}{fig:s3_ui_dashboard}
+
+\bigscreen{0.92\textwidth}{images/supervision_reports.png}%
+{Liste et traitement des rapports de conformité}{fig:s3_ui_reports}
+
+\bigscreen{0.92\textwidth}{images/supervision_export.png}%
+{Export de données de supervision}{fig:s3_ui_export}
+
+\subsubsection{Module 2 — Reporting de conformité entreprise}
+
+Ce module donne à l'entreprise une vue claire de sa situation réglementaire. L'espace
+reporting doit rester simple : un hub de conformité, un formulaire de création, un
+historique des versions et des canaux de publication explicites.
+
+\paragraph{Workflow du module}
+
+\begin{table}[H]
+\centering
+\caption{Workflow du module Reporting entreprise}
+\label{tab:s3_workflow_reporting}
+\renewcommand{\arraystretch}{1.35}
+\rowcolors{2}{rowgray}{white}
+\begin{tabularx}{\textwidth}{|L{4cm}|Y|}
+\hline
+\rowcolor{mainblue!15}
+\textbf{Étape} & \textbf{Description} \\
+\hline
+Ouverture du hub & L'entreprise consulte ses indicateurs et ses rapports existants. \\
+\hline
+Préparation du rapport & Les données de conformité sont saisies dans un formulaire guidé. \\
+\hline
+Soumission & Le rapport est enregistré avec un statut interne de type \texttt{submitted}. \\
+\hline
+Suivi des statuts & Le rapport passe ensuite par les états \texttt{validated} ou \texttt{rejected}. \\
+\hline
+Publication & Les canaux de diffusion sont activés selon la décision de supervision. \\
+\hline
+\end{tabularx}
+\end{table}
+
+\paragraph{Interfaces réalisées}
+
+Les interfaces retenues pour ce module sont le \textbf{hub de conformité}, le
+\textbf{formulaire de création} et l'\textbf{historique des rapports}. Cet ensemble
+présente la logique métier du reporting de manière lisible et progressive.
+
+\bigscreen{0.92\textwidth}{images/company_reporting.png}%
+{Hub de reporting de conformité}{fig:s3_ui_reporting}
+
+\bigscreen{0.92\textwidth}{images/company_reporting_form.png}%
+{Création d'un rapport de conformité}{fig:s3_ui_reporting_form}
+
+\bigscreen{0.92\textwidth}{images/company_reporting_history.png}%
+{Historique des rapports et canaux de publication}{fig:s3_ui_reporting_history}
+
+\subsubsection{Module 3 — Gestion avancée des utilisateurs}
+
+Le module de gestion des utilisateurs est central côté administrateur. Il doit rester
+dense mais lisible : une liste paginée, des filtres clairs, une fiche de détail, un
+formulaire de modification et les actions sensibles visibles sans surcharge visuelle.
+
+\paragraph{Workflow du module}
+
+\begin{table}[H]
+\centering
+\caption{Workflow du module Gestion avancée des utilisateurs}
+\label{tab:s3_workflow_users}
+\renewcommand{\arraystretch}{1.35}
+\rowcolors{2}{rowgray}{white}
+\begin{tabularx}{\textwidth}{|L{4cm}|Y|}
+\hline
+\rowcolor{mainblue!15}
+\textbf{Étape} & \textbf{Description} \\
+\hline
+Recherche et filtrage & L'administrateur retrouve un compte par nom, email, rôle ou statut. \\
+\hline
+Création ou modification & Le compte est créé ou mis à jour selon le besoin de gouvernance. \\
+\hline
+Changement de statut & Le statut actif, inactif ou suspendu est appliqué immédiatement. \\
+\hline
+Réinitialisation & Un accès temporaire est généré lorsque le mot de passe doit être réinitialisé. \\
+\hline
+Audit & Chaque action sensible alimente le journal d'audit. \\
+\hline
+\end{tabularx}
+\end{table}
+
+\paragraph{Interfaces réalisées}
+
+Les écrans les plus parlants sont la \textbf{liste des comptes}, la \textbf{fiche de compte}
+et le \textbf{dialogue de réinitialisation}. Ils permettent de comprendre vite le niveau
+de contrôle offert à l'administrateur.
+
+\bigscreen{0.92\textwidth}{images/admin_users.png}%
+{Gestion avancée des utilisateurs}{fig:s3_ui_users}
+
+\bigscreen{0.92\textwidth}{images/admin_user_detail.png}%
+{Fiche de détail d'un utilisateur}{fig:s3_ui_user_detail}
+
+\bigscreen{0.92\textwidth}{images/admin_user_reset.png}%
+{Réinitialisation du mot de passe}{fig:s3_ui_user_reset}
+
+\subsubsection{Module 4 — Messagerie temps réel}
+
+La messagerie apporte de la fluidité dans le quotidien de la plateforme. Elle repose sur
+des conversations persistées, des participants autorisés et un streaming SSE pour éviter
+les rechargements inutiles.
+
+\paragraph{Workflow du module}
+
+\begin{table}[H]
+\centering
+\caption{Workflow du module Messagerie temps réel}
+\label{tab:s3_workflow_chat}
+\renewcommand{\arraystretch}{1.35}
+\rowcolors{2}{rowgray}{white}
+\begin{tabularx}{\textwidth}{|L{4cm}|Y|}
+\hline
+\rowcolor{mainblue!15}
+\textbf{Étape} & \textbf{Description} \\
+\hline
+Création de conversation & L'utilisateur choisit les participants autorisés. \\
+\hline
+Ouverture du flux & Le frontend ouvre la connexion SSE pour la conversation courante. \\
+\hline
+Envoi d'un message & Un message est persisté dans l'historique de la conversation. \\
+\hline
+Diffusion temps réel & Le backend pousse immédiatement le message aux abonnés connectés. \\
+\hline
+Historique paginé & L'utilisateur retrouve les échanges sans saturer l'interface. \\
+\hline
+\end{tabularx}
+\end{table}
+
+\paragraph{Interfaces réalisées}
+
+La présentation retenue repose sur trois vues complémentaires : la \textbf{liste des
+conversations}, la \textbf{fenêtre de discussion} et le \textbf{panneau des participants}.
+Ce choix permet de montrer la messagerie sans alourdir la lecture du chapitre.
+
+\bigscreen{0.92\textwidth}{images/chat_messages.png}%
+{Conversation et messages en temps réel}{fig:s3_ui_chat}
+
+\bigscreen{0.92\textwidth}{images/chat_participants.png}%
+{Participants d'une conversation}{fig:s3_ui_chat_participants}
+
+\subsubsection{Module 5 — Gestion des membres d'équipe entreprise}
+
+Ce module permet à une entreprise de piloter son équipe interne. Il reste volontairement
+sobre : liste des membres, rôles, ajout, édition et suppression. C'est une fonctionnalité
+de gouvernance, donc l'interface doit être efficace avant d'être décorative.
+
+\paragraph{Workflow du module}
+
+\begin{table}[H]
+\centering
+\caption{Workflow du module Gestion des membres d'équipe}
+\label{tab:s3_workflow_team}
+\renewcommand{\arraystretch}{1.35}
+\rowcolors{2}{rowgray}{white}
+\begin{tabularx}{\textwidth}{|L{4cm}|Y|}
+\hline
+\rowcolor{mainblue!15}
+\textbf{Étape} & \textbf{Description} \\
+\hline
+Visualisation de l'équipe & L'entreprise consulte la liste de ses membres. \\
+\hline
+Ajout & Un nouveau membre est ajouté à l'espace entreprise. \\
+\hline
+Modification & Le rôle ou les coordonnées internes peuvent être ajustés. \\
+\hline
+Suppression & Un accès peut être retiré lorsqu'un membre quitte l'équipe. \\
+\hline
+Contrôle du périmètre & Les actions restent confinées à l'entreprise connectée. \\
+\hline
+\end{tabularx}
+\end{table}
+
+\paragraph{Interfaces réalisées}
+
+Les interfaces sélectionnées sont la \textbf{liste d'équipe} et la \textbf{boîte d'édition
+d'un membre}. Cela suffit pour montrer la logique sans surcharger le chapitre.
+
+\bigscreen{0.92\textwidth}{images/team_members.png}%
+{Gestion des membres d'équipe entreprise}{fig:s3_ui_team}
+
+\bigscreen{0.92\textwidth}{images/team_member_form.png}%
+{Formulaire d'ajout ou de modification d'un membre}{fig:s3_ui_team_form}
+
+\subsubsection{Module 6 — Audit et traçabilité}
+
+Le module d'audit est la pièce qui donne de la crédibilité à la plateforme. Il ne sert pas
+à faire joli : il sert à prouver qui a fait quoi, quand, et sur quel objet.
+
+\paragraph{Workflow du module}
+
+\begin{table}[H]
+\centering
+\caption{Workflow du module Audit et traçabilité}
+\label{tab:s3_workflow_audit}
+\renewcommand{\arraystretch}{1.35}
+\rowcolors{2}{rowgray}{white}
+\begin{tabularx}{\textwidth}{|L{4cm}|Y|}
+\hline
+\rowcolor{mainblue!15}
+\textbf{Étape} & \textbf{Description} \\
+\hline
+Déclenchement & Une action sensible est réalisée par un administrateur. \\
+\hline
+Lecture de l'état initial & Le backend récupère les anciennes valeurs avant modification. \\
+\hline
+Application de l'action & La modification métier est appliquée. \\
+\hline
+Enregistrement audit & Une trace détaillée est insérée dans le journal d'audit. \\
+\hline
+Consultation & L'historique est filtrable par type d'action et période. \\
+\hline
+\end{tabularx}
+\end{table}
+
+\paragraph{Interfaces réalisées}
+
+Les vues retenues sont la \textbf{table d'audit filtrable}, la \textbf{fiche détaillée d'une
+action} et le \textbf{résumé d'activité utilisateur}. Elles mettent en avant la valeur
+du module de traçabilité.
+
+\bigscreen{0.92\textwidth}{images/audit_history.png}%
+{Historique d'audit et traçabilité}{fig:s3_ui_audit}
+
+\bigscreen{0.92\textwidth}{images/audit_detail.png}%
+{Détail d'une action d'audit}{fig:s3_ui_audit_detail}
+
+\subsection{Tests}
+
+\subsubsection{Tests fonctionnels}
+
+Les tests fonctionnels ont été réalisés à l'aide de Postman pour le backend et par
+validation manuelle des interfaces frontend. Ils couvrent les principaux parcours du
+sprint et confirment le bon enchaînement entre les routes, les statuts métier et les
+interfaces.
+
+\begin{table}[H]
+\centering
+\caption{Scénarios de tests fonctionnels — Sprint~3}
+\label{tab:s3_tests_fonctionnels}
+\renewcommand{\arraystretch}{1.35}
+\rowcolors{2}{rowgray}{white}
+\begin{tabularx}{\textwidth}{|L{4cm}|Y|L{3.2cm}|}
+\hline
+\rowcolor{mainblue!15}
+\textbf{Fonctionnalité} & \textbf{Cas testé} & \textbf{Résultat attendu} \\
+\hline
+Supervision & Accès au dashboard avec un compte inspecteur. & KPIs filtrés par territoire affichés. \\
+\hline
+Supervision & Accès au dashboard avec un compte ANETI. & Vision nationale complète affichée. \\
+\hline
+Reporting entreprise & Soumission d'un rapport de conformité. & Rapport créé avec statut \texttt{submitted}. \\
+\hline
+Reporting entreprise & Rejet sans recommandation. & Action bloquée, champ obligatoire. \\
+\hline
+Gestion utilisateurs & Changement de statut d'un compte. & Statut mis à jour et audit enregistré. \\
+\hline
+Gestion utilisateurs & Réinitialisation de mot de passe. & Accès temporaire généré et action tracée. \\
+\hline
+Messagerie & Envoi d'un message dans une conversation. & Message reçu en temps réel par l'autre participant. \\
+\hline
+Messagerie & Abonnement au flux SSE. & Nouveaux messages reçus sans rechargement. \\
+\hline
+Equipe entreprise & Ajout d'un membre d'équipe. & Membre enregistré pour l'entreprise connectée. \\
+\hline
+Audit & Consultation de l'historique d'un utilisateur. & Lignes d'audit filtrées et exploitables. \\
+\hline
+\end{tabularx}
+\end{table}
+
+\bigscreen{0.92\textwidth}{images/postman_sprint3.png}%
+{Résultat du test Postman — endpoint de soumission d'un rapport de conformité}{fig:s3_postman}
+
+\subsubsection{Tests d'intégration}
+
+\begin{table}[H]
+\centering
+\caption{Scénarios de tests d'intégration — Sprint~3}
+\label{tab:s3_tests_integration}
+\renewcommand{\arraystretch}{1.35}
+\rowcolors{2}{rowgray}{white}
+\begin{tabularx}{\textwidth}{|L{5cm}|Y|L{3.2cm}|}
+\hline
+\rowcolor{mainblue!15}
+\textbf{Interaction testée} & \textbf{Scénario} & \textbf{Résultat attendu} \\
+\hline
+Reporting entreprise $\rightarrow$ Supervision & Une entreprise soumet un rapport. & Le rapport apparaît dans la liste de supervision. \\
+\hline
+Supervision $\rightarrow$ Recommandations & Un inspecteur rejette un rapport avec recommandation. & Le statut devient \texttt{rejected} et la recommandation est persistée. \\
+\hline
+Gestion utilisateurs $\rightarrow$ Audit & Un admin modifie un utilisateur. & Une ligne d'audit est créée. \\
+\hline
+Messagerie $\rightarrow$ SSE & Un message est envoyé pendant qu'un participant écoute le flux. & Le message est diffusé au participant connecté. \\
+\hline
+RBAC $\rightarrow$ Routes protégées & Un utilisateur non autorisé tente d'accéder à une route admin. & Accès refusé HTTP~403. \\
+\hline
+\end{tabularx}
+\end{table}
+
+\section{Conclusion}
+
+Le Sprint~3 ajoute à HandiTalents une véritable couche de pilotage et de preuve.
+Les acteurs institutionnels disposent de tableaux de bord et de flux de validation, les
+entreprises peuvent gérer leurs rapports de conformité, les utilisateurs échangent en
+temps réel, l'administrateur contrôle les comptes et chaque action sensible est tracée.
+
+Ce sprint est important parce qu'il donne au projet une maturité de plateforme :
+il ne s'agit plus seulement de recruter, mais aussi de superviser, justifier, échanger
+et auditer. Cette base prépare naturellement les évolutions ultérieures vers une
+automatisation plus intelligente et une meilleure exploitation des données métiers.
+
+\end{document}

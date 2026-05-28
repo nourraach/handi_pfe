@@ -9,7 +9,7 @@ const STATUS_LABELS: Record<string, string> = {
   rejected: "Rejected",
 };
 
-const ITEMS_PER_PAGE = 7;
+const ITEMS_PER_PAGE = 25;
 
 function formatDate(value?: string | null) {
   if (!value) return "-";

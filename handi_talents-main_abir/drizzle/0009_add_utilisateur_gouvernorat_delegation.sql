@@ -1,3 +1,0 @@
-ALTER TABLE utilisateur
-  ADD COLUMN IF NOT EXISTS gouvernorat TEXT,
-  ADD COLUMN IF NOT EXISTS delegation TEXT;

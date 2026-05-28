@@ -41,7 +41,7 @@ const STATUS_LABELS: Record<string, string> = {
   inactif: "Inactive",
 };
 
-const ITEMS_PER_PAGE = 10;
+const ITEMS_PER_PAGE = 50;
 
 function formatDate(value?: string | null) {
   if (!value) return "-";

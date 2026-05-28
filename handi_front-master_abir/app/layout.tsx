@@ -32,7 +32,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="fr" suppressHydrationWarning>
+    <html lang="fr" data-scroll-behavior="smooth" suppressHydrationWarning>
       <body className={`app-theme ${manrope.variable} ${ibmPlexSans.variable}`} suppressHydrationWarning>
         <a href="#main-content" className="skip-link">
           Aller au contenu principal

@@ -175,8 +175,8 @@ export class AdminCandidatureController {
       const totalCandidatures = await totalCandidaturesQuery;
 
       const candidaturesAccepteesWhere = regionWhere
-        ? and(eq(candidatureTable.statut, "accepted"), regionWhere)
-        : eq(candidatureTable.statut, "accepted");
+        ? and(sql`${candidatureTable.statut} = ${"accepted"}`, regionWhere)
+        : sql`${candidatureTable.statut} = ${"accepted"}`;
 
       let candidaturesAccepteesQuery = db
         .select({ count: sql<number>`count(*)` })
@@ -196,12 +196,12 @@ export class AdminCandidatureController {
 
       // Temps moyen de traitement
       const traitementWhere = regionWhere
-        ? and(ne(candidatureTable.statut, "pending"), regionWhere)
-        : ne(candidatureTable.statut, "pending");
+        ? and(sql`${candidatureTable.statut} <> ${"pending"}`, regionWhere)
+        : sql`${candidatureTable.statut} <> ${"pending"}`;
 
       let tempsMoyenTraitementQuery = db
         .select({
-          moyenne: sql<number>`AVG(EXTRACT(EPOCH FROM (updated_at - date_postulation)) / 86400)`
+          moyenne: sql<number>`AVG(EXTRACT(EPOCH FROM (${candidatureTable.updated_at} - ${candidatureTable.date_postulation})) / 86400)`
         })
         .from(candidatureTable)
         .innerJoin(candidatTable, eq(candidatureTable.id_candidat, candidatTable.id))
@@ -301,19 +301,19 @@ export class AdminCandidatureController {
       // Flux de candidatures par étape
       const fluxCandidatures = await db
         .select({
-          date: sql<string>`DATE(date_postulation)`,
+          date: sql<string>`DATE(${candidatureTable.date_postulation})`,
           nouvelles: sql<number>`count(*)`,
-          shortlistees: sql<number>`count(CASE WHEN statut = 'shortlisted' THEN 1 END)`,
-          entretiens: sql<number>`count(CASE WHEN statut = 'interview_scheduled' THEN 1 END)`,
-          acceptees: sql<number>`count(CASE WHEN statut = 'accepted' THEN 1 END)`,
-          refusees: sql<number>`count(CASE WHEN statut = 'rejected' THEN 1 END)`
+          shortlistees: sql<number>`count(CASE WHEN ${candidatureTable.statut} = 'shortlisted' THEN 1 END)`,
+          entretiens: sql<number>`count(CASE WHEN ${candidatureTable.statut} = 'interview_scheduled' THEN 1 END)`,
+          acceptees: sql<number>`count(CASE WHEN ${candidatureTable.statut} = 'accepted' THEN 1 END)`,
+          refusees: sql<number>`count(CASE WHEN ${candidatureTable.statut} = 'rejected' THEN 1 END)`
         })
         .from(candidatureTable)
         .innerJoin(candidatTable, eq(candidatureTable.id_candidat, candidatTable.id))
         .innerJoin(utilisateurTable, eq(candidatTable.id_utilisateur, utilisateurTable.id_utilisateur))
         .where(workflowWhere)
-        .groupBy(sql`DATE(date_postulation)`)
-        .orderBy(sql`DATE(date_postulation)`);
+        .groupBy(sql`DATE(${candidatureTable.date_postulation})`)
+        .orderBy(sql`DATE(${candidatureTable.date_postulation})`);
 
       return reponseSucces(res, fluxCandidatures, "Workflow de recrutement récupéré");
     } catch (error) {

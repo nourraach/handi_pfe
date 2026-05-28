@@ -23,7 +23,6 @@ const reportingServiceUrl = process.env.REPORTING_SERVICE_URL || "http://localho
 const notificationServiceUrl = process.env.NOTIFICATION_SERVICE_URL || "http://localhost:4107";
 const assessmentServiceUrl = process.env.ASSESSMENT_SERVICE_URL || "http://localhost:4108";
 const communicationServiceUrl = process.env.COMMUNICATION_SERVICE_URL || "http://localhost:4109";
-const coreServiceUrl = process.env.CORE_SERVICE_URL || "http://localhost:5000";
 
 const app = express();
 const userServicePrefixes = [
@@ -37,6 +36,7 @@ const userServicePrefixes = [
   "/api/entreprises/membres",
 ];
 const jobServicePrefixes = [
+  "/api/offres/publiques",
   "/api/offres-emploi",
   "/api/entreprise/offres",
   "/api/admin/offres/publication",
@@ -78,16 +78,15 @@ app.get("/health", (_req, res) => {
     service: "api-gateway",
     status: "ok",
     routes: {
-      auth: authServiceEnabled ? authServiceUrl : coreServiceUrl,
-      user: userServiceEnabled ? userServiceUrl : coreServiceUrl,
-      job: jobServiceEnabled ? jobServiceUrl : coreServiceUrl,
-      application: applicationServiceEnabled ? applicationServiceUrl : coreServiceUrl,
-      interview: interviewServiceEnabled ? interviewServiceUrl : coreServiceUrl,
-      reporting: reportingServiceEnabled ? reportingServiceUrl : coreServiceUrl,
-      notification: notificationServiceEnabled ? notificationServiceUrl : coreServiceUrl,
-      assessment: assessmentServiceEnabled ? assessmentServiceUrl : coreServiceUrl,
-      communication: communicationServiceEnabled ? communicationServiceUrl : coreServiceUrl,
-      core: coreServiceUrl,
+      auth: authServiceEnabled ? authServiceUrl : "disabled",
+      user: userServiceEnabled ? userServiceUrl : "disabled",
+      job: jobServiceEnabled ? jobServiceUrl : "disabled",
+      application: applicationServiceEnabled ? applicationServiceUrl : "disabled",
+      interview: interviewServiceEnabled ? interviewServiceUrl : "disabled",
+      reporting: reportingServiceEnabled ? reportingServiceUrl : "disabled",
+      notification: notificationServiceEnabled ? notificationServiceUrl : "disabled",
+      assessment: assessmentServiceEnabled ? assessmentServiceUrl : "disabled",
+      communication: communicationServiceEnabled ? communicationServiceUrl : "disabled",
     },
   });
 });
@@ -137,11 +136,6 @@ const communicationProxy = createProxyMiddleware({
   changeOrigin: true,
 });
 
-const coreProxy = createProxyMiddleware({
-  target: coreServiceUrl,
-  changeOrigin: true,
-});
-
 app.use((req: Request, res: Response, next: NextFunction) => {
   if (authServiceEnabled && req.path.startsWith("/api/auth")) {
     return authProxy(req, res, next);
@@ -184,7 +178,10 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 
 app.use((req: Request, res: Response, next: NextFunction) => {
   if (req.path.startsWith("/api")) {
-    return coreProxy(req, res, next);
+    return res.status(404).json({
+      message: "Route API non prise en charge par le gateway",
+      path: req.path,
+    });
   }
 
   return next();

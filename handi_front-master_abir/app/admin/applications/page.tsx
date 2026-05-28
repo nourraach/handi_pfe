@@ -73,7 +73,7 @@ type AdminApplication = {
   offerStatus: string;
 };
 
-const ITEMS_PER_PAGE = 9;
+const ITEMS_PER_PAGE = 50;
 
 const statusLabels: Record<ApplicationStatus, string> = {
   pending: "Pending",

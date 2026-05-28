@@ -11,19 +11,19 @@ router.use(authMiddleware);
 
 router.get(
   "/statistics/overview",
-  roleMiddleware([RoleUtilisateur.INSPECTEUR, RoleUtilisateur.ANETI]),
+  roleMiddleware([RoleUtilisateur.ADMIN, RoleUtilisateur.INSPECTEUR, RoleUtilisateur.ANETI]),
   controller.getOverview
 );
 
 router.get(
   "/pipeline",
-  roleMiddleware([RoleUtilisateur.INSPECTEUR, RoleUtilisateur.ANETI]),
+  roleMiddleware([RoleUtilisateur.ADMIN, RoleUtilisateur.INSPECTEUR, RoleUtilisateur.ANETI]),
   controller.getPipeline
 );
 
 router.get(
   "/companies-map",
-  roleMiddleware([RoleUtilisateur.INSPECTEUR, RoleUtilisateur.ANETI]),
+  roleMiddleware([RoleUtilisateur.ADMIN, RoleUtilisateur.INSPECTEUR, RoleUtilisateur.ANETI]),
   controller.listSupervisedEnterprises
 );
 
@@ -65,19 +65,19 @@ router.post(
 
 router.get(
   "/offers",
-  roleMiddleware([RoleUtilisateur.INSPECTEUR, RoleUtilisateur.ANETI]),
+  roleMiddleware([RoleUtilisateur.ADMIN, RoleUtilisateur.INSPECTEUR, RoleUtilisateur.ANETI]),
   controller.listOffers
 );
 
 router.get(
   "/candidates",
-  roleMiddleware([RoleUtilisateur.INSPECTEUR, RoleUtilisateur.ANETI]),
+  roleMiddleware([RoleUtilisateur.ADMIN, RoleUtilisateur.INSPECTEUR, RoleUtilisateur.ANETI]),
   controller.listCandidates
 );
 
 router.get(
   "/export",
-  roleMiddleware([RoleUtilisateur.INSPECTEUR, RoleUtilisateur.ANETI]),
+  roleMiddleware([RoleUtilisateur.ADMIN, RoleUtilisateur.INSPECTEUR, RoleUtilisateur.ANETI]),
   controller.exportDataset
 );
 

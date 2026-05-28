@@ -94,7 +94,7 @@ type EnhancedResult = Resultat & {
   visible: boolean;
 };
 
-const TESTS_PER_PAGE = 6;
+const TESTS_PER_PAGE = 12;
 
 function toNumber(value: unknown) {
   const parsed = Number(value);

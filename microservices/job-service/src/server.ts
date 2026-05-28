@@ -1,10 +1,11 @@
 import cors from "cors";
 import "dotenv/config";
-import express from "express";
+import express, { Router } from "express";
 import adminOffrePublicationRoutes from "./routes/admin-offre-publication.routes";
 import entrepriseOffresRoutes from "./routes/offre-emploi.routes";
 import favorisRoutes from "./routes/favoris.routes";
 import offreEmploiRoutes from "./routes/offre-emploi-simple.routes";
+import { OffreEmploiSimpleController } from "./controllers/offre-emploi-simple.controller";
 import recommendationRoutes from "./routes/recommendation.routes";
 import { gestionErreursMiddleware } from "./middleware/gestion-erreurs.middleware";
 
@@ -12,6 +13,8 @@ const port = Number(process.env.PORT || 4103);
 const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
 
 const app = express();
+const offrePubliqueController = new OffreEmploiSimpleController();
+const offresPubliquesRoutes = Router();
 
 app.use(
   cors({
@@ -29,6 +32,10 @@ app.get("/health", (_req, res) => {
   });
 });
 
+offresPubliquesRoutes.get("/", offrePubliqueController.obtenirOffresPubliques);
+offresPubliquesRoutes.get("/:id", offrePubliqueController.obtenirOffreParId);
+
+app.use("/api/offres/publiques", offresPubliquesRoutes);
 app.use("/api/offres-emploi", offreEmploiRoutes);
 app.use("/api/entreprise/offres", entrepriseOffresRoutes);
 app.use("/api/admin", adminOffrePublicationRoutes);

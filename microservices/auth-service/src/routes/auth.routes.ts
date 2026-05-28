@@ -27,6 +27,7 @@ const uploadCandidat = multer({ storage: stockageCandidat });
 routeur.post("/inscription/candidat", uploadCandidat.single("carte_handicap"), controleur.inscriptionCandidat);
 routeur.post("/inscription/entreprise", controleur.inscriptionEntreprise);
 routeur.post("/connexion", controleur.connexion);
+routeur.post("/login", controleur.connexion);
 routeur.post("/demander-reset", controleur.demanderReset);
 routeur.post("/reset", controleur.resetMotDePasse);
 routeur.post("/changer-mdp", authMiddleware, controleur.changerMotDePasse);

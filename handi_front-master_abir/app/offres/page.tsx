@@ -51,7 +51,7 @@ const tndNumberFormatter = new Intl.NumberFormat("fr-TN", {
   maximumFractionDigits: 0,
 });
 const relativeDateFormatter = new Intl.RelativeTimeFormat("fr", { numeric: "auto" });
-const OFFRES_PAR_PAGE = 10;
+const OFFRES_PAR_PAGE = 50;
 
 const formatSalaryAmount = (value: number) => tndNumberFormatter.format(value);
 
@@ -2707,6 +2707,5 @@ export default function OffresPage() {
 
   return utilisateur ? <AppShell utilisateur={utilisateur}>{contenu}</AppShell> : <main className="page-centree section-page app-theme">{contenu}</main>;
 }
-
 
 

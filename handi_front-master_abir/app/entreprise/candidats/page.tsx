@@ -47,7 +47,7 @@ function SectionCandidatsEntreprise() {
     try {
       const params = new URLSearchParams();
       params.set("page", String(pageCible));
-      params.set("limit", "8");
+      params.set("limit", "25");
       if (recherche.trim()) params.set("recherche", recherche.trim());
       if (competence.trim()) params.set("competence", competence.trim());
 

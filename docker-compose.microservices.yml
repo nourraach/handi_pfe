@@ -10,24 +10,6 @@ services:
     volumes:
       - microservices_pgdata:/var/lib/postgresql/data
 
-  core-service:
-    image: node:22-alpine
-    working_dir: /app
-    command: sh -c "npm install && npm run dev"
-    environment:
-      PORT: 5000
-      NODE_ENV: development
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/handitalents
-      JWT_SECRET: votre_secret_jwt
-      JWT_EXPIRES_IN: 1d
-      FRONTEND_URL: http://localhost:3000
-    ports:
-      - "5000:5000"
-    volumes:
-      - ./handi_talents-main_abir:/app
-    depends_on:
-      - postgres
-
   auth-service:
     image: node:22-alpine
     working_dir: /app
@@ -206,13 +188,11 @@ services:
       ASSESSMENT_SERVICE_URL: http://assessment-service:4108
       COMMUNICATION_SERVICE_ENABLED: "true"
       COMMUNICATION_SERVICE_URL: http://communication-service:4109
-      CORE_SERVICE_URL: http://core-service:5000
     ports:
       - "4000:4000"
     volumes:
       - ./microservices/api-gateway:/app
     depends_on:
-      - core-service
       - auth-service
       - user-service
       - job-service

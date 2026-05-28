@@ -138,7 +138,7 @@ export async function authenticatedFetch(
   
   // Gestion automatique des erreurs d'authentification
   if (response.status === 401) {
-    console.error('Token invalide ou expiré, nettoyage automatique');
+    console.warn('Token invalide ou expiré, nettoyage automatique');
     clearAuth();
     throw new Error('Session expirée - Veuillez vous reconnecter');
   }

@@ -1,11 +1,57 @@
 import { Request, Response } from "express";
-import { reponseSucces, reponseErreur } from "../utils/reponse";
+import { desc, eq } from "drizzle-orm";
+import { db } from "../db";
+import { entrepriseTable, offreEmploiTable, offreStatistiquesTable } from "../db/schema";
+import { reponseErreur, reponseSucces } from "../utils/reponse";
 
 export class OffreEmploiSimpleController {
+  private async chargerOffresActives() {
+    const rows = await db
+      .select({
+        id: offreEmploiTable.id,
+        id_offre: offreEmploiTable.id,
+        titre: offreEmploiTable.titre,
+        description: offreEmploiTable.description,
+        localisation: offreEmploiTable.localisation,
+        type_poste: offreEmploiTable.type_poste,
+        salaire_min: offreEmploiTable.salaire_min,
+        salaire_max: offreEmploiTable.salaire_max,
+        competences_requises: offreEmploiTable.competences_requises,
+        experience_requise: offreEmploiTable.experience_requise,
+        niveau_etude: offreEmploiTable.niveau_etude,
+        statut: offreEmploiTable.statut,
+        date_limite: offreEmploiTable.date_limite,
+        accessibilite_handicap: offreEmploiTable.accessibilite_handicap,
+        amenagements_possibles: offreEmploiTable.amenagements_possibles,
+        created_at: offreEmploiTable.created_at,
+        updated_at: offreEmploiTable.updated_at,
+        vues_count: offreStatistiquesTable.vues_count,
+        candidatures_count: offreStatistiquesTable.candidatures_count,
+        nom_entreprise: entrepriseTable.nom_entreprise,
+        entreprise: {
+          nom: entrepriseTable.nom_entreprise,
+          nom_entreprise: entrepriseTable.nom_entreprise,
+        },
+      })
+      .from(offreEmploiTable)
+      .innerJoin(entrepriseTable, eq(offreEmploiTable.id_entreprise, entrepriseTable.id))
+      .leftJoin(offreStatistiquesTable, eq(offreEmploiTable.id, offreStatistiquesTable.id_offre))
+      .where(eq(offreEmploiTable.statut, "active"))
+      .orderBy(desc(offreEmploiTable.created_at));
+
+    return rows.map((offre) => ({
+      ...offre,
+      created_at: offre.created_at.toISOString(),
+      updated_at: offre.updated_at.toISOString(),
+      date_limite: offre.date_limite?.toISOString(),
+      vues_count: offre.vues_count ?? 0,
+      candidatures_count: offre.candidatures_count ?? 0,
+    }));
+  }
+
   // POST /api/offres-emploi
   creerOffre = async (req: Request, res: Response) => {
     try {
-      // Vérification simple de l'authentification
       if (!req.utilisateur) {
         return reponseErreur(res, 401, "Authentification requise");
       }
@@ -14,14 +60,12 @@ export class OffreEmploiSimpleController {
         return reponseErreur(res, 403, "Accès réservé aux entreprises");
       }
 
-      // Pour l'instant, on retourne juste un succès
-      // TODO: Implémenter la logique de création d'offre
       const offreTest = {
         id: "test-" + Date.now(),
         titre: req.body.titre || "Offre test",
         description: req.body.description || "Description test",
-        entreprise: req.utilisateur.email, // Utiliser l'email à la place du nom
-        created_at: new Date().toISOString()
+        entreprise: req.utilisateur.email,
+        created_at: new Date().toISOString(),
       };
 
       return reponseSucces(res, 201, "Offre d'emploi créée avec succès", offreTest);
@@ -31,31 +75,20 @@ export class OffreEmploiSimpleController {
   };
 
   // GET /api/offres-emploi
-  obtenirOffres = async (req: Request, res: Response) => {
+  obtenirOffres = async (_req: Request, res: Response) => {
     try {
-      // Retourner une liste d'offres test
-      const offresTest = [
-        {
-          id: "1",
-          titre: "Développeur Full Stack",
-          description: "Poste de développeur dans une startup innovante",
-          localisation: "Paris",
-          type_poste: "cdi",
-          entreprise: { nom: "TechCorp" },
-          created_at: new Date().toISOString()
-        },
-        {
-          id: "2", 
-          titre: "Designer UX/UI",
-          description: "Créer des expériences utilisateur exceptionnelles",
-          localisation: "Lyon",
-          type_poste: "cdd",
-          entreprise: { nom: "DesignStudio" },
-          created_at: new Date().toISOString()
-        }
-      ];
+      const offres = await this.chargerOffresActives();
+      return reponseSucces(res, 200, "Offres récupérées avec succès", offres);
+    } catch (error: any) {
+      return reponseErreur(res, 500, error.message || "Erreur lors de la récupération des offres");
+    }
+  };
 
-      return reponseSucces(res, 200, "Offres récupérées avec succès", offresTest);
+  // GET /api/offres/publiques
+  obtenirOffresPubliques = async (_req: Request, res: Response) => {
+    try {
+      const offres = await this.chargerOffresActives();
+      return reponseSucces(res, 200, "Offres publiques récupérées avec succès", { offres });
     } catch (error: any) {
       return reponseErreur(res, 500, error.message || "Erreur lors de la récupération des offres");
     }
@@ -64,24 +97,52 @@ export class OffreEmploiSimpleController {
   // GET /api/offres-emploi/:id
   obtenirOffreParId = async (req: Request, res: Response) => {
     try {
-      const offreTest = {
-        id: req.params.id,
-        titre: "Développeur Full Stack",
-        description: "Poste de développeur dans une startup innovante. Nous recherchons un profil passionné...",
-        localisation: "Paris",
-        type_poste: "cdi",
-        salaire_min: "35000",
-        salaire_max: "45000",
-        competences_requises: "JavaScript, React, Node.js",
-        accessibilite_handicap: true,
-        entreprise: { 
-          nom: "TechCorp",
-          secteur_activite: "Informatique"
-        },
-        created_at: new Date().toISOString()
-      };
+      const rows = await db
+        .select({
+          id: offreEmploiTable.id,
+          id_offre: offreEmploiTable.id,
+          titre: offreEmploiTable.titre,
+          description: offreEmploiTable.description,
+          localisation: offreEmploiTable.localisation,
+          type_poste: offreEmploiTable.type_poste,
+          salaire_min: offreEmploiTable.salaire_min,
+          salaire_max: offreEmploiTable.salaire_max,
+          competences_requises: offreEmploiTable.competences_requises,
+          experience_requise: offreEmploiTable.experience_requise,
+          niveau_etude: offreEmploiTable.niveau_etude,
+          statut: offreEmploiTable.statut,
+          date_limite: offreEmploiTable.date_limite,
+          accessibilite_handicap: offreEmploiTable.accessibilite_handicap,
+          amenagements_possibles: offreEmploiTable.amenagements_possibles,
+          created_at: offreEmploiTable.created_at,
+          updated_at: offreEmploiTable.updated_at,
+          vues_count: offreStatistiquesTable.vues_count,
+          candidatures_count: offreStatistiquesTable.candidatures_count,
+          nom_entreprise: entrepriseTable.nom_entreprise,
+          entreprise: {
+            nom: entrepriseTable.nom_entreprise,
+            nom_entreprise: entrepriseTable.nom_entreprise,
+          },
+        })
+        .from(offreEmploiTable)
+        .innerJoin(entrepriseTable, eq(offreEmploiTable.id_entreprise, entrepriseTable.id))
+        .leftJoin(offreStatistiquesTable, eq(offreEmploiTable.id, offreStatistiquesTable.id_offre))
+        .where(eq(offreEmploiTable.id, req.params.id))
+        .limit(1);
 
-      return reponseSucces(res, 200, "Offre récupérée avec succès", offreTest);
+      const offre = rows[0];
+      if (!offre) {
+        return reponseErreur(res, 404, "Offre introuvable");
+      }
+
+      return reponseSucces(res, 200, "Offre récupérée avec succès", {
+        ...offre,
+        created_at: offre.created_at.toISOString(),
+        updated_at: offre.updated_at.toISOString(),
+        date_limite: offre.date_limite?.toISOString(),
+        vues_count: offre.vues_count ?? 0,
+        candidatures_count: offre.candidatures_count ?? 0,
+      });
     } catch (error: any) {
       return reponseErreur(res, 500, error.message || "Erreur lors de la récupération de l'offre");
     }

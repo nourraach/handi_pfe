@@ -1,8 +1,8 @@
 # Microservices Workspace
 
-This folder contains the new progressive microservices migration.
+This folder contains the new microservices architecture.
 
-The old backend remains in `handi_talents-main_abir` and will temporarily act as `core-service` until each business domain is extracted.
+The legacy backend has been retired from the workspace. The live runtime now routes through the extracted services.
 
 Initial services:
 
@@ -16,4 +16,3 @@ Initial services:
 - `notification-service`: authenticated in-app notification reads and state changes.
 - `assessment-service`: psychological test administration, candidate tests, and test results.
 - `communication-service`: chat conversations, recipient search, messages, and SSE conversation stream.
-- `core-service`: compatibility wrapper for the current backend.

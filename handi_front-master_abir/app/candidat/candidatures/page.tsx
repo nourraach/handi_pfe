@@ -83,7 +83,7 @@ type PageCopy = {
   aiScore: string;
 };
 
-const PAGE_SIZE = 4;
+const PAGE_SIZE = 12;
 const PRIMARY = "#35063E";
 
 const STATUS_COLORS: Record<CandidatureUiStatut, { fill: string; soft: string; text: string }> = {

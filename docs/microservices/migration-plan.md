@@ -2,13 +2,14 @@
 
 ## Current State
 
-The project is currently a modular monolith:
+The project started as a modular monolith and has now been migrated to the extracted service layout:
 
 - `handi_front-master_abir`: Next.js frontend.
-- `handi_talents-main_abir`: one Express backend process.
+- `handi_talents-main_abir`: legacy Express backend, now removed from the workspace.
 - One PostgreSQL/pgvector database configured by the backend `docker-compose.yml`.
 - All business domains are mounted in one `src/app.ts`.
-- Several routes still live inline inside `src/app.ts`, which must be extracted before clean service separation.
+- The remaining legacy inline routes inside `src/app.ts` are being disabled as the extracted services take over.
+- The gateway now fails fast on unmatched `/api/*` paths instead of silently falling back to a legacy backend.
 
 ## Target Architecture
 
@@ -25,22 +26,21 @@ api-gateway
   |-- reporting-service
   |-- notification-service
   |-- communication-service
-  |-- core-service temporary fallback
 ```
 
 ## Migration Rule
 
-The existing backend remains available as `core-service` while domains are extracted one by one. This keeps the platform usable during the migration.
+The existing backend has been retired from the workspace, and the gateway no longer forwards unmatched API traffic to a fallback service.
 
 ## Route Ownership
 
 | Current route group | Target service | Notes |
 | --- | --- | --- |
 | `/api/auth/*` | `auth-service` | Login, registration, JWT issue/verification, password reset. |
-| `/api/admin/demandes-en-attente`, `/api/admin/approuver/:id`, `/api/admin/refuser/:id` | `user-service` | Registration approval workflow. Currently inline in `src/app.ts`. |
+| `/api/admin/demandes-en-attente`, `/api/admin/approuver/:id`, `/api/admin/refuser/:id` | `user-service` | Registration approval workflow. Now owned by `user-service`. |
 | `/api/admin/utilisateurs/*` | `user-service` | Admin user management. |
-| `/api/candidats/profil/*`, `/api/entreprises/profil/*`, `/api/entreprises/membres/*` | `user-service` | Candidate/company profile and members. Some profile routes are inline in `src/app.ts`. |
-| `/api/offres-emploi/*`, `/api/offres/publiques`, `/api/entreprise/offres/*`, `/api/admin/offres/publication/*` | `job-service` | Job discovery, enterprise job CRUD, admin publication validation. Some enterprise routes are inline. |
+| `/api/candidats/profil/*`, `/api/entreprises/profil/*`, `/api/entreprises/membres/*` | `user-service` | Candidate/company profile and members. Now owned by `user-service`. |
+| `/api/offres-emploi/*`, `/api/offres/publiques`, `/api/entreprise/offres/*`, `/api/admin/offres/publication/*` | `job-service` | Job discovery, public listings, enterprise job CRUD, admin publication validation. |
 | `/api/favoris/*`, `/api/recommandations/*` | `job-service` initially | Candidate job shortlist/recommendation domain. Can later become `matching-service`. |
 | `/api/candidatures/*`, `/api/entreprise/candidatures/*`, `/api/admin/candidatures/*`, `/api/entreprise/candidatures/export/*` | `application-service` | Applications, statuses, exports, admin application tracking. |
 | `/api/entretiens/*`, `/api/admin/entretiens/*`, `/api/tests-entretien/*`, `/api/interne/bien-etre/*` | `interview-service` | Interview scheduling, prep, wellbeing dispatch. |
@@ -55,15 +55,15 @@ The existing backend remains available as `core-service` while domains are extra
 
 - Create `microservices-refactor` branch.
 - Add migration documentation and route ownership.
-- Scaffold `api-gateway`, `auth-service`, and `core-service`.
-- Make gateway proxy all existing `/api/*` traffic to `core-service`.
+- Scaffold `api-gateway`, `auth-service`, and the legacy backend.
+- Make gateway proxy all existing `/api/*` traffic to the legacy backend.
 - Keep frontend API base pointed at the gateway.
 
 ### Day 2
 
 - Extract `/api/auth/*` into `auth-service`.
 - Add JWT verification contract shared by all services.
-- Gateway routes `/api/auth/*` to `auth-service`, everything else to `core-service`.
+- Gateway routes `/api/auth/*` to `auth-service`, while the earliest migration phase kept the rest on the legacy backend.
 
 ### Day 3
 
@@ -97,7 +97,7 @@ The existing backend remains available as `core-service` while domains are extra
 The first milestone is not to split every table immediately. It is:
 
 1. Gateway works.
-2. Core service still serves all old routes.
+2. The legacy backend still served all old routes during the early migration phase.
 3. Auth service owns `/api/auth/*` behind a feature flag.
 4. Frontend uses the gateway.
 5. Health checks prove service availability.
@@ -157,6 +157,4 @@ It also supports routing chat traffic to `communication-service` with `COMMUNICA
 
 - `/api/chat/*`
 
-For this milestone, extracted services still use the same PostgreSQL database as `core-service` so behavior can be validated before later database separation.
-
-Some legacy inline offer endpoints in `handi_talents-main_abir/src/app.ts`, such as `/api/offres/publiques`, still fall back to `core-service` until they are replaced by route-module implementations.
+For this milestone, extracted services still used the same PostgreSQL database as the legacy backend so behavior could be validated before later database separation.

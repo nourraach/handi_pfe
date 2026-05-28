@@ -49,7 +49,7 @@ type EntretiensAdminPayload = {
   donnees?: EntretienAdmin[];
 };
 
-const ITEMS_PER_PAGE = 8;
+const ITEMS_PER_PAGE = 25;
 const statusOptions: Array<{ value: "" | EntretienStatut; label: string }> = [
   { value: "", label: "All statuses" },
   { value: "planifie", label: "Scheduled" },

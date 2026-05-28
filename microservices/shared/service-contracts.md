@@ -41,7 +41,7 @@ ASSESSMENT_SERVICE_ENABLED=true
 COMMUNICATION_SERVICE_ENABLED=true
 ```
 
-Disabled services fall back to `core-service` through the generic `/api/*` proxy.
+Unmatched `/api/*` requests now fail fast at the gateway unless a route is explicitly owned by an enabled service.
 
 ## Error Envelope
 

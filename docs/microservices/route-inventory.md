@@ -32,14 +32,14 @@ This file records the current backend route surface before extraction.
 | `/api/entreprise/reports-requests` | `enterprise-reporting.routes.ts` | `reporting-service` |
 | `/api/interne/bien-etre` | `bien-etre-interne.routes.ts` | `interview-service` |
 
-## Inline Routes To Extract First
+## Legacy Inline Routes
 
-The following routes are defined directly in `src/app.ts` and should be moved to route modules before service extraction:
+The following routes were historically defined directly in `src/app.ts`. They are now handled by the extracted services, and the legacy fallback block has been disabled in the monolith:
 
-- `GET /api/entreprise/offres` - extracted behind `job-service` through the modular route; inline fallback still exists in `core-service`
-- `GET /api/offres/publiques`
-- `POST /api/entreprise/offres` - extracted behind `job-service` through the modular route; inline fallback still exists in `core-service`
-- `PATCH /api/entreprise/offres/:id/statut` - extracted behind `job-service` through the modular route; inline fallback still exists in `core-service`
+- `GET /api/entreprise/offres` - extracted behind `job-service` through the modular route; no longer depends on the legacy backend
+- `GET /api/offres/publiques` - now served by `job-service` through the gateway alias
+- `POST /api/entreprise/offres` - extracted behind `job-service` through the modular route; no longer depends on the legacy backend
+- `PATCH /api/entreprise/offres/:id/statut` - extracted behind `job-service` through the modular route; no longer depends on the legacy backend
 - `GET /api/admin/demandes-en-attente` - extracted behind `user-service`
 - `POST /api/admin/approuver/:id` - extracted behind `user-service`
 - `POST /api/admin/refuser/:id` - extracted behind `user-service`

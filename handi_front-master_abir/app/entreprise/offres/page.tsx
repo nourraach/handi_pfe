@@ -36,7 +36,7 @@ type OffreFormulaire = {
   niveau_etude: string;
 };
 
-const PAGE_SIZE = 3;
+const PAGE_SIZE = 12;
 
 const tndNumberFormatter = new Intl.NumberFormat("fr-TN", {
   maximumFractionDigits: 0,
@@ -1416,5 +1416,4 @@ export default function MesOffresPageProtegee() {
     </RouteProtegee>
   );
 }
-
 
