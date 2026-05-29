@@ -47,7 +47,19 @@ export class ChatRepository {
           'Conversation'
         ) AS participant_names,
         (
-          SELECT m2.contenu
+          SELECT
+            CASE
+              WHEN m2.contenu LIKE '{%' THEN
+                COALESCE(
+                  NULLIF((m2.contenu::jsonb ->> 'text'), ''),
+                  CASE
+                    WHEN COALESCE(jsonb_array_length(COALESCE((m2.contenu::jsonb -> 'attachments'), '[]'::jsonb)), 0) > 0 THEN 'Pièce jointe'
+                    WHEN (m2.contenu::jsonb -> 'audio') IS NOT NULL THEN 'Message audio'
+                    ELSE 'Message multimédia'
+                  END
+                )
+              ELSE m2.contenu
+            END
           FROM message m2
           WHERE m2.conversation_id = c.id
           ORDER BY m2.created_at DESC

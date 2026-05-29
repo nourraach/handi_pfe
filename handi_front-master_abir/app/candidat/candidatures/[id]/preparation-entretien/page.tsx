@@ -383,8 +383,8 @@ export default function PreparationEntretienPage() {
                     Personnalise selon votre profil
                   </span>
                   {dossier.source === "fallback" && (
-                    <span className="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700">
-                      Version generique (IA indisponible)
+                    <span className="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-800">
+                      Mode standard pret
                     </span>
                   )}
                   {dossier.generated_at && (
@@ -535,7 +535,9 @@ export default function PreparationEntretienPage() {
               </div>
               <div className="rounded-2xl bg-gray-50 px-4 py-3">
                 <p className="text-xs uppercase tracking-wide text-gray-500">Source</p>
-                <p className="mt-1 text-lg font-semibold text-gray-900">{dossier.source === "fallback" ? "Fallback" : "IA"}</p>
+                <p className="mt-1 text-lg font-semibold text-gray-900">
+                  {dossier.source === "fallback" ? "Mode standard" : "IA"}
+                </p>
               </div>
               <div className="rounded-2xl bg-gray-50 px-4 py-3">
                 <p className="text-xs uppercase tracking-wide text-gray-500">Regeneration</p>
@@ -547,6 +549,25 @@ export default function PreparationEntretienPage() {
               </div>
             </div>
           </Card>
+
+          {dossier.source === "fallback" ? (
+            <Card className="border-amber-100 bg-amber-50 p-5">
+              <p className="text-xs font-semibold uppercase tracking-wide text-amber-700">Mode standard</p>
+              <p className="mt-2 text-sm text-amber-900">
+                La version standard fonctionne pleinement avec vos donnees de profil et les ecarts identifiees.
+                Elle reste exploitable tout de suite, meme si le generateur IA n&apos;est pas disponible.
+              </p>
+              <Button
+                className="mt-4 w-full justify-center"
+                variant="secondary"
+                size="sm"
+                onClick={() => void regenerer()}
+                disabled={!dossier.can_regenerate || regenerating}
+              >
+                {regenerating ? "Regeneration..." : "Tenter une version IA"}
+              </Button>
+            </Card>
+          ) : null}
 
           <Card className="p-5">
             <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Mode d&apos;emploi</p>

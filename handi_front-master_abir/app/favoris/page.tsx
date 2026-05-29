@@ -39,6 +39,13 @@ type FavoriteCardData = {
   contract: string;
 };
 
+type FavoritesStats = {
+  total: number;
+  companies: number;
+  latestSavedLabel: string;
+  latestSavedValue: string;
+};
+
 const tndNumberFormatter = new Intl.NumberFormat("fr-TN", {
   maximumFractionDigits: 0,
 });
@@ -49,12 +56,12 @@ const favoritePageStyles = `
     gap: 22px;
   }
 
-  .favorites-header {
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: 20px;
-    padding: 6px 0 2px;
+  .favorites-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(280px, 0.85fr);
+    gap: 18px;
+    align-items: end;
+    padding: 6px 0 0;
   }
 
   .favorites-eyebrow {
@@ -82,20 +89,69 @@ const favoritePageStyles = `
     line-height: 1.6;
   }
 
+  .favorites-hero-actions {
+    display: grid;
+    justify-items: stretch;
+    gap: 12px;
+  }
+
+  .favorites-hero-actions__row {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .favorites-stat {
+    padding: 16px 18px;
+    border: 1px solid var(--app-border);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.82);
+    box-shadow: var(--shadow-1);
+  }
+
+  .favorites-stat__label {
+    margin: 0 0 6px;
+    color: var(--app-muted);
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+  }
+
+  .favorites-stat__value {
+    margin: 0;
+    color: var(--app-text);
+    font-family: var(--app-heading);
+    font-size: 1.35rem;
+    line-height: 1.1;
+  }
+
+  .favorites-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(290px, 0.9fr);
+    gap: 18px;
+    align-items: start;
+  }
+
+  .favorites-column {
+    display: grid;
+    gap: 14px;
+  }
+
   .favorites-toolbar {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     gap: 14px;
     align-items: center;
-    padding: 14px;
+    padding: 16px;
     border: 1px solid var(--app-border);
     border-radius: 8px;
-    background: rgba(255, 255, 255, 0.82);
+    background: rgba(255, 255, 255, 0.86);
     box-shadow: var(--shadow-1);
   }
 
   .favorites-search {
-    min-height: 46px;
+    min-height: 48px;
     display: flex;
     align-items: center;
     gap: 10px;
@@ -120,7 +176,7 @@ const favoritePageStyles = `
   }
 
   .favorites-count {
-    min-height: 46px;
+    min-height: 48px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -134,15 +190,15 @@ const favoritePageStyles = `
 
   .favorites-list {
     display: grid;
-    gap: 14px;
+    gap: 16px;
   }
 
   .favorite-card {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     gap: 18px;
-    align-items: center;
-    padding: 18px;
+    align-items: stretch;
+    padding: 18px 18px 18px 20px;
     border: 1px solid var(--app-border);
     border-radius: 8px;
     background: rgba(255, 255, 255, 0.94);
@@ -182,7 +238,7 @@ const favoritePageStyles = `
     margin: 0;
     color: var(--app-text);
     font-family: var(--app-heading);
-    font-size: 1.25rem;
+    font-size: 1.28rem;
     line-height: 1.25;
     overflow-wrap: anywhere;
   }
@@ -217,7 +273,86 @@ const favoritePageStyles = `
     display: grid;
     justify-items: stretch;
     gap: 10px;
-    min-width: 150px;
+    min-width: 180px;
+    align-content: center;
+  }
+
+  .favorites-aside {
+    position: sticky;
+    top: 16px;
+    display: grid;
+    gap: 14px;
+  }
+
+  .favorites-panel {
+    display: grid;
+    gap: 14px;
+  }
+
+  .favorites-panel__title {
+    margin: 0;
+    color: var(--app-text);
+    font-family: var(--app-heading);
+    font-size: 1.05rem;
+  }
+
+  .favorites-panel__subtitle {
+    margin: 6px 0 0;
+    color: var(--app-muted);
+    line-height: 1.5;
+  }
+
+  .favorites-shortcuts {
+    display: grid;
+    gap: 10px;
+  }
+
+  .favorites-shortcut {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: center;
+    padding: 12px 14px;
+    border: 1px solid rgba(var(--app-primary-rgb), 0.12);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.9);
+  }
+
+  .favorites-shortcut strong {
+    display: block;
+    color: var(--app-text);
+    font-size: 0.95rem;
+  }
+
+  .favorites-shortcut span {
+    color: var(--app-muted);
+    font-size: 0.86rem;
+  }
+
+  .favorites-recent {
+    display: grid;
+    gap: 10px;
+  }
+
+  .favorites-recent__item {
+    padding: 12px 14px;
+    border: 1px solid rgba(var(--app-primary-rgb), 0.1);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.88);
+  }
+
+  .favorites-recent__title {
+    margin: 0;
+    color: var(--app-text);
+    font-size: 0.95rem;
+    font-weight: 700;
+  }
+
+  .favorites-recent__meta {
+    margin: 6px 0 0;
+    color: var(--app-muted);
+    font-size: 0.86rem;
+    line-height: 1.45;
   }
 
   .favorite-detail-overlay {
@@ -245,14 +380,26 @@ const favoritePageStyles = `
   }
 
   @media (max-width: 760px) {
-    .favorites-header,
+    .favorites-hero,
     .favorite-card {
       grid-template-columns: 1fr;
       align-items: stretch;
     }
 
-    .favorites-header {
+    .favorites-hero {
       display: grid;
+    }
+
+    .favorites-layout {
+      grid-template-columns: 1fr;
+    }
+
+    .favorites-aside {
+      position: static;
+    }
+
+    .favorites-hero-actions__row {
+      grid-template-columns: 1fr;
     }
 
     .favorites-toolbar {
@@ -373,6 +520,38 @@ function FavorisPage() {
     [favoris, offresById],
   );
 
+  const favoritesStats = useMemo<FavoritesStats>(() => {
+    const companies = new Set(favoriteCards.map((item) => item.company).filter(Boolean));
+    const dates = favoriteCards
+      .map((item) => item.favori.created_at)
+      .filter((value): value is string => Boolean(value))
+      .map((value) => new Date(value))
+      .filter((date) => !Number.isNaN(date.getTime()))
+      .sort((a, b) => b.getTime() - a.getTime());
+
+    const latest = dates[0];
+    return {
+      total: favoriteCards.length,
+      companies: companies.size,
+      latestSavedLabel: latest ? latest.toLocaleDateString("en-GB", { day: "2-digit", month: "short" }) : "No recent save",
+      latestSavedValue: latest
+        ? `Saved ${latest.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}`
+        : "Nothing recent",
+    };
+  }, [favoriteCards]);
+
+  const recentFavorites = useMemo(
+    () =>
+      [...favoriteCards]
+        .sort((a, b) => {
+          const left = a.favori.created_at ? new Date(a.favori.created_at).getTime() : 0;
+          const right = b.favori.created_at ? new Date(b.favori.created_at).getTime() : 0;
+          return right - left;
+        })
+        .slice(0, 3),
+    [favoriteCards],
+  );
+
   const filteredFavorites = useMemo(() => {
     const query = search.trim().toLowerCase();
     if (!query) {
@@ -394,15 +573,31 @@ function FavorisPage() {
     <div className="app-page favorites-page">
       <style>{favoritePageStyles}</style>
 
-      <header className="favorites-header">
-        <div>
+      <header className="favorites-hero">
+        <div className="favorites-hero__content">
           <p className="favorites-eyebrow">Saved roles</p>
           <h1 className="favorites-title">Favorite jobs</h1>
           <p className="favorites-subtitle">
             Keep the jobs you like in one simple list, then come back when you are ready to apply.
           </p>
         </div>
-        <Button onClick={charger} variant="secondary">Refresh</Button>
+        <div className="favorites-hero-actions">
+          <div className="favorites-hero-actions__row">
+            <div className="favorites-stat">
+              <p className="favorites-stat__label">Saved</p>
+              <p className="favorites-stat__value">{favoritesStats.total}</p>
+            </div>
+            <div className="favorites-stat">
+              <p className="favorites-stat__label">Companies</p>
+              <p className="favorites-stat__value">{favoritesStats.companies}</p>
+            </div>
+            <div className="favorites-stat">
+              <p className="favorites-stat__label">Latest save</p>
+              <p className="favorites-stat__value">{favoritesStats.latestSavedLabel}</p>
+            </div>
+          </div>
+          <Button onClick={charger} variant="secondary">Refresh</Button>
+        </div>
       </header>
 
       {erreur ? <div className="message message-erreur">{erreur}</div> : null}
@@ -414,65 +609,136 @@ function FavorisPage() {
           action={<ButtonLink href="/offres">Browse jobs</ButtonLink>}
         />
       ) : (
-        <>
-          <div className="favorites-toolbar">
-            <label className="favorites-search">
-              <span aria-hidden="true">⌕</span>
-              <input
-                type="search"
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                placeholder="Search favorite jobs"
-                aria-label="Search favorite jobs"
-              />
-            </label>
-            <div className="favorites-count">
-              {filteredFavorites.length} of {favoris.length} saved
+        <div className="favorites-layout">
+          <div className="favorites-column">
+            <div className="favorites-toolbar">
+              <label className="favorites-search">
+                <span aria-hidden="true">Search</span>
+                <input
+                  type="search"
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                  placeholder="Search favorite jobs"
+                  aria-label="Search favorite jobs"
+                />
+              </label>
+              <div className="favorites-count">
+                {filteredFavorites.length} of {favoris.length} saved
+              </div>
             </div>
+
+            {filteredFavorites.length === 0 ? (
+              <EmptyState
+                title="No favorites match your search"
+                description="Try another job title, company, location, or contract type."
+                action={<Button variant="secondary" onClick={() => setSearch("")}>Clear search</Button>}
+              />
+            ) : (
+              <div className="favorites-list">
+                {filteredFavorites.map(({ favori, offre, title, company, location, contract }) => (
+                  <article key={favori.id} className="favorite-card">
+                    <div className="favorite-card__main">
+                      <div className="favorite-card__topline">
+                        <span className="favorite-card__badge">Favorite</span>
+                        <span className="favorite-card__date">{formatDate(favori.created_at)}</span>
+                      </div>
+
+                      <h2 className="favorite-card__title">{title}</h2>
+                      <p className="favorite-card__company">{company}</p>
+
+                      <div className="favorite-card__meta">
+                        <span className="favorite-card__chip">{location}</span>
+                        <span className="favorite-card__chip">{contract}</span>
+                        {formatSalaryRange(offre) ? <span className="favorite-card__chip">{formatSalaryRange(offre)}</span> : null}
+                      </div>
+                    </div>
+
+                    <div className="favorite-card__actions">
+                      <Button variant="secondary" onClick={() => setSelectedOffre(offre ?? null)} disabled={!offre}>
+                        View details
+                      </Button>
+                      <ButtonLink href="/offres" variant="ghost">Open jobs</ButtonLink>
+                      <Button variant="danger" onClick={() => retirer(favori.id_offre)}>
+                        Remove
+                      </Button>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
           </div>
 
-          {filteredFavorites.length === 0 ? (
-            <EmptyState
-              title="No favorites match your search"
-              description="Try another job title, company, location, or contract type."
-              action={<Button variant="secondary" onClick={() => setSearch("")}>Clear search</Button>}
-            />
-          ) : (
-            <div className="favorites-list">
-              {filteredFavorites.map(({ favori, offre, title, company, location, contract }) => (
-                <article key={favori.id} className="favorite-card">
-                  <div className="favorite-card__main">
-                    <div className="favorite-card__topline">
-                      <span className="favorite-card__badge">Favorite</span>
-                      <span className="favorite-card__date">{formatDate(favori.created_at)}</span>
-                    </div>
+          <aside className="favorites-aside">
+            <Card padding="lg" className="favorites-panel">
+              <div>
+                <p className="favorites-eyebrow">Quick view</p>
+                <h2 className="favorites-panel__title">Saved jobs at a glance</h2>
+                <p className="favorites-panel__subtitle">
+                  A compact summary of what you saved, where it comes from, and what to do next.
+                </p>
+              </div>
 
-                    <h2 className="favorite-card__title">{title}</h2>
-                    <p className="favorite-card__company">{company}</p>
+              <div className="details-grid">
+                <div className="detail-box">
+                  <strong>Total saved</strong>
+                  <p>{favoritesStats.total}</p>
+                </div>
+                <div className="detail-box">
+                  <strong>Companies</strong>
+                  <p>{favoritesStats.companies}</p>
+                </div>
+                <div className="detail-box">
+                  <strong>Latest save</strong>
+                  <p>{favoritesStats.latestSavedValue}</p>
+                </div>
+                <div className="detail-box">
+                  <strong>Search filter</strong>
+                  <p>{search.trim() ? search : "All saved jobs"}</p>
+                </div>
+              </div>
 
-                    <div className="favorite-card__meta">
-                      <span className="favorite-card__chip">{location}</span>
-                      <span className="favorite-card__chip">{contract}</span>
-                      {formatSalaryRange(offre) ? <span className="favorite-card__chip">{formatSalaryRange(offre)}</span> : null}
-                    </div>
+              <div className="favorites-shortcuts">
+                <div className="favorites-shortcut">
+                  <div>
+                    <strong>Browse jobs</strong>
+                    <span>Find new roles to save.</span>
                   </div>
-
-                  <div className="favorite-card__actions">
-                    <Button variant="secondary" onClick={() => setSelectedOffre(offre ?? null)} disabled={!offre}>
-                      View details
-                    </Button>
-                    <ButtonLink href="/offres" variant="ghost">Open jobs</ButtonLink>
-                    <Button variant="danger" onClick={() => retirer(favori.id_offre)}>
-                      Remove
-                    </Button>
+                  <ButtonLink href="/offres" variant="secondary">Open</ButtonLink>
+                </div>
+                <div className="favorites-shortcut">
+                  <div>
+                    <strong>Clear filters</strong>
+                    <span>Reset the current search.</span>
                   </div>
-                </article>
-              ))}
-            </div>
-          )}
-        </>
+                  <Button variant="ghost" onClick={() => setSearch("")}>Reset</Button>
+                </div>
+              </div>
+            </Card>
+
+            <Card padding="lg" className="favorites-panel">
+              <div>
+                <p className="favorites-eyebrow">Recently saved</p>
+                <h2 className="favorites-panel__title">Latest additions</h2>
+              </div>
+
+              <div className="favorites-recent">
+                {recentFavorites.length === 0 ? (
+                  <p className="favorites-panel__subtitle">No recent favorites to display.</p>
+                ) : (
+                  recentFavorites.map((item) => (
+                    <div key={item.favori.id} className="favorites-recent__item">
+                      <p className="favorites-recent__title">{item.title}</p>
+                      <p className="favorites-recent__meta">
+                        {item.company} - {item.location}
+                      </p>
+                    </div>
+                  ))
+                )}
+              </div>
+            </Card>
+          </aside>
+        </div>
       )}
-
       {selectedOffre ? (
         <div
           className="favorite-detail-overlay"

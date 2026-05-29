@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
+import { useEffect, useEffectEvent, useMemo, useRef, useState, type ChangeEvent } from "react";
 import { AuthenticatedWorkspace } from "@/components/authenticated-workspace";
 import { useI18n } from "@/components/i18n-provider";
 import { useAuth } from "@/hooks/useAuth";
@@ -33,7 +33,93 @@ type Recipient = {
   subtitle?: string;
 };
 
+type ComposerAttachment = {
+  name: string;
+  mimeType: string;
+  dataUrl: string;
+  size: number;
+};
+
+type ComposerPayload = {
+  kind: "text" | "media" | "audio" | "mixed";
+  text?: string;
+  attachments?: ComposerAttachment[];
+  audio?: ComposerAttachment | null;
+};
+
 const READ_STATE_KEY = "candidate_message_read_state_v1";
+
+const EMOJI_OPTIONS = [
+  "😀",
+  "🙂",
+  "👋",
+  "👍",
+  "🙏",
+  "✨",
+  "💡",
+  "✅",
+  "📎",
+  "🎤",
+  "💬",
+  "🚀",
+  "💼",
+  "🎯",
+  "❤️",
+  "🔥",
+];
+
+const MAX_ATTACHMENT_SIZE = 4 * 1024 * 1024;
+const MAX_AUDIO_SIZE = 6 * 1024 * 1024;
+
+function isComposerPayload(value: unknown): value is ComposerPayload {
+  return Boolean(
+    value &&
+      typeof value === "object" &&
+      ("kind" in value || "attachments" in value || "audio" in value || "text" in value),
+  );
+}
+
+function decodeMessageContent(contenu: string): ComposerPayload {
+  const raw = contenu.trim();
+  if (!raw) {
+    return { kind: "text", text: "" };
+  }
+
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (isComposerPayload(parsed)) {
+      return {
+        kind: parsed.kind,
+        text: typeof parsed.text === "string" ? parsed.text : "",
+        attachments: Array.isArray(parsed.attachments) ? parsed.attachments : [],
+        audio: parsed.audio ?? null,
+      };
+    }
+  } catch {
+    // Not structured content, treat as plain text.
+  }
+
+  return { kind: "text", text: raw };
+}
+
+function stringifyMessageContent(payload: ComposerPayload | string) {
+  return typeof payload === "string" ? payload : JSON.stringify(payload);
+}
+
+function formatFileSize(size: number) {
+  if (size < 1024) return `${size} o`;
+  if (size < 1024 * 1024) return `${Math.round(size / 1024)} Ko`;
+  return `${(size / (1024 * 1024)).toFixed(1)} Mo`;
+}
+
+function fileToDataUrl(file: File) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ""));
+    reader.onerror = () => reject(new Error("Impossible de lire le fichier."));
+    reader.readAsDataURL(file);
+  });
+}
 
 function SearchIcon() {
   return (
@@ -77,22 +163,6 @@ function FilterIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
       <path d="M5 7h14M8 12h8M10.5 17h3" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function BellIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path
-        d="M7 9.2a5 5 0 1 1 10 0v3.5l1.4 2.5H5.6L7 12.7V9.2Z"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.7"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path d="M10.3 18a1.9 1.9 0 0 0 3.4 0" fill="none" stroke="currentColor" strokeWidth="1.7" />
     </svg>
   );
 }
@@ -201,6 +271,12 @@ function MessagesPage() {
   const [selectedRecipient, setSelectedRecipient] = useState<Recipient | null>(null);
   const [newConversationMessage, setNewConversationMessage] = useState("");
   const [replyDraft, setReplyDraft] = useState("");
+  const [composerAttachments, setComposerAttachments] = useState<ComposerAttachment[]>([]);
+  const [composerAudio, setComposerAudio] = useState<ComposerAttachment | null>(null);
+  const [emojiOpen, setEmojiOpen] = useState(false);
+  const [recordingAudio, setRecordingAudio] = useState(false);
+  const [recordingSeconds, setRecordingSeconds] = useState(0);
+  const [composerHint, setComposerHint] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
   const [threadSearch, setThreadSearch] = useState("");
   const [isComposerOpen, setIsComposerOpen] = useState(false);
@@ -216,6 +292,13 @@ function MessagesPage() {
       return {};
     }
   });
+  const attachmentInputRef = useRef<HTMLInputElement | null>(null);
+  const composerInputRef = useRef<HTMLTextAreaElement | null>(null);
+  const emojiPanelRef = useRef<HTMLDivElement | null>(null);
+  const audioRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioStreamRef = useRef<MediaStream | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const recordingTimerRef = useRef<number | null>(null);
   const sseRef = useRef<EventSource | null>(null);
 
   const localeCode = locale === "ar" ? "ar-TN" : locale === "en" ? "en-US" : "fr-FR";
@@ -236,10 +319,173 @@ function MessagesPage() {
     window.localStorage.setItem(READ_STATE_KEY, JSON.stringify(readState));
   }, [readState, utilisateur]);
 
+  useEffect(() => {
+    if (!emojiOpen) {
+      return undefined;
+    }
+
+    const onPointerDown = (event: PointerEvent) => {
+      if (emojiPanelRef.current && !emojiPanelRef.current.contains(event.target as Node)) {
+        setEmojiOpen(false);
+      }
+    };
+
+    window.addEventListener("pointerdown", onPointerDown);
+    return () => window.removeEventListener("pointerdown", onPointerDown);
+  }, [emojiOpen]);
+
   const formatTime = (value?: string | null) => (value ? timeFormatter.format(new Date(value)) : "");
 
   const translateRole = (role?: string | null) =>
     role ? t(`common.roles.${role}`) : t("messages.messagingSpace");
+
+  const cleanupAudioRecorder = () => {
+    if (recordingTimerRef.current) {
+      window.clearInterval(recordingTimerRef.current);
+      recordingTimerRef.current = null;
+    }
+
+    audioRecorderRef.current = null;
+    audioStreamRef.current?.getTracks().forEach((track) => track.stop());
+    audioStreamRef.current = null;
+    setRecordingAudio(false);
+    setRecordingSeconds(0);
+  };
+
+  const stopAudioRecording = () => {
+    const recorder = audioRecorderRef.current;
+    if (recorder && recorder.state !== "inactive") {
+      recorder.stop();
+    } else {
+      cleanupAudioRecorder();
+    }
+  };
+
+  const startAudioRecording = async () => {
+    if (recordingAudio) {
+      stopAudioRecording();
+      return;
+    }
+
+    try {
+      setComposerHint(null);
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mimeTypeCandidates = [
+        "audio/webm;codecs=opus",
+        "audio/webm",
+        "audio/ogg;codecs=opus",
+        "audio/ogg",
+      ];
+      const mimeType = mimeTypeCandidates.find((candidate) => MediaRecorder.isTypeSupported(candidate));
+      const recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+
+      audioChunksRef.current = [];
+      audioRecorderRef.current = recorder;
+      audioStreamRef.current = stream;
+      setRecordingAudio(true);
+      setRecordingSeconds(0);
+
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      recorder.onstop = async () => {
+        try {
+          const blob = new Blob(audioChunksRef.current, { type: recorder.mimeType || "audio/webm" });
+          if (blob.size > MAX_AUDIO_SIZE) {
+            setComposerHint("Le message audio est trop volumineux. Choisissez un enregistrement plus court.");
+            return;
+          }
+
+          const dataUrl = await fileToDataUrl(new File([blob], `audio-${Date.now()}.webm`, { type: blob.type }));
+          setComposerAudio({
+            name: `audio-${Date.now()}.webm`,
+            mimeType: blob.type || "audio/webm",
+            dataUrl,
+            size: blob.size,
+          });
+        } catch (error: unknown) {
+          setComposerHint(error instanceof Error ? error.message : "Impossible de traiter le message audio.");
+        } finally {
+          cleanupAudioRecorder();
+          audioChunksRef.current = [];
+        }
+      };
+
+      recorder.start();
+      recordingTimerRef.current = window.setInterval(() => {
+        setRecordingSeconds((current) => current + 1);
+      }, 1000);
+    } catch (error: unknown) {
+      setComposerHint(error instanceof Error ? error.message : "Impossible d'acceder au micro.");
+      cleanupAudioRecorder();
+    }
+  };
+
+  const appendEmoji = (emoji: string) => {
+    const input = composerInputRef.current;
+    if (!input) {
+      setReplyDraft((current) => `${current}${emoji}`);
+      return;
+    }
+
+    const start = input.selectionStart ?? replyDraft.length;
+    const end = input.selectionEnd ?? replyDraft.length;
+    const next = `${replyDraft.slice(0, start)}${emoji}${replyDraft.slice(end)}`;
+    setReplyDraft(next);
+    requestAnimationFrame(() => {
+      input.focus();
+      const nextPosition = start + emoji.length;
+      input.setSelectionRange(nextPosition, nextPosition);
+    });
+  };
+
+  const handleAttachmentPick = async (event: ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files ?? []);
+    event.target.value = "";
+
+    if (files.length === 0) {
+      return;
+    }
+
+    const oversized = files.find((file) => file.size > MAX_ATTACHMENT_SIZE);
+    if (oversized) {
+      setComposerHint(`Le fichier ${oversized.name} est trop volumineux. Limite: 4 Mo.`);
+      return;
+    }
+
+    try {
+      const attachments = await Promise.all(
+        files.map(async (file) => ({
+          name: file.name,
+          mimeType: file.type || "application/octet-stream",
+          dataUrl: await fileToDataUrl(file),
+          size: file.size,
+        })),
+      );
+      setComposerAttachments((current) => [...current, ...attachments]);
+      setComposerHint(null);
+    } catch (error: unknown) {
+      setComposerHint(error instanceof Error ? error.message : "Impossible de joindre le fichier.");
+    }
+  };
+
+  const supprimerAttachment = (index: number) => {
+    setComposerAttachments((current) => current.filter((_, position) => position !== index));
+  };
+
+  const resetComposer = () => {
+    setReplyDraft("");
+    setComposerAttachments([]);
+    setComposerAudio(null);
+    setEmojiOpen(false);
+    setComposerHint(null);
+    if (attachmentInputRef.current) {
+      attachmentInputRef.current.value = "";
+    }
+  };
 
   const fermerComposeur = () => {
     setIsComposerOpen(false);
@@ -340,6 +586,10 @@ function MessagesPage() {
         setConvId(id);
         setMessages(loadedMessages);
         setReplyDraft("");
+        setComposerAttachments([]);
+        setComposerAudio(null);
+        setEmojiOpen(false);
+        setComposerHint(null);
         marquerConversationCommeLue(id, loadedMessages.at(-1)?.created_at);
       } else {
         setStatus(data.message || t("messages.loadMessagesError"));
@@ -417,17 +667,27 @@ function MessagesPage() {
       return;
     }
 
-    if (!replyDraft.trim()) {
+    if (!replyDraft.trim() && composerAttachments.length === 0 && !composerAudio) {
       return;
     }
 
     setStatus(null);
 
     try {
+      const payload: ComposerPayload | string =
+        composerAttachments.length > 0 || composerAudio
+          ? {
+              kind: composerAttachments.length > 0 && composerAudio ? "mixed" : composerAudio ? "audio" : "media",
+              text: replyDraft.trim() || undefined,
+              attachments: composerAttachments.length > 0 ? composerAttachments : [],
+              audio: composerAudio,
+            }
+          : replyDraft.trim();
+
       const res = await authenticatedFetch(construireUrlApi(`/api/chat/conversations/${convId}/messages`), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ contenu: replyDraft }),
+        body: JSON.stringify({ contenu: stringifyMessageContent(payload) }),
       });
 
       const data = await res.json();
@@ -436,7 +696,7 @@ function MessagesPage() {
         return;
       }
 
-      setReplyDraft("");
+      resetComposer();
       setMessages((current) => [...current, data.donnees]);
       marquerConversationCommeLue(convId, data.donnees?.created_at);
       await chargerConversations();
@@ -512,16 +772,6 @@ function MessagesPage() {
           </label>
 
           <div className="msg-header-actions">
-            <button type="button" className="msg-accessibility" aria-label={t("messages.accessibilityAction")}>
-              <span aria-hidden="true">
-                <FilterIcon />
-              </span>
-              <span>{t("messages.accessibilityAction")}</span>
-            </button>
-            <button type="button" className="msg-icon-btn" aria-label={t("messages.notificationsAction")}>
-              <BellIcon />
-              <em>2</em>
-            </button>
             <div className="msg-user-chip" aria-label={utilisateur?.nom || t("messages.messagingSpace")}>
               <span>{utilisateur?.nom?.slice(0, 2).toUpperCase() || "U"}</span>
             </div>
@@ -663,12 +913,49 @@ function MessagesPage() {
               ) : (
                 messages.map((item) => {
                   const mine = utilisateur?.id_utilisateur === item.id_utilisateur;
+                  const payload = decodeMessageContent(item.contenu);
 
                   return (
                     <div key={item.id} className={`msg-bubble-row ${mine ? "is-mine" : ""}`}>
                       {!mine ? <div className="msg-bubble-avatar">{activeConversationInitial}</div> : null}
                       <div className={`msg-bubble ${mine ? "is-mine" : ""}`}>
-                        <p>{item.contenu}</p>
+                        {payload.text ? <p>{payload.text}</p> : null}
+                        {payload.attachments?.length ? (
+                          <div className="msg-bubble-assets">
+                            {payload.attachments.map((asset) => (
+                              <a
+                                key={`${item.id}-${asset.name}`}
+                                className="msg-attachment"
+                                href={asset.dataUrl}
+                                download={asset.name}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                <span className="msg-attachment-icon" aria-hidden="true">
+                                  <AttachmentIcon />
+                                </span>
+                                <span className="msg-attachment-copy">
+                                  <strong>{asset.name}</strong>
+                                  <span>{formatFileSize(asset.size)}</span>
+                                </span>
+                              </a>
+                            ))}
+                          </div>
+                        ) : null}
+                        {payload.audio ? (
+                          <div className="msg-bubble-assets">
+                            <div className="msg-audio-card">
+                              <div className="msg-attachment-icon" aria-hidden="true">
+                                <SendIcon />
+                              </div>
+                              <div className="msg-attachment-copy">
+                                <strong>Message audio</strong>
+                                <span>{formatFileSize(payload.audio.size)}</span>
+                              </div>
+                            </div>
+                            <audio className="msg-audio-player" controls src={payload.audio.dataUrl} />
+                          </div>
+                        ) : null}
                         <span>{formatTime(item.created_at)}</span>
                       </div>
                     </div>
@@ -677,46 +964,152 @@ function MessagesPage() {
               )}
             </div>
 
-            <div className="msg-composer">
-              <button
-                type="button"
-                className="msg-icon-btn"
-                disabled={!hasActiveConversation}
-                aria-label={t("messages.attachmentAction")}
-              >
-                <AttachmentIcon />
-              </button>
+            <div className="msg-composer-wrap">
               <input
-                className="msg-composer-input"
-                placeholder={t("messages.composerPlaceholder")}
-                value={replyDraft}
-                onChange={(event) => setReplyDraft(event.target.value)}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter" && hasActiveConversation && replyDraft.trim()) {
-                    event.preventDefault();
-                    void envoyerMessage();
-                  }
-                }}
-                disabled={!hasActiveConversation}
-                aria-label={t("messages.composerPlaceholder")}
+                ref={attachmentInputRef}
+                type="file"
+                className="msg-hidden-file"
+                multiple
+                accept=".png,.jpg,.jpeg,.gif,.pdf,.txt,.doc,.docx,.mp3,.wav,.m4a,.webm,.ogg"
+                onChange={handleAttachmentPick}
+                aria-hidden="true"
+                tabIndex={-1}
               />
-              <button
-                type="button"
-                className="msg-icon-btn"
-                disabled={!hasActiveConversation}
-                aria-label={t("messages.emojiAction")}
-              >
-                <EmojiIcon />
-              </button>
-              <button
-                type="button"
-                className="msg-send"
-                onClick={envoyerMessage}
-                disabled={!hasActiveConversation || !replyDraft.trim()}
-                aria-label={t("common.actions.send")}
-              >
-                <SendIcon />
-              </button>
+
+              {composerHint ? <div className="msg-composer-hint">{composerHint}</div> : null}
+
+              {composerAttachments.length > 0 || composerAudio ? (
+                <div className="msg-compose-previews">
+                  {composerAttachments.map((file, index) => (
+                    <div key={`${file.name}-${index}`} className="msg-compose-preview">
+                      <span className="msg-compose-preview-icon" aria-hidden="true">
+                        <AttachmentIcon />
+                      </span>
+                      <div className="msg-compose-preview-copy">
+                        <strong>{file.name}</strong>
+                        <span>{formatFileSize(file.size)}</span>
+                      </div>
+                      <button
+                        type="button"
+                        className="msg-preview-remove"
+                        onClick={() => supprimerAttachment(index)}
+                        aria-label={`Retirer ${file.name}`}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+
+                  {composerAudio ? (
+                    <div className="msg-compose-preview msg-compose-preview-audio">
+                      <span className="msg-compose-preview-icon" aria-hidden="true">
+                        <SendIcon />
+                      </span>
+                      <div className="msg-compose-preview-copy">
+                        <strong>Message audio</strong>
+                        <span>{formatFileSize(composerAudio.size)}</span>
+                      </div>
+                      <button
+                        type="button"
+                        className="msg-preview-remove"
+                        onClick={() => setComposerAudio(null)}
+                        aria-label="Retirer le message audio"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
+
+              <div className="msg-composer">
+                <button
+                  type="button"
+                  className="msg-icon-btn"
+                  disabled={!hasActiveConversation}
+                  aria-label={t("messages.attachmentAction")}
+                  onClick={() => attachmentInputRef.current?.click()}
+                >
+                  <AttachmentIcon />
+                </button>
+
+                <textarea
+                  ref={composerInputRef}
+                  className="msg-composer-input msg-composer-textarea"
+                  placeholder={t("messages.composerPlaceholder")}
+                  value={replyDraft}
+                  onChange={(event) => setReplyDraft(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" && !event.shiftKey && hasActiveConversation) {
+                      if (replyDraft.trim() || composerAttachments.length > 0 || composerAudio) {
+                        event.preventDefault();
+                        void envoyerMessage();
+                      }
+                    }
+                  }}
+                  disabled={!hasActiveConversation}
+                  aria-label={t("messages.composerPlaceholder")}
+                  rows={2}
+                />
+
+                <div className="msg-emoji-area" ref={emojiPanelRef}>
+                  <button
+                    type="button"
+                    className={`msg-icon-btn ${emojiOpen ? "is-active" : ""}`}
+                    disabled={!hasActiveConversation}
+                    aria-label={t("messages.emojiAction")}
+                    onClick={() => setEmojiOpen((current) => !current)}
+                  >
+                    <EmojiIcon />
+                  </button>
+
+                  {emojiOpen ? (
+                    <div className="msg-emoji-popover" role="listbox" aria-label={t("messages.emojiAction")}>
+                      {EMOJI_OPTIONS.map((emoji) => (
+                        <button
+                          key={emoji}
+                          type="button"
+                          className="msg-emoji-item"
+                          onClick={() => appendEmoji(emoji)}
+                          aria-label={emoji}
+                        >
+                          {emoji}
+                        </button>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+
+                <button
+                  type="button"
+                  className={`msg-icon-btn ${recordingAudio ? "is-active is-recording" : ""}`}
+                  disabled={!hasActiveConversation}
+                  aria-label={recordingAudio ? "Arreter l'enregistrement audio" : "Enregistrer un message audio"}
+                  onClick={startAudioRecording}
+                >
+                  <span aria-hidden="true">🎤</span>
+                </button>
+
+                <button
+                  type="button"
+                  className="msg-send"
+                  onClick={envoyerMessage}
+                  disabled={!hasActiveConversation || (!replyDraft.trim() && composerAttachments.length === 0 && !composerAudio)}
+                  aria-label={t("common.actions.send")}
+                >
+                  <SendIcon />
+                </button>
+              </div>
+
+              {recordingAudio ? (
+                <div className="msg-recording-banner">
+                  <span className="msg-recording-dot" />
+                  Enregistrement audio en cours · {Math.floor(recordingSeconds / 60)
+                    .toString()
+                    .padStart(2, "0")}
+                  :{(recordingSeconds % 60).toString().padStart(2, "0")}
+                </div>
+              ) : null}
             </div>
           </main>
         </div>
@@ -775,8 +1168,7 @@ function MessagesPage() {
         }
 
         .msg-top-search,
-        .msg-search-input,
-        .msg-composer {
+        .msg-search-input {
           display: grid;
           grid-template-columns: auto minmax(0, 1fr);
           align-items: center;
@@ -828,25 +1220,6 @@ function MessagesPage() {
           gap: 10px;
         }
 
-        .msg-accessibility {
-          min-height: 44px;
-          border: 1px solid var(--line);
-          border-radius: 12px;
-          background: #fff;
-          color: var(--text);
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          padding: 0 12px;
-          font-size: 0.85rem;
-          font-weight: 700;
-        }
-
-        .msg-accessibility span:first-child {
-          display: inline-flex;
-          color: #5e4b87;
-        }
-
         .msg-icon-btn {
           inline-size: 40px;
           block-size: 40px;
@@ -872,6 +1245,17 @@ function MessagesPage() {
           font-size: 0.62rem;
           display: inline-grid;
           place-items: center;
+        }
+
+        .msg-icon-btn.is-active {
+          background: rgba(109, 42, 149, 0.08);
+          border-color: rgba(109, 42, 149, 0.25);
+        }
+
+        .msg-icon-btn.is-recording {
+          color: #b42318;
+          border-color: rgba(180, 35, 24, 0.22);
+          background: rgba(180, 35, 24, 0.07);
         }
 
         .msg-user-chip {
@@ -1195,6 +1579,59 @@ function MessagesPage() {
           overflow-wrap: anywhere;
         }
 
+        .msg-bubble-assets {
+          display: grid;
+          gap: 8px;
+          margin-top: 10px;
+        }
+
+        .msg-attachment,
+        .msg-audio-card {
+          display: grid;
+          grid-template-columns: 34px minmax(0, 1fr);
+          gap: 10px;
+          align-items: center;
+          border-radius: 12px;
+          padding: 9px 10px;
+          background: rgba(255, 255, 255, 0.42);
+          border: 1px solid rgba(109, 42, 149, 0.12);
+          text-decoration: none;
+        }
+
+        .msg-bubble.is-mine .msg-attachment,
+        .msg-bubble.is-mine .msg-audio-card {
+          background: rgba(255, 255, 255, 0.18);
+          border-color: rgba(255, 255, 255, 0.16);
+        }
+
+        .msg-attachment-copy,
+        .msg-audio-card .msg-attachment-copy {
+          min-width: 0;
+          display: grid;
+          gap: 2px;
+        }
+
+        .msg-attachment-copy strong,
+        .msg-audio-card .msg-attachment-copy strong {
+          color: inherit;
+          font-size: 0.84rem;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .msg-attachment-copy span,
+        .msg-audio-card .msg-attachment-copy span {
+          color: inherit;
+          opacity: 0.8;
+          font-size: 0.74rem;
+        }
+
+        .msg-audio-player {
+          inline-size: 100%;
+          max-inline-size: 100%;
+        }
+
         .msg-bubble span {
           display: block;
           margin-top: 6px;
@@ -1206,11 +1643,129 @@ function MessagesPage() {
           color: rgba(255, 255, 255, 0.82);
         }
 
+        .msg-composer-wrap {
+          position: relative;
+          display: grid;
+          gap: 8px;
+        }
+
+        .msg-hidden-file {
+          display: none;
+        }
+
+        .msg-compose-previews {
+          display: grid;
+          gap: 8px;
+        }
+
+        .msg-compose-preview {
+          display: grid;
+          grid-template-columns: 34px minmax(0, 1fr) auto;
+          gap: 10px;
+          align-items: center;
+          border: 1px solid #eadff8;
+          background: #fbf8ff;
+          border-radius: 14px;
+          padding: 8px 10px;
+        }
+
+        .msg-compose-preview-icon,
+        .msg-attachment-icon {
+          inline-size: 34px;
+          block-size: 34px;
+          border-radius: 10px;
+          background: rgba(109, 42, 149, 0.08);
+          color: var(--accent);
+          display: inline-grid;
+          place-items: center;
+          flex: none;
+        }
+
+        .msg-preview-remove {
+          inline-size: 28px;
+          block-size: 28px;
+          border: 0;
+          border-radius: 999px;
+          background: rgba(109, 42, 149, 0.08);
+          color: var(--accent);
+          font-size: 1rem;
+          line-height: 1;
+          display: inline-grid;
+          place-items: center;
+        }
+
+        .msg-composer-hint {
+          border: 1px solid #f0dbbf;
+          background: #fff8ef;
+          color: #8a5b12;
+          border-radius: 12px;
+          padding: 8px 10px;
+          font-size: 0.82rem;
+        }
+
         .msg-composer {
-          grid-template-columns: auto minmax(0, 1fr) auto auto;
-          min-height: 54px;
+          grid-template-columns: auto minmax(0, 1fr) auto auto auto;
+          min-height: 60px;
           padding-inline: 8px;
           gap: 8px;
+          align-items: end;
+        }
+
+        .msg-composer-textarea {
+          resize: none;
+          min-height: 40px;
+          line-height: 1.45;
+          padding-top: 10px;
+          padding-bottom: 10px;
+        }
+
+        .msg-emoji-area {
+          position: relative;
+        }
+
+        .msg-emoji-popover {
+          position: absolute;
+          left: 0;
+          bottom: calc(100% + 10px);
+          z-index: 30;
+          width: min(320px, calc(100vw - 32px));
+          display: grid;
+          grid-template-columns: repeat(8, minmax(0, 1fr));
+          gap: 6px;
+          padding: 10px;
+          border-radius: 16px;
+          border: 1px solid var(--line);
+          background: #fff;
+          box-shadow: 0 20px 50px rgba(48, 23, 89, 0.16);
+        }
+
+        .msg-emoji-item {
+          border: 0;
+          background: #f9f6ff;
+          border-radius: 10px;
+          min-height: 34px;
+          font-size: 1rem;
+          display: inline-grid;
+          place-items: center;
+        }
+
+        .msg-recording-banner {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          align-self: start;
+          color: #b42318;
+          font-size: 0.8rem;
+          font-weight: 700;
+          padding: 2px 2px 0;
+        }
+
+        .msg-recording-dot {
+          inline-size: 8px;
+          block-size: 8px;
+          border-radius: 999px;
+          background: #e5484d;
+          box-shadow: 0 0 0 4px rgba(229, 72, 77, 0.12);
         }
 
         .msg-send {
@@ -1230,10 +1785,10 @@ function MessagesPage() {
         .msg-thread:focus-visible,
         .msg-view-all:focus-visible,
         .msg-new-conversation:focus-visible,
-        .msg-accessibility:focus-visible,
         .msg-top-search:focus-within,
         .msg-search-input:focus-within,
-        .msg-composer:focus-within {
+        .msg-composer:focus-within,
+        .msg-composer-wrap:focus-within {
           outline: 3px solid rgba(109, 42, 149, 0.26);
           outline-offset: 1px;
         }
@@ -1252,10 +1807,6 @@ function MessagesPage() {
           .msg-top-search {
             order: 3;
             grid-column: 1 / -1;
-          }
-
-          .msg-header-actions {
-            justify-self: end;
           }
         }
 
@@ -1293,10 +1844,6 @@ function MessagesPage() {
 
           .msg-header-copy h1 {
             font-size: 1.45rem;
-          }
-
-          .msg-accessibility span:last-child {
-            display: none;
           }
 
           .msg-conversations,
