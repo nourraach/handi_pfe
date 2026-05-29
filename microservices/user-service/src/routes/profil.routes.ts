@@ -126,4 +126,25 @@ routeur.put(
   controleur.mettreAJourProfilAdmin
 );
 
+routeur.get(
+  "/admin/entreprises/:id_utilisateur",
+  authMiddleware,
+  roleMiddleware([RoleUtilisateur.ADMIN]),
+  controleur.obtenirEntrepriseAdmin
+);
+
+routeur.post(
+  "/admin/entreprises",
+  authMiddleware,
+  roleMiddleware([RoleUtilisateur.ADMIN]),
+  controleur.creerEntrepriseAdmin
+);
+
+routeur.put(
+  "/admin/entreprises/:id_utilisateur",
+  authMiddleware,
+  roleMiddleware([RoleUtilisateur.ADMIN]),
+  controleur.mettreAJourEntrepriseAdmin
+);
+
 export const profilRoutes = routeur;

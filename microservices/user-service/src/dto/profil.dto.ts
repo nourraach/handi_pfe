@@ -34,6 +34,9 @@ export interface ProfilEntrepriseDto {
   email: string;
   telephone: string;
   addresse: string;
+  region?: string;
+  gouvernorat?: string;
+  delegation?: string;
   nom_entreprise?: string;
   secteur_activite?: string;
   taille_entreprise?: string;
@@ -57,6 +60,7 @@ export interface ProfilEntrepriseDto {
   subscription_price_tnd?: number;
   subscription_cycle?: string;
   subscribed_at?: string;
+  profil_publique?: boolean;
 }
 
 export interface ChoixPackEntrepriseDto {

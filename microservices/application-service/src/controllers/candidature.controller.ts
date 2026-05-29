@@ -238,11 +238,15 @@ export class CandidatureController {
         return reponseErreur(res, 403, "Acces reserve aux entreprises");
       }
 
-      const { motif_refus } = req.body;
+      const motifRefus = typeof req.body?.motif_refus === "string" ? req.body.motif_refus.trim() : "";
+      if (!motifRefus) {
+        return reponseErreur(res, 400, "Le motif de refus est obligatoire");
+      }
+
       const candidature = await this.candidatureService.refuserCandidat(
         asString(req.params.id),
         idEntreprise,
-        motif_refus
+        motifRefus
       );
       return reponseSucces(res, 200, "Candidature refusee", candidature);
     } catch (erreur: unknown) {

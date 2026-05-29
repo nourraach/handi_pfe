@@ -11,6 +11,7 @@ import { construireUrlApi } from "@/lib/config";
 type EntretienCandidat = {
   entretien: {
     id: string;
+    id_candidature?: string;
     date_heure: string;
     type: "visio" | "presentiel" | "telephonique";
     lieu_visio?: string | null;
@@ -187,6 +188,7 @@ export default function MesEntretiensPage() {
       <div className="list-stack">
         {items.map((item) => {
           const statut = getEntretienStatutConfig(item.entretien.statut);
+          const isCompleted = item.entretien.statut === "termine";
           const date = formaterDateEntretien(item.entretien.date_heure);
           const lieu =
             item.entretien.type === "visio"
@@ -221,21 +223,32 @@ export default function MesEntretiensPage() {
                       </p>
                     </div>
                   </div>
-                  <div className="entretien-head-actions">
-                    <a className="entretien-mini-action" href={lienCalendar} target="_blank" rel="noopener noreferrer">
-                      <CalendarIcon className="entretien-mini-icon" />
-                      Ajouter au calendrier
-                    </a>
-                    {item.entretien.statut === "planifie" ? (
-                      <Button
-                        onClick={() => confirmerEntretien(item.entretien.id)}
-                        disabled={entretienEnAction === item.entretien.id}
-                        size="sm"
-                      >
-                        Confirmer
-                      </Button>
-                    ) : null}
-                  </div>
+                  {!isCompleted ? (
+                    <div className="entretien-head-actions">
+                      <a className="entretien-mini-action" href={lienCalendar} target="_blank" rel="noopener noreferrer">
+                        <CalendarIcon className="entretien-mini-icon" />
+                        Ajouter au calendrier
+                      </a>
+                      {(item.entretien.id_candidature || item.candidature?.id) ? (
+                        <ButtonLink
+                          href={`/candidat/candidatures/${item.entretien.id_candidature || item.candidature?.id}/preparation-entretien`}
+                          variant="secondary"
+                          size="sm"
+                        >
+                          Preparation a l&apos;entretien
+                        </ButtonLink>
+                      ) : null}
+                      {item.entretien.statut === "planifie" ? (
+                        <Button
+                          onClick={() => confirmerEntretien(item.entretien.id)}
+                          disabled={entretienEnAction === item.entretien.id}
+                          size="sm"
+                        >
+                          Confirmer
+                        </Button>
+                      ) : null}
+                    </div>
+                  ) : null}
                 </div>
 
                 <div className="entretien-grid">
@@ -280,7 +293,7 @@ export default function MesEntretiensPage() {
                         <p>{lieu}</p>
                       </div>
                     </div>
-                    {item.entretien.type === "visio" && item.entretien.lieu_visio ? (
+                    {!isCompleted && item.entretien.type === "visio" && item.entretien.lieu_visio ? (
                       <a className="entretien-inline-action" href={item.entretien.lieu_visio} target="_blank" rel="noopener noreferrer">
                         Ouvrir le lien
                       </a>
@@ -311,18 +324,22 @@ export default function MesEntretiensPage() {
                 )}
 
                 <div className="entretien-actions">
-                  <a className="ui-button" href={lienCalendar} target="_blank" rel="noopener noreferrer">
-                    Ajouter au calendrier
-                  </a>
-                  {item.entretien.type === "visio" && item.entretien.lieu_visio ? (
-                    <a className="ui-button ui-button-secondary" href={item.entretien.lieu_visio} target="_blank" rel="noopener noreferrer">
-                      Ouvrir le lien
-                    </a>
-                  ) : (
-                    <span className="ui-button ui-button-secondary is-disabled" aria-hidden="true">
-                      Ouvrir le lien
-                    </span>
-                  )}
+                  {!isCompleted ? (
+                    <>
+                      <a className="ui-button" href={lienCalendar} target="_blank" rel="noopener noreferrer">
+                        Ajouter au calendrier
+                      </a>
+                      {item.entretien.type === "visio" && item.entretien.lieu_visio ? (
+                        <a className="ui-button ui-button-secondary" href={item.entretien.lieu_visio} target="_blank" rel="noopener noreferrer">
+                          Ouvrir le lien
+                        </a>
+                      ) : (
+                        <span className="ui-button ui-button-secondary is-disabled" aria-hidden="true">
+                          Ouvrir le lien
+                        </span>
+                      )}
+                    </>
+                  ) : null}
                   <ButtonLink href="/notifications" variant="ghost">
                     Voir mes notifications
                   </ButtonLink>

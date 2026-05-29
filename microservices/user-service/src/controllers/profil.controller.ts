@@ -177,6 +177,48 @@ export class ProfilController {
     }
   };
 
+  obtenirEntrepriseAdmin = async (requete: Request, reponse: Response, suivant: NextFunction) => {
+    try {
+      const id_utilisateur = requete.params.id_utilisateur as string;
+      if (!id_utilisateur) {
+        throw new ErreurApi("ID utilisateur manquant.", 400);
+      }
+
+      const resultat = await this.profilService.obtenirEntrepriseAdmin(id_utilisateur);
+      return reponseSucces(reponse, 200, resultat.message, resultat.donnees);
+    } catch (erreur) {
+      return suivant(erreur);
+    }
+  };
+
+  creerEntrepriseAdmin = async (requete: Request, reponse: Response, suivant: NextFunction) => {
+    try {
+      const adminId = requete.utilisateur?.id_utilisateur;
+      if (!adminId) {
+        throw new ErreurApi("Utilisateur non authentifie.", 401);
+      }
+
+      const resultat = await this.profilService.creerEntrepriseAdmin(adminId, requete.body);
+      return reponseSucces(reponse, 201, resultat.message, resultat.donnees);
+    } catch (erreur) {
+      return suivant(erreur);
+    }
+  };
+
+  mettreAJourEntrepriseAdmin = async (requete: Request, reponse: Response, suivant: NextFunction) => {
+    try {
+      const id_utilisateur = requete.params.id_utilisateur as string;
+      if (!id_utilisateur) {
+        throw new ErreurApi("ID utilisateur manquant.", 400);
+      }
+
+      const resultat = await this.profilService.mettreAJourEntrepriseAdmin(id_utilisateur, requete.body);
+      return reponseSucces(reponse, 200, resultat.message, resultat.donnees);
+    } catch (erreur) {
+      return suivant(erreur);
+    }
+  };
+
   // Admin
   obtenirProfilAdmin = async (requete: Request, reponse: Response, suivant: NextFunction) => {
     try {

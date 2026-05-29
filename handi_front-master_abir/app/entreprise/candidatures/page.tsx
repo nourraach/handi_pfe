@@ -612,11 +612,17 @@ export default function CandidaturesCompanyPage() {
       return;
     }
 
+    const motif = motifRejection.trim();
+    if (!motif) {
+      setErreur("Le motif de refus est obligatoire.");
+      return;
+    }
+
     const succes = await lancerActionCandidature(
       candidatureEnRejection.id,
       `/api/candidatures/${candidatureEnRejection.id}/refuser`,
       "Application rejected.",
-      motifRejection.trim() ? { motif_refus: motifRejection.trim() } : undefined,
+      { motif_refus: motif },
     );
 
     if (succes) {
@@ -1206,7 +1212,7 @@ export default function CandidaturesCompanyPage() {
               </div>
 
               <div className="groupe-champ">
-                <label htmlFor="motif-refus">Reason for rejection</label>
+                <label htmlFor="motif-refus">Motif de refus</label>
                 <textarea
                   id="motif-refus"
                   className="champ-zone"
@@ -1215,10 +1221,12 @@ export default function CandidaturesCompanyPage() {
                   placeholder="Ajoutez un contexte utile pour l'equipe et le suivi."
                   rows={6}
                   maxLength={1000}
+                  required
+                  aria-required="true"
                   disabled={candidatureEnAction === candidatureEnRejection.id}
                 />
                 <p className="texte-secondaire applicants-modal-subtitle">
-                  Optionnel. {motifRejection.length}/1000 caracteres.
+                  Obligatoire. {motifRejection.length}/1000 caracteres.
                 </p>
               </div>
 
@@ -1226,7 +1234,11 @@ export default function CandidaturesCompanyPage() {
                 <Button variant="secondary" onClick={fermerRejection} disabled={candidatureEnAction === candidatureEnRejection.id}>
                   Annuler
                 </Button>
-                <Button variant="danger" onClick={() => void confirmerRejection()} disabled={candidatureEnAction === candidatureEnRejection.id}>
+                <Button
+                  variant="danger"
+                  onClick={() => void confirmerRejection()}
+                  disabled={candidatureEnAction === candidatureEnRejection.id || !motifRejection.trim()}
+                >
                   {candidatureEnAction === candidatureEnRejection.id ? "Envoi..." : "Confirmer le refus"}
                 </Button>
               </div>

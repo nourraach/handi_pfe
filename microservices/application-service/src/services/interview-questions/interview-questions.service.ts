@@ -181,6 +181,19 @@ export class InterviewQuestionsService {
       return this.emptyView("pending", ctx.offre.id, ctx.offre.titre);
     }
 
+    if (row.generation_status === "pending" || row.generation_status === "failed") {
+      void this.generateDossier(idCandidature).catch((err) => {
+        // eslint-disable-next-line no-console
+        console.error("[interview-prep] auto-resume failed", { idCandidature, err: err?.message });
+        void this.repository.markFailed(idCandidature, String(err?.message || err));
+      });
+      return this.emptyView("processing", ctx.offre.id, ctx.offre.titre);
+    }
+
+    if (row.generation_status === "processing") {
+      return this.emptyView("processing", ctx.offre.id, ctx.offre.titre);
+    }
+
     return this.rowToView(row, ctx.offre.id, ctx.offre.titre);
   }
 

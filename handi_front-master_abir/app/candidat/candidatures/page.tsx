@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useEffectEvent, useMemo, useState, type SVGProps } from "react";
+import { useRouter } from "next/navigation";
 import { useI18n } from "@/components/i18n-provider";
 import { RouteProtegee } from "@/components/route-protegee";
 import { Button } from "@/components/ui/button";
@@ -138,7 +139,7 @@ const COPY: Record<"fr" | "en" | "ar", PageCopy> = {
     errorFallback: "Impossible de charger vos candidatures.",
     previousPage: "Precedent",
     nextPage: "Suivant",
-    rejectionReason: "Motif automatique",
+    rejectionReason: "Motif de refus",
     aiScore: "Score IA",
   },
   en: {
@@ -169,7 +170,7 @@ const COPY: Record<"fr" | "en" | "ar", PageCopy> = {
     errorFallback: "Unable to load your applications.",
     previousPage: "Previous",
     nextPage: "Next",
-    rejectionReason: "Automatic reason",
+    rejectionReason: "Rejection reason",
     aiScore: "AI score",
   },
   ar: {
@@ -605,6 +606,62 @@ const applicationsPageStyles = `
     transform: scale(0.98);
   }
 
+  .applications-hub-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 80;
+    display: grid;
+    place-items: center;
+    padding: 20px;
+    background: rgba(26, 18, 43, 0.38);
+    backdrop-filter: blur(7px);
+  }
+
+  .applications-hub-modal-card {
+    width: min(620px, 100%);
+    border-radius: 20px;
+    box-shadow: 0 28px 70px rgba(31, 18, 49, 0.24);
+  }
+
+  .applications-hub-modal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .applications-hub-modal-title {
+    margin: 0;
+    color: #201338;
+    font-size: 1.4rem;
+    line-height: 1.2;
+  }
+
+  .applications-hub-modal-body {
+    display: grid;
+    gap: 14px;
+    margin-top: 18px;
+  }
+
+  .applications-hub-modal-label {
+    display: inline-block;
+    margin-bottom: 8px;
+    color: #5a4a76;
+    font-size: 0.84rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+  }
+
+  .applications-hub-modal-reason {
+    padding: 14px 16px;
+    border-radius: 14px;
+    background: #fff3f3;
+    border: 1px solid #f3d0d0;
+    color: #7f1d1d;
+    line-height: 1.55;
+  }
+
   @keyframes fadeIn {
     from {
       opacity: 0;
@@ -795,6 +852,7 @@ function progressionEtape(statut: CandidatureStatut) {
 
 function MesCandidaturesPage() {
   const { locale } = useI18n();
+  const router = useRouter();
   const copy = COPY[locale];
   const [candidatures, setCandidatures] = useState<Candidature[]>([]);
   const [loading, setLoading] = useState(true);
@@ -802,6 +860,7 @@ function MesCandidaturesPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filtreStatut, setFiltreStatut] = useState<FiltreStatut>("all");
   const [pageActuelle, setPageActuelle] = useState(1);
+  const [candidatureRefusDetail, setCandidatureRefusDetail] = useState<Candidature | null>(null);
 
   const chargerContenu = useEffectEvent(async () => {
     try {
@@ -872,6 +931,17 @@ function MesCandidaturesPage() {
 
   const totalPages = Math.max(1, Math.ceil(candidaturesFiltrees.length / PAGE_SIZE));
   const candidaturesVisibles = candidaturesFiltrees.slice((pageActuelle - 1) * PAGE_SIZE, pageActuelle * PAGE_SIZE);
+
+  const ouvrirDetails = (candidature: Candidature) => {
+    if (candidature.uiStatut === "shortlist") {
+      router.push(`/candidat/candidatures/${candidature.id}/preparation-entretien`);
+      return;
+    }
+
+    if (candidature.uiStatut === "rejected") {
+      setCandidatureRefusDetail(candidature);
+    }
+  };
 
   useEffect(() => {
     if (pageActuelle > totalPages) {
@@ -997,12 +1067,6 @@ function MesCandidaturesPage() {
                           ) : null}
                         </div>
 
-                        {candidature.statut === "rejected" && candidature.motif_refus ? (
-                          <div className="applications-hub-rejection" role="note">
-                            <strong>{copy.rejectionReason}</strong>
-                            <span>{candidature.motif_refus}</span>
-                          </div>
-                        ) : null}
                       </div>
 
                       <div className="applications-hub-timeline" aria-label={`${copy.allStatuses}: ${copy.tabs[candidature.uiStatut]}`}>
@@ -1031,9 +1095,13 @@ function MesCandidaturesPage() {
                         </div>
                       </div>
 
-                      <div className="applications-hub-cardactions">
-                        <Button className="applications-hub-detailsbutton">{copy.viewDetails}</Button>
-                      </div>
+                      {candidature.uiStatut === "shortlist" || candidature.uiStatut === "rejected" ? (
+                        <div className="applications-hub-cardactions">
+                          <Button className="applications-hub-detailsbutton" onClick={() => ouvrirDetails(candidature)}>
+                            {copy.viewDetails}
+                          </Button>
+                        </div>
+                      ) : null}
                     </Card>
                   );
                 })}
@@ -1075,6 +1143,42 @@ function MesCandidaturesPage() {
               ) : null}
             </>
           )}
+
+      {candidatureRefusDetail ? (
+        <div
+          aria-labelledby="rejection-detail-title"
+          aria-modal="true"
+          role="dialog"
+          className="applications-hub-modal-overlay"
+          onClick={() => setCandidatureRefusDetail(null)}
+        >
+          <Card padding="lg" className="applications-hub-modal-card" onClick={(event) => event.stopPropagation()}>
+            <div className="applications-hub-modal-header">
+              <div>
+                <p className="badge">Refus de candidature</p>
+                <h2 id="rejection-detail-title" className="applications-hub-modal-title">
+                  {candidatureRefusDetail.offre.titre}
+                </h2>
+                <p className="texte-secondaire">
+                  {candidatureRefusDetail.entreprise.nom} - {formaterDate(candidatureRefusDetail.date_postulation, locale)}
+                </p>
+              </div>
+              <Button variant="ghost" onClick={() => setCandidatureRefusDetail(null)}>
+                Fermer
+              </Button>
+            </div>
+
+            <div className="applications-hub-modal-body">
+              <div>
+                <span className="applications-hub-modal-label">{copy.rejectionReason}</span>
+                <div className="applications-hub-modal-reason" role="note">
+                  {candidatureRefusDetail.motif_refus || "Le motif de refus n'a pas ete renseigne par l'entreprise."}
+                </div>
+              </div>
+            </div>
+          </Card>
+        </div>
+      ) : null}
         </section>
       </div>
 

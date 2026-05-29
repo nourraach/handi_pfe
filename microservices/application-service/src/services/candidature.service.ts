@@ -208,9 +208,14 @@ export class CandidatureService {
   }
 
   async refuserCandidat(id: string, idEntreprise: string, motifRefus?: string) {
+    const motif = motifRefus?.trim();
+    if (!motif) {
+      throw new ErreurApi(400, "Le motif de refus est obligatoire");
+    }
+
     return await this.modifierStatutCandidature(id, idEntreprise, {
       statut: "rejected",
-      motif_refus: motifRefus
+      motif_refus: motif
     });
   }
 

@@ -4,9 +4,13 @@ import { ErreurApi } from "../utils/erreur-api";
 import { RoleUtilisateur } from "../types/enums";
 import { db } from "../db";
 import { sql } from "drizzle-orm";
+import { GestionUtilisateursService } from "./gestion-utilisateurs.service";
 
 export class ProfilService {
-  constructor(private readonly profilRepository = new ProfilRepository()) {}
+  constructor(
+    private readonly profilRepository = new ProfilRepository(),
+    private readonly gestionUtilisateursService = new GestionUtilisateursService(),
+  ) {}
   private ensureColumnsPromise = this.initialiserChampsSupplementaires();
 
   private resoudreChampOptionnel(
@@ -222,12 +226,21 @@ export class ProfilService {
       email: profil.utilisateur.email,
       telephone: profil.utilisateur.telephone,
       addresse: profil.utilisateur.addresse,
+      region: profil.utilisateur.region,
+      gouvernorat: profil.utilisateur.gouvernorat,
+      delegation: profil.utilisateur.delegation,
       nom_entreprise: profil.entreprise?.nom_entreprise || "",
+      patente: profil.entreprise?.patente || "",
+      rne: profil.entreprise?.rne || "",
+      profil_publique: profil.entreprise?.profil_publique || false,
+      date_fondation: profil.entreprise?.date_fondation?.toISOString?.() || "",
       secteur_activite: profil.entreprise?.secteur_activite || "",
       taille_entreprise: profil.entreprise?.taille_entreprise || "",
       siret: profil.entreprise?.siret || profil.entreprise?.rne || "",
       site_web: profil.entreprise?.site_web || profil.entreprise?.url_site || "",
       description: profil.entreprise?.description || "",
+      nbr_employe: profil.entreprise?.nbr_employe ?? 0,
+      nbr_employe_handicape: profil.entreprise?.nbr_employe_handicape ?? 0,
       politique_handicap: profil.entreprise?.politique_handicap || "",
       contact_rh_nom: profil.entreprise?.contact_rh_nom || "",
       contact_rh_email: profil.entreprise?.contact_rh_email || "",
@@ -298,6 +311,136 @@ export class ProfilService {
         nom: resultat.utilisateur?.nom,
         email: resultat.utilisateur?.email,
       },
+    };
+  }
+
+  async obtenirEntrepriseAdmin(id_utilisateur: string): Promise<ReponseProfilDto> {
+    return await this.obtenirProfilEntreprise(id_utilisateur);
+  }
+
+  async creerEntrepriseAdmin(adminId: string, donnees: ProfilEntrepriseDto): Promise<ReponseProfilDto> {
+    await this.ensureColumnsPromise;
+
+    if (!donnees.nom_entreprise?.trim()) {
+      throw new ErreurApi("Le nom de l'entreprise est requis.", 400);
+    }
+    if (!donnees.patente?.trim()) {
+      throw new ErreurApi("La patente est requise.", 400);
+    }
+    if (!donnees.rne?.trim()) {
+      throw new ErreurApi("Le RNE est requis.", 400);
+    }
+    if (!donnees.date_fondation) {
+      throw new ErreurApi("La date de fondation est requise.", 400);
+    }
+    if (!donnees.description?.trim()) {
+      throw new ErreurApi("La description est requise.", 400);
+    }
+
+    const compte = await this.gestionUtilisateursService.creerUtilisateur(
+      {
+        nom: donnees.nom,
+        email: donnees.email,
+        role: RoleUtilisateur.ENTREPRISE,
+        statut: "actif",
+        telephone: donnees.telephone,
+        addresse: donnees.addresse,
+        region: donnees.delegation ?? donnees.region,
+        gouvernorat: donnees.gouvernorat ?? donnees.region,
+        delegation: donnees.delegation ?? donnees.region,
+      },
+      adminId,
+    );
+
+    const id_utilisateur = compte.donnees?.id_utilisateur;
+    if (!id_utilisateur) {
+      throw new ErreurApi("Impossible de creer le compte entreprise.", 500);
+    }
+
+    const entreprise = await this.profilRepository.creerProfilEntreprise(id_utilisateur, {
+      nom_entreprise: donnees.nom_entreprise.trim(),
+      patente: donnees.patente.trim(),
+      rne: donnees.rne.trim(),
+      date_fondation: new Date(donnees.date_fondation),
+      description: donnees.description.trim(),
+      nbr_employe: donnees.nbr_employe ?? 1,
+      nbr_employe_handicape: donnees.nbr_employe_handicape ?? 0,
+      profil_publique: donnees.profil_publique ?? false,
+      secteur_activite: donnees.secteur_activite ?? null,
+      taille_entreprise: donnees.taille_entreprise ?? null,
+      siret: donnees.siret ?? null,
+      site_web: donnees.site_web ?? donnees.url_site ?? null,
+      url_site: donnees.site_web ?? donnees.url_site ?? null,
+      politique_handicap: donnees.politique_handicap ?? null,
+      contact_rh_nom: donnees.contact_rh_nom ?? null,
+      contact_rh_email: donnees.contact_rh_email ?? null,
+      contact_rh_telephone: donnees.contact_rh_telephone ?? null,
+      logo_url: donnees.logo_url ?? null,
+      subscription_pack: donnees.subscription_pack ?? null,
+      subscription_status: donnees.subscription_status ?? null,
+      subscription_price_tnd: donnees.subscription_price_tnd ?? null,
+      subscription_cycle: donnees.subscription_cycle ?? null,
+      subscribed_at: donnees.subscribed_at ? new Date(donnees.subscribed_at) : null,
+    });
+
+    return {
+      message: "Entreprise creee avec succes",
+      donnees: {
+        utilisateur: compte.donnees,
+        entreprise,
+      },
+    };
+  }
+
+  async mettreAJourEntrepriseAdmin(id_utilisateur: string, donnees: ProfilEntrepriseDto): Promise<ReponseProfilDto> {
+    await this.ensureColumnsPromise;
+    const profilExistant = await this.profilRepository.obtenirProfilEntreprise(id_utilisateur);
+
+    if (!profilExistant || !profilExistant.utilisateur) {
+      throw new ErreurApi("Profil entreprise non trouvé.", 404);
+    }
+
+    if (profilExistant.utilisateur.role !== RoleUtilisateur.ENTREPRISE) {
+      throw new ErreurApi("L'utilisateur n'est pas une entreprise.", 403);
+    }
+
+    const resultat = await this.profilRepository.mettreAJourProfilEntreprise(
+      id_utilisateur,
+      {
+        nom: donnees.nom,
+        telephone: donnees.telephone,
+        addresse: donnees.addresse,
+      },
+      {
+        nom_entreprise: donnees.nom_entreprise?.trim() || profilExistant.entreprise?.nom_entreprise,
+        secteur_activite: donnees.secteur_activite ?? profilExistant.entreprise?.secteur_activite,
+        taille_entreprise: donnees.taille_entreprise ?? profilExistant.entreprise?.taille_entreprise,
+        siret: donnees.siret ?? profilExistant.entreprise?.siret,
+        site_web: donnees.site_web ?? donnees.url_site ?? profilExistant.entreprise?.site_web ?? profilExistant.entreprise?.url_site ?? null,
+        url_site: donnees.site_web ?? donnees.url_site ?? profilExistant.entreprise?.site_web ?? profilExistant.entreprise?.url_site ?? null,
+        politique_handicap: donnees.politique_handicap ?? profilExistant.entreprise?.politique_handicap,
+        contact_rh_nom: donnees.contact_rh_nom ?? profilExistant.entreprise?.contact_rh_nom,
+        contact_rh_email: donnees.contact_rh_email ?? profilExistant.entreprise?.contact_rh_email,
+        contact_rh_telephone: donnees.contact_rh_telephone ?? profilExistant.entreprise?.contact_rh_telephone,
+        logo_url: donnees.logo_url ?? profilExistant.entreprise?.logo_url,
+        subscription_pack: donnees.subscription_pack ?? profilExistant.entreprise?.subscription_pack,
+        subscription_status: donnees.subscription_status ?? profilExistant.entreprise?.subscription_status,
+        subscription_price_tnd: donnees.subscription_price_tnd ?? profilExistant.entreprise?.subscription_price_tnd,
+        subscription_cycle: donnees.subscription_cycle ?? profilExistant.entreprise?.subscription_cycle,
+        subscribed_at: donnees.subscribed_at ? new Date(donnees.subscribed_at) : profilExistant.entreprise?.subscribed_at,
+        patente: donnees.patente ?? profilExistant.entreprise?.patente,
+        rne: donnees.rne ?? profilExistant.entreprise?.rne,
+        date_fondation: donnees.date_fondation ? new Date(donnees.date_fondation) : profilExistant.entreprise?.date_fondation,
+        description: donnees.description ?? profilExistant.entreprise?.description,
+        nbr_employe: donnees.nbr_employe ?? profilExistant.entreprise?.nbr_employe,
+        nbr_employe_handicape: donnees.nbr_employe_handicape ?? profilExistant.entreprise?.nbr_employe_handicape,
+        profil_publique: donnees.profil_publique ?? profilExistant.entreprise?.profil_publique,
+      }
+    );
+
+    return {
+      message: "Entreprise mise a jour avec succes",
+      donnees: resultat,
     };
   }
 

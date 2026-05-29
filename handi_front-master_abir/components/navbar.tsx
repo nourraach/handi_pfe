@@ -379,25 +379,24 @@ export function Navbar({
       { id: "jobs", label: "Offres d'emploi", subtitle: "Recherche", icon: "applications", href: "/offres" },
       { id: "applications", label: "Candidatures", subtitle: "Suivi", icon: "applications", href: "/candidat/candidatures" },
       { id: "interviews", label: "Entretiens", subtitle: "Planning candidat", icon: "tests", href: "/candidat/entretiens" },
-      { id: "tests", label: "Tests & evaluations", subtitle: "Progression", icon: "tests", href: "/candidat/tests-psychologiques" },
-      { id: "cv", label: "CV Builder", subtitle: "Documents", icon: "cv", href: "/candidat/cv" },
+      { id: "tests", label: "Tests & Évaluations", subtitle: "Progression", icon: "tests", href: "/candidat/tests-psychologiques" },
       { id: "messages", label: "Messagerie", subtitle: "Inbox", icon: "messages", href: "/messages", badgeCount: notificationsNonLues },
-      { id: "notifications", label: "Notifications", subtitle: "Alertes entretien", icon: "messages", href: "/notifications", badgeCount: notificationsNonLues },
-      { id: "favorites", label: "Favoris", subtitle: "Offres enregistrees", icon: "favorites", href: "/favoris" },
+      { id: "favorites", label: t("navbar.favorites"), subtitle: "Offres enregistrees", icon: "favorites", href: "/favoris" },
+      { id: "cv", label: "CV Builder", subtitle: "Documents", icon: "cv", href: "/candidat/cv" },
     ],
-    [notificationsNonLues],
+    [notificationsNonLues, t],
   );
 
   const adminSidebarItems: CandidateSidebarItem[] = [
     { id: "admin-dashboard", label: "Dashboard", subtitle: "Vue globale", icon: "dashboard", href: "/home" },
     { id: "admin-pending-requests", label: "Pending Requests", subtitle: "Inscriptions", icon: "messages", href: "/admin/demandes-en-attente" },
+    { id: "admin-users", label: "Users", subtitle: "Gestion", icon: "messages", href: "/admin/utilisateurs" },
     { id: "admin-employers", label: "Employers", subtitle: "Entreprises", icon: "skills", href: "/admin/comptes" },
     { id: "admin-jobs", label: "Job Postings", subtitle: "Validation", icon: "cv", href: "/admin/offres-publication" },
-    { id: "admin-tests-psychologiques", label: "Tests psychologiques", subtitle: "Creation & gestion", icon: "tests", href: "/admin/tests-psychologiques" },
     { id: "admin-apps", label: "Applications", subtitle: "Statuts", icon: "applications", href: "/admin/applications" },
     { id: "admin-interviews", label: "Interviews", subtitle: "Planning", icon: "tests", href: "/admin/entretiens" },
+    { id: "admin-tests-psychologiques", label: "Tests psychologiques", subtitle: "Creation & gestion", icon: "tests", href: "/admin/tests-psychologiques" },
     { id: "admin-reports", label: "Reports", subtitle: "Entreprises", icon: "achievements", href: "/admin/reports" },
-    { id: "admin-users", label: "Users", subtitle: "Gestion", icon: "messages", href: "/admin/utilisateurs" },
   ];
 
   const entrepriseSidebarItems = useMemo<CandidateSidebarItem[]>(

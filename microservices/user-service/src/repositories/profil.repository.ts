@@ -83,6 +83,18 @@ export class ProfilRepository {
     });
   }
 
+  async creerProfilEntreprise(id_utilisateur: string, donneesEntreprise: any) {
+    const [entreprise] = await db
+      .insert(entrepriseTable)
+      .values({
+        id_utilisateur,
+        ...donneesEntreprise,
+      })
+      .returning();
+
+    return entreprise ?? null;
+  }
+
   // Admin
   async obtenirProfilAdmin(id_utilisateur: string) {
     const [resultat] = await db
