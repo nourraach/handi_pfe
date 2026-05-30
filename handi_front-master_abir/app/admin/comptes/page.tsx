@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Building2, Eye, Plus, Search } from "lucide-react";
+import { Ban, Building2, Eye, Search } from "lucide-react";
 import { createPortal } from "react-dom";
 import { RouteProtegee } from "@/components/route-protegee";
 import { Button } from "@/components/ui/button";
@@ -266,10 +266,10 @@ const styles = `
   }
 
   .companies-toolbar-btn--primary {
-    border-color: #6d31f5;
+    border-color: #3d0456;
     color: #ffffff;
-    background: linear-gradient(135deg, #7339ff, #5a1be0);
-    box-shadow: 0 14px 28px rgba(93, 37, 221, 0.28);
+    background: #3f005b;
+    box-shadow: 0 14px 28px rgba(63, 0, 91, 0.28);
   }
 
   .companies-toolbar-btn svg,
@@ -554,7 +554,13 @@ const styles = `
     max-height: min(88vh, 980px);
     overflow: auto;
     border-radius: 20px;
+    border: 1px solid #e8e1f4;
+    background: #ffffff;
     box-shadow: 0 28px 70px rgba(31, 18, 49, 0.24);
+  }
+
+  .companies-modal-card--view {
+    padding: 30px 32px;
   }
 
   .companies-modal-header {
@@ -562,14 +568,35 @@ const styles = `
     justify-content: space-between;
     gap: 16px;
     align-items: flex-start;
-    margin-bottom: 16px;
+    margin-bottom: 18px;
   }
 
   .companies-modal-title {
     margin: 0;
     color: #201338;
-    font-size: 1.4rem;
+    font-size: 2rem;
+    font-weight: 600;
     line-height: 1.2;
+  }
+
+  .companies-modal-email {
+    margin: 4px 0 0;
+    color: #647188;
+    font-size: 1.05rem;
+    font-weight: 500;
+    line-height: 1.2;
+  }
+
+  .companies-modal-close {
+    min-height: 48px;
+    border-radius: 18px;
+    border: 1px solid #d8cde9;
+    padding: 0 20px;
+    background: #f4eefb;
+    color: #3d1a67;
+    font-size: 1.02rem;
+    font-weight: 800;
+    white-space: nowrap;
   }
 
   .company-form {
@@ -612,22 +639,28 @@ const styles = `
   }
 
   .company-detail-box {
-    padding: 14px 16px;
+    padding: 16px 16px;
     border-radius: 14px;
-    background: #fbf9ff;
+    background: #f8f5fc;
     border: 1px solid #eee8f8;
+    min-height: 110px;
   }
 
   .company-detail-box strong {
     display: block;
-    margin-bottom: 4px;
+    margin-bottom: 6px;
     color: #201338;
+    font-size: 1.15rem;
+    font-weight: 800;
+    line-height: 1.2;
   }
 
   .company-detail-box p {
     margin: 0;
     color: #5a4a76;
-    line-height: 1.45;
+    line-height: 1.5;
+    font-size: 0.98rem;
+    font-weight: 500;
     word-break: break-word;
   }
 
@@ -636,7 +669,34 @@ const styles = `
     flex-wrap: wrap;
     justify-content: flex-end;
     gap: 10px;
-    margin-top: 18px;
+    margin-top: 20px;
+  }
+
+  .companies-suspend-btn {
+    min-height: 46px;
+    border-radius: 18px;
+    border: 1px solid #d8c8fb;
+    padding: 0 16px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #e7ddf9;
+    color: #2d1856;
+    font-size: 0.96rem;
+    font-weight: 900;
+  }
+
+  .companies-suspend-btn-icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #64a9f4;
+    color: #ffffff;
+    font-size: 12px;
+    line-height: 1;
   }
 
   @media (max-width: 1024px) {
@@ -653,6 +713,21 @@ const styles = `
     .company-form-grid,
     .company-detail-grid {
       grid-template-columns: 1fr;
+    }
+
+    .companies-modal-card--view {
+      padding: 20px 18px;
+    }
+
+    .companies-modal-title {
+      font-size: 1.55rem;
+    }
+
+    .companies-modal-email,
+    .company-detail-box strong,
+    .company-detail-box p,
+    .companies-suspend-btn {
+      font-size: 1rem;
     }
   }
 `;
@@ -786,15 +861,6 @@ function AdminCompaniesPage() {
     await loadEmployers();
   };
 
-  const openCreate = () => {
-    setSelectedId(null);
-    setSelectedCompany(null);
-    setForm(EMPTY_FORM);
-    setFormError(null);
-    setViewError(null);
-    setModalMode("create");
-  };
-
   const openView = async (employer: EmployerAccount) => {
     setModalMode("view");
     setSelectedCompany(null);
@@ -917,12 +983,6 @@ function AdminCompaniesPage() {
                 </svg>
               </span>
             </label>
-            <div className="companies-toolbar-actions">
-              <button className="companies-toolbar-btn companies-toolbar-btn--primary" onClick={openCreate} type="button">
-                <Plus aria-hidden="true" />
-                <span>Create</span>
-              </button>
-            </div>
           </div>
 
           {error ? <p className="message message-erreur" role="alert">{error}</p> : null}
@@ -999,7 +1059,7 @@ function AdminCompaniesPage() {
                               disabled={isBusy || employer.statut === "suspendu"}
                               type="button"
                             >
-                              <span className="companies-action-emoji" aria-hidden="true">⏸️</span>
+                              <Ban aria-hidden="true" />
                               <span>{employer.statut === "suspendu" ? "Suspended" : "Suspend"}</span>
                             </button>
                           </div>
@@ -1047,7 +1107,7 @@ function AdminCompaniesPage() {
         >
           <Card
             padding="lg"
-            className="companies-modal-card"
+            className={`companies-modal-card${modalMode === "view" ? " companies-modal-card--view" : ""}`}
             onClick={(event) => event.stopPropagation()}
           >
             {modalMode === "view" ? (
@@ -1056,9 +1116,9 @@ function AdminCompaniesPage() {
                   <div>
                     <p className="companies-kicker">Company profile</p>
                     <h2 className="companies-modal-title">{selectedCompany?.nom_entreprise || selectedCompany?.nom || "Company"}</h2>
-                    <p className="texte-secondaire">{selectedCompany?.email || "-"}</p>
+                    <p className="companies-modal-email">{selectedCompany?.email || "-"}</p>
                   </div>
-                  <Button variant="ghost" onClick={closeModal}>Close</Button>
+                  <button className="companies-modal-close" type="button" onClick={closeModal}>Close</button>
                 </div>
                 {modalLoading ? <p>Loading profile...</p> : null}
                 {viewError ? <p className="message message-erreur">{viewError}</p> : null}
@@ -1097,13 +1157,15 @@ function AdminCompaniesPage() {
                     </div>
 
                     <div className="company-detail-actions">
-                      <Button
-                        variant="secondary"
+                      <button
+                        className="companies-suspend-btn"
                         onClick={() => void suspendCompany(selectedCompany)}
                         disabled={selectedCompany.statut === "suspendu"}
+                        type="button"
                       >
-                        ⏸️ {selectedCompany.statut === "suspendu" ? "Suspended" : "Suspend"}
-                      </Button>
+                        <span className="companies-suspend-btn-icon" aria-hidden="true">⏸</span>
+                        {selectedCompany.statut === "suspendu" ? "Suspended" : "Suspend"}
+                      </button>
                     </div>
                   </>
                 ) : null}

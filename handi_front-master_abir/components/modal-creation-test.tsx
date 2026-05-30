@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { construireUrlApi } from "@/lib/config";
 import { QuestionEditor } from "./question-editor";
 
@@ -25,6 +26,250 @@ interface ModalCreationTestProps {
   onCancel: () => void;
 }
 
+const styles = `
+  .test-create-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    display: grid;
+    place-items: center;
+    padding: 20px;
+    background: rgba(26, 18, 43, 0.42);
+    backdrop-filter: blur(8px);
+  }
+
+  .test-create-modal-card {
+    width: min(980px, 100%);
+    max-height: min(88vh, 980px);
+    overflow: auto;
+    border-radius: 20px;
+    border: 1px solid #eee8f8;
+    background: #ffffff;
+    box-shadow: 0 28px 70px rgba(31, 18, 49, 0.24);
+  }
+
+  .test-create-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 28px 32px 18px;
+    border-bottom: 1px solid #ece7f6;
+  }
+
+  .test-create-kicker {
+    margin: 0 0 6px;
+    color: #6b5b86;
+    font-size: 0.84rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .test-create-title {
+    margin: 0;
+    color: #201338;
+    font-size: 2rem;
+    font-weight: 600;
+    line-height: 1.12;
+  }
+
+  .test-create-subtitle {
+    margin: 8px 0 0;
+    color: #5a4a76;
+    font-size: 1rem;
+    line-height: 1.4;
+  }
+
+  .test-create-close {
+    min-height: 48px;
+    border-radius: 18px;
+    border: 1px solid #d8cde9;
+    padding: 0 18px;
+    background: #f4eefb;
+    color: #3d1a67;
+    font-size: 1.02rem;
+    font-weight: 800;
+  }
+
+  .test-create-progress {
+    padding: 14px 32px 0;
+    display: grid;
+    gap: 8px;
+  }
+
+  .test-create-progress-track {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .test-create-progress-track span {
+    height: 8px;
+    border-radius: 999px;
+    background: #e9e2f8;
+  }
+
+  .test-create-progress-track span.active {
+    background: linear-gradient(135deg, #6f33ef, #4f28df);
+  }
+
+  .test-create-progress-label {
+    color: #6a5a88;
+    font-size: 0.84rem;
+    font-weight: 700;
+  }
+
+  .test-create-modal-body {
+    padding: 22px 32px 26px;
+    display: grid;
+    gap: 16px;
+  }
+
+  .test-create-error {
+    border: 1px solid #f2c5c5;
+    background: #fff2f2;
+    color: #af2f2f;
+    border-radius: 14px;
+    padding: 12px 14px;
+    font-weight: 700;
+    font-size: 0.92rem;
+  }
+
+  .test-create-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .test-create-field {
+    display: grid;
+    gap: 8px;
+    padding: 14px 16px;
+    border-radius: 14px;
+    background: #fbf9ff;
+    border: 1px solid #eee8f8;
+  }
+
+  .test-create-field--full {
+    grid-column: 1 / -1;
+  }
+
+  .test-create-field label {
+    color: #201338;
+    font-size: 0.94rem;
+    font-weight: 800;
+  }
+
+  .test-create-field input,
+  .test-create-field select,
+  .test-create-field textarea {
+    width: 100%;
+    border-radius: 12px;
+    border: 1px solid #ddd5ea;
+    background: #fff;
+    color: #201338;
+    padding: 11px 14px;
+    outline: none;
+    font-size: 0.94rem;
+    font-weight: 600;
+  }
+
+  .test-create-field input:focus,
+  .test-create-field select:focus,
+  .test-create-field textarea:focus {
+    border-color: #7c3aed;
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12);
+  }
+
+  .test-create-questions-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .test-create-questions-title {
+    margin: 0;
+    color: #201338;
+    font-size: 1.08rem;
+    font-weight: 800;
+  }
+
+  .test-create-btn {
+    min-height: 44px;
+    border-radius: 14px;
+    border: 1px solid #ddd5ea;
+    padding: 0 16px;
+    font-size: 0.92rem;
+    font-weight: 800;
+    background: #ffffff;
+    color: #2b1b4e;
+    white-space: nowrap;
+  }
+
+  .test-create-btn--primary {
+    border-color: #3d0456;
+    color: #ffffff;
+    background: #3f005b;
+    box-shadow: 0 12px 24px rgba(63, 0, 91, 0.24);
+  }
+
+  .test-create-btn--soft {
+    background: #f6f0ff;
+    border-color: #eadfff;
+    color: #6326ee;
+  }
+
+  .test-create-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.62;
+  }
+
+  .test-create-empty {
+    border: 1px dashed #d8cde9;
+    border-radius: 14px;
+    padding: 20px;
+    color: #6a5a88;
+    text-align: center;
+    font-weight: 700;
+    background: #fbf9ff;
+  }
+
+  .test-create-modal-footer {
+    padding: 0 32px 28px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .test-create-modal-footer-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    align-items: center;
+  }
+
+  @media (max-width: 900px) {
+    .test-create-modal-header,
+    .test-create-progress,
+    .test-create-modal-body,
+    .test-create-modal-footer {
+      padding-left: 18px;
+      padding-right: 18px;
+    }
+
+    .test-create-title {
+      font-size: 1.55rem;
+    }
+
+    .test-create-form-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+`;
+
 export function ModalCreationTest({ onSave, onCancel }: ModalCreationTestProps) {
   const [formData, setFormData] = useState({
     titre: "",
@@ -40,6 +285,11 @@ export function ModalCreationTest({ onSave, onCancel }: ModalCreationTestProps) 
   const [chargement, setChargement] = useState(false);
   const [erreur, setErreur] = useState<string | null>(null);
   const [etapeActuelle, setEtapeActuelle] = useState(1);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const ajouterQuestion = () => {
     const nouvelleQuestion: Question = {
@@ -178,123 +428,121 @@ export function ModalCreationTest({ onSave, onCancel }: ModalCreationTestProps) 
     }
   };
 
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-        <div className="p-6 border-b border-gray-200">
-          <div className="flex justify-between items-center">
-            <h3 className="text-lg font-semibold">Create a new test - Step {etapeActuelle}/2</h3>
-            <button onClick={onCancel} className="text-gray-400 hover:text-gray-600">
-              x
-            </button>
-          </div>
+  if (!isClient) return null;
 
-          <div className="flex mt-4">
-            <div className={`flex-1 h-2 rounded-l ${etapeActuelle >= 1 ? "bg-blue-600" : "bg-gray-200"}`}></div>
-            <div className={`flex-1 h-2 rounded-r ${etapeActuelle >= 2 ? "bg-blue-600" : "bg-gray-200"}`}></div>
+  return createPortal(
+    <div className="test-create-modal-overlay" role="dialog" aria-modal="true" onClick={onCancel}>
+      <style>{styles}</style>
+      <section className="test-create-modal-card" onClick={(event) => event.stopPropagation()}>
+        <header className="test-create-modal-header">
+          <div>
+            <p className="test-create-kicker">Test creation</p>
+            <h3 className="test-create-title">Create a psychological test</h3>
+            <p className="test-create-subtitle">Step {etapeActuelle} of 2</p>
           </div>
+          <button onClick={onCancel} className="test-create-close" type="button">
+            Close
+          </button>
+        </header>
+
+        <div className="test-create-progress">
+          <div className="test-create-progress-track">
+            <span className={etapeActuelle >= 1 ? "active" : ""}></span>
+            <span className={etapeActuelle >= 2 ? "active" : ""}></span>
+          </div>
+          <span className="test-create-progress-label">
+            {etapeActuelle === 1 ? "General information" : "Questions and scoring"}
+          </span>
         </div>
 
-        <div className="p-6">
-          {erreur && <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-md mb-4">{erreur}</div>}
+        <div className="test-create-modal-body">
+          {erreur ? <div className="test-create-error">{erreur}</div> : null}
 
           {etapeActuelle === 1 ? (
-            <div className="space-y-4">
-              <h4 className="text-lg font-medium">General information</h4>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Test title</label>
+            <div className="test-create-form-grid">
+              <div className="test-create-field">
+                <label htmlFor="test-title">Test title</label>
                 <input
+                  id="test-title"
                   type="text"
                   value={formData.titre}
                   onChange={(event) => setFormData((prev) => ({ ...prev, titre: event.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Example: Communication assessment"
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+              <div className="test-create-field">
+                <label htmlFor="test-type">Test type</label>
+                <select
+                  id="test-type"
+                  value={formData.type_test}
+                  onChange={(event) => setFormData((prev) => ({ ...prev, type_test: event.target.value }))}
+                >
+                  <option value="soft_skills">Soft skills</option>
+                  <option value="personnalite">Personality</option>
+                  <option value="competences">Skills</option>
+                </select>
+              </div>
+
+              <div className="test-create-field">
+                <label htmlFor="test-duration">Duration (minutes)</label>
+                <input
+                  id="test-duration"
+                  type="number"
+                  value={formData.duree_minutes}
+                  onChange={(event) => setFormData((prev) => ({ ...prev, duree_minutes: parseInt(event.target.value, 10) || 0 }))}
+                  min="5"
+                  max="180"
+                />
+              </div>
+
+              <div className="test-create-field">
+                <label htmlFor="test-start-date">Start date</label>
+                <input
+                  id="test-start-date"
+                  type="date"
+                  value={formData.date_debut_validite}
+                  onChange={(event) => setFormData((prev) => ({ ...prev, date_debut_validite: event.target.value }))}
+                />
+              </div>
+
+              <div className="test-create-field">
+                <label htmlFor="test-end-date">End date</label>
+                <input
+                  id="test-end-date"
+                  type="date"
+                  value={formData.date_fin_validite}
+                  onChange={(event) => setFormData((prev) => ({ ...prev, date_fin_validite: event.target.value }))}
+                />
+              </div>
+
+              <div className="test-create-field test-create-field--full">
+                <label htmlFor="test-description">Description</label>
                 <textarea
+                  id="test-description"
                   value={formData.description}
                   onChange={(event) => setFormData((prev) => ({ ...prev, description: event.target.value }))}
-                  rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  rows={4}
                   placeholder="Describe the goal of this test..."
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Test type</label>
-                  <select
-                    value={formData.type_test}
-                    onChange={(event) => setFormData((prev) => ({ ...prev, type_test: event.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="soft_skills">Soft skills</option>
-                    <option value="personnalite">Personality</option>
-                    <option value="competences">Skills</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Duration (minutes)</label>
-                  <input
-                    type="number"
-                    value={formData.duree_minutes}
-                    onChange={(event) =>
-                      setFormData((prev) => ({ ...prev, duree_minutes: parseInt(event.target.value, 10) }))
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    min="5"
-                    max="180"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Start date</label>
-                  <input
-                    type="date"
-                    value={formData.date_debut_validite}
-                    onChange={(event) =>
-                      setFormData((prev) => ({ ...prev, date_debut_validite: event.target.value }))
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">End date</label>
-                  <input
-                    type="date"
-                    value={formData.date_fin_validite}
-                    onChange={(event) =>
-                      setFormData((prev) => ({ ...prev, date_fin_validite: event.target.value }))
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Instructions</label>
+              <div className="test-create-field test-create-field--full">
+                <label htmlFor="test-instructions">Instructions</label>
                 <textarea
+                  id="test-instructions"
                   value={formData.instructions}
                   onChange={(event) => setFormData((prev) => ({ ...prev, instructions: event.target.value }))}
-                  rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  rows={4}
                   placeholder="Instructions for candidates..."
                 />
               </div>
             </div>
           ) : (
-            <div className="space-y-6">
-              <div className="flex justify-between items-center">
-                <h4 className="text-lg font-medium">Test questions</h4>
-                <button onClick={ajouterQuestion} className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
+            <div className="space-y-4">
+              <div className="test-create-questions-top">
+                <h4 className="test-create-questions-title">Test questions</h4>
+                <button onClick={ajouterQuestion} className="test-create-btn test-create-btn--soft" type="button">
                   Add question
                 </button>
               </div>
@@ -312,29 +560,26 @@ export function ModalCreationTest({ onSave, onCancel }: ModalCreationTestProps) 
                 />
               ))}
 
-              {questions.length === 0 && (
-                <div className="text-center py-8 text-gray-500">
-                  No questions added yet. Click "Add question" to begin.
+              {questions.length === 0 ? (
+                <div className="test-create-empty">
+                  No questions added yet. Click &quot;Add question&quot; to begin.
                 </div>
-              )}
+              ) : null}
             </div>
           )}
         </div>
 
-        <div className="px-6 py-4 border-t border-gray-200 flex justify-between">
+        <footer className="test-create-modal-footer">
           <div>
-            {etapeActuelle === 2 && (
-              <button
-                onClick={() => setEtapeActuelle(1)}
-                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
-              >
+            {etapeActuelle === 2 ? (
+              <button onClick={() => setEtapeActuelle(1)} className="test-create-btn" type="button">
                 Previous
               </button>
-            )}
+            ) : null}
           </div>
 
-          <div className="flex space-x-3">
-            <button onClick={onCancel} className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50">
+          <div className="test-create-modal-footer-actions">
+            <button onClick={onCancel} className="test-create-btn" type="button">
               Cancel
             </button>
 
@@ -346,7 +591,8 @@ export function ModalCreationTest({ onSave, onCancel }: ModalCreationTestProps) 
                     setEtapeActuelle(2);
                   }
                 }}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                className="test-create-btn test-create-btn--primary"
+                type="button"
               >
                 Next
               </button>
@@ -354,14 +600,16 @@ export function ModalCreationTest({ onSave, onCancel }: ModalCreationTestProps) 
               <button
                 onClick={handleSubmit}
                 disabled={chargement}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                className="test-create-btn test-create-btn--primary"
+                type="button"
               >
                 {chargement ? "Creating..." : "Create test"}
               </button>
             )}
           </div>
-        </div>
-      </div>
-    </div>
+        </footer>
+      </section>
+    </div>,
+    document.body,
   );
 }

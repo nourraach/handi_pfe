@@ -272,9 +272,9 @@ const interviewBoardStyles = `
     font-size: 0.82rem;
   }
 
-  .interviews-board__schedule span,
-  .interviews-board__candidate span,
-  .interviews-board__company span {
+  .interviews-board__schedule > div > span,
+  .interviews-board__candidate > div > span,
+  .interviews-board__company > span {
     display: block;
     margin-top: 5px;
     color: #6e6693;
@@ -330,6 +330,19 @@ const interviewBoardStyles = `
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
+  }
+
+  .interviews-board__schedule .interviews-board__schedule-icon {
+    display: grid;
+    place-items: center;
+    margin-top: 0;
+    align-self: center;
+    justify-self: start;
+  }
+
+  .interviews-board__schedule .interviews-board__schedule-icon svg {
+    display: block;
+    margin: 0;
   }
 
   .interviews-board__type,
