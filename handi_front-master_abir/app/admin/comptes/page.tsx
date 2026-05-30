@@ -1130,10 +1130,6 @@ function AdminCompaniesPage() {
                         <p>{selectedCompany.nom} - {selectedCompany.telephone || "-"}</p>
                       </div>
                       <div className="company-detail-box">
-                        <strong>Status</strong>
-                        <p>{STATUS_LABELS[selectedCompany.statut] || selectedCompany.statut}</p>
-                      </div>
-                      <div className="company-detail-box">
                         <strong>Legal</strong>
                         <p>Patente: {selectedCompany.patente || "-"}</p>
                         <p>RNE: {selectedCompany.rne || "-"}</p>
@@ -1156,17 +1152,6 @@ function AdminCompaniesPage() {
                       </div>
                     </div>
 
-                    <div className="company-detail-actions">
-                      <button
-                        className="companies-suspend-btn"
-                        onClick={() => void suspendCompany(selectedCompany)}
-                        disabled={selectedCompany.statut === "suspendu"}
-                        type="button"
-                      >
-                        <span className="companies-suspend-btn-icon" aria-hidden="true">⏸</span>
-                        {selectedCompany.statut === "suspendu" ? "Suspended" : "Suspend"}
-                      </button>
-                    </div>
                   </>
                 ) : null}
               </div>

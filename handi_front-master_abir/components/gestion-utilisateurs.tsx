@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { type FormEvent, useCallback, useEffect, useState } from "react";
 import { construireUrlApi } from "@/lib/config";
 import { TUNISIAN_GOVERNORATES, TUNISIAN_GOVERNORATE_OPTIONS } from "@/lib/tunisia-governorates";
+import { ChevronDown, Mail, MapPin, Phone, User, UserPlus, UserRoundCog, X } from "lucide-react";
 
 interface Utilisateur {
   id_utilisateur: string;
@@ -653,7 +654,7 @@ function ModalUtilisateur({ utilisateur, modeCreation, onSave, onCancel }: Modal
       ? TUNISIAN_GOVERNORATES[formData.gouvernorat as keyof typeof TUNISIAN_GOVERNORATES]
       : [];
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (roleInvitation) {
       const payload: Partial<Utilisateur> = { ...formData };
@@ -664,196 +665,218 @@ function ModalUtilisateur({ utilisateur, modeCreation, onSave, onCancel }: Modal
     onSave(formData);
   };
 
+  const inputClass =
+    "h-11 w-full rounded-xl border border-[#ddd7ef] bg-white px-10 pr-4 text-[14px] text-[#1f173f] outline-none transition placeholder:text-[#7b7397] focus:border-[#7c3aed] focus:ring-4 focus:ring-[#7c3aed1f]";
+  const selectClass =
+    "h-11 w-full appearance-none rounded-xl border border-[#ddd7ef] bg-white px-10 pr-9 text-[14px] font-semibold text-[#1f173f] outline-none transition focus:border-[#7c3aed] focus:ring-4 focus:ring-[#7c3aed1f]";
+
   return (
     <div
-      className="fixed inset-0 z-[200] flex items-center justify-center overflow-y-auto bg-black/60 px-4 py-6"
+      className="fixed inset-0 z-[2200] flex items-center justify-center overflow-y-auto bg-[#1a122b]/45 p-4 backdrop-blur-[6px]"
       role="dialog"
       aria-modal="true"
       aria-labelledby="admin-user-modal-title"
     >
-      <div className="flex max-h-[calc(100vh-3rem)] w-full max-w-2xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl">
-        <div className="flex items-start justify-between gap-4 border-b border-slate-200 px-5 py-4">
-          <div>
-            <h3 id="admin-user-modal-title" className="text-lg font-semibold text-slate-950">
-              {modeCreation ? "Create user" : "Edit user"}
-            </h3>
-            <p className="mt-1 text-sm text-slate-500">
-              Complete the account details without leaving the admin workspace.
-            </p>
+      <div className="flex max-h-[calc(100vh-2.5rem)] w-full max-w-[760px] flex-col overflow-hidden rounded-[16px] border border-[#ebe6f7] bg-white shadow-[0_28px_70px_rgba(31,18,49,0.24)]">
+        <div className="flex items-start justify-between gap-4 px-5 pt-5 pb-4">
+          <div className="flex items-start gap-3">
+            <div className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#efe6ff] text-[#6b35e6]">
+              <UserPlus className="h-5 w-5" />
+            </div>
+            <div>
+              <h3 id="admin-user-modal-title" className="text-[24px] font-semibold leading-[1.15] text-[#17113f]">
+                {modeCreation ? "Create user" : "Edit user"}
+              </h3>
+              <p className="mt-1 text-[16px] text-[#6b6488]">
+                {modeCreation ? "Add a new user to the platform" : "Update user information on the platform"}
+              </p>
+            </div>
           </div>
           <button
             type="button"
             onClick={onCancel}
-            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-200 text-xl leading-none text-slate-500 transition hover:border-purple-200 hover:bg-purple-50 hover:text-purple-950"
+            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[#666083] transition hover:bg-[#f4efff]"
             aria-label="Close user form"
           >
-            x
+            <X className="h-5 w-5" />
           </button>
         </div>
 
+        <div className="mx-5 border-t border-[#ebe6f7]" />
+
         <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
           <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 py-4">
-          <div className="grid gap-4 md:grid-cols-2">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
-            <input
-              type="text"
-              value={formData.nom}
-              onChange={(event) => setFormData((prev) => ({ ...prev, nom: event.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-            <input
-              type="email"
-              value={formData.email}
-              onChange={(event) => setFormData((prev) => ({ ...prev, email: event.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-            />
-          </div>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
-            <select
-              value={formData.role}
-              onChange={(event) => {
-                const prochainRole = event.target.value;
-                setFormData((prev) => ({
-                  ...prev,
-                  role: prochainRole,
-                  ...(prochainRole === "inspecteur"
-                    ? {}
-                    : {
-                        gouvernorat: "",
-                        delegation: "",
-                      }),
-                }));
-              }}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="candidat">Candidate</option>
-              <option value="entreprise">Company</option>
-              <option value="admin">Admin</option>
-              <option value="inspecteur">Inspector</option>
-              <option value="aneti">ANETI</option>
-            </select>
-          </div>
-
-          {!roleInvitation && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-              <select
-                value={formData.statut}
-                onChange={(event) => setFormData((prev) => ({ ...prev, statut: event.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="actif">Active</option>
-                <option value="inactif">Inactive</option>
-                <option value="en_attente">Pending</option>
-                <option value="suspendu">Suspended</option>
-              </select>
-            </div>
-          )}
-          </div>
-
-          {roleInvitation && (
-            <div className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-              Le compte sera cree en attente d&apos;activation. Un email sera envoye pour definir le mot de passe et activer l&apos;acces.
-            </div>
-          )}
-
-          {roleInterne ? (
             <div className="grid gap-4 md:grid-cols-2">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Gouvernorat</label>
-                <select
-                  value={formData.gouvernorat}
-                  onChange={(event) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      gouvernorat: event.target.value,
-                      delegation: "",
-                    }))
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required={roleInterne}
-                >
-                  <option value="">Selectionnez un gouvernorat</option>
-                  {TUNISIAN_GOVERNORATE_OPTIONS.map((gouvernorat) => (
-                    <option key={gouvernorat} value={gouvernorat}>
-                      {gouvernorat}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {formData.gouvernorat ? (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Delegation</label>
-                  <select
-                    value={formData.delegation}
-                    onChange={(event) => setFormData((prev) => ({ ...prev, delegation: event.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required={roleInterne}
-                  >
-                    <option value="">Selectionnez une delegation</option>
-                    {delegationOptions.map((delegation) => (
-                      <option key={delegation} value={delegation}>
-                        {delegation}
-                      </option>
-                    ))}
-                  </select>
-                  <p className="mt-2 text-xs text-gray-500">La delegation est obligatoire pour les comptes Inspecteur.</p>
+              <div className="space-y-2">
+                <label className="block text-[15px] font-semibold text-[#1e173e]">Name</label>
+                <div className="relative">
+                  <User className="pointer-events-none absolute left-3.5 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-[#5f587f]" />
+                  <input
+                    type="text"
+                    value={formData.nom}
+                    onChange={(event) => setFormData((prev) => ({ ...prev, nom: event.target.value }))}
+                    className={inputClass}
+                    placeholder="e.g. Asma Bouazizi"
+                    required
+                  />
                 </div>
-              ) : null}
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-[15px] font-semibold text-[#1e173e]">Email</label>
+                <div className="relative">
+                  <Mail className="pointer-events-none absolute left-3.5 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-[#5f587f]" />
+                  <input
+                    type="email"
+                    value={formData.email}
+                    onChange={(event) => setFormData((prev) => ({ ...prev, email: event.target.value }))}
+                    className={inputClass}
+                    placeholder="e.g. asma@handitalents.tn"
+                    required
+                  />
+                </div>
+              </div>
             </div>
-          ) : (
+
             <div className="grid gap-4 md:grid-cols-2">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-                <input
-                  type="tel"
-                  value={formData.telephone}
-                  onChange={(event) => setFormData((prev) => ({ ...prev, telephone: event.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
-                <textarea
-                  value={formData.addresse}
-                  onChange={(event) => setFormData((prev) => ({ ...prev, addresse: event.target.value }))}
-                  rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+              <div className="space-y-2">
+                <label className="block text-[15px] font-semibold text-[#1e173e]">Role</label>
+                <div className="relative">
+                  <UserRoundCog className="pointer-events-none absolute left-3.5 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-[#6b35e6]" />
+                  <select
+                    value={formData.role}
+                    onChange={(event) => {
+                      const prochainRole = event.target.value;
+                      setFormData((prev) => ({
+                        ...prev,
+                        role: prochainRole,
+                        ...(prochainRole === "inspecteur"
+                          ? {}
+                          : {
+                              gouvernorat: "",
+                              delegation: "",
+                            }),
+                      }));
+                    }}
+                    className={selectClass}
+                  >
+                    <option value="candidat">Candidate</option>
+                    <option value="entreprise">Company</option>
+                    <option value="admin">Admin</option>
+                    <option value="inspecteur">Inspector</option>
+                    <option value="aneti">ANETI</option>
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-3.5 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-[#5f587f]" />
+                </div>
               </div>
             </div>
-          )}
 
-          {modeCreation && !roleInvitation && (
-            <div className="rounded-md border border-purple-100 bg-purple-50 px-4 py-3 text-sm text-purple-900">
-              L&apos;admin ne definit plus le mot de passe ici. Un email securise sera envoye automatiquement afin que le nouvel utilisateur puisse le choisir.
-            </div>
-          )}
+            {roleInvitation ? (
+              <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-[15px] text-amber-900">
+                Le compte sera cree en attente d&apos;activation. Un email sera envoye pour definir le mot de passe et activer l&apos;acces.
+              </div>
+            ) : null}
+
+            {roleInterne ? (
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="block text-[15px] font-semibold text-[#1e173e]">Gouvernorat</label>
+                  <div className="relative">
+                    <MapPin className="pointer-events-none absolute left-3.5 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-[#5f587f]" />
+                    <select
+                      value={formData.gouvernorat}
+                      onChange={(event) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          gouvernorat: event.target.value,
+                          delegation: "",
+                        }))
+                      }
+                      className={selectClass}
+                      required={roleInterne}
+                    >
+                      <option value="">Selectionnez un gouvernorat</option>
+                      {TUNISIAN_GOVERNORATE_OPTIONS.map((gouvernorat) => (
+                        <option key={gouvernorat} value={gouvernorat}>
+                          {gouvernorat}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute right-3.5 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-[#5f587f]" />
+                  </div>
+                </div>
+
+                {formData.gouvernorat ? (
+                  <div className="space-y-2">
+                    <label className="block text-[15px] font-semibold text-[#1e173e]">Delegation</label>
+                    <div className="relative">
+                      <MapPin className="pointer-events-none absolute left-3.5 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-[#5f587f]" />
+                      <select
+                        value={formData.delegation}
+                        onChange={(event) => setFormData((prev) => ({ ...prev, delegation: event.target.value }))}
+                        className={selectClass}
+                        required={roleInterne}
+                      >
+                        <option value="">Selectionnez une delegation</option>
+                        {delegationOptions.map((delegation) => (
+                          <option key={delegation} value={delegation}>
+                            {delegation}
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronDown className="pointer-events-none absolute right-3.5 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-[#5f587f]" />
+                    </div>
+                    <p className="text-xs text-slate-500">La delegation est obligatoire pour les comptes Inspecteur.</p>
+                  </div>
+                ) : null}
+              </div>
+            ) : (
+              <>
+                <div className="space-y-2">
+                  <label className="block text-[15px] font-semibold text-[#1e173e]">Phone (optional)</label>
+                  <div className="relative">
+                    <Phone className="pointer-events-none absolute left-3.5 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-[#5f587f]" />
+                    <input
+                      type="tel"
+                      value={formData.telephone}
+                      onChange={(event) => setFormData((prev) => ({ ...prev, telephone: event.target.value }))}
+                      className={inputClass}
+                      placeholder="+216 XX XXX XXX"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-[15px] font-semibold text-[#1e173e]">Address (optional)</label>
+                  <div className="relative">
+                    <MapPin className="pointer-events-none absolute left-3.5 top-3.5 h-4.5 w-4.5 text-[#5f587f]" />
+                    <textarea
+                      value={formData.addresse}
+                      onChange={(event) => setFormData((prev) => ({ ...prev, addresse: event.target.value }))}
+                      rows={2}
+                      className="w-full rounded-xl border border-[#ddd7ef] bg-white py-2.5 pl-10 pr-4 text-[14px] text-[#1f173f] outline-none transition placeholder:text-[#7b7397] focus:border-[#7c3aed] focus:ring-4 focus:ring-[#7c3aed1f]"
+                      placeholder="Enter address..."
+                    />
+                  </div>
+                </div>
+              </>
+            )}
           </div>
 
-          <div className="flex flex-wrap justify-end gap-3 border-t border-slate-200 bg-white px-5 py-4 shadow-[0_-12px_30px_rgba(15,23,42,0.06)]">
+          <div className="flex flex-wrap justify-end gap-3 border-t border-[#ebe6f7] bg-white px-5 py-3.5">
             <button
               type="button"
               onClick={onCancel}
-              className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
+              className="inline-flex h-11 items-center justify-center rounded-2xl border border-[#ddd7ef] bg-white px-6 text-[16px] font-semibold text-[#342b58] transition hover:bg-[#f8f5ff]"
             >
               Cancel
             </button>
-            <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-              {modeCreation ? "Create" : "Save changes"}
+            <button
+              type="submit"
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-[#3d0456] bg-[#3f005b] px-6 text-[16px] font-semibold text-white shadow-[0_12px_24px_rgba(63,0,91,0.22)] transition hover:bg-[#320049]"
+            >
+              <UserPlus className="h-4 w-4" />
+              {modeCreation ? "Create user" : "Save changes"}
             </button>
           </div>
         </form>
