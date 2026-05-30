@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Building2, Eye, Pencil, Plus, RefreshCw, Search, Trash2, CirclePause } from "lucide-react";
+import { Building2, Eye, Plus, Search } from "lucide-react";
+import { createPortal } from "react-dom";
 import { RouteProtegee } from "@/components/route-protegee";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -157,7 +158,7 @@ const styles = `
 
   .companies-toolbar {
     display: grid;
-    grid-template-columns: minmax(280px, 1fr) minmax(190px, 0.42fr) auto auto;
+    grid-template-columns: minmax(280px, 1fr) 210px auto;
     gap: 16px;
     align-items: center;
   }
@@ -169,7 +170,7 @@ const styles = `
   }
 
   .companies-search svg,
-  .companies-select-wrap svg {
+  .companies-select-wrap > span {
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
@@ -181,8 +182,19 @@ const styles = `
     left: 20px;
   }
 
-  .companies-select-wrap svg {
+  .companies-select-wrap > span {
     right: 18px;
+    width: 18px;
+    height: 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .companies-select-wrap > span svg {
+    width: 18px;
+    height: 18px;
+    display: block;
   }
 
   .companies-toolbar input,
@@ -204,8 +216,9 @@ const styles = `
 
   .companies-toolbar select {
     appearance: none;
-    padding: 0 48px 0 20px;
+    padding: 0 52px 0 20px;
     font-weight: 800;
+    white-space: nowrap;
   }
 
   .company-form input,
@@ -267,16 +280,31 @@ const styles = `
   }
 
   .companies-table-wrap {
-    overflow: auto;
+    overflow-x: auto;
+    overflow-y: hidden;
     border: 1px solid #ebe5fa;
     border-radius: 16px;
     background: #ffffff;
+    scrollbar-width: thin;
+    scrollbar-color: #d8c8fb transparent;
+  }
+
+  .companies-table-wrap::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+    display: block;
+  }
+
+  .companies-table-wrap::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: #d8c8fb;
   }
 
   .companies-table {
     width: 100%;
     border-collapse: collapse;
-    min-width: 1060px;
+    min-width: 980px;
+    table-layout: fixed;
     background: #fff;
   }
 
@@ -293,16 +321,18 @@ const styles = `
     text-transform: uppercase;
     letter-spacing: 0.02em;
     border-bottom: 1px solid #ede7fa;
-    padding: 16px 22px;
+    padding: 16px 14px;
+    white-space: nowrap;
   }
 
   .companies-table tbody td {
-    padding: 24px 22px;
+    padding: 18px 12px;
     vertical-align: middle;
     border-bottom: 1px solid #ece7f6;
     color: #191342;
-    font-size: 0.95rem;
+    font-size: 0.88rem;
     font-weight: 750;
+    line-height: 1.4;
   }
 
   .companies-table tbody tr {
@@ -328,25 +358,55 @@ const styles = `
 
   .company-cell {
     display: grid;
-    grid-template-columns: 52px minmax(0, 1fr);
-    gap: 16px;
+    grid-template-columns: 44px minmax(0, 1fr);
+    gap: 12px;
     align-items: start;
   }
 
+  .company-cell > div,
+  .company-contact,
+  .company-region,
+  .company-address,
+  .company-date {
+    min-width: 0;
+  }
+
+  .company-name {
+    line-height: 1.3;
+    overflow-wrap: break-word;
+  }
+
+  .company-email {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
   .company-icon {
-    width: 46px;
-    height: 46px;
-    border-radius: 14px;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     background: #f3edff;
     color: #6229e8;
+    line-height: 1;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  .companies-table td span.company-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .company-icon svg {
-    width: 21px;
-    height: 21px;
+    width: 18px;
+    height: 18px;
+    display: block;
+    margin: auto;
   }
 
   .company-verified {
@@ -364,30 +424,23 @@ const styles = `
     font-weight: 900 !important;
   }
 
-  .company-contact-id {
-    color: #6b2df4 !important;
-    font-weight: 900 !important;
-  }
-
   .company-status {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    min-width: 82px;
-    min-height: 38px;
-    padding: 0 14px;
+    min-width: 74px;
+    min-height: 34px;
+    padding: 0 12px;
     border-radius: 999px;
     font-weight: 900;
-    font-size: 0.82rem;
+    font-size: 0.78rem;
+    line-height: 1;
+    text-align: center;
+    white-space: nowrap;
   }
 
   .company-status::before {
-    content: "";
-    width: 11px;
-    height: 11px;
-    border-radius: 999px;
-    background: currentColor;
+    content: none;
   }
 
   .company-status--actif {
@@ -412,25 +465,43 @@ const styles = `
 
   .companies-actions {
     display: grid;
-    grid-template-columns: repeat(2, minmax(84px, 1fr));
-    gap: 12px;
+    grid-template-columns: 1fr;
+    gap: 8px;
     align-items: center;
+    width: 112px;
   }
 
   .companies-action-btn {
-    min-height: 42px;
+    min-height: 38px;
     border-radius: 14px;
     border: 1px solid #e8e1f7;
-    padding: 0 14px;
+    padding: 0 10px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: 6px;
     background: #ffffff;
     color: #17113f;
     font-weight: 900;
-    font-size: 0.82rem;
+    font-size: 0.76rem;
     white-space: nowrap;
+  }
+
+  .companies-action-emoji {
+    font-size: 0.9rem;
+    line-height: 1;
+  }
+
+  .company-region strong,
+  .company-address,
+  .company-date {
+    overflow-wrap: anywhere;
+  }
+
+  .company-region span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .companies-action-btn--view {
@@ -439,10 +510,10 @@ const styles = `
     color: #6326ee;
   }
 
-  .companies-action-btn--danger {
-    background: #fff0f4;
-    border-color: #ffe2ea;
-    color: #ff315d;
+  .companies-action-btn--suspend {
+    background: #fff7e8;
+    border-color: #fde8bb;
+    color: #9a5b00;
   }
 
   .companies-action-btn:disabled {
@@ -463,10 +534,14 @@ const styles = `
     align-items: center;
   }
 
+  .companies-pagination-btn[disabled] {
+    opacity: 0.48;
+  }
+
   .companies-modal-overlay {
     position: fixed;
     inset: 0;
-    z-index: 80;
+    z-index: 2000;
     display: grid;
     place-items: center;
     padding: 20px;
@@ -571,6 +646,10 @@ const styles = `
       display: grid;
     }
 
+    .companies-toolbar-actions {
+      justify-content: stretch;
+    }
+
     .company-form-grid,
     .company-detail-grid {
       grid-template-columns: 1fr;
@@ -583,31 +662,6 @@ function formatDate(value?: string | null) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "-";
   return date.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
-}
-
-function toCompanyForm(profile?: Partial<CompanyProfile> | null): CompanyFormState {
-  return {
-    nom: profile?.nom ?? "",
-    email: profile?.email ?? "",
-    telephone: profile?.telephone ?? "",
-    addresse: profile?.addresse ?? "",
-    nom_entreprise: profile?.nom_entreprise ?? "",
-    patente: profile?.patente ?? "",
-    rne: profile?.rne ?? "",
-    date_fondation: profile?.date_fondation ? String(profile.date_fondation).slice(0, 10) : "",
-    description: profile?.description ?? "",
-    nbr_employe: profile?.nbr_employe?.toString() ?? "1",
-    nbr_employe_handicape: profile?.nbr_employe_handicape?.toString() ?? "0",
-    secteur_activite: profile?.secteur_activite ?? "",
-    taille_entreprise: profile?.taille_entreprise ?? "",
-    siret: profile?.siret ?? "",
-    site_web: profile?.site_web ?? profile?.url_site ?? "",
-    politique_handicap: profile?.politique_handicap ?? "",
-    contact_rh_nom: profile?.contact_rh_nom ?? "",
-    contact_rh_email: profile?.contact_rh_email ?? "",
-    contact_rh_telephone: profile?.contact_rh_telephone ?? "",
-    profil_publique: Boolean(profile?.profil_publique),
-  };
 }
 
 function toUpdatePayload(form: CompanyFormState) {
@@ -652,11 +706,13 @@ function AdminCompaniesPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalEmployers, setTotalEmployers] = useState(0);
+  const [isClient, setIsClient] = useState(false);
   const [modalMode, setModalMode] = useState<ModalMode>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [selectedCompany, setSelectedCompany] = useState<CompanyProfile | null>(null);
   const [form, setForm] = useState<CompanyFormState>(EMPTY_FORM);
   const [formError, setFormError] = useState<string | null>(null);
+  const [viewError, setViewError] = useState<string | null>(null);
   const [modalLoading, setModalLoading] = useState(false);
   const [actionInProgress, setActionInProgress] = useState<string | null>(null);
 
@@ -696,7 +752,7 @@ function AdminCompaniesPage() {
   }, [page, search, status]);
 
   const loadCompanyProfile = useCallback(async (id: string) => {
-    const response = await authenticatedFetch(construireUrlApi(`/api/profil/admin/entreprises/${id}`));
+    const response = await authenticatedFetch(construireUrlApi(`/api/entreprises/profil/${id}`));
     const data: CompanyPayload = await response.json().catch(() => ({}));
 
     if (!response.ok) {
@@ -712,6 +768,10 @@ function AdminCompaniesPage() {
     }
 
     return normalizeCompany(raw as CompanyProfile);
+  }, []);
+
+  useEffect(() => {
+    setIsClient(true);
   }, []);
 
   useEffect(() => {
@@ -731,34 +791,21 @@ function AdminCompaniesPage() {
     setSelectedCompany(null);
     setForm(EMPTY_FORM);
     setFormError(null);
+    setViewError(null);
     setModalMode("create");
   };
 
   const openView = async (employer: EmployerAccount) => {
+    setModalMode("view");
+    setSelectedCompany(null);
+    setViewError(null);
     try {
       setModalLoading(true);
       setFormError(null);
       setSelectedId(employer.id_utilisateur);
       setSelectedCompany(await loadCompanyProfile(employer.id_utilisateur));
-      setModalMode("view");
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Unable to load company profile.");
-    } finally {
-      setModalLoading(false);
-    }
-  };
-
-  const openEdit = async (employer: EmployerAccount) => {
-    try {
-      setModalLoading(true);
-      setFormError(null);
-      setSelectedId(employer.id_utilisateur);
-      const profile = await loadCompanyProfile(employer.id_utilisateur);
-      setSelectedCompany(profile);
-      setForm(toCompanyForm(profile));
-      setModalMode("edit");
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Unable to load company profile.");
+      setViewError(cause instanceof Error ? cause.message : "Unable to load company profile.");
     } finally {
       setModalLoading(false);
     }
@@ -770,6 +817,7 @@ function AdminCompaniesPage() {
     setSelectedCompany(null);
     setForm(EMPTY_FORM);
     setFormError(null);
+    setViewError(null);
     setModalLoading(false);
   };
 
@@ -814,52 +862,25 @@ function AdminCompaniesPage() {
     }
   };
 
-  const changeStatus = async (employer: EmployerAccount, nextStatus: EmployerStatus) => {
+  const suspendCompany = async (employer: EmployerAccount) => {
+    if (employer.statut === "suspendu") return;
     try {
       setActionInProgress(employer.id_utilisateur);
       setError(null);
 
-      const response = await authenticatedFetch(
-        construireUrlApi(`/api/admin/utilisateurs/${employer.id_utilisateur}/statut`),
-        {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ statut: nextStatus }),
-        },
-      );
-
-      const data: { message?: string } = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        throw new Error(data.message || "Unable to update company status.");
-      }
-
-      await refreshAfterAction();
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Unable to update company status.");
-    } finally {
-      setActionInProgress(null);
-    }
-  };
-
-  const deleteCompany = async (employer: EmployerAccount) => {
-    const confirmed = window.confirm(`Delete company account for ${employer.nom || employer.email}?`);
-    if (!confirmed) return;
-
-    try {
-      setActionInProgress(employer.id_utilisateur);
-      setError(null);
-
-      const response = await authenticatedFetch(construireUrlApi(`/api/admin/utilisateurs/${employer.id_utilisateur}`), {
-        method: "DELETE",
+      const response = await authenticatedFetch(construireUrlApi(`/api/admin/utilisateurs/${employer.id_utilisateur}/statut`), {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ statut: "suspendu" }),
       });
       const data: { message?: string } = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(data.message || "Unable to delete company.");
+        throw new Error(data.message || "Unable to suspend company.");
       }
 
       await refreshAfterAction();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Unable to delete company.");
+      setError(cause instanceof Error ? cause.message : "Unable to suspend company.");
     } finally {
       setActionInProgress(null);
     }
@@ -896,10 +917,6 @@ function AdminCompaniesPage() {
                 </svg>
               </span>
             </label>
-            <button className="companies-toolbar-btn" onClick={() => void loadEmployers()} type="button">
-              <RefreshCw aria-hidden="true" />
-              <span>Refresh</span>
-            </button>
             <div className="companies-toolbar-actions">
               <button className="companies-toolbar-btn companies-toolbar-btn--primary" onClick={openCreate} type="button">
                 <Plus aria-hidden="true" />
@@ -912,12 +929,19 @@ function AdminCompaniesPage() {
 
           <div className="companies-table-wrap">
             <table className="companies-table">
+              <colgroup>
+                <col style={{ width: "246px" }} />
+                <col style={{ width: "166px" }} />
+                <col style={{ width: "118px" }} />
+                <col style={{ width: "208px" }} />
+                <col style={{ width: "104px" }} />
+                <col style={{ width: "128px" }} />
+              </colgroup>
               <thead>
                 <tr>
                   <th>Company</th>
                   <th>Contact</th>
                   <th>Status</th>
-                  <th>Region</th>
                   <th>Address</th>
                   <th>Created</th>
                   <th>Actions</th>
@@ -926,16 +950,16 @@ function AdminCompaniesPage() {
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={7}>Loading companies...</td>
+                    <td colSpan={6}>Loading companies...</td>
                   </tr>
                 ) : employers.length === 0 ? (
                   <tr>
-                    <td colSpan={7}>No companies match these filters.</td>
+                    <td colSpan={6}>No companies match these filters.</td>
                   </tr>
                 ) : (
                   employers.map((employer) => {
                     const isBusy = actionInProgress === employer.id_utilisateur;
-                    const nextStatus: EmployerStatus = employer.statut === "actif" ? "suspendu" : "actif";
+                    const contactValue = employer.telephone?.trim() || employer.email;
 
                     return (
                       <tr key={employer.id_utilisateur}>
@@ -945,44 +969,38 @@ function AdminCompaniesPage() {
                               <Building2 />
                             </span>
                             <div>
-                              <strong>{employer.nom_entreprise || employer.nom || "Company"}</strong>
-                              <span>{employer.email}</span>
+                              <strong className="company-name">{employer.nom_entreprise || employer.nom || "Company"}</strong>
+                              <span className="company-email">{employer.email}</span>
                               <span className="company-verified">Verified</span>
                             </div>
                           </div>
                         </td>
                         <td>
-                          <strong>{employer.telephone || "-"}</strong>
-                          <span className="company-contact-id">{employer.id_utilisateur.slice(0, 8)}</span>
+                          <div className="company-contact">
+                            <strong>{contactValue || "-"}</strong>
+                          </div>
                         </td>
                         <td>
                           <span className={`company-status company-status--${employer.statut}`}>
                             {STATUS_LABELS[employer.statut] || employer.statut}
                           </span>
                         </td>
-                        <td>
-                          <strong>{employer.gouvernorat || employer.region || "-"}</strong>
-                          <span>{employer.delegation || "-"}</span>
-                        </td>
-                        <td title={employer.addresse || undefined}>{employer.addresse || "-"}</td>
-                        <td>{formatDate(employer.created_at)}</td>
+                        <td className="company-address" title={employer.addresse || undefined}>{employer.addresse || "-"}</td>
+                        <td className="company-date">{formatDate(employer.created_at)}</td>
                         <td>
                           <div className="companies-actions">
                             <button className="companies-action-btn companies-action-btn--view" onClick={() => void openView(employer)} disabled={isBusy} type="button">
                               <Eye aria-hidden="true" />
                               <span>View</span>
                             </button>
-                            <button className="companies-action-btn" onClick={() => void openEdit(employer)} disabled={isBusy} type="button">
-                              <Pencil aria-hidden="true" />
-                              <span>Edit</span>
-                            </button>
-                            <button className="companies-action-btn" onClick={() => void changeStatus(employer, nextStatus)} disabled={isBusy} type="button">
-                              <CirclePause aria-hidden="true" />
-                              <span>{employer.statut === "actif" ? "Suspend" : "Activate"}</span>
-                            </button>
-                            <button className="companies-action-btn companies-action-btn--danger" onClick={() => void deleteCompany(employer)} disabled={isBusy} type="button">
-                              <Trash2 aria-hidden="true" />
-                              <span>Delete</span>
+                            <button
+                              className="companies-action-btn companies-action-btn--suspend"
+                              onClick={() => void suspendCompany(employer)}
+                              disabled={isBusy || employer.statut === "suspendu"}
+                              type="button"
+                            >
+                              <span className="companies-action-emoji" aria-hidden="true">⏸️</span>
+                              <span>{employer.statut === "suspendu" ? "Suspended" : "Suspend"}</span>
                             </button>
                           </div>
                         </td>
@@ -999,10 +1017,20 @@ function AdminCompaniesPage() {
               Page {page} / {totalPages} - {totalEmployers} company account(s)
             </span>
             <div className="companies-pagination-controls">
-              <Button variant="secondary" onClick={() => setPage((current) => Math.max(1, current - 1))} disabled={page <= 1}>
+              <Button
+                variant="secondary"
+                className="companies-pagination-btn"
+                onClick={() => setPage((current) => Math.max(1, current - 1))}
+                disabled={page <= 1}
+              >
                 Previous
               </Button>
-              <Button variant="secondary" onClick={() => setPage((current) => Math.min(totalPages, current + 1))} disabled={page >= totalPages}>
+              <Button
+                variant="secondary"
+                className="companies-pagination-btn"
+                onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
+                disabled={page >= totalPages}
+              >
                 Next
               </Button>
             </div>
@@ -1010,7 +1038,7 @@ function AdminCompaniesPage() {
         </section>
       </section>
 
-      {modalMode && (modalMode === "view" ? selectedCompany : true) ? (
+      {isClient && modalMode ? createPortal(
         <div
           className="companies-modal-overlay"
           role="dialog"
@@ -1022,56 +1050,63 @@ function AdminCompaniesPage() {
             className="companies-modal-card"
             onClick={(event) => event.stopPropagation()}
           >
-            {modalMode === "view" && selectedCompany ? (
+            {modalMode === "view" ? (
               <div>
                 <div className="companies-modal-header">
                   <div>
                     <p className="companies-kicker">Company profile</p>
-                    <h2 className="companies-modal-title">{selectedCompany.nom_entreprise || selectedCompany.nom || "Company"}</h2>
-                    <p className="texte-secondaire">{selectedCompany.email} - {selectedCompany.statut}</p>
+                    <h2 className="companies-modal-title">{selectedCompany?.nom_entreprise || selectedCompany?.nom || "Company"}</h2>
+                    <p className="texte-secondaire">{selectedCompany?.email || "-"}</p>
                   </div>
                   <Button variant="ghost" onClick={closeModal}>Close</Button>
                 </div>
+                {modalLoading ? <p>Loading profile...</p> : null}
+                {viewError ? <p className="message message-erreur">{viewError}</p> : null}
+                {!modalLoading && !viewError && selectedCompany ? (
+                  <>
+                    <div className="company-detail-grid">
+                      <div className="company-detail-box">
+                        <strong>Contact</strong>
+                        <p>{selectedCompany.nom} - {selectedCompany.telephone || "-"}</p>
+                      </div>
+                      <div className="company-detail-box">
+                        <strong>Status</strong>
+                        <p>{STATUS_LABELS[selectedCompany.statut] || selectedCompany.statut}</p>
+                      </div>
+                      <div className="company-detail-box">
+                        <strong>Legal</strong>
+                        <p>Patente: {selectedCompany.patente || "-"}</p>
+                        <p>RNE: {selectedCompany.rne || "-"}</p>
+                        <p>Siret: {selectedCompany.siret || "-"}</p>
+                      </div>
+                      <div className="company-detail-box">
+                        <strong>RH</strong>
+                        <p>{selectedCompany.contact_rh_nom || "-"}</p>
+                        <p>{selectedCompany.contact_rh_email || "-"}</p>
+                        <p>{selectedCompany.contact_rh_telephone || "-"}</p>
+                      </div>
+                      <div className="company-detail-box">
+                        <strong>Company info</strong>
+                        <p>{selectedCompany.description || "-"}</p>
+                      </div>
+                      <div className="company-detail-box">
+                        <strong>Access</strong>
+                        <p>Visible: {selectedCompany.profil_publique ? "Yes" : "No"}</p>
+                        <p>Created: {formatDate(selectedCompany.created_at)}</p>
+                      </div>
+                    </div>
 
-                <div className="company-detail-grid">
-                  <div className="company-detail-box">
-                    <strong>Contact</strong>
-                    <p>{selectedCompany.nom} - {selectedCompany.telephone || "-"}</p>
-                  </div>
-                  <div className="company-detail-box">
-                    <strong>Status</strong>
-                    <p>{STATUS_LABELS[selectedCompany.statut] || selectedCompany.statut}</p>
-                  </div>
-                  <div className="company-detail-box">
-                    <strong>Legal</strong>
-                    <p>Patente: {selectedCompany.patente || "-"}</p>
-                    <p>RNE: {selectedCompany.rne || "-"}</p>
-                    <p>Siret: {selectedCompany.siret || "-"}</p>
-                  </div>
-                  <div className="company-detail-box">
-                    <strong>RH</strong>
-                    <p>{selectedCompany.contact_rh_nom || "-"}</p>
-                    <p>{selectedCompany.contact_rh_email || "-"}</p>
-                    <p>{selectedCompany.contact_rh_telephone || "-"}</p>
-                  </div>
-                  <div className="company-detail-box">
-                    <strong>Company info</strong>
-                    <p>{selectedCompany.description || "-"}</p>
-                  </div>
-                  <div className="company-detail-box">
-                    <strong>Access</strong>
-                    <p>Visible: {selectedCompany.profil_publique ? "Yes" : "No"}</p>
-                    <p>Created: {formatDate(selectedCompany.created_at)}</p>
-                  </div>
-                </div>
-
-                <div className="company-detail-actions">
-                  <Button variant="secondary" onClick={() => void openEdit(selectedCompany)}>Edit</Button>
-                  <Button variant="ghost" onClick={() => void changeStatus(selectedCompany, selectedCompany.statut === "actif" ? "suspendu" : "actif")}>
-                    {selectedCompany.statut === "actif" ? "Suspend" : "Activate"}
-                  </Button>
-                  <Button variant="danger" onClick={() => void deleteCompany(selectedCompany)}>Delete</Button>
-                </div>
+                    <div className="company-detail-actions">
+                      <Button
+                        variant="secondary"
+                        onClick={() => void suspendCompany(selectedCompany)}
+                        disabled={selectedCompany.statut === "suspendu"}
+                      >
+                        ⏸️ {selectedCompany.statut === "suspendu" ? "Suspended" : "Suspend"}
+                      </Button>
+                    </div>
+                  </>
+                ) : null}
               </div>
             ) : (
               <div>
@@ -1197,7 +1232,8 @@ function AdminCompaniesPage() {
               </div>
             )}
           </Card>
-        </div>
+        </div>,
+        document.body,
       ) : null}
     </main>
   );

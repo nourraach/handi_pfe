@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { CalendarDays, ChevronDown, MapPin, MoreVertical, RefreshCw, Search, Video } from "lucide-react";
+import { CalendarDays, ChevronDown, MapPin, RefreshCw, Search, Video } from "lucide-react";
 import { authenticatedFetch } from "@/lib/auth-utils";
 import { construireUrlApi } from "@/lib/config";
 import {
@@ -160,30 +160,46 @@ const interviewBoardStyles = `
   }
 
   .interviews-board__table-wrap {
-    overflow: auto;
+    overflow-x: auto;
+    overflow-y: hidden;
     border-radius: 18px;
     border: 1px solid #ede7fa;
     background: #ffffff;
+    scrollbar-width: thin;
+    scrollbar-color: #d8c8fb transparent;
+  }
+
+  .interviews-board__table-wrap::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+    display: block;
+  }
+
+  .interviews-board__table-wrap::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: #d8c8fb;
   }
 
   .interviews-board__table {
     width: 100%;
-    min-width: 1060px;
+    min-width: 940px;
+    table-layout: fixed;
     border-collapse: separate;
     border-spacing: 0;
   }
 
   .interviews-board__table th {
     height: 56px;
-    padding: 16px 20px;
+    padding: 14px 12px;
     background: #f8f4ff;
     color: #5f5688;
     text-align: left;
     text-transform: uppercase;
-    font-size: 0.76rem;
+    font-size: 0.7rem;
     font-weight: 950;
     letter-spacing: 0.02em;
     border-bottom: 1px solid #ede7fa;
+    white-space: nowrap;
   }
 
   .interviews-board__sort {
@@ -193,19 +209,20 @@ const interviewBoardStyles = `
   }
 
   .interviews-board__sort::after {
-    content: "↕";
+    content: "";
     color: #b8afd5;
     font-size: 0.7rem;
   }
 
   .interviews-board__table td {
-    min-height: 96px;
-    padding: 24px 20px;
+    height: 116px;
+    padding: 18px 12px;
     vertical-align: middle;
     border-bottom: 1px solid #ede7fa;
     color: #171142;
-    font-size: 0.9rem;
+    font-size: 0.84rem;
     font-weight: 750;
+    line-height: 1.35;
   }
 
   .interviews-board__table tr:last-child td {
@@ -214,20 +231,32 @@ const interviewBoardStyles = `
 
   .interviews-board__schedule {
     display: grid;
-    grid-template-columns: 44px minmax(0, 1fr);
-    gap: 14px;
+    grid-template-columns: 36px minmax(0, 1fr);
+    gap: 10px;
     align-items: center;
+    min-width: 0;
   }
 
   .interviews-board__schedule-icon {
-    width: 42px;
-    height: 42px;
-    border-radius: 14px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    width: 36px;
+    height: 36px;
+    flex: 0 0 36px;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
     background: #f0e8ff;
     color: #722ff3;
+    line-height: 1;
+  }
+
+  .interviews-board__schedule-icon svg {
+    width: 17px;
+    height: 17px;
+    display: block;
+    margin: auto;
   }
 
   .interviews-board__schedule strong,
@@ -236,6 +265,11 @@ const interviewBoardStyles = `
     display: block;
     color: #171142;
     font-weight: 950;
+    min-width: 0;
+  }
+
+  .interviews-board__schedule strong {
+    font-size: 0.82rem;
   }
 
   .interviews-board__schedule span,
@@ -247,18 +281,20 @@ const interviewBoardStyles = `
     font-size: 0.8rem;
     line-height: 1.4;
     font-weight: 700;
+    min-width: 0;
   }
 
   .interviews-board__candidate {
     display: grid;
-    grid-template-columns: 48px minmax(0, 1fr);
-    gap: 14px;
+    grid-template-columns: 38px minmax(0, 1fr);
+    gap: 10px;
     align-items: center;
+    min-width: 0;
   }
 
   .interviews-board__avatar {
-    width: 44px;
-    height: 44px;
+    width: 38px;
+    height: 38px;
     border-radius: 999px;
     display: inline-flex;
     align-items: center;
@@ -267,6 +303,33 @@ const interviewBoardStyles = `
     color: #2a1b58;
     font-weight: 950;
     box-shadow: inset 0 0 0 2px #ffffff;
+    font-size: 0.72rem;
+  }
+
+  .interviews-board__candidate > div,
+  .interviews-board__company {
+    min-width: 0;
+  }
+
+  .interviews-board__candidate strong,
+  .interviews-board__company strong {
+    overflow-wrap: anywhere;
+  }
+
+  .interviews-board__candidate span,
+  .interviews-board__company span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .interviews-board__candidate span {
+    white-space: nowrap;
+  }
+
+  .interviews-board__company span {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
   }
 
   .interviews-board__type,
@@ -276,10 +339,23 @@ const interviewBoardStyles = `
     gap: 9px;
     color: #3f3474;
     font-weight: 850;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .interviews-board__type {
+    white-space: nowrap;
+  }
+
+  .interviews-board__location {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .interviews-board__type svg,
   .interviews-board__location svg {
+    flex: 0 0 auto;
     width: 17px;
     height: 17px;
     color: #762fff;
@@ -294,6 +370,7 @@ const interviewBoardStyles = `
     padding: 0 14px;
     font-size: 0.78rem;
     font-weight: 950;
+    white-space: nowrap;
   }
 
   .interviews-board__status::before {
@@ -322,18 +399,6 @@ const interviewBoardStyles = `
   .interviews-board__status--cancelled {
     background: #ffe8ee;
     color: #d92f58;
-  }
-
-  .interviews-board__actions {
-    width: 36px;
-    height: 36px;
-    border: 0;
-    border-radius: 12px;
-    background: transparent;
-    color: #170d49;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
   }
 
   .interviews-board__pagination {
@@ -554,6 +619,14 @@ export default function AdminEntretiensPage() {
 
           <div className="interviews-board__table-wrap">
             <table className="interviews-board__table">
+              <colgroup>
+                <col style={{ width: "150px" }} />
+                <col style={{ width: "180px" }} />
+                <col style={{ width: "200px" }} />
+                <col style={{ width: "92px" }} />
+                <col style={{ width: "130px" }} />
+                <col style={{ width: "188px" }} />
+              </colgroup>
               <thead>
                 <tr>
                   <th><span className="interviews-board__sort">Schedule</span></th>
@@ -562,17 +635,16 @@ export default function AdminEntretiensPage() {
                   <th>Type</th>
                   <th>Status</th>
                   <th>Location</th>
-                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={7}>Loading interviews...</td>
+                    <td colSpan={6}>Loading interviews...</td>
                   </tr>
                 ) : entretiensPage.length === 0 ? (
                   <tr>
-                    <td colSpan={7}>No interviews match these filters.</td>
+                    <td colSpan={6}>No interviews match these filters.</td>
                   </tr>
                 ) : (
                   entretiensPage.map((item) => {
@@ -626,11 +698,6 @@ export default function AdminEntretiensPage() {
                             <MapPin aria-hidden="true" />
                             {location}
                           </span>
-                        </td>
-                        <td>
-                          <button className="interviews-board__actions" type="button" aria-label="Interview actions">
-                            <MoreVertical aria-hidden="true" />
-                          </button>
                         </td>
                       </tr>
                     );
