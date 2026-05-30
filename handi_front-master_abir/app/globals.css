@@ -2441,12 +2441,22 @@ button {
 
 .app-shell-admin .app-main {
   width: auto;
+  min-width: 0;
   margin: 0;
   padding: 16px 0 40px;
 }
 
+.app-shell-admin .page-centree,
+.app-shell-admin .section-page,
+.app-shell-admin .app-page {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  margin-inline: 0;
+}
+
 .app-shell-admin .section-page {
-  padding-top: 0;
+  padding: 0 0 40px;
 }
 
 html:has(.app-shell-admin),
@@ -16320,6 +16330,99 @@ body:has(.app-shell-admin)::-webkit-scrollbar,
 
   .admin-reports-summary {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1280px) {
+  .app-shell-admin {
+    --sidebar-column-width: 280px;
+    --shell-inline-padding: 18px;
+    --shell-grid-gap: 18px;
+    grid-template-columns: 280px minmax(0, 1fr);
+    gap: 18px;
+    padding-inline: 18px;
+  }
+
+  .app-shell-admin .app-header-inner {
+    padding-inline: 12px;
+  }
+
+  .app-shell-admin .admin-reports-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .app-shell-admin .admin-interviews-toolbar,
+  .app-shell-admin .admin-applications-toolbar,
+  .app-shell-admin .admin-employers-toolbar,
+  .app-shell-admin .admin-reports-toolbar,
+  .app-shell-admin .companies-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .app-shell-admin .admin-applications-summary,
+  .app-shell-admin .admin-employers-summary,
+  .app-shell-admin .admin-reports-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .app-shell-admin {
+    grid-template-columns: 240px minmax(0, 1fr);
+    gap: 14px;
+    padding-inline: 12px;
+  }
+
+  .app-shell-admin .nav-chip,
+  .app-shell-admin .candidate-sidebar-ref__item {
+    min-height: 50px;
+  }
+
+  .app-shell-admin .admin-interviews-hero,
+  .app-shell-admin .admin-queue-hero,
+  .app-shell-admin .admin-reports-hero,
+  .app-shell-admin .companies-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .app-shell-admin .admin-interviews-summary,
+  .app-shell-admin .admin-applications-summary,
+  .app-shell-admin .admin-employers-summary,
+  .app-shell-admin .admin-reports-summary {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 680px) {
+  .app-shell-admin {
+    grid-template-columns: 216px minmax(0, 1fr);
+    gap: 10px;
+    padding-inline: 8px;
+  }
+
+  .app-shell-admin .app-header-inner {
+    border-radius: 24px;
+    padding: 12px 8px;
+  }
+
+  .app-shell-admin .candidate-sidebar-ref__item {
+    gap: 8px;
+    padding-inline: 8px;
+  }
+
+  .app-shell-admin .candidate-sidebar-ref__item-copy strong {
+    font-size: 0.86rem;
+  }
+
+  .app-shell-admin .candidate-sidebar-ref__item-copy small {
+    font-size: 0.7rem;
+  }
+
+  .app-shell-admin .admin-interviews-panel,
+  .app-shell-admin .admin-reports-list-panel,
+  .app-shell-admin .companies-panel,
+  .app-shell-admin .admin-queue-page .carte.bloc-principal {
+    padding: 12px;
   }
 }
 

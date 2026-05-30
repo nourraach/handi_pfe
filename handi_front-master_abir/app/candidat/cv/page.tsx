@@ -749,10 +749,19 @@ export default function CandidateCvPage() {
   };
 
   const previewInNewTab = () => {
-    const win = window.open("", "_blank", "noopener,noreferrer");
-    if (!win) return;
-    win.document.write(previewHtml);
-    win.document.close();
+    const previewBlob = new Blob([previewHtml], { type: "text/html;charset=utf-8" });
+    const previewUrl = window.URL.createObjectURL(previewBlob);
+    const win = window.open(previewUrl, "_blank");
+
+    if (!win) {
+      window.URL.revokeObjectURL(previewUrl);
+      setMessage("Popup blocked. Use the live preview panel on the right.");
+      return;
+    }
+
+    window.setTimeout(() => {
+      window.URL.revokeObjectURL(previewUrl);
+    }, 1000);
   };
 
   const syncPreviewFrameHeight = useCallback(() => {

@@ -22,7 +22,7 @@ function creerDemandesParDefaut(): DemandeEnAttente[] {
       statut: "en_attente",
       telephone: "0123456789",
       addresse: "123 Test Street, Paris",
-      profil_candidat: {} as any,
+      profil_candidat: {},
       profil_entreprise: null,
       created_at: "2024-03-15T10:00:00Z",
     },
@@ -35,7 +35,7 @@ function creerDemandesParDefaut(): DemandeEnAttente[] {
       telephone: "0987654321",
       addresse: "456 Demo Avenue, Lyon",
       profil_candidat: null,
-      profil_entreprise: {} as any,
+      profil_entreprise: {},
       created_at: "2024-03-16T14:30:00Z",
     },
   ];
@@ -223,9 +223,6 @@ export function TableauDemandesAdmin() {
         <p className="texte-secondaire" style={{ margin: 0 }}>
           This list shows accounts currently marked with the <strong>pending</strong> status.
         </p>
-        <button className="bouton-secondaire" onClick={() => void chargerDemandes()} type="button">
-          Refresh
-        </button>
       </div>
 
       {message ? <p className="message message-info">{message}</p> : null}

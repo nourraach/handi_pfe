@@ -299,6 +299,19 @@ export class AuthService {
     `);
 
     const lien = `${env.frontendUrl}/reset?token=${token}`;
+
+    if (!env.smtpHost) {
+      console.warn(
+        "[auth-service] SMTP non configure: lien de reinitialisation genere en mode local",
+        { email: utilisateur.email, lien },
+      );
+      return {
+        message: "SMTP non configure. Un lien de reinitialisation a ete genere pour le test local.",
+        token,
+        lien_reset: lien,
+      };
+    }
+
     await this.courrielService.envoyerCourrielReset(utilisateur.email, utilisateur.nom, lien);
     return { message: "Un email de reinitialisation a ete envoye." };
   }

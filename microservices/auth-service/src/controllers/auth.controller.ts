@@ -51,7 +51,12 @@ export class AuthController {
   demanderReset = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const resultat: any = await this.authService.demanderReset(req.body);
-      const payload = resultat.token ? { token: resultat.token } : undefined;
+      const payload = resultat.token || resultat.lien_reset
+        ? {
+            ...(resultat.token ? { token: resultat.token } : {}),
+            ...(resultat.lien_reset ? { lien_reset: resultat.lien_reset } : {}),
+          }
+        : undefined;
       return reponseSucces(res, 200, resultat.message, payload);
     } catch (erreur) {
       return next(erreur);

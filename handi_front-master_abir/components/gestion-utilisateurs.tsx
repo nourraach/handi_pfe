@@ -102,8 +102,8 @@ export function GestionUtilisateurs() {
       if (response.ok) {
         const data = await response.json();
         setUtilisateurs(data.donnees.utilisateurs || []);
-        setTotalPages(data.donnees.totalPages || 1);
-        setTotalUtilisateurs(data.donnees.total || 0);
+        setTotalPages(data.donnees.pagination?.totalPages || data.donnees.totalPages || 1);
+        setTotalUtilisateurs(data.donnees.pagination?.total || data.donnees.total || 0);
         setErreur(null);
       } else {
         setErreur("Unable to load users.");
@@ -319,6 +319,14 @@ export function GestionUtilisateurs() {
   const getRoleLabel = (role: string) => ROLE_LABELS[role] || role;
 
   const utilisateursAffiches = recherche ? utilisateursFiltres : utilisateurs;
+  const filtresActifs = Boolean(recherche.trim() || filtres.role || filtres.statut || filtres.dateDebut || filtres.dateFin);
+  const usersVisibleCount = utilisateursAffiches.length;
+  const usersLoadedCount = utilisateurs.length;
+  const usersListCount = filtresActifs ? usersVisibleCount : usersLoadedCount;
+  const usersActiveCount = utilisateursAffiches.filter((user) => user.statut === "actif").length;
+  const usersPendingCount = utilisateursAffiches.filter((user) => user.statut === "en_attente").length;
+  const usersSuspendedCount = utilisateursAffiches.filter((user) => user.statut === "suspendu").length;
+  const totalDisplayCount = totalUtilisateurs || usersLoadedCount || usersVisibleCount;
 
   return (
     <div className="space-y-6">
@@ -340,25 +348,59 @@ export function GestionUtilisateurs() {
         </div>
       )}
 
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-4">
-          <div className="lg:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Search</label>
+      <div className="rounded-2xl border border-slate-200 bg-white/95 p-4 shadow-sm">
+        <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+          <div className="min-w-0">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">User governance</p>
+            <h3 className="mt-1 text-lg font-semibold text-slate-900">Search and manage platform users</h3>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => setModeCreation(true)}
+              className="inline-flex h-10 items-center rounded-full bg-purple-950 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-purple-900"
+            >
+              New
+            </button>
+            <button
+              onClick={exporterUtilisateurs}
+              className="inline-flex h-10 items-center rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-purple-200 hover:text-purple-950"
+            >
+              Export
+            </button>
+            {filtresActifs ? (
+              <button
+                onClick={() => {
+                  setRecherche("");
+                  setFiltres({ role: "", statut: "", dateDebut: "", dateFin: "" });
+                  setPage(1);
+                }}
+                className="inline-flex h-10 items-center rounded-full border border-slate-200 bg-slate-50 px-4 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:bg-white"
+              >
+                Reset filters
+              </button>
+            ) : null}
+          </div>
+        </div>
+
+        <div className="mt-4 grid gap-3 xl:grid-cols-[minmax(0,1.7fr)_repeat(4,minmax(140px,1fr))]">
+          <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-3">
+            <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Search</label>
             <input
               type="text"
               value={recherche}
               onChange={(event) => setRecherche(event.target.value)}
               placeholder="Name, email, role..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-800 outline-none transition focus:border-purple-300 focus:ring-4 focus:ring-purple-100"
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Role</label>
+          <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-3">
+            <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Role</label>
             <select
               value={filtres.role}
               onChange={(event) => setFiltres((prev) => ({ ...prev, role: event.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-800 outline-none transition focus:border-purple-300 focus:ring-4 focus:ring-purple-100"
             >
               <option value="">All roles</option>
               <option value="candidat">Candidate</option>
@@ -369,12 +411,12 @@ export function GestionUtilisateurs() {
             </select>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+          <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-3">
+            <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Status</label>
             <select
               value={filtres.statut}
               onChange={(event) => setFiltres((prev) => ({ ...prev, statut: event.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-800 outline-none transition focus:border-purple-300 focus:ring-4 focus:ring-purple-100"
             >
               <option value="">All statuses</option>
               <option value="actif">Active</option>
@@ -384,79 +426,55 @@ export function GestionUtilisateurs() {
             </select>
           </div>
 
-          <div className="flex items-end space-x-2">
-            <button
-              onClick={() => setModeCreation(true)}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-            >
-              New
-            </button>
-            <button
-              onClick={exporterUtilisateurs}
-              className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
-            >
-              Export
-            </button>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Start date</label>
+          <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-3">
+            <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Start date</label>
             <input
               type="date"
               value={filtres.dateDebut}
               onChange={(event) => setFiltres((prev) => ({ ...prev, dateDebut: event.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-800 outline-none transition focus:border-purple-300 focus:ring-4 focus:ring-purple-100"
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">End date</label>
+          <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-3">
+            <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">End date</label>
             <input
               type="date"
               value={filtres.dateFin}
               onChange={(event) => setFiltres((prev) => ({ ...prev, dateFin: event.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-800 outline-none transition focus:border-purple-300 focus:ring-4 focus:ring-purple-100"
             />
           </div>
         </div>
-      </div>
 
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Statistics</h3>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="text-center">
-            <div className="text-2xl font-bold text-blue-600">{totalUtilisateurs}</div>
-            <div className="text-gray-600">Total users</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-green-600">
-              {utilisateurs.filter((user) => user.statut === "actif").length}
-            </div>
-            <div className="text-gray-600">Active</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-yellow-600">
-              {utilisateurs.filter((user) => user.statut === "en_attente").length}
-            </div>
-            <div className="text-gray-600">Pending</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-red-600">
-              {utilisateurs.filter((user) => user.statut === "suspendu").length}
-            </div>
-            <div className="text-gray-600">Suspended</div>
-          </div>
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          <span className="inline-flex items-center rounded-full bg-purple-950 px-3 py-1 text-xs font-semibold text-white">
+            Visible {usersVisibleCount}
+          </span>
+          <span className="inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-600">
+            Loaded {usersLoadedCount}
+          </span>
+          <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+            Active {usersActiveCount}
+          </span>
+          <span className="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
+            Pending {usersPendingCount}
+          </span>
+          <span className="inline-flex items-center rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-xs font-semibold text-rose-700">
+            Suspended {usersSuspendedCount}
+          </span>
+          <span className="ml-auto text-xs font-medium text-slate-500">
+            Total in system: {totalDisplayCount}
+          </span>
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow-md overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200">
+        <div className="bg-white rounded-lg shadow-md overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-200">
           <h3 className="text-lg font-semibold text-gray-900">
-            User list ({recherche ? utilisateursFiltres.length : totalUtilisateurs})
+            User list ({usersListCount})
           </h3>
-        </div>
+          </div>
 
         {chargement ? (
           <div className="p-8 text-center">
@@ -647,11 +665,35 @@ function ModalUtilisateur({ utilisateur, modeCreation, onSave, onCancel }: Modal
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-md">
-        <h3 className="text-lg font-semibold mb-4">{modeCreation ? "Create user" : "Edit user"}</h3>
+    <div
+      className="fixed inset-0 z-[200] flex items-center justify-center overflow-y-auto bg-black/60 px-4 py-6"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="admin-user-modal-title"
+    >
+      <div className="flex max-h-[calc(100vh-3rem)] w-full max-w-2xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl">
+        <div className="flex items-start justify-between gap-4 border-b border-slate-200 px-5 py-4">
+          <div>
+            <h3 id="admin-user-modal-title" className="text-lg font-semibold text-slate-950">
+              {modeCreation ? "Create user" : "Edit user"}
+            </h3>
+            <p className="mt-1 text-sm text-slate-500">
+              Complete the account details without leaving the admin workspace.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onCancel}
+            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-200 text-xl leading-none text-slate-500 transition hover:border-purple-200 hover:bg-purple-50 hover:text-purple-950"
+            aria-label="Close user form"
+          >
+            x
+          </button>
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 py-4">
+          <div className="grid gap-4 md:grid-cols-2">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
             <input
@@ -673,7 +715,9 @@ function ModalUtilisateur({ utilisateur, modeCreation, onSave, onCancel }: Modal
               required
             />
           </div>
+          </div>
 
+          <div className="grid gap-4 md:grid-cols-2">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
             <select
@@ -716,6 +760,7 @@ function ModalUtilisateur({ utilisateur, modeCreation, onSave, onCancel }: Modal
               </select>
             </div>
           )}
+          </div>
 
           {roleInvitation && (
             <div className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
@@ -723,72 +768,72 @@ function ModalUtilisateur({ utilisateur, modeCreation, onSave, onCancel }: Modal
             </div>
           )}
 
-          {roleInterne && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Gouvernorat</label>
-              <select
-                value={formData.gouvernorat}
-                onChange={(event) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    gouvernorat: event.target.value,
-                    delegation: "",
-                  }))
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required={roleInterne}
-              >
-                <option value="">Selectionnez un gouvernorat</option>
-                {TUNISIAN_GOVERNORATE_OPTIONS.map((gouvernorat) => (
-                  <option key={gouvernorat} value={gouvernorat}>
-                    {gouvernorat}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
+          {roleInterne ? (
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Gouvernorat</label>
+                <select
+                  value={formData.gouvernorat}
+                  onChange={(event) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      gouvernorat: event.target.value,
+                      delegation: "",
+                    }))
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required={roleInterne}
+                >
+                  <option value="">Selectionnez un gouvernorat</option>
+                  {TUNISIAN_GOVERNORATE_OPTIONS.map((gouvernorat) => (
+                    <option key={gouvernorat} value={gouvernorat}>
+                      {gouvernorat}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-          {roleInterne && formData.gouvernorat && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Delegation</label>
-              <select
-                value={formData.delegation}
-                onChange={(event) => setFormData((prev) => ({ ...prev, delegation: event.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required={roleInterne}
-              >
-                <option value="">Selectionnez une delegation</option>
-                {delegationOptions.map((delegation) => (
-                  <option key={delegation} value={delegation}>
-                    {delegation}
-                  </option>
-                ))}
-              </select>
-              <p className="mt-2 text-xs text-gray-500">La delegation est obligatoire pour les comptes Inspecteur.</p>
+              {formData.gouvernorat ? (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Delegation</label>
+                  <select
+                    value={formData.delegation}
+                    onChange={(event) => setFormData((prev) => ({ ...prev, delegation: event.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required={roleInterne}
+                  >
+                    <option value="">Selectionnez une delegation</option>
+                    {delegationOptions.map((delegation) => (
+                      <option key={delegation} value={delegation}>
+                        {delegation}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="mt-2 text-xs text-gray-500">La delegation est obligatoire pour les comptes Inspecteur.</p>
+                </div>
+              ) : null}
             </div>
-          )}
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                <input
+                  type="tel"
+                  value={formData.telephone}
+                  onChange={(event) => setFormData((prev) => ({ ...prev, telephone: event.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
 
-          {!roleInterne && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-              <input
-                type="tel"
-                value={formData.telephone}
-                onChange={(event) => setFormData((prev) => ({ ...prev, telephone: event.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-          )}
-
-          {!roleInterne && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
-              <textarea
-                value={formData.addresse}
-                onChange={(event) => setFormData((prev) => ({ ...prev, addresse: event.target.value }))}
-                rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                <textarea
+                  value={formData.addresse}
+                  onChange={(event) => setFormData((prev) => ({ ...prev, addresse: event.target.value }))}
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
             </div>
           )}
 
@@ -797,8 +842,9 @@ function ModalUtilisateur({ utilisateur, modeCreation, onSave, onCancel }: Modal
               L&apos;admin ne definit plus le mot de passe ici. Un email securise sera envoye automatiquement afin que le nouvel utilisateur puisse le choisir.
             </div>
           )}
+          </div>
 
-          <div className="flex justify-end space-x-3 pt-4">
+          <div className="flex flex-wrap justify-end gap-3 border-t border-slate-200 bg-white px-5 py-4 shadow-[0_-12px_30px_rgba(15,23,42,0.06)]">
             <button
               type="button"
               onClick={onCancel}

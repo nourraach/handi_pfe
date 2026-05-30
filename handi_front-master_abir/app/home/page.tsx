@@ -45,24 +45,24 @@ type PendingRequestsPayload = {
   demandes?: unknown[];
 };
 
-type StatParStatut = { statut: string; count: number };
-type EntrepriseActive = { entreprise_nom: string; nombre_offres: number; nombre_candidatures: number };
+type StatParStatut = { statut: string; count: number | string };
+type EntrepriseActive = { entreprise_nom: string; nombre_offres: number | string; nombre_candidatures: number | string };
 
 type StatistiquesAdmin = {
   stats_par_statut: StatParStatut[];
-  taux_recrutement: number;
-  temps_moyen_traitement_jours: number;
-  total_candidatures: number;
+  taux_recrutement: number | string;
+  temps_moyen_traitement_jours: number | string;
+  total_candidatures: number | string;
   entreprises_actives: EntrepriseActive[];
 };
 
 type WorkflowPoint = {
   date: string;
-  nouvelles: number;
-  shortlistees: number;
-  entretiens: number;
-  acceptees: number;
-  refusees: number;
+  nouvelles: number | string;
+  shortlistees: number | string;
+  entretiens: number | string;
+  acceptees: number | string;
+  refusees: number | string;
 };
 
 type EntrepriseOffreStat = {
@@ -566,6 +566,7 @@ function HomeContent() {
         utilisateurNom={utilisateur.nom}
         stats={workspaceStats}
         adminStats={adminStats}
+        adminWorkflow={adminWorkflow}
         adminOverview={adminOverview}
         loadingStats={loadingStats}
         erreurStats={erreurStats}
@@ -972,6 +973,7 @@ function AdminDashboardHome({
   utilisateurNom,
   stats,
   adminStats,
+  adminWorkflow,
   adminOverview,
   loadingStats,
   erreurStats,
@@ -979,6 +981,7 @@ function AdminDashboardHome({
   utilisateurNom: string;
   stats: WorkspaceStatCard[];
   adminStats: StatistiquesAdmin | null;
+  adminWorkflow: WorkflowPoint[];
   adminOverview: SupervisionOverview | null;
   loadingStats: boolean;
   erreurStats: string | null;
@@ -986,30 +989,39 @@ function AdminDashboardHome({
   const firstName = utilisateurNom.split(" ")[0] || utilisateurNom || "Admin";
   const pendingApplications = adminStats ? sumStatuses(adminStats.stats_par_statut, ["pending", "en_attente"]) : 0;
   const shortlisted = adminStats ? sumStatuses(adminStats.stats_par_statut, ["shortlisted", "shortlistees", "shortlistee"]) : 0;
-  const interviews = adminStats ? sumStatuses(adminStats.stats_par_statut, ["interviews", "interview", "entretiens", "entretien"]) : 0;
+  const interviews = adminStats
+    ? sumStatuses(adminStats.stats_par_statut, ["interview_scheduled", "interviews", "interview", "entretiens", "entretien"])
+    : 0;
   const accepted = adminStats ? sumStatuses(adminStats.stats_par_statut, ["accepted", "acceptees", "acceptee"]) : 0;
-  const totalApplications = adminStats?.total_candidatures ?? 0;
-  const totalCompanies = adminOverview?.totals.total_companies ?? adminStats?.entreprises_actives.length ?? 0;
-  const reportCount = adminOverview?.totals.total_reports ?? 0;
-  const accessibilityScore =
-    typeof adminOverview?.rates?.compliance_validation_rate === "number"
-      ? Math.round(adminOverview.rates.compliance_validation_rate)
-      : totalApplications > 0
-      ? Math.min(
-          100,
-          Math.max(0, Math.round((((shortlisted + interviews + accepted) / Math.max(totalApplications, 1)) * 100 + 45) / 1.45)),
-        )
-      : 0;
+  const totalApplications = asNumber(adminStats?.total_candidatures);
+  const totalCompanies = asNumber(adminOverview?.totals.total_companies);
+  const activeCompanies = asNumber(adminOverview?.totals.active_companies);
+  const reportCount = asNumber(adminOverview?.totals.total_reports);
+  const validatedReportCount = asNumber(adminOverview?.totals.validated_reports);
+  const recentShortlisted = adminWorkflow.reduce((total, point) => total + asNumber(point.shortlistees), 0);
+  const recentAccepted = adminWorkflow.reduce((total, point) => total + asNumber(point.acceptees), 0);
 
   const statusItems = [
-    { label: "Shortlist rate", value: Math.round(adminOverview?.rates.shortlist_rate ?? Math.min(100, Math.max(40, accessibilityScore + 3))) },
-    { label: "Hiring rate", value: Math.round(adminOverview?.rates.hiring_rate ?? Math.min(100, Math.max(35, accessibilityScore - 2))) },
+    {
+      label: "Shortlist rate",
+      value: realRate(adminOverview?.rates.shortlist_rate, shortlisted, totalApplications),
+    },
+    {
+      label: "Hiring rate",
+      value: realRate(adminOverview?.rates.hiring_rate, accepted, totalApplications),
+    },
     {
       label: "Compliance validation",
-      value: Math.round(adminOverview?.rates.compliance_validation_rate ?? Math.min(100, Math.max(30, accessibilityScore + 1))),
+      value: realRate(adminOverview?.rates.compliance_validation_rate, validatedReportCount, reportCount),
     },
-    { label: "Inclusion rate", value: Math.round(adminOverview?.rates.inclusion_rate ?? Math.min(100, Math.max(25, accessibilityScore - 5))) },
+    {
+      label: "Active company rate",
+      value: percentage(activeCompanies, totalCompanies),
+    },
   ];
+  const accessibilityScore = Math.round(
+    statusItems.reduce((total, item) => total + item.value, 0) / Math.max(statusItems.length, 1),
+  );
 
   const metricIcon = (name: "candidates" | "jobs" | "applications" | "accessibility" | "clipboard" | "hire" | "shield" | "inclusion" | "target" | "user" | "eye" | "report") => {
     if (name === "candidates") {
@@ -1135,7 +1147,7 @@ function AdminDashboardHome({
     {
       id: "activity-shortlist",
       icon: metricIcon("clipboard"),
-      title: `${shortlisted} candidat(s) shortlisté(s)`,
+      title: `${recentShortlisted} candidat(s) shortlisté(s)`,
       detail: "Recruitment pipeline",
       time: "sur 30 jours",
       tone: "green",
@@ -1143,8 +1155,8 @@ function AdminDashboardHome({
     {
       id: "activity-accepted",
       icon: metricIcon("target"),
-      title: `${accepted} candidature(s) acceptée(s)`,
-      detail: "Taux de recrutement en progression",
+      title: `${recentAccepted} candidature(s) acceptée(s)`,
+      detail: "Décisions de recrutement",
       time: "sur 30 jours",
       tone: "orange",
     },
@@ -1153,15 +1165,15 @@ function AdminDashboardHome({
       icon: metricIcon("user"),
       title: `${totalCompanies} company account(s) monitored`,
       detail: "Inscrit sur la plateforme",
-      time: "sur 30 jours",
+      time: "actuel",
       tone: "blue",
     },
     {
       id: "activity-feedback",
       icon: metricIcon("eye"),
       title: `${reportCount} accessibility feedback item(s)`,
-      detail: "Reçus récemment",
-      time: "sur 30 jours",
+      detail: "Rapports de conformité",
+      time: "total réel",
       tone: "purple",
     },
   ] as Array<{
@@ -1220,7 +1232,7 @@ function AdminDashboardHome({
                     <strong>{item.value.toLocaleString()}</strong>
                   </div>
                   <i aria-hidden="true">
-                    <span className={`admin-command__focus-fill admin-command__focus-fill--${item.tone}`} style={{ width: `${Math.max(4, (item.value / item.total) * 100)}%` }} />
+                    <span className={`admin-command__focus-fill admin-command__focus-fill--${item.tone}`} style={{ width: `${percentage(item.value, item.total)}%` }} />
                   </i>
                 </div>
               ))}
@@ -1714,12 +1726,13 @@ function CandidateHome({
               <p className="text-sm font-medium text-[#6d5a86]">Bienvenue, {firstName}</p>
               <h1
                 id="candidate-home-hero-title"
-                className="text-balance font-[600] leading-[1.05] text-[#1f1230] sm:text-4xl lg:text-5xl"
+                className="font-[600] leading-[1.05] text-[#1f1230] sm:text-4xl lg:text-5xl"
                 style={{ fontFamily: "Manrope, sans-serif" }}
               >
-                Trouvez l&apos;opportunité
-                <br />
-                qui vous correspond.
+                <span className="block">Trouvez</span>
+                <span className="block">l&apos;opportunité</span>
+                <span className="block">qui vous</span>
+                <span className="block">correspond.</span>
               </h1>
               <p className="max-w-xl text-[15px] leading-relaxed text-[#5c5171]" style={{ fontFamily: "IBM Plex Sans, sans-serif" }}>
                 Des entreprises inclusives recherchent des talents comme le vôtre.
@@ -2034,6 +2047,41 @@ function buildOfferMark(company?: string) {
   const parts = clean.split(/\s+/).filter(Boolean);
   return (parts[0]?.[0] || "H") + (parts[1]?.[0] || parts[0]?.[1] || "T");
 }
+
+function asNumber(value: unknown, fallback = 0) {
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? value : fallback;
+  }
+
+  if (typeof value === "string") {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : fallback;
+  }
+
+  return fallback;
+}
+
+function percentage(numerator: unknown, denominator: unknown) {
+  const safeNumerator = asNumber(numerator);
+  const safeDenominator = asNumber(denominator);
+
+  if (safeDenominator <= 0) {
+    return 0;
+  }
+
+  return Math.max(0, Math.min(100, Math.round((safeNumerator / safeDenominator) * 100)));
+}
+
+function realRate(apiRate: unknown, numerator: unknown, denominator: unknown) {
+  const parsedRate = asNumber(apiRate, Number.NaN);
+
+  if (Number.isFinite(parsedRate)) {
+    return Math.max(0, Math.min(100, Math.round(parsedRate)));
+  }
+
+  return percentage(numerator, denominator);
+}
+
 function sumStatuses(items: StatParStatut[] | undefined, statuses: string[]) {
   if (!items) {
     return 0;
@@ -2041,7 +2089,7 @@ function sumStatuses(items: StatParStatut[] | undefined, statuses: string[]) {
 
   const normalized = new Set(statuses.map(normalizeStatus));
   return items.reduce((total, item) => {
-    return total + (normalized.has(normalizeStatus(item.statut)) ? item.count : 0);
+    return total + (normalized.has(normalizeStatus(item.statut)) ? asNumber(item.count) : 0);
   }, 0);
 }
 

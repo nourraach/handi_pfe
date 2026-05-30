@@ -822,17 +822,6 @@ export default function HomePage() {
                 {content.hero.title} <span>{content.hero.highlight}</span>
               </h1>
 
-              <p>{content.hero.description}</p>
-
-              <div className="ht-hero-actions">
-                <Link href="/inscription" className="ht-btn ht-btn-primary ht-btn-large">
-                  {content.actions.createAccount}
-                </Link>
-                <Link href="/inscription/entreprise" className="ht-btn ht-btn-secondary ht-btn-large">
-                  {content.actions.employer}
-                </Link>
-              </div>
-
               <div className="ht-hero-note-row" aria-label="Hero highlights">
                 {content.hero.notes.map((note) => (
                   <span key={note} className="ht-hero-note">
@@ -862,17 +851,6 @@ export default function HomePage() {
                   />
                 </div>
               </div>
-
-              <article className="ht-float-card ht-float-card-match">
-                <span className="ht-card-eyebrow">{content.hero.matchEyebrow}</span>
-                <div className="ht-match-row">
-                  <div>
-                    <strong>{content.hero.matchRole}</strong>
-                    <span className="ht-company-line">{content.hero.matchCompany}</span>
-                  </div>
-                  <span className="ht-match-score">{content.hero.matchScore}</span>
-                </div>
-              </article>
 
               <article className="ht-float-card ht-float-card-progress">
                 <span className="ht-card-eyebrow">{content.hero.progressEyebrow}</span>

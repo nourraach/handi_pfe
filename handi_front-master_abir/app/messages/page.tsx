@@ -6,6 +6,11 @@ import { useI18n } from "@/components/i18n-provider";
 import { useAuth } from "@/hooks/useAuth";
 import { authenticatedFetch, getAuthToken } from "@/lib/auth-utils";
 import { construireUrlApi } from "@/lib/config";
+import {
+  isConversationUnread,
+  readMessageReadState,
+  writeMessageReadState,
+} from "@/lib/message-read-state";
 
 type Conversation = {
   id: string;
@@ -13,6 +18,7 @@ type Conversation = {
   participant_names?: string;
   last_message?: string | null;
   last_message_at?: string | null;
+  last_message_sender_id?: string | null;
 };
 
 type Message = {
@@ -46,8 +52,6 @@ type ComposerPayload = {
   attachments?: ComposerAttachment[];
   audio?: ComposerAttachment | null;
 };
-
-const READ_STATE_KEY = "candidate_message_read_state_v1";
 
 const EMOJI_OPTIONS = [
   "😀",
@@ -280,18 +284,7 @@ function MessagesPage() {
   const [status, setStatus] = useState<string | null>(null);
   const [threadSearch, setThreadSearch] = useState("");
   const [isComposerOpen, setIsComposerOpen] = useState(false);
-  const [readState, setReadState] = useState<Record<string, string>>(() => {
-    if (typeof window === "undefined") {
-      return {};
-    }
-
-    try {
-      const stored = window.localStorage.getItem(READ_STATE_KEY);
-      return stored ? (JSON.parse(stored) as Record<string, string>) : {};
-    } catch {
-      return {};
-    }
-  });
+  const [readState, setReadState] = useState<Record<string, string>>(() => readMessageReadState());
   const attachmentInputRef = useRef<HTMLInputElement | null>(null);
   const composerInputRef = useRef<HTMLTextAreaElement | null>(null);
   const emojiPanelRef = useRef<HTMLDivElement | null>(null);
@@ -316,7 +309,7 @@ function MessagesPage() {
       return;
     }
 
-    window.localStorage.setItem(READ_STATE_KEY, JSON.stringify(readState));
+    writeMessageReadState(readState);
   }, [readState, utilisateur]);
 
   useEffect(() => {
@@ -816,10 +809,7 @@ function MessagesPage() {
                 </div>
               ) : (
                 filteredConversations.map((conversation) => {
-                  const lastSeen = readState[conversation.id];
-                  const lastMessageAt = conversation.last_message_at ?? conversation.created_at;
-                  const isUnread =
-                    !lastSeen || new Date(lastSeen).getTime() < new Date(lastMessageAt).getTime();
+                  const isUnread = isConversationUnread(conversation, readState, utilisateur?.id_utilisateur);
 
                   return (
                     <button
@@ -1704,19 +1694,25 @@ function MessagesPage() {
         }
 
         .msg-composer {
+          display: grid;
           grid-template-columns: auto minmax(0, 1fr) auto auto auto;
           min-height: 60px;
-          padding-inline: 8px;
+          padding: 8px;
           gap: 8px;
-          align-items: end;
+          align-items: center;
+          border: 1px solid var(--line);
+          border-radius: 18px;
+          background: #fff;
         }
 
         .msg-composer-textarea {
           resize: none;
           min-height: 40px;
+          max-height: 120px;
           line-height: 1.45;
           padding-top: 10px;
           padding-bottom: 10px;
+          align-self: center;
         }
 
         .msg-emoji-area {
@@ -1777,6 +1773,7 @@ function MessagesPage() {
           color: #fff;
           display: inline-grid;
           place-items: center;
+          align-self: center;
         }
 
         .msg-icon-btn:focus-visible,

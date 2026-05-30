@@ -47,13 +47,36 @@ type FavoriItem = {
   id_offre?: string;
 };
 
+type ProfilCorrespondance = {
+  competences?: string[];
+  experience?: string;
+  formation?: string;
+  niveau_etude?: string;
+};
+
 const tndNumberFormatter = new Intl.NumberFormat("fr-TN", {
   maximumFractionDigits: 0,
 });
 const relativeDateFormatter = new Intl.RelativeTimeFormat("fr", { numeric: "auto" });
 const OFFRES_PAR_PAGE = 50;
 
-const formatSalaryAmount = (value: number) => tndNumberFormatter.format(value);
+const parseSalaryValue = (value: unknown) => {
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? value : null;
+  }
+
+  if (typeof value === "string" && value.trim()) {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  return null;
+};
+
+const formatSalaryAmount = (value: unknown) => {
+  const parsed = parseSalaryValue(value);
+  return parsed === null ? null : tndNumberFormatter.format(parsed);
+};
 
 function SearchIcon(props: SVGProps<SVGSVGElement>) {
   return (
@@ -191,8 +214,20 @@ function EmptyJobsIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
-const formatSalaryRange = (offre: OffreEmploi) =>
-  `${formatSalaryAmount(offre.salaire_min)} - ${formatSalaryAmount(offre.salaire_max)} TND`;
+const formatSalaryRange = (offre: OffreEmploi) => {
+  const min = formatSalaryAmount(offre.salaire_min);
+  const max = formatSalaryAmount(offre.salaire_max);
+
+  if (!min && !max) {
+    return "Salaire non communiqué";
+  }
+
+  if (min && max) {
+    return `${min} - ${max} TND`;
+  }
+
+  return `${min || max} TND`;
+};
 
 const formatContractLabel = (typePoste: string) => typePoste.trim().toUpperCase() || "CDI";
 
@@ -241,9 +276,108 @@ const formatPublishedDate = (value?: string) => {
   });
 };
 
-const computeMatchPercent = (offerId: string) => {
-  const hash = offerId.split("").reduce((total, char) => total + char.charCodeAt(0), 0);
-  return 70 + (hash % 26);
+const normalizeMatchToken = (value: string) =>
+  value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+
+const splitMatchTerms = (value?: string) =>
+  (value || "")
+    .split(/[,;/|•]+/)
+    .map((term) => normalizeMatchToken(term))
+    .filter((term) => term.length > 1);
+
+const extractExperienceYears = (value?: string) => {
+  if (!value) return null;
+
+  const normalized = normalizeMatchToken(value);
+  const explicitYears = normalized.match(/(\d+(?:[.,]\d+)?)\s*(?:\+?\s*)?(?:ans?|years?|yrs?|an)/);
+  if (explicitYears?.[1]) {
+    return Number.parseFloat(explicitYears[1].replace(",", "."));
+  }
+
+  if (normalized.includes("senior")) return 5;
+  if (normalized.includes("expert")) return 6;
+  if (normalized.includes("intermediate") || normalized.includes("confirmed")) return 3;
+  if (normalized.includes("junior")) return 1;
+
+  return null;
+};
+
+const extractEducationRank = (value?: string) => {
+  if (!value) return null;
+
+  const normalized = normalizeMatchToken(value);
+  if (normalized.includes("doctorat") || normalized.includes("phd") || normalized.includes("bac+8")) return 5;
+  if (normalized.includes("master") || normalized.includes("bac+5")) return 4;
+  if (normalized.includes("licence") || normalized.includes("bachelor") || normalized.includes("bac+3")) return 3;
+  if (normalized.includes("bts") || normalized.includes("dut") || normalized.includes("deug") || normalized.includes("bac+2")) return 2;
+  if (normalized.includes("bac")) return 1;
+
+  return null;
+};
+
+const computeMatchDetails = (offre: OffreEmploi, profil?: ProfilCorrespondance | null) => {
+  if (!profil) {
+    return {
+      percent: null as number | null,
+      title: "Profil à compléter",
+      skills: [] as string[],
+      missingSkills: [] as string[],
+      note: "Connectez votre profil candidat pour obtenir un score réel.",
+    };
+  }
+
+  const offerSkills = splitMatchTerms(offre.competences_requises);
+  const candidateSkills = (profil.competences || []).map((skill) => normalizeMatchToken(skill)).filter(Boolean);
+  const matchedSkills = offerSkills.filter((skill) =>
+    candidateSkills.some((candidateSkill) => candidateSkill.includes(skill) || skill.includes(candidateSkill)),
+  );
+  const missingSkills = offerSkills.filter((skill) => !matchedSkills.includes(skill));
+
+  const requiredExperience = extractExperienceYears(offre.experience_requise);
+  const candidateExperience = extractExperienceYears(profil.experience);
+  const experienceScore = (() => {
+    if (requiredExperience !== null && candidateExperience !== null) {
+      return Math.max(0.2, Math.min(candidateExperience / Math.max(requiredExperience, 0.5), 1));
+    }
+
+    if (requiredExperience !== null) return 0.38;
+    if (candidateExperience !== null) return 0.75;
+    return 0.52;
+  })();
+
+  const requiredEducation = extractEducationRank(offre.niveau_etude);
+  const candidateEducation = extractEducationRank(profil.formation || profil.niveau_etude);
+  const educationScore = (() => {
+    if (requiredEducation !== null && candidateEducation !== null) {
+      return Math.max(0.25, Math.min(candidateEducation / Math.max(requiredEducation, 1), 1));
+    }
+
+    if (requiredEducation !== null) return 0.45;
+    if (candidateEducation !== null) return 0.7;
+    return 0.55;
+  })();
+
+  const skillsScore = offerSkills.length > 0
+    ? Math.max(0.2, matchedSkills.length / offerSkills.length)
+    : 0.55;
+
+  const combined = Math.round(
+    (skillsScore * 0.55 + experienceScore * 0.25 + educationScore * 0.2) * 100,
+  );
+
+  const percent = Math.min(98, Math.max(32, combined));
+  const title = percent >= 80 ? "Excellent match" : percent >= 65 ? "Bon match" : "Match moyen";
+  const note = offerSkills.length > 0
+    ? matchedSkills.length > 0
+      ? `En commun: ${matchedSkills.slice(0, 2).join(", ")}`
+      : "Aucune compétence clé partagée"
+    : "Correspondance calculée à partir de l’expérience et de la formation";
+
+  return { percent, title, skills: matchedSkills, missingSkills, note };
 };
 
 const buildOfferSpeechContent = (offre: OffreEmploi, aiSummary?: string) => {
@@ -1215,6 +1349,14 @@ const jobsStudioScopedStyles = `
     text-transform: none;
   }
 
+  .jobs-simple-card__scorehint {
+    margin: 0;
+    color: rgba(84, 80, 108, 0.78);
+    font-size: 11px;
+    line-height: 1.35;
+    text-align: center;
+  }
+
   .jobs-simple-card__scorecircle {
     width: 76px;
     height: 76px;
@@ -1826,6 +1968,8 @@ export default function OffresPage() {
   const [summaryErrorByOfferId, setSummaryErrorByOfferId] = useState<Record<string, string>>({});
   const [mounted, setMounted] = useState(false);
   const [pageActuelle, setPageActuelle] = useState(1);
+  const [profilCorrespondance, setProfilCorrespondance] = useState<ProfilCorrespondance | null>(null);
+  const [profilCorrespondanceCharge, setProfilCorrespondanceCharge] = useState(false);
   const { utilisateur } = useAuth();
   const cvFieldError = cvFieldTouched && !cvFile ? CV_REQUIS_MESSAGE : null;
   const applyModalRef = useRef<HTMLDivElement | null>(null);
@@ -1864,6 +2008,50 @@ export default function OffresPage() {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const chargerProfilCorrespondance = async () => {
+      setProfilCorrespondance(null);
+      setProfilCorrespondanceCharge(false);
+
+      if (!utilisateur || utilisateur.role !== "candidat") {
+        setProfilCorrespondanceCharge(true);
+        return;
+      }
+
+      try {
+        const response = await authenticatedFetch(
+          construireUrlApi(`/api/candidats/profil/${utilisateur.id_utilisateur}`),
+        );
+        if (!response.ok) {
+          setProfilCorrespondanceCharge(true);
+          return;
+        }
+
+        const data = await response.json().catch(() => ({}));
+        const profil = (data.donnees ?? {}) as ProfilCorrespondance;
+        if (!cancelled) {
+          setProfilCorrespondance(profil);
+        }
+      } catch {
+        if (!cancelled) {
+          setProfilCorrespondance(null);
+        }
+      } finally {
+        if (!cancelled) {
+          setProfilCorrespondanceCharge(true);
+        }
+      }
+    };
+
+    void chargerProfilCorrespondance();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [utilisateur]);
 
   useEffect(() => {
     if (!offreSelectionnee && !offreEnDetails) return;
@@ -2312,7 +2500,16 @@ export default function OffresPage() {
         ) : (
           <div className="jobs-studio-grid is-list">
             {offresVisibles.map((offre) => {
-              const matchPercent = computeMatchPercent(offre.id_offre);
+              const matchDetails = profilCorrespondanceCharge
+                ? computeMatchDetails(offre, profilCorrespondance)
+                : {
+                    percent: null as number | null,
+                    title: "Calcul en cours",
+                    skills: [] as string[],
+                    missingSkills: [] as string[],
+                    note: "Chargement du profil candidat...",
+                  };
+              const matchPercentLabel = matchDetails.percent === null ? "—" : `${matchDetails.percent}%`;
               const estFavori = favoris.has(offre.id_offre);
 
               return (
@@ -2341,27 +2538,29 @@ export default function OffresPage() {
 
                   <div className="jobs-simple-card__scoreblock">
                     <p className="jobs-simple-card__scorelabel">Correspondance</p>
-                    <div className="jobs-simple-card__scorecircle" aria-label={`Match ${matchPercent}%`}>
-                      <span>{matchPercent}%</span>
+                    <div
+                      className="jobs-simple-card__scorecircle"
+                      aria-label={matchDetails.percent === null ? "Correspondance en cours" : `Match ${matchPercentLabel}`}
+                    >
+                      <span>{matchPercentLabel}</span>
                     </div>
+                    <p className="jobs-simple-card__scorehint">
+                      {profilCorrespondanceCharge ? "Basée sur votre profil" : "Chargement du profil..."}
+                    </p>
                   </div>
 
                   <div className="jobs-simple-card__matchblock">
-                    <p className="jobs-simple-card__matchtitle">Bon match</p>
+                    <p className="jobs-simple-card__matchtitle">{matchDetails.title}</p>
                     <p className="jobs-simple-card__matchskills">
-                      {(offre.competences_requises || "Communication, Adaptabilite")
-                        .split(",")
-                        .map((skill) => skill.trim())
-                        .filter(Boolean)
-                        .slice(0, 2)
-                        .join(", ")}
+                      {matchDetails.skills.length > 0
+                        ? matchDetails.skills.slice(0, 2).join(", ")
+                        : offre.competences_requises || "Compétences non précisées"}
                     </p>
                     <p className="jobs-simple-card__matchmissing">
                       Manque :{" "}
-                      {(offre.competences_requises || "UX Research")
-                        .split(",")
-                        .map((skill) => skill.trim())
-                        .filter(Boolean)[2] || "UX Research"}
+                      {matchDetails.missingSkills.length > 0
+                        ? matchDetails.missingSkills.slice(0, 2).join(", ")
+                        : matchDetails.note}
                     </p>
                   </div>
 
@@ -2602,9 +2801,7 @@ export default function OffresPage() {
                   </div>
                   <div className="detail-box">
                     <strong>Salaire</strong>
-                    <p>
-                      {formatSalaryAmount(offreEnDetails.salaire_min)} - {formatSalaryAmount(offreEnDetails.salaire_max)} TND
-                    </p>
+                    <p>{formatSalaryRange(offreEnDetails)}</p>
                   </div>
                   <div className="detail-box">
                     <strong>Candidatures</strong>
@@ -2707,5 +2904,3 @@ export default function OffresPage() {
 
   return utilisateur ? <AppShell utilisateur={utilisateur}>{contenu}</AppShell> : <main className="page-centree section-page app-theme">{contenu}</main>;
 }
-
-

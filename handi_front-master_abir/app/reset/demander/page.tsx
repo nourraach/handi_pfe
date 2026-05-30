@@ -10,11 +10,13 @@ export default function DemanderResetPage() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [erreur, setErreur] = useState<string | null>(null);
+  const [testLink, setTestLink] = useState<string | null>(null);
 
   const envoyer = async () => {
     setLoading(true);
     setMessage(null);
     setErreur(null);
+    setTestLink(null);
 
     try {
       const res = await fetch(construireUrlApi("/api/auth/demander-reset"), {
@@ -25,7 +27,14 @@ export default function DemanderResetPage() {
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Erreur");
-      setMessage(data.donnees?.token ? `Token demo: ${data.donnees.token}` : "If the account exists, a reset email or SMS has been sent.");
+      if (data.donnees?.lien_reset) {
+        setTestLink(data.donnees.lien_reset);
+        setMessage("SMTP non configure: le lien ci-dessous est genere pour le test local.");
+      } else if (data.donnees?.token) {
+        setMessage(`Token demo: ${data.donnees.token}`);
+      } else {
+        setMessage("If the account exists, a reset email or SMS has been sent.");
+      }
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : "Unable to send reset link.";
       setErreur(errorMessage);
@@ -71,36 +80,6 @@ export default function DemanderResetPage() {
             <p className={styles.heroText}>
               No worries, it happens. Enter your email and we&apos;ll send you a secure link to reset your password.
             </p>
-
-            <ul className={styles.featureList} aria-label="Security and accessibility features">
-              <li className={styles.featureItem}>
-                <span className={styles.featureIconWrap} aria-hidden="true">
-                  <LockIcon />
-                </span>
-                <div>
-                  <strong>Secure &amp; Encrypted</strong>
-                  <p>Your data is protected with industry-leading encryption.</p>
-                </div>
-              </li>
-              <li className={styles.featureItem}>
-                <span className={styles.featureIconWrap} aria-hidden="true">
-                  <AccessibilityIcon />
-                </span>
-                <div>
-                  <strong>Accessibility First</strong>
-                  <p>Designed for everyone, without barriers.</p>
-                </div>
-              </li>
-              <li className={styles.featureItem}>
-                <span className={styles.featureIconWrap} aria-hidden="true">
-                  <BoltIcon />
-                </span>
-                <div>
-                  <strong>Fast Recovery</strong>
-                  <p>Get back to your account quickly and safely.</p>
-                </div>
-              </li>
-            </ul>
           </div>
         </aside>
 
@@ -155,6 +134,14 @@ export default function DemanderResetPage() {
               {message ? (
                 <p className={styles.feedbackInfo} role="status" aria-live="polite">
                   {message}
+                </p>
+              ) : null}
+
+              {testLink ? (
+                <p className={styles.feedbackInfo} role="status" aria-live="polite">
+                  <a href={testLink} target="_blank" rel="noreferrer">
+                    Open reset link
+                  </a>
                 </p>
               ) : null}
 
@@ -225,37 +212,6 @@ function ShieldIcon() {
     <BaseIcon>
       <path d="M12 3.5 19 6v6.6c0 4.3-2.9 7.5-7 8.9-4.1-1.4-7-4.6-7-8.9V6l7-2.5Z" />
       <path d="m9.8 12.4 1.8 1.8 3-3" />
-    </BaseIcon>
-  );
-}
-
-function LockIcon() {
-  return (
-    <BaseIcon>
-      <rect x="5" y="10" width="14" height="10" rx="2.2" />
-      <path d="M8 10V7.8a4 4 0 1 1 8 0V10" />
-      <circle cx="12" cy="14.7" r="1" fill="currentColor" stroke="none" />
-    </BaseIcon>
-  );
-}
-
-function AccessibilityIcon() {
-  return (
-    <BaseIcon>
-      <circle cx="12" cy="5" r="2.2" />
-      <path d="M8 10.2h8" />
-      <path d="m12 7.4 1.4 5 3.6 1.4" />
-      <path d="m12 7.4-1.4 5-3.6 1.4" />
-      <path d="m10.7 15.1-1.3 3.6" />
-      <path d="m13.3 15.1 1.3 3.6" />
-    </BaseIcon>
-  );
-}
-
-function BoltIcon() {
-  return (
-    <BaseIcon>
-      <path d="m13.5 2.8-7.2 10h4.3l-1.4 8.4 8.5-11h-4.4l.2-7.4Z" />
     </BaseIcon>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { construireUrlApi } from "@/lib/config";
 import { ModalCreationTest } from "./modal-creation-test";
 import { ModalEditionTest } from "./modal-edition-test";
@@ -34,11 +34,7 @@ export function GestionTestsPsychologiques() {
   const [totalPages, setTotalPages] = useState(1);
   const testsParPage = 10;
 
-  useEffect(() => {
-    void chargerTests();
-  }, [page]);
-
-  const chargerTests = async () => {
+  const chargerTests = useCallback(async () => {
     setChargement(true);
 
     try {
@@ -65,7 +61,11 @@ export function GestionTestsPsychologiques() {
     } finally {
       setChargement(false);
     }
-  };
+  }, [page]);
+
+  useEffect(() => {
+    void chargerTests();
+  }, [chargerTests]);
 
   const supprimerTest = async (id: string) => {
     if (!confirm("Are you sure you want to delete this test?")) {
@@ -151,25 +151,12 @@ export function GestionTestsPsychologiques() {
         </div>
       )}
 
-      <div className="admin-header-card">
-        <div className="header-content">
-          <div className="header-info">
-            <h2 className="header-title">Assessment Management</h2>
-            <p className="header-subtitle">Create, manage and monitor psychological tests</p>
-          </div>
-          <button
-            onClick={() => setModeCreation(true)}
-            className="create-test-btn"
-          >
-            <span className="btn-icon">+</span>
-            <span>New Test</span>
-          </button>
-        </div>
-      </div>
-
       <div className="tests-grid-container">
         <div className="tests-header">
-          <h3 className="tests-count">Psychological Tests ({tests.length})</h3>
+          <div>
+            <h3 className="tests-count">Psychological Tests ({tests.length})</h3>
+            <p className="tests-count-subtitle">Cards are shown in a denser grid so you can scan status, timing, and actions faster.</p>
+          </div>
           {totalPages > 1 && (
             <div className="pagination-controls">
               <span className="page-info">Page {page} of {totalPages}</span>
@@ -381,65 +368,11 @@ export function GestionTestsPsychologiques() {
           opacity: 1;
         }
 
-        .admin-header-card {
-          background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(var(--app-secondary-rgb), 0.1));
-          border: 1px solid rgba(var(--app-primary-rgb), 0.1);
-          border-radius: var(--app-radius-lg);
-          padding: 2rem;
-          box-shadow: var(--app-shadow-soft);
-          flex-shrink: 0;
-        }
-
-        .header-content {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-        }
-
-        .header-title {
-          margin: 0 0 0.5rem 0;
-          font-size: 1.75rem;
-          font-family: var(--app-heading);
-          color: var(--app-primary);
-          font-weight: 700;
-        }
-
-        .header-subtitle {
-          margin: 0;
-          color: var(--app-text-soft);
-          font-size: 1rem;
-        }
-
-        .create-test-btn {
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          padding: 0.75rem 1.5rem;
-          background: linear-gradient(135deg, var(--app-primary), var(--app-primary-hover));
-          color: white;
-          border: none;
-          border-radius: var(--app-radius-md);
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          box-shadow: var(--app-shadow-soft);
-        }
-
-        .create-test-btn:hover {
-          transform: translateY(-2px);
-          box-shadow: var(--app-shadow);
-        }
-
-        .btn-icon {
-          font-size: 1.2rem;
-          font-weight: 300;
-        }
-
         .tests-grid-container {
           background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(var(--app-secondary-rgb), 0.05));
           border: 1px solid rgba(var(--app-primary-rgb), 0.1);
           border-radius: var(--app-radius-lg);
-          padding: 1.5rem;
+          padding: 1.15rem;
           box-shadow: var(--app-shadow-soft);
           display: flex;
           flex-direction: column;
@@ -451,16 +384,23 @@ export function GestionTestsPsychologiques() {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          margin-bottom: 1.5rem;
+          margin-bottom: 1rem;
           flex-shrink: 0;
         }
 
         .tests-count {
           margin: 0;
-          font-size: 1.25rem;
+          font-size: 1.1rem;
           font-family: var(--app-heading);
           color: var(--app-primary);
           font-weight: 600;
+        }
+
+        .tests-count-subtitle {
+          margin: 0.3rem 0 0;
+          color: var(--app-text-soft);
+          font-size: 0.88rem;
+          line-height: 1.4;
         }
 
         .pagination-controls {
@@ -508,7 +448,7 @@ export function GestionTestsPsychologiques() {
           flex-direction: column;
           align-items: center;
           justify-content: center;
-          padding: 3rem;
+          padding: 2.2rem;
           text-align: center;
         }
 
@@ -532,12 +472,13 @@ export function GestionTestsPsychologiques() {
           flex-direction: column;
           align-items: center;
           justify-content: center;
-          padding: 3rem;
+          padding: 2.2rem;
           text-align: center;
+          min-height: 320px;
         }
 
         .empty-icon {
-          font-size: 3rem;
+          font-size: 2.6rem;
           margin-bottom: 1rem;
           opacity: 0.7;
         }
@@ -555,11 +496,11 @@ export function GestionTestsPsychologiques() {
         }
 
         .empty-action-btn {
-          padding: 0.75rem 1.5rem;
+          padding: 0.7rem 1.35rem;
           background: linear-gradient(135deg, var(--app-primary), var(--app-primary-hover));
           color: white;
           border: none;
-          border-radius: var(--app-radius-md);
+          border-radius: 999px;
           font-weight: 600;
           cursor: pointer;
           transition: all 0.2s ease;
@@ -572,8 +513,8 @@ export function GestionTestsPsychologiques() {
 
         .tests-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-          gap: 1.5rem;
+          grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+          gap: 1rem;
           overflow-y: auto;
           padding-right: 0.5rem;
         }
@@ -582,12 +523,12 @@ export function GestionTestsPsychologiques() {
           background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(var(--app-secondary-rgb), 0.08));
           border: 1px solid rgba(var(--app-primary-rgb), 0.1);
           border-radius: var(--app-radius-md);
-          padding: 1.5rem;
+          padding: 1.15rem;
           box-shadow: var(--app-shadow-soft);
           transition: all 0.2s ease;
           display: flex;
           flex-direction: column;
-          gap: 1rem;
+          gap: 0.85rem;
         }
 
         .test-card:hover {
@@ -600,20 +541,20 @@ export function GestionTestsPsychologiques() {
           display: flex;
           justify-content: space-between;
           align-items: flex-start;
-          gap: 1rem;
+          gap: 0.85rem;
         }
 
         .test-title {
           margin: 0 0 0.5rem 0;
-          font-size: 1.1rem;
+          font-size: 1rem;
           font-weight: 600;
           color: var(--app-primary);
-          line-height: 1.3;
+          line-height: 1.28;
         }
 
         .test-description {
           margin: 0;
-          font-size: 0.9rem;
+          font-size: 0.88rem;
           color: var(--app-text-soft);
           line-height: 1.4;
         }
@@ -646,7 +587,7 @@ export function GestionTestsPsychologiques() {
         .test-meta {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
-          gap: 0.75rem;
+          gap: 0.6rem;
         }
 
         .meta-item {
@@ -695,8 +636,8 @@ export function GestionTestsPsychologiques() {
         .test-validity {
           display: grid;
           grid-template-columns: 1fr 1fr;
-          gap: 0.75rem;
-          padding: 0.75rem;
+          gap: 0.6rem;
+          padding: 0.7rem;
           background: rgba(var(--app-secondary-rgb), 0.1);
           border-radius: 12px;
         }
@@ -724,13 +665,13 @@ export function GestionTestsPsychologiques() {
         .test-actions {
           display: flex;
           flex-wrap: wrap;
-          gap: 0.5rem;
+          gap: 0.45rem;
         }
 
         .action-btn {
           flex: 1;
           min-width: 0;
-          padding: 0.5rem 0.75rem;
+          padding: 0.45rem 0.7rem;
           border: none;
           border-radius: 8px;
           font-size: 0.8rem;
@@ -791,31 +732,21 @@ export function GestionTestsPsychologiques() {
 
         /* Responsive Design */
         @media (max-width: 1024px) {
-          .tests-grid {
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 1rem;
-          }
-
-          .header-content {
-            flex-direction: column;
-            gap: 1rem;
-            align-items: stretch;
-          }
-
           .tests-header {
             flex-direction: column;
-            gap: 1rem;
+            gap: 0.9rem;
             align-items: stretch;
+          }
+
+          .tests-grid {
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 0.9rem;
           }
         }
 
         @media (max-width: 640px) {
           .admin-tests-container {
             gap: 1rem;
-          }
-
-          .admin-header-card {
-            padding: 1.5rem;
           }
 
           .tests-grid-container {

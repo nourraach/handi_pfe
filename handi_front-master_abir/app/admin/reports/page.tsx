@@ -115,7 +115,6 @@ export default function AdminReportsPage() {
           <div>
             <p className="admin-reports-kicker">Enterprise reports</p>
             <h1>Company compliance reports</h1>
-            <p>Review every report submitted by companies, inspect metrics, and open the generated report body without leaving the admin workspace.</p>
           </div>
           <div className="admin-reports-summary" aria-label="Reports summary">
             <span><strong>{summary.total}</strong>Total</span>

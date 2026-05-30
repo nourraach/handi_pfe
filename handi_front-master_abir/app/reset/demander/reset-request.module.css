@@ -17,7 +17,7 @@
 .shell {
   position: relative;
   width: min(980px, 100%);
-  min-height: min(680px, calc(100vh - 28px));
+  min-height: min(640px, calc(100vh - 28px));
   border-radius: 24px;
   overflow: hidden;
   border: 1px solid #ece4f8;
@@ -30,7 +30,7 @@
 .brandPanel {
   position: relative;
   overflow: hidden;
-  padding: clamp(20px, 2.8vw, 30px);
+  padding: clamp(18px, 2.4vw, 26px) clamp(18px, 2.2vw, 24px) clamp(18px, 2.4vw, 26px) clamp(14px, 1.8vw, 18px);
   color: #f8f3ff;
   background:
     radial-gradient(420px 280px at 86% 8%, rgba(210, 172, 201, 0.26), transparent 70%),
@@ -131,6 +131,7 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+  padding-left: 2px;
 }
 
 .badge {
@@ -226,13 +227,16 @@
 
 .formPanel {
   background: #ffffff;
-  display: grid;
-  place-items: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: stretch;
+  gap: 18px;
   padding: clamp(16px, 2vw, 24px);
 }
 
 .formCard {
-  width: min(560px, 100%);
+  width: min(100%, 560px);
   border-radius: 20px;
   border: 1px solid #efe7fa;
   background:
@@ -240,6 +244,107 @@
     #ffffff;
   box-shadow: 0 14px 46px rgba(56, 8, 66, 0.09);
   padding: clamp(16px, 2vw, 22px);
+  margin-inline: auto;
+}
+
+.recoveryPanel {
+  width: min(100%, 560px);
+  margin-inline: auto;
+  border-radius: 18px;
+  border: 1px solid #ede2f6;
+  background:
+    linear-gradient(180deg, rgba(56, 8, 66, 0.03), rgba(56, 8, 66, 0.01)),
+    #ffffff;
+  box-shadow: 0 10px 32px rgba(56, 8, 66, 0.06);
+  padding: 16px 18px 14px;
+}
+
+.recoveryHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.recoveryKicker {
+  color: #7b5a82;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.recoveryHeader h3 {
+  margin: 0;
+  color: #23134f;
+  font-size: 1rem;
+  letter-spacing: -0.02em;
+}
+
+.recoverySteps {
+  margin-top: 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.recoveryStep {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: #fbf8fe;
+  border: 1px solid #f0e8fb;
+}
+
+.recoveryStep span {
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  color: #ffffff;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--rp-primary-soft), var(--rp-primary-deep));
+}
+
+.recoveryStep strong {
+  display: block;
+  color: #2b1757;
+  font-size: 0.93rem;
+}
+
+.recoveryStep p {
+  margin: 3px 0 0;
+  color: #675e83;
+  font-size: 0.85rem;
+  line-height: 1.35;
+}
+
+.recoveryFooter {
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.recoveryChip {
+  min-height: 32px;
+  padding: 0 11px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #4c2f62;
+  background: #f6effb;
+  border: 1px solid #e4d7f4;
+}
+
+.recoveryChip svg {
+  width: 14px;
+  height: 14px;
 }
 
 .topAction {
@@ -501,6 +606,10 @@
   .formCard {
     width: min(680px, 100%);
   }
+
+  .recoveryPanel {
+    width: min(680px, 100%);
+  }
 }
 
 @media (max-width: 720px) {
@@ -544,6 +653,11 @@
     border-radius: 20px;
   }
 
+  .recoveryPanel {
+    padding: 16px;
+    border-radius: 18px;
+  }
+
   .topAction {
     justify-content: flex-start;
   }
@@ -558,6 +672,10 @@
 
   .formHeader p {
     font-size: 1rem;
+  }
+
+  .recoveryStep {
+    grid-template-columns: 28px minmax(0, 1fr);
   }
 
   .input,

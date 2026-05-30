@@ -71,7 +71,14 @@ export class ChatRepository {
           WHERE m3.conversation_id = c.id
           ORDER BY m3.created_at DESC
           LIMIT 1
-        ) AS last_message_at
+        ) AS last_message_at,
+        (
+          SELECT m5.id_utilisateur
+          FROM message m5
+          WHERE m5.conversation_id = c.id
+          ORDER BY m5.created_at DESC
+          LIMIT 1
+        ) AS last_message_sender_id
       FROM conversation c
       INNER JOIN conversation_participant self_cp
         ON self_cp.conversation_id = c.id

@@ -2,37 +2,80 @@
   width: 100%;
   min-height: 100vh;
   position: relative;
-  background: linear-gradient(180deg, #f8f5ff 0%, #f3effb 100%);
+  background:
+    radial-gradient(circle at 12% 18%, rgba(160, 123, 238, 0.12), transparent 18%),
+    radial-gradient(circle at 92% 14%, rgba(150, 111, 239, 0.08), transparent 20%),
+    linear-gradient(180deg, #f8f5ff 0%, #f3effb 100%);
 }
 
 .sidebar {
   position: fixed;
-  inset: 0 auto 0 0;
-  width: 260px;
-  border-right: 1px solid rgba(53, 6, 62, 0.1);
-  background: rgba(255, 255, 255, 0.88);
-  backdrop-filter: blur(10px);
+  inset: 12px auto 12px 12px;
+  width: 286px;
+  border: 1px solid rgba(109, 42, 149, 0.1);
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 14px 34px rgba(53, 6, 62, 0.08);
   display: flex;
   flex-direction: column;
-  padding: 20px 16px;
+  gap: 8px;
+  padding: 8px;
   z-index: 40;
+  overflow: hidden;
 }
 
 .sidebarBrand {
   display: grid;
   gap: 8px;
-  padding: 4px 8px 16px;
+  padding: 4px 4px 6px;
 }
 
-.logoLink {
-  display: inline-flex;
+.brandLink {
+  display: flex;
   align-items: center;
-  min-height: 40px;
+  gap: 10px;
+  min-height: 50px;
+  border-radius: 14px;
+  padding: 8px 10px;
+  color: #2a2050;
+  text-decoration: none;
 }
 
 .logoImage {
   width: auto;
-  height: 34px;
+  height: 24px;
+}
+
+.brandMark {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  color: #5c25a4;
+  background: #f3ebff;
+  flex-shrink: 0;
+}
+
+.brandCopy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.brandCopy strong {
+  font-size: 1.2rem;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-family: var(--app-heading);
+}
+
+.brandCopy span {
+  font-size: 0.72rem;
+  color: #5f4d8a;
+  letter-spacing: 0.12em;
+  font-weight: 700;
+  text-transform: uppercase;
 }
 
 .rolePill {
@@ -55,48 +98,73 @@
 .sidebarNav {
   display: grid;
   gap: 4px;
-  margin-top: 6px;
+  margin-top: 2px;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: visible;
 }
 
 .sidebarNavItem {
-  min-height: 42px;
-  border-radius: 12px;
+  min-height: 44px;
+  border-radius: 14px;
   border: 1px solid transparent;
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 0 10px;
-  color: #342449;
+  gap: 12px;
+  padding: 0 12px;
+  color: #251a49;
   font-size: 0.88rem;
   font-weight: 600;
-  transition: all 140ms ease;
+  transition: all 160ms ease;
+  text-decoration: none;
+}
+
+.sidebarNavItemIcon {
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  color: #3d2f74;
+  background: #f3ebff;
+  flex-shrink: 0;
 }
 
 .sidebarNavItem:hover {
-  border-color: rgba(53, 6, 62, 0.14);
-  background: #f7f2ff;
+  border-color: transparent;
+  background: linear-gradient(135deg, #4d21bf, #7f53d6);
+  color: #ffffff;
+  box-shadow: 0 12px 24px rgba(77, 33, 191, 0.28);
 }
 
 .sidebarNavItemActive {
-  border-color: rgba(110, 66, 187, 0.28);
-  background: #efe7ff;
-  color: #52239a;
+  border-color: transparent;
+  background: linear-gradient(135deg, #4d21bf, #7f53d6);
+  color: #ffffff;
+  box-shadow: 0 12px 24px rgba(77, 33, 191, 0.28);
+}
+
+.sidebarNavItem:hover .sidebarNavItemIcon,
+.sidebarNavItemActive .sidebarNavItemIcon {
+  background: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
 }
 
 .sidebarProfileWrap {
   margin-top: auto;
   display: grid;
   gap: 8px;
+  padding-top: 4px;
 }
 
 .sidebarProfile {
   width: 100%;
-  border: 1px solid rgba(53, 6, 62, 0.12);
+  border: 1px solid #ece3f8;
   border-radius: 14px;
-  background: #fbf9ff;
-  padding: 10px;
+  background: #f7f3ff;
+  padding: 6px;
   display: grid;
-  grid-template-columns: 36px minmax(0, 1fr);
+  grid-template-columns: 40px minmax(0, 1fr);
   gap: 10px;
   align-items: center;
   text-align: left;
@@ -107,7 +175,7 @@
 }
 
 .sidebarProfileActions {
-  border: 1px solid rgba(53, 6, 62, 0.12);
+  border: 1px solid #ece3f8;
   border-radius: 12px;
   background: #ffffff;
   padding: 6px;
@@ -134,8 +202,8 @@
 }
 
 .sidebarAvatar {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border-radius: 999px;
   background: #5a2690;
   color: #ffffff;
@@ -162,12 +230,12 @@
 }
 
 .mainRegion {
-  margin-left: 260px;
-  width: calc(100vw - 260px);
+  margin-left: 304px;
+  width: calc(100vw - 304px);
   max-width: none;
   min-width: 0;
   min-height: 100vh;
-  padding: 16px 20px 28px;
+  padding: 14px 18px 24px 14px;
   display: grid;
   gap: 14px;
 }

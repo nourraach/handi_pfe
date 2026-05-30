@@ -53,15 +53,21 @@ export function SupervisionShell({
     <div className={styles.shellLayout}>
       <aside className={styles.sidebar} aria-label="Navigation inspecteur">
         <div className={styles.sidebarBrand}>
-          <Link href="/supervision" className={styles.logoLink} aria-label="Aller au tableau de supervision">
-            <Image
-              src="/branding/logo-handitalents.png"
-              alt="HandiTalents"
-              width={104}
-              height={40}
-              className={styles.logoImage}
-              priority
-            />
+          <Link href="/supervision" className={styles.brandLink} aria-label="Aller au tableau de supervision">
+            <span className={styles.brandMark} aria-hidden="true">
+              <Image
+                src="/branding/logo-handitalents.png"
+                alt="HandiTalents"
+                width={30}
+                height={30}
+                className={styles.logoImage}
+                priority
+              />
+            </span>
+            <span className={styles.brandCopy}>
+              <strong>HandiTalents</strong>
+              <span>{profileSubtitle}</span>
+            </span>
           </Link>
           <span className={styles.rolePill}>{roleLabel}</span>
         </div>
@@ -72,7 +78,9 @@ export function SupervisionShell({
             const Icon = item.icon;
             return (
               <Link key={item.href} href={item.href} className={classes(styles.sidebarNavItem, active && styles.sidebarNavItemActive)}>
-                <Icon size={17} aria-hidden="true" />
+                <span className={styles.sidebarNavItemIcon} aria-hidden="true">
+                  <Icon size={17} aria-hidden="true" />
+                </span>
                 <span>{item.label}</span>
               </Link>
             );

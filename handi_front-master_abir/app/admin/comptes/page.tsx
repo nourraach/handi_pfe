@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { Building2, Eye, Pencil, Plus, RefreshCw, Search, Trash2, CirclePause } from "lucide-react";
 import { RouteProtegee } from "@/components/route-protegee";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -12,6 +13,7 @@ type EmployerStatus = "actif" | "en_attente" | "suspendu" | "inactif";
 type EmployerAccount = {
   id_utilisateur: string;
   nom: string;
+  nom_entreprise?: string | null;
   email: string;
   statut: EmployerStatus | string;
   telephone?: string | null;
@@ -131,19 +133,7 @@ const EMPTY_FORM: CompanyFormState = {
 const styles = `
   .companies-page {
     display: grid;
-    gap: 20px;
-  }
-
-  .companies-hero {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
     gap: 18px;
-  }
-
-  .companies-title {
-    display: grid;
-    gap: 8px;
   }
 
   .companies-kicker {
@@ -155,62 +145,69 @@ const styles = `
     letter-spacing: 0.04em;
   }
 
-  .companies-title h1 {
-    margin: 0;
-    color: #201338;
-    font-size: clamp(2rem, 2.5vw, 2.5rem);
-    line-height: 1.08;
-  }
-
-  .companies-title p {
-    margin: 0;
-    max-width: 72ch;
-    color: #5a4a76;
-    line-height: 1.55;
-  }
-
-  .companies-summary {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(90px, auto));
-    gap: 10px;
-  }
-
-  .companies-summary span {
-    display: grid;
-    gap: 4px;
-    min-width: 110px;
-    padding: 12px 14px;
-    border-radius: 14px;
-    background: #fbf9ff;
-    border: 1px solid #eee8f8;
-    color: #5a4a76;
-    text-align: center;
-  }
-
-  .companies-summary strong {
-    display: block;
-    color: #201338;
-    font-size: 1.2rem;
-    line-height: 1.1;
-  }
-
   .companies-panel {
     display: grid;
-    gap: 16px;
-    padding: 18px;
-    border-radius: 18px;
-    background: #ffffff;
-    border: 1px solid #ece8f4;
+    gap: 20px;
+    padding: 22px;
+    border-radius: 22px;
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid #eee8ff;
+    box-shadow: 0 22px 52px rgba(76, 48, 139, 0.08);
   }
 
   .companies-toolbar {
     display: grid;
-    grid-template-columns: 1fr 180px auto auto;
-    gap: 12px;
+    grid-template-columns: minmax(280px, 1fr) minmax(190px, 0.42fr) auto auto;
+    gap: 16px;
+    align-items: center;
+  }
+
+  .companies-search,
+  .companies-select-wrap {
+    position: relative;
+    min-width: 0;
+  }
+
+  .companies-search svg,
+  .companies-select-wrap svg {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6c42ef;
+    pointer-events: none;
+  }
+
+  .companies-search svg {
+    left: 20px;
+  }
+
+  .companies-select-wrap svg {
+    right: 18px;
   }
 
   .companies-toolbar input,
-  .companies-toolbar select,
+  .companies-toolbar select {
+    width: 100%;
+    min-height: 54px;
+    border-radius: 18px;
+    border: 1px solid #e5ddfb;
+    background: #ffffff;
+    color: #22164f;
+    outline: none;
+    box-shadow: 0 10px 24px rgba(77, 55, 135, 0.04);
+  }
+
+  .companies-toolbar input {
+    padding: 0 18px 0 54px;
+    font-weight: 700;
+  }
+
+  .companies-toolbar select {
+    appearance: none;
+    padding: 0 48px 0 20px;
+    font-weight: 800;
+  }
+
   .company-form input,
   .company-form textarea,
   .company-form select {
@@ -218,7 +215,7 @@ const styles = `
     border-radius: 12px;
     border: 1px solid #ddd5ea;
     background: #fff;
-    padding: 12px 14px;
+    padding: 11px 14px;
     color: #201338;
     outline: none;
   }
@@ -236,18 +233,50 @@ const styles = `
     display: flex;
     gap: 10px;
     justify-content: flex-end;
+    align-items: center;
+  }
+
+  .companies-toolbar-btn {
+    min-height: 54px;
+    border-radius: 18px;
+    border: 1px solid #e7defb;
+    padding: 0 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: #ffffff;
+    color: #4f28df;
+    font-weight: 900;
+    box-shadow: 0 10px 24px rgba(77, 55, 135, 0.06);
+    white-space: nowrap;
+  }
+
+  .companies-toolbar-btn--primary {
+    border-color: #6d31f5;
+    color: #ffffff;
+    background: linear-gradient(135deg, #7339ff, #5a1be0);
+    box-shadow: 0 14px 28px rgba(93, 37, 221, 0.28);
+  }
+
+  .companies-toolbar-btn svg,
+  .companies-action-btn svg {
+    width: 16px;
+    height: 16px;
+    stroke-width: 2.4;
   }
 
   .companies-table-wrap {
     overflow: auto;
-    border: 1px solid #eee8f8;
+    border: 1px solid #ebe5fa;
     border-radius: 16px;
+    background: #ffffff;
   }
 
   .companies-table {
     width: 100%;
     border-collapse: collapse;
-    min-width: 1100px;
+    min-width: 1060px;
     background: #fff;
   }
 
@@ -255,21 +284,33 @@ const styles = `
     position: sticky;
     top: 0;
     z-index: 1;
-    background: #f8f5ff;
-    color: #5a4a76;
+    height: 56px;
+    background: #f7f3ff;
+    color: #14103e;
     text-align: left;
-    font-size: 0.82rem;
+    font-size: 0.76rem;
+    font-weight: 950;
     text-transform: uppercase;
-    letter-spacing: 0.03em;
-    border-bottom: 1px solid #eee8f8;
-    padding: 14px 16px;
+    letter-spacing: 0.02em;
+    border-bottom: 1px solid #ede7fa;
+    padding: 16px 22px;
   }
 
   .companies-table tbody td {
-    padding: 14px 16px;
-    vertical-align: top;
-    border-bottom: 1px solid #f1ecfa;
-    color: #3f3356;
+    padding: 24px 22px;
+    vertical-align: middle;
+    border-bottom: 1px solid #ece7f6;
+    color: #191342;
+    font-size: 0.95rem;
+    font-weight: 750;
+  }
+
+  .companies-table tbody tr {
+    min-height: 116px;
+  }
+
+  .companies-table tbody tr:last-child td {
+    border-bottom: 0;
   }
 
   .companies-table td strong,
@@ -278,20 +319,75 @@ const styles = `
   }
 
   .companies-table td span {
-    color: #7a6a92;
-    font-size: 0.88rem;
-    margin-top: 3px;
+    color: #71689b;
+    font-size: 0.82rem;
+    margin-top: 6px;
+    font-weight: 700;
+    line-height: 1.45;
+  }
+
+  .company-cell {
+    display: grid;
+    grid-template-columns: 52px minmax(0, 1fr);
+    gap: 16px;
+    align-items: start;
+  }
+
+  .company-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #f3edff;
+    color: #6229e8;
+  }
+
+  .company-icon svg {
+    width: 21px;
+    height: 21px;
+  }
+
+  .company-verified {
+    width: fit-content;
+    margin-top: 8px;
+    display: inline-flex !important;
+    min-height: 24px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    padding: 0 12px;
+    background: #dff8ea;
+    color: #11a45e !important;
+    font-size: 0.72rem !important;
+    font-weight: 900 !important;
+  }
+
+  .company-contact-id {
+    color: #6b2df4 !important;
+    font-weight: 900 !important;
   }
 
   .company-status {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 110px;
-    padding: 7px 12px;
+    gap: 8px;
+    min-width: 82px;
+    min-height: 38px;
+    padding: 0 14px;
     border-radius: 999px;
-    font-weight: 700;
-    font-size: 0.85rem;
+    font-weight: 900;
+    font-size: 0.82rem;
+  }
+
+  .company-status::before {
+    content: "";
+    width: 11px;
+    height: 11px;
+    border-radius: 999px;
+    background: currentColor;
   }
 
   .company-status--actif {
@@ -300,8 +396,8 @@ const styles = `
   }
 
   .company-status--en_attente {
-    background: #fff3db;
-    color: #8a4f00;
+    background: #fff2e8;
+    color: #ff7a1a;
   }
 
   .company-status--suspendu {
@@ -315,9 +411,43 @@ const styles = `
   }
 
   .companies-actions {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(84px, 1fr));
+    gap: 12px;
+    align-items: center;
+  }
+
+  .companies-action-btn {
+    min-height: 42px;
+    border-radius: 14px;
+    border: 1px solid #e8e1f7;
+    padding: 0 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     gap: 8px;
+    background: #ffffff;
+    color: #17113f;
+    font-weight: 900;
+    font-size: 0.82rem;
+    white-space: nowrap;
+  }
+
+  .companies-action-btn--view {
+    background: #f6f0ff;
+    border-color: #f0e8ff;
+    color: #6326ee;
+  }
+
+  .companies-action-btn--danger {
+    background: #fff0f4;
+    border-color: #ffe2ea;
+    color: #ff315d;
+  }
+
+  .companies-action-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
   }
 
   .companies-pagination {
@@ -435,16 +565,10 @@ const styles = `
   }
 
   @media (max-width: 1024px) {
-    .companies-hero,
     .companies-toolbar,
     .companies-pagination {
       grid-template-columns: 1fr;
       display: grid;
-    }
-
-    .companies-summary {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      width: 100%;
     }
 
     .company-form-grid,
@@ -598,16 +722,6 @@ function AdminCompaniesPage() {
     setPage(1);
   }, [search, status]);
 
-  const summary = useMemo(
-    () => ({
-      total: totalEmployers,
-      active: employers.filter((item) => item.statut === "actif").length,
-      pending: employers.filter((item) => item.statut === "en_attente").length,
-      suspended: employers.filter((item) => item.statut === "suspendu").length,
-    }),
-    [employers, totalEmployers],
-  );
-
   const refreshAfterAction = async () => {
     await loadEmployers();
   };
@@ -756,41 +870,41 @@ function AdminCompaniesPage() {
       <style>{styles}</style>
 
       <section className="companies-page">
-        <header className="companies-hero">
-          <div className="companies-title">
-            <p className="companies-kicker">Employer directory</p>
-            <h1>Companies on the platform</h1>
-            <p>Browse employer accounts, create new companies, update their profile data, and keep their status aligned with the platform rules.</p>
-          </div>
-          <Button onClick={openCreate}>Add company</Button>
-        </header>
-
-        <div className="companies-summary" aria-label="Employers summary">
-          <span><strong>{summary.total}</strong>Total</span>
-          <span><strong>{summary.active}</strong>Active</span>
-          <span><strong>{summary.pending}</strong>Pending</span>
-          <span><strong>{summary.suspended}</strong>Suspended</span>
-        </div>
-
         <section className="companies-panel">
           <div className="companies-toolbar">
-            <input
-              type="search"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search company name or email..."
-              aria-label="Search companies"
-            />
-            <select value={status} onChange={(event) => setStatus(event.target.value)} aria-label="Filter companies by status">
-              <option value="">All statuses</option>
-              <option value="actif">Active</option>
-              <option value="en_attente">Pending</option>
-              <option value="suspendu">Suspended</option>
-              <option value="inactif">Inactive</option>
-            </select>
-            <Button variant="secondary" onClick={() => void loadEmployers()}>Refresh</Button>
+            <label className="companies-search">
+              <Search aria-hidden="true" />
+              <input
+                type="search"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Search company name or email..."
+                aria-label="Search companies"
+              />
+            </label>
+            <label className="companies-select-wrap">
+              <select value={status} onChange={(event) => setStatus(event.target.value)} aria-label="Filter companies by status">
+                <option value="">All statuses</option>
+                <option value="actif">Active</option>
+                <option value="en_attente">Pending</option>
+                <option value="suspendu">Suspended</option>
+                <option value="inactif">Inactive</option>
+              </select>
+              <span aria-hidden="true">
+                <svg viewBox="0 0 20 20" fill="none">
+                  <path d="m5 7.5 5 5 5-5" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </span>
+            </label>
+            <button className="companies-toolbar-btn" onClick={() => void loadEmployers()} type="button">
+              <RefreshCw aria-hidden="true" />
+              <span>Refresh</span>
+            </button>
             <div className="companies-toolbar-actions">
-              <Button variant="ghost" onClick={openCreate}>Create</Button>
+              <button className="companies-toolbar-btn companies-toolbar-btn--primary" onClick={openCreate} type="button">
+                <Plus aria-hidden="true" />
+                <span>Create</span>
+              </button>
             </div>
           </div>
 
@@ -826,12 +940,20 @@ function AdminCompaniesPage() {
                     return (
                       <tr key={employer.id_utilisateur}>
                         <td>
-                          <strong>{employer.nom_entreprise || employer.nom || "Company"}</strong>
-                          <span>{employer.email}</span>
+                          <div className="company-cell">
+                            <span className="company-icon" aria-hidden="true">
+                              <Building2 />
+                            </span>
+                            <div>
+                              <strong>{employer.nom_entreprise || employer.nom || "Company"}</strong>
+                              <span>{employer.email}</span>
+                              <span className="company-verified">Verified</span>
+                            </div>
+                          </div>
                         </td>
                         <td>
                           <strong>{employer.telephone || "-"}</strong>
-                          <span>{employer.id_utilisateur.slice(0, 8)}</span>
+                          <span className="company-contact-id">{employer.id_utilisateur.slice(0, 8)}</span>
                         </td>
                         <td>
                           <span className={`company-status company-status--${employer.statut}`}>
@@ -846,18 +968,22 @@ function AdminCompaniesPage() {
                         <td>{formatDate(employer.created_at)}</td>
                         <td>
                           <div className="companies-actions">
-                            <Button size="sm" variant="secondary" onClick={() => void openView(employer)} disabled={isBusy}>
-                              View
-                            </Button>
-                            <Button size="sm" variant="ghost" onClick={() => void openEdit(employer)} disabled={isBusy}>
-                              Edit
-                            </Button>
-                            <Button size="sm" variant="ghost" onClick={() => void changeStatus(employer, nextStatus)} disabled={isBusy}>
-                              {employer.statut === "actif" ? "Suspend" : "Activate"}
-                            </Button>
-                            <Button size="sm" variant="danger" onClick={() => void deleteCompany(employer)} disabled={isBusy}>
-                              Delete
-                            </Button>
+                            <button className="companies-action-btn companies-action-btn--view" onClick={() => void openView(employer)} disabled={isBusy} type="button">
+                              <Eye aria-hidden="true" />
+                              <span>View</span>
+                            </button>
+                            <button className="companies-action-btn" onClick={() => void openEdit(employer)} disabled={isBusy} type="button">
+                              <Pencil aria-hidden="true" />
+                              <span>Edit</span>
+                            </button>
+                            <button className="companies-action-btn" onClick={() => void changeStatus(employer, nextStatus)} disabled={isBusy} type="button">
+                              <CirclePause aria-hidden="true" />
+                              <span>{employer.statut === "actif" ? "Suspend" : "Activate"}</span>
+                            </button>
+                            <button className="companies-action-btn companies-action-btn--danger" onClick={() => void deleteCompany(employer)} disabled={isBusy} type="button">
+                              <Trash2 aria-hidden="true" />
+                              <span>Delete</span>
+                            </button>
                           </div>
                         </td>
                       </tr>

@@ -176,17 +176,6 @@ export default function AdminApplicationsPage() {
     [applications],
   );
 
-  const summary = useMemo(
-    () => ({
-      total: applications.length,
-      pending: applications.filter((item) => item.status === "pending").length,
-      shortlisted: applications.filter((item) => item.status === "shortlisted").length,
-      interviews: applications.filter((item) => item.status === "interview_scheduled").length,
-      closed: applications.filter((item) => item.status === "accepted" || item.status === "rejected").length,
-    }),
-    [applications],
-  );
-
   const filteredApplications = useMemo(() => {
     const term = search.trim().toLowerCase();
 
@@ -226,21 +215,6 @@ export default function AdminApplicationsPage() {
   return (
     <main className="page-centree section-page app-theme">
       <section className="admin-interviews-page admin-applications-page">
-        <header className="admin-interviews-hero">
-          <div>
-            <p className="admin-interviews-kicker">Application tracking</p>
-            <h1>Applications and statuses</h1>
-            <p>See every candidate application, the related company, the role, and the current recruitment status in one compact workspace.</p>
-          </div>
-          <div className="admin-interviews-summary admin-applications-summary" aria-label="Applications summary">
-            <span><strong>{summary.total}</strong>Total</span>
-            <span><strong>{summary.pending}</strong>Pending</span>
-            <span><strong>{summary.shortlisted}</strong>Shortlisted</span>
-            <span><strong>{summary.interviews}</strong>Interviews</span>
-            <span><strong>{summary.closed}</strong>Closed</span>
-          </div>
-        </header>
-
         <section className="admin-interviews-panel">
           <div className="admin-interviews-toolbar admin-applications-toolbar">
             <input

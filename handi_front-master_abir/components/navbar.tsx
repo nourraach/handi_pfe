@@ -11,6 +11,15 @@ import { LanguageSwitcher } from "@/components/language-switcher";
 import { ButtonLink } from "@/components/ui/button";
 import { authenticatedFetch } from "@/lib/auth-utils";
 import { construireUrlApi } from "@/lib/config";
+import {
+  countUnreadIncomingMessages,
+  isConversationUnread,
+  MESSAGE_READ_STATE_EVENT,
+  MESSAGE_READ_STATE_KEY,
+  readMessageReadState,
+  type MessageConversationSummary,
+  type MessageSummary,
+} from "@/lib/message-read-state";
 import { UtilisateurConnecte } from "@/types/api";
 
 interface NavbarProps {
@@ -219,6 +228,7 @@ export function Navbar({
   const [profileMenuPlacement, setProfileMenuPlacement] = useState<"down" | "up">("down");
   const [profileMenuMaxHeight, setProfileMenuMaxHeight] = useState<number>(420);
   const [notificationsNonLues, setNotificationsNonLues] = useState(0);
+  const [messagesNonLus, setMessagesNonLus] = useState(0);
   const [candidateProfilePhoto, setCandidateProfilePhoto] = useState<string | null>(null);
   const [navigationMenuOuvert, setNavigationMenuOuvert] = useState<string | null>(null);
   const [keyboardBuffer, setKeyboardBuffer] = useState("");
@@ -230,10 +240,10 @@ export function Navbar({
   const isAdmin = utilisateur.role === "admin";
   const isEntreprise = utilisateur.role === "entreprise";
   const usesReferenceSidebar = isCandidate || isEntreprise || isAdmin;
-  const hasCollapsibleSidebar =
-    utilisateur.role === "candidat" || utilisateur.role === "entreprise" || utilisateur.role === "admin";
+  const hasCollapsibleSidebar = utilisateur.role === "candidat" || utilisateur.role === "entreprise";
   const keyboardModeEnabled = settings.keyboardMoveMode;
   const keyboardAnnouncement = keyboardModeEnabled ? t("accessibility.keyboardAnnouncement") : "";
+  const socialBadgeCount = notificationsNonLues + messagesNonLus;
 
   const liens = useMemo(() => {
     if (utilisateur.role === "candidat") {
@@ -260,9 +270,9 @@ export function Navbar({
         {
           id: "social",
           label: t("navbar.social"),
-          badgeCount: notificationsNonLues,
+          badgeCount: socialBadgeCount,
           items: [
-            { href: "/messages", label: t("navbar.messages") },
+            { href: "/messages", label: t("navbar.messages"), badgeCount: messagesNonLus },
             { href: "/notifications", label: t("navbar.notifications"), badgeCount: notificationsNonLues },
           ],
         },
@@ -292,9 +302,9 @@ export function Navbar({
         {
           id: "admin-social",
           label: t("navbar.social"),
-          badgeCount: notificationsNonLues,
+          badgeCount: socialBadgeCount,
           items: [
-            { href: "/messages", label: t("navbar.messages") },
+            { href: "/messages", label: t("navbar.messages"), badgeCount: messagesNonLus },
             { href: "/notifications", label: t("navbar.notifications"), badgeCount: notificationsNonLues },
           ],
         },
@@ -328,9 +338,9 @@ export function Navbar({
         {
           id: "entreprise-social",
           label: t("navbar.social"),
-          badgeCount: notificationsNonLues,
+          badgeCount: socialBadgeCount,
           items: [
-            { href: "/messages", label: t("navbar.messages") },
+            { href: "/messages", label: t("navbar.messages"), badgeCount: messagesNonLus },
             { href: "/notifications", label: t("navbar.notifications"), badgeCount: notificationsNonLues },
           ],
         },
@@ -352,7 +362,7 @@ export function Navbar({
       { href: "/admin/comptes", label: t("navbar.accounts") },
       { href: "/admin/tests-psychologiques", label: t("navbar.assessments") },
     ] satisfies NavItem[];
-  }, [notificationsNonLues, t, utilisateur.role]);
+  }, [messagesNonLus, notificationsNonLues, socialBadgeCount, t, utilisateur.role]);
 
   const primaryAction = useMemo(() => {
     if (utilisateur.role === "inspecteur" || utilisateur.role === "aneti") {
@@ -380,11 +390,11 @@ export function Navbar({
       { id: "applications", label: "Candidatures", subtitle: "Suivi", icon: "applications", href: "/candidat/candidatures" },
       { id: "interviews", label: "Entretiens", subtitle: "Planning candidat", icon: "tests", href: "/candidat/entretiens" },
       { id: "tests", label: "Tests & Évaluations", subtitle: "Progression", icon: "tests", href: "/candidat/tests-psychologiques" },
-      { id: "messages", label: "Messagerie", subtitle: "Inbox", icon: "messages", href: "/messages", badgeCount: notificationsNonLues },
+      { id: "messages", label: "Messagerie", subtitle: "Inbox", icon: "messages", href: "/messages", badgeCount: messagesNonLus },
       { id: "favorites", label: t("navbar.favorites"), subtitle: "Offres enregistrees", icon: "favorites", href: "/favoris" },
       { id: "cv", label: "CV Builder", subtitle: "Documents", icon: "cv", href: "/candidat/cv" },
     ],
-    [notificationsNonLues, t],
+    [messagesNonLus, t],
   );
 
   const adminSidebarItems: CandidateSidebarItem[] = [
@@ -407,10 +417,10 @@ export function Navbar({
       { id: "ent-interviews", label: "Entretiens", subtitle: "Planning & suivi", icon: "tests", href: "/entreprise/entretiens" },
       { id: "ent-shortlist", label: "IA Shortlisting", subtitle: "Preselection", icon: "tests", href: "/entreprise/shortlist" },
       { id: "ent-reports-requests", label: "Demandes de rapport", subtitle: "Conformite", icon: "achievements", href: "/entreprise/reports-requests" },
-      { id: "ent-messages", label: "Messagerie", subtitle: "Inbox", icon: "messages", href: "/messages", badgeCount: notificationsNonLues },
+      { id: "ent-messages", label: "Messagerie", subtitle: "Inbox", icon: "messages", href: "/messages", badgeCount: messagesNonLus },
       { id: "ent-settings", label: "Profil & Parametres", subtitle: "Compte", icon: "settings", href: "/entreprise/profil" },
     ],
-    [notificationsNonLues],
+    [messagesNonLus],
   );
 
   const sidebarItems = isAdmin ? adminSidebarItems : isEntreprise ? entrepriseSidebarItems : candidateSidebarItems;
@@ -478,6 +488,79 @@ export function Navbar({
       window.removeEventListener("notifications-marked-read", onNotificationsRead);
     };
   }, [pathname]);
+
+  useEffect(() => {
+    if (!["candidat", "entreprise", "admin"].includes(utilisateur.role)) {
+      return;
+    }
+
+    let actif = true;
+
+    const chargerMessagesNonLus = async () => {
+      try {
+        const response = await authenticatedFetch(construireUrlApi("/api/chat/conversations"));
+        const data = await response.json();
+
+        if (!response.ok || !actif) {
+          return;
+        }
+
+        const conversations = Array.isArray(data?.donnees) ? (data.donnees as MessageConversationSummary[]) : [];
+        const readState = readMessageReadState();
+        const unreadConversations = conversations.filter((conversation) =>
+          isConversationUnread(conversation, readState, utilisateur.id_utilisateur),
+        );
+        const unreadCounts = await Promise.all(
+          unreadConversations.map(async (conversation) => {
+            const messagesResponse = await authenticatedFetch(
+              construireUrlApi(`/api/chat/conversations/${conversation.id}/messages`),
+            );
+            const messagesData = await messagesResponse.json();
+
+            if (!messagesResponse.ok) {
+              return 0;
+            }
+
+            const messages = Array.isArray(messagesData?.donnees) ? (messagesData.donnees as MessageSummary[]) : [];
+            return countUnreadIncomingMessages(
+              conversation.id,
+              messages,
+              readState,
+              utilisateur.id_utilisateur,
+            );
+          }),
+        );
+        const unreadCount = unreadCounts.reduce((total, count) => total + count, 0);
+
+        setMessagesNonLus(unreadCount);
+      } catch {
+        if (actif) {
+          setMessagesNonLus(0);
+        }
+      }
+    };
+
+    void chargerMessagesNonLus();
+
+    const onReadStateUpdated = () => {
+      void chargerMessagesNonLus();
+    };
+
+    const onStorage = (event: StorageEvent) => {
+      if (event.key === MESSAGE_READ_STATE_KEY) {
+        void chargerMessagesNonLus();
+      }
+    };
+
+    window.addEventListener(MESSAGE_READ_STATE_EVENT, onReadStateUpdated);
+    window.addEventListener("storage", onStorage);
+
+    return () => {
+      actif = false;
+      window.removeEventListener(MESSAGE_READ_STATE_EVENT, onReadStateUpdated);
+      window.removeEventListener("storage", onStorage);
+    };
+  }, [pathname, utilisateur.id_utilisateur, utilisateur.role]);
 
   useEffect(() => {
     if (!isCandidate || !utilisateur.id_utilisateur) {

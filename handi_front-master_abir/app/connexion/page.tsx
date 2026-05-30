@@ -13,7 +13,6 @@ export default function ConnexionPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [mdp, setMdp] = useState("");
-  const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [erreur, setErreur] = useState<string | null>(null);
@@ -44,7 +43,6 @@ export default function ConnexionPage() {
       if (typeof window !== "undefined" && resultat.donnees?.token) {
         localStorage.setItem("token_auth", resultat.donnees.token);
         localStorage.setItem("utilisateur_connecte", JSON.stringify(resultat.donnees.utilisateur ?? null));
-        if (rememberMe) localStorage.setItem("remember_email", email);
         setMessage(t("login.signInSuccess"));
         router.push("/home");
       }
@@ -131,15 +129,6 @@ export default function ConnexionPage() {
           </div>
 
           <div className={styles.optionsRow}>
-            <label className={styles.checkbox}>
-              <input
-                type="checkbox"
-                checked={rememberMe}
-                onChange={(event) => setRememberMe(event.target.checked)}
-              />
-              <span>Remember me</span>
-            </label>
-
             <Link href="/reset/demander" className={styles.forgotLink}>
               {t("login.forgotPassword")}?
             </Link>
