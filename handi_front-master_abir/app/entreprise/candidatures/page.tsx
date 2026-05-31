@@ -166,6 +166,7 @@ type RejectionOuvert = {
 const PAGE_SIZE = 12;
 const PAGE_FETCH_LIMIT = PAGE_SIZE + 1;
 const STATS_BATCH_SIZE = 100;
+const EXPORT_BATCH_SIZE = 100;
 
 type PreviewKind = "image" | "pdf" | "video" | "unknown";
 type MediaPreviewState = {
@@ -359,6 +360,15 @@ function creerStatistiquesVides(): StatistiquesCandidatures {
   };
 }
 
+function csvEscape(value: unknown) {
+  const text = value === null || value === undefined ? "" : String(value);
+  const normalized = text.replace(/\r?\n/g, " ").trim();
+  if (/[",]/.test(normalized)) {
+    return `"${normalized.replace(/"/g, '""')}"`;
+  }
+  return normalized;
+}
+
 function calculerStatistiquesDepuisCandidatures(candidatures: CandidatureRecue[]): StatistiquesCandidatures {
   const statistiques = creerStatistiquesVides();
 
@@ -442,8 +452,81 @@ export default function CandidaturesCompanyPage() {
               : "unknown");
       const objectUrl = URL.createObjectURL(blob);
       setPreview({ open: true, title: opts.title, kind, url: objectUrl, loading: false, error: null });
-    } catch (e: any) {
-      setPreview((current) => ({ ...current, loading: false, error: e?.message || "Impossible d'ouvrir le fichier." }));
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : "Impossible d'ouvrir le fichier.";
+      setPreview((current) => ({ ...current, loading: false, error: message }));
+    }
+  };
+
+  const exporterCandidaturesCsv = async () => {
+    try {
+      setInfo(null);
+      setErreur(null);
+      setLoading(true);
+
+      const lignes: CandidatureRecue[] = [];
+      let pageExport = 1;
+
+      while (true) {
+        const response = await authenticatedFetch(
+          construireUrlApi(construireEndpointCandidatures(pageExport, EXPORT_BATCH_SIZE, filtreStatus || undefined)),
+        );
+        const data: CandidatureRecuePayload = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(data.message || "Impossible d'exporter les candidatures.");
+        }
+
+        const lot = normaliserCandidatures(data);
+        lignes.push(...lot);
+        if (lot.length < EXPORT_BATCH_SIZE) break;
+        pageExport += 1;
+      }
+
+      const headers = [
+        "candidate_name",
+        "candidate_email",
+        "candidate_phone",
+        "status",
+        "application_date",
+        "offer_title",
+        "score_test",
+        "experience",
+        "handicap",
+        "motif_refus",
+      ];
+
+      const rows = lignes.map((item) => [
+        item.candidat.nom,
+        item.candidat.email,
+        item.candidat.telephone || "",
+        item.statut,
+        item.date_postulation,
+        item.offre.titre,
+        item.score_test ?? "",
+        item.candidat.experience ?? "",
+        item.candidat.handicap ?? "",
+        item.motif_refus ?? "",
+      ]);
+
+      const csv = [headers.join(","), ...rows.map((row) => row.map(csvEscape).join(","))].join("\n");
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      const suffixStatus = filtreStatus ? `-${filtreStatus}` : "";
+      const suffixOffre = offreSelectionnee ? `-offre-${offreSelectionnee.slice(0, 8)}` : "";
+      a.href = url;
+      a.download = `candidatures${suffixStatus}${suffixOffre}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+
+      setInfo(`Export termine (${lignes.length} candidature(s)).`);
+    } catch (error: unknown) {
+      setErreur(error instanceof Error ? error.message : "Impossible d'exporter les candidatures.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -825,6 +908,9 @@ export default function CandidaturesCompanyPage() {
           <ButtonLink href="/entreprise/entretiens" variant="secondary">
             Open interviews
           </ButtonLink>
+          <Button variant="secondary" onClick={() => void exporterCandidaturesCsv()} disabled={loading}>
+            Exporter
+          </Button>
           <Button
             onClick={() =>
               setInfo("Use candidate cards or table actions to add hiring notes in details and interview scheduling.")
