@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { CalendarDays, ChevronDown, MapPin, RefreshCw, Search, Video } from "lucide-react";
+import { CalendarDays, ChevronDown, MapPin, Search, Video } from "lucide-react";
 import { authenticatedFetch } from "@/lib/auth-utils";
 import { construireUrlApi } from "@/lib/config";
 import {
@@ -84,7 +84,7 @@ const interviewBoardStyles = `
 
   .interviews-board__toolbar {
     display: grid;
-    grid-template-columns: minmax(280px, 1fr) minmax(150px, 0.38fr) minmax(150px, 0.38fr) minmax(150px, 0.38fr) auto;
+    grid-template-columns: minmax(280px, 1fr) minmax(150px, 0.38fr) minmax(150px, 0.38fr) minmax(150px, 0.38fr);
     gap: 16px;
     align-items: center;
   }
@@ -136,27 +136,6 @@ const interviewBoardStyles = `
   .interviews-board__select select {
     appearance: none;
     padding: 0 48px 0 20px;
-  }
-
-  .interviews-board__refresh {
-    min-height: 54px;
-    border: 0;
-    border-radius: 18px;
-    padding: 0 26px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    color: #ffffff;
-    background: #170d49;
-    font-weight: 900;
-    box-shadow: 0 14px 28px rgba(23, 13, 73, 0.24);
-    white-space: nowrap;
-  }
-
-  .interviews-board__refresh svg {
-    width: 16px;
-    height: 16px;
   }
 
   .interviews-board__table-wrap {
@@ -445,7 +424,7 @@ const interviewBoardStyles = `
 
   @media (max-width: 1280px) {
     .interviews-board__toolbar {
-      grid-template-columns: minmax(240px, 1fr) repeat(3, minmax(140px, 0.35fr)) auto;
+      grid-template-columns: minmax(240px, 1fr) repeat(3, minmax(140px, 0.35fr));
       gap: 12px;
     }
   }
@@ -622,10 +601,6 @@ export default function AdminEntretiensPage() {
               </select>
               <ChevronDown aria-hidden="true" />
             </label>
-            <button className="interviews-board__refresh" type="button" onClick={() => void chargerEntretiens()}>
-              <RefreshCw aria-hidden="true" />
-              <span>Refresh</span>
-            </button>
           </div>
 
           {erreur ? <p className="message message-erreur">{erreur}</p> : null}

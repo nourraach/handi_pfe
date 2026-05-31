@@ -12,7 +12,17 @@ export interface ProfilCandidatDto {
   disponibilite?: string;
   salaire_souhaite?: string;
   preferences_accessibilite?: string[];
-  visibilite?: { email?: boolean; telephone?: boolean; handicap?: boolean };
+  visibilite?: {
+    email?: boolean;
+    telephone?: boolean;
+    handicap?: boolean;
+    addresse?: boolean;
+    experience?: boolean;
+    formation?: boolean;
+    competences?: boolean;
+    salaire_souhaite?: boolean;
+    documents?: boolean;
+  };
   cv_url?: string | null;
   carte_handicap_url?: string | null;
   video_cv_url?: string | null;

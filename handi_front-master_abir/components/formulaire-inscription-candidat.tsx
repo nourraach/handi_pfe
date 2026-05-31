@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { type FormEvent, type HTMLAttributes, type ReactNode, useState } from "react";
+import { useRouter } from "next/navigation";
+import { type FormEvent, type HTMLAttributes, type ReactNode, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { construireUrlApi } from "@/lib/config";
@@ -31,6 +32,7 @@ const communicationOptions = [
 
 const AGE_MINIMUM = 18;
 const AGE_DEFAULT = String(AGE_MINIMUM);
+const CANDIDATE_SIGNUP_DRAFT_KEY = "candidate_signup_draft_v1";
 
 const steps = [
   {
@@ -53,6 +55,38 @@ const steps = [
     description: "Finalisez votre profil avec quelques détails utiles.",
     calloutTitle: "Cette dernière section vous permet d’ajouter du contexte.",
     calloutText: "Une présentation claire aide les recruteurs à mieux comprendre votre parcours et vos attentes.",
+  },
+];
+
+type OnboardingTourStep = {
+  icon: string;
+  targetId: string;
+  title: string;
+  description: string;
+  tip: string;
+};
+
+const onboardingTourSteps: OnboardingTourStep[] = [
+  {
+    icon: "1",
+    targetId: "candidate-onboarding-step-fields",
+    title: "Etape 1: Informations personnelles",
+    description: "Renseignez vos informations de base pour demarrer l inscription.",
+    tip: "Completez les champs requis, puis le guide passe a la phase suivante.",
+  },
+  {
+    icon: "2",
+    targetId: "candidate-onboarding-step-fields",
+    title: "Etape 2: Profil et preferences",
+    description: "Ajoutez les informations de handicap et vos preferences de communication.",
+    tip: "Quand les champs obligatoires sont valides, la phase suivante s affiche.",
+  },
+  {
+    icon: "3",
+    targetId: "candidate-onboarding-step-fields",
+    title: "Etape 3: Informations complementaires",
+    description: "Ajoutez votre presentation puis finalisez l envoi.",
+    tip: "Verifiez le resume, puis cliquez sur Creer mon compte.",
   },
 ];
 
@@ -94,6 +128,46 @@ const stepFields: Record<number, FieldName[]> = {
     "preference_communication",
   ],
   2: [],
+};
+
+const fieldLabels: Record<FieldName, string> = {
+  nom: "Nom complet",
+  email: "Email",
+  telephone: "Numéro de téléphone",
+  mdp: "Mot de passe",
+  confirmationMotDePasse: "Confirmation mot de passe",
+  genre: "Genre",
+  age: "Âge",
+  addresse: "Adresse",
+  type_handicap: "Type de handicap",
+  preciser_handicap: "Précision du handicap",
+  num_carte_handicap: "Numéro de carte handicap",
+  date_expiration_carte_handicap: "Expiration carte handicap",
+  carte_handicap_file: "Carte handicap (fichier)",
+  niveau_academique: "Niveau académique",
+  description: "Présentation",
+  secteur: "Secteur visé",
+  preference_communication: "Préférence de communication",
+};
+
+const fieldIdByName: Record<FieldName, string> = {
+  nom: "nom",
+  email: "email",
+  telephone: "telephone",
+  mdp: "mot-de-passe",
+  confirmationMotDePasse: "confirmation-mot-de-passe",
+  genre: "genre",
+  age: "age",
+  addresse: "addresse",
+  type_handicap: "type-handicap",
+  preciser_handicap: "preciser-handicap",
+  num_carte_handicap: "num-carte-handicap",
+  date_expiration_carte_handicap: "expiration-carte",
+  carte_handicap_file: "carte-handicap-file",
+  niveau_academique: "niveau-academique",
+  description: "description",
+  secteur: "secteur-vise",
+  preference_communication: "preference-communication",
 };
 
 function formatDateInput(date: Date) {
@@ -154,6 +228,7 @@ function getOptionLabel(options: Array<{ value: string; label: string }>, value:
 }
 
 export function FormulaireInscriptionCandidat() {
+  const router = useRouter();
   const [formulaire, setFormulaire] = useState(initialState);
   const [confirmationMotDePasse, setConfirmationMotDePasse] = useState("");
   const [message, setMessage] = useState<string | null>(null);
@@ -165,6 +240,11 @@ export function FormulaireInscriptionCandidat() {
   const [showPassword, setShowPassword] = useState(false);
   const [showPasswordConfirmation, setShowPasswordConfirmation] = useState(false);
   const [carteHandicapFile, setCarteHandicapFile] = useState<File | null>(null);
+  const [draftLoaded, setDraftLoaded] = useState(false);
+  const [tourOpen, setTourOpen] = useState(false);
+  const [tourStepIndex, setTourStepIndex] = useState(0);
+  const [tourRect, setTourRect] = useState<{ top: number; left: number; width: number; height: number } | null>(null);
+  const [tourCardPos, setTourCardPos] = useState<{ top: number; left: number }>({ top: 120, left: 120 });
   const minimumExpirationDate = getTomorrowDateValue();
 
   const clearStatusFeedback = () => {
@@ -175,6 +255,15 @@ export function FormulaireInscriptionCandidat() {
     if (erreur) {
       setErreur(null);
     }
+  };
+
+  const closeCandidateSignup = () => {
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      router.back();
+      return;
+    }
+
+    router.push("/inscription");
   };
 
   const validateField = (
@@ -241,6 +330,130 @@ export function FormulaireInscriptionCandidat() {
         return null;
     }
   };
+
+  useEffect(() => {
+    try {
+      const brut = localStorage.getItem(CANDIDATE_SIGNUP_DRAFT_KEY);
+      if (!brut) {
+        return;
+      }
+
+      const draft = JSON.parse(brut) as {
+        formulaire?: typeof initialState;
+        confirmationMotDePasse?: string;
+        activeStep?: number;
+      };
+
+      if (draft.formulaire && typeof draft.formulaire === "object") {
+        setFormulaire((current) => ({
+          ...current,
+          ...draft.formulaire,
+        }));
+      }
+
+      if (typeof draft.confirmationMotDePasse === "string") {
+        setConfirmationMotDePasse(draft.confirmationMotDePasse);
+      }
+
+      if (typeof draft.activeStep === "number") {
+        setActiveStep(Math.min(Math.max(draft.activeStep, 0), steps.length - 1));
+      }
+
+      setDraftLoaded(true);
+    } catch {
+      // ignore invalid draft data
+    }
+  }, []);
+
+  useEffect(() => {
+    setTourOpen(true);
+  }, []);
+
+  useEffect(() => {
+    const draft = {
+      formulaire,
+      confirmationMotDePasse,
+      activeStep,
+      savedAt: new Date().toISOString(),
+    };
+
+    localStorage.setItem(CANDIDATE_SIGNUP_DRAFT_KEY, JSON.stringify(draft));
+  }, [formulaire, confirmationMotDePasse, activeStep]);
+
+  useEffect(() => {
+    if (!tourOpen) {
+      setTourRect(null);
+      return;
+    }
+
+    const updateTourPosition = () => {
+      const step = onboardingTourSteps[tourStepIndex];
+      const target = document.getElementById(step.targetId);
+
+      if (!target) {
+        return;
+      }
+
+      const rect = target.getBoundingClientRect();
+      const focusPadding = 8;
+      const spotlight = {
+        top: Math.max(8, rect.top - focusPadding),
+        left: Math.max(8, rect.left - focusPadding),
+        width: rect.width + focusPadding * 2,
+        height: rect.height + focusPadding * 2,
+      };
+
+      const cardWidth = 300;
+      const cardHeight = 214;
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      const gap = 28;
+      const topSpace = rect.top;
+      const bottomSpace = viewportHeight - rect.bottom;
+      const rightSpace = viewportWidth - rect.right;
+      const leftSpace = rect.left;
+      const preferredSide =
+        topSpace >= cardHeight + gap
+          ? "top"
+          : bottomSpace >= cardHeight + gap
+            ? "bottom"
+            : rightSpace >= cardWidth + gap
+              ? "right"
+              : leftSpace >= cardWidth + gap
+                ? "left"
+                : bottomSpace >= topSpace
+                  ? "bottom"
+                  : "top";
+      let left = rect.right + gap;
+      let top = rect.top + rect.height / 2 - cardHeight / 2;
+
+      if (preferredSide === "left") {
+        left = rect.left - cardWidth - gap;
+      }
+      if (preferredSide === "top" || preferredSide === "bottom") {
+        left = rect.left + rect.width / 2 - cardWidth / 2;
+      }
+      if (preferredSide === "top") {
+        top = rect.top - cardHeight - gap;
+      }
+      if (preferredSide === "bottom") {
+        top = rect.bottom + gap;
+      }
+
+      const clampedLeft = Math.max(16, Math.min(left, viewportWidth - cardWidth - 16));
+      const clampedTop = Math.max(16, Math.min(top, viewportHeight - cardHeight - 16));
+
+      setTourRect(spotlight);
+      setTourCardPos({ top: clampedTop, left: clampedLeft });
+    };
+
+    updateTourPosition();
+    window.addEventListener("resize", updateTourPosition);
+
+    return () => {
+      window.removeEventListener("resize", updateTourPosition);
+    };
+  }, [tourOpen, tourStepIndex, activeStep]);
 
   const touchField = (field: FieldName) => {
     setTouchedFields((current) => (current[field] ? current : { ...current, [field]: true }));
@@ -471,6 +684,7 @@ export function FormulaireInscriptionCandidat() {
       setFieldErrors({});
       setTouchedFields({});
       setActiveStep(0);
+      localStorage.removeItem(CANDIDATE_SIGNUP_DRAFT_KEY);
     } catch (cause) {
       setErreur(cause instanceof Error ? cause.message : "Une erreur est survenue.");
     } finally {
@@ -488,6 +702,59 @@ export function FormulaireInscriptionCandidat() {
 
     await submitApplication();
   };
+
+  const visibleStepFields = useMemo(() => {
+    const baseFields = [...(stepFields[activeStep] ?? [])];
+
+    if (activeStep !== 1) {
+      return baseFields;
+    }
+
+    if (formulaire.type_handicap !== "Autre") {
+      return baseFields.filter((field) => field !== "preciser_handicap");
+    }
+
+    return baseFields;
+  }, [activeStep, formulaire.type_handicap]);
+
+  const onboardingChecklist = useMemo(
+    () =>
+      visibleStepFields.map((field) => ({
+        field,
+        label: fieldLabels[field],
+        complete: !validateField(field),
+      })),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [visibleStepFields, formulaire, confirmationMotDePasse, carteHandicapFile],
+  );
+
+  const completedChecklistCount = onboardingChecklist.filter((item) => item.complete).length;
+  const firstIncompleteField = onboardingChecklist.find((item) => !item.complete)?.field ?? null;
+  const isCurrentStepComplete =
+    onboardingChecklist.length === 0 ? true : completedChecklistCount === onboardingChecklist.length;
+
+  const focusField = (field: FieldName) => {
+    const fieldId = fieldIdByName[field];
+    const element = document.getElementById(`candidate-signup-${fieldId}`);
+
+    if (!element) {
+      return;
+    }
+
+    element.scrollIntoView({ behavior: "smooth", block: "center" });
+    if ("focus" in element) {
+      (element as HTMLElement).focus();
+    }
+  };
+
+  const fermerTour = () => {
+    setTourOpen(false);
+  };
+
+  useEffect(() => {
+    setTourStepIndex(Math.min(activeStep, onboardingTourSteps.length - 1));
+    setTourOpen(true);
+  }, [activeStep]);
 
   const currentStep = steps[activeStep];
   const progressValue = (activeStep / (steps.length - 1)) * 100;
@@ -532,23 +799,28 @@ export function FormulaireInscriptionCandidat() {
           </div>
         </aside>
 
-        <Card className={styles.formCard} padding="lg">
+        <Card className={styles.formCard} padding="md">
           <div className={styles.headerRow}>
             <div className={styles.headerCopy}>
               <h1 className={styles.pageTitle}>
-                Créez votre <span>compte</span>
+                Créer votre <span>compte</span>
                 <span className={styles.wave} aria-hidden="true">
                 </span>
               </h1>
+              <p className={styles.stepCaption}>Etape {activeStep + 1} sur {steps.length}</p>
             </div>
 
-            <div className={styles.authSwitch}>
-              <span>Déjà un compte ?</span>
-              <Link href="/connexion">Se connecter</Link>
-            </div>
+            <button
+              type="button"
+              className={styles.headerCloseButton}
+              aria-label="Fermer l'inscription candidat"
+              onClick={closeCandidateSignup}
+            >
+              <span aria-hidden="true">×</span>
+            </button>
           </div>
 
-          <div className={styles.progressBlock} aria-label="Progression de l'inscription">
+          <div id="candidate-onboarding-progress" className={styles.progressBlock} aria-label="Progression de l'inscription">
             <div className={styles.progressTrack} aria-hidden="true">
               <div className={styles.progressFill} style={{ width: `${progressValue}%` }} />
             </div>
@@ -586,9 +858,46 @@ export function FormulaireInscriptionCandidat() {
             </div>
           </div>
 
+          <div id="candidate-onboarding-guide" className={styles.onboardingPanel} role="status" aria-live="polite">
+            <div className={styles.onboardingPanelHeader}>
+              <strong>Guidage étape {activeStep + 1}</strong>
+              {onboardingChecklist.length > 0 ? (
+                <span>
+                  {completedChecklistCount}/{onboardingChecklist.length}
+                </span>
+              ) : (
+                <span>Finalisation</span>
+              )}
+            </div>
+
+            {draftLoaded ? (
+              <p className={styles.onboardingDraftNote}>Votre brouillon a été restauré automatiquement.</p>
+            ) : null}
+
+            {onboardingChecklist.length > 0 ? (
+              <ul className={styles.onboardingChecklist}>
+                {onboardingChecklist.map((item) => (
+                  <li key={item.field} className={classes(item.complete && styles.onboardingChecklistItemDone)}>
+                    <span aria-hidden="true">{item.complete ? "✓" : "•"}</span>
+                    <span>{item.label}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className={styles.onboardingDraftNote}>Ajoutez une présentation si vous le souhaitez, puis envoyez votre demande.</p>
+            )}
+
+            {!isCurrentStepComplete && firstIncompleteField ? (
+              <button type="button" className={styles.onboardingJumpButton} onClick={() => focusField(firstIncompleteField)}>
+                Aller au prochain champ manquant
+              </button>
+            ) : null}
+          </div>
+
           <form className={styles.form} onSubmit={handleSubmit} noValidate>
+            <div id="candidate-onboarding-fields" key={`step-${activeStep}`} className={styles.stepMotionPane}>
             {activeStep === 0 ? (
-              <div className={styles.formGrid}>
+              <div id="candidate-onboarding-step-fields" className={styles.formGrid}>
                 <InputField
                   name="nom"
                   label="Nom complet"
@@ -692,7 +1001,7 @@ export function FormulaireInscriptionCandidat() {
             ) : null}
 
             {activeStep === 1 ? (
-              <div className={styles.formGrid}>
+              <div id="candidate-onboarding-step-fields" className={styles.formGrid}>
                 <SelectField
                   name="type-handicap"
                   label="Type de handicap"
@@ -791,7 +1100,7 @@ export function FormulaireInscriptionCandidat() {
             ) : null}
 
             {activeStep === 2 ? (
-              <div className={styles.finalStep}>
+              <div id="candidate-onboarding-step-fields" className={styles.finalStep}>
                 <div className={styles.formGrid}>
                   <TextAreaField
                     name="description"
@@ -812,15 +1121,6 @@ export function FormulaireInscriptionCandidat() {
                 </div>
               </div>
             ) : null}
-
-            <div className={styles.callout}>
-              <span className={styles.calloutIcon} aria-hidden="true">
-                <InfoIcon />
-              </span>
-              <div>
-                <strong>{currentStep.calloutTitle}</strong>
-                <p>{currentStep.calloutText}</p>
-              </div>
             </div>
 
             {erreur ? (
@@ -835,21 +1135,72 @@ export function FormulaireInscriptionCandidat() {
               </p>
             ) : null}
 
-            <div className={styles.actionRow}>
+            <div id="candidate-onboarding-actions" className={styles.actionRow}>
               {activeStep > 0 ? (
-                <Button type="button" variant="ghost" className={styles.secondaryAction} onClick={goBack}>
+                <button type="button" className={styles.cancelAction} onClick={goBack}>
                   Retour
-                </Button>
+                </button>
               ) : (
-                <span aria-hidden="true" />
+                <Link href="/inscription" className={styles.cancelAction}>
+                  Annuler
+                </Link>
               )}
 
               <Button type="submit" variant="primary" className={styles.primaryAction} disabled={chargement}>
-                {chargement ? "Création..." : activeStep === steps.length - 1 ? "Créer mon compte" : "Continuer"}
+                <span aria-hidden="true">→</span>
+                {chargement ? "Création..." : activeStep === steps.length - 1 ? "Créer mon compte" : "Suivant"}
               </Button>
             </div>
           </form>
         </Card>
+
+        {tourOpen && tourRect ? (
+          <div className={styles.tourOverlay} role="dialog" aria-modal="true" aria-label="Guide d inscription">
+            <div className={styles.tourBackdrop} onClick={fermerTour} />
+            <div
+              className={styles.tourSpotlight}
+              style={{
+                top: tourRect.top,
+                left: tourRect.left,
+                width: tourRect.width,
+                height: tourRect.height,
+              }}
+            />
+
+            <aside className={styles.tourCard} style={{ top: tourCardPos.top, left: tourCardPos.left }}>
+              <div className={styles.tourCardHeader}>
+                <span className={styles.tourCardIcon} aria-hidden="true">
+                  {onboardingTourSteps[tourStepIndex].icon}
+                </span>
+                <span className={styles.tourCardCounter}>
+                  {tourStepIndex + 1} / {onboardingTourSteps.length}
+                </span>
+                <button type="button" className={styles.tourClose} onClick={fermerTour} aria-label="Fermer le guide">
+                  ×
+                </button>
+              </div>
+
+              <h3>{onboardingTourSteps[tourStepIndex].title}</h3>
+              <p>{onboardingTourSteps[tourStepIndex].description}</p>
+              <div className={styles.tourTip}>{onboardingTourSteps[tourStepIndex].tip}</div>
+
+              <div className={styles.tourDots} aria-hidden="true">
+                {onboardingTourSteps.map((_, index) => (
+                  <span key={`tour-dot-${index}`} className={classes(styles.tourDot, index === tourStepIndex && styles.tourDotActive)} />
+                ))}
+              </div>
+
+              <div className={styles.tourActions}>
+                <button type="button" onClick={fermerTour}>
+                  Masquer
+                </button>
+                <button type="button" className={styles.tourPrimary} disabled={!isCurrentStepComplete}>
+                  {isCurrentStepComplete ? "Étape validée" : "Complétez les champs requis"}
+                </button>
+              </div>
+            </aside>
+          </div>
+        ) : null}
 
         
       </section>
@@ -1406,16 +1757,6 @@ function EditIcon() {
     <BaseIcon>
       <path d="M12 20h9" />
       <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" />
-    </BaseIcon>
-  );
-}
-
-function InfoIcon() {
-  return (
-    <BaseIcon>
-      <circle cx="12" cy="12" r="9" />
-      <path d="M12 11v5" />
-      <circle cx="12" cy="8" r="1" fill="currentColor" stroke="none" />
     </BaseIcon>
   );
 }

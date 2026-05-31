@@ -25,7 +25,17 @@ export const candidatTable = pgTable("candidat", {
   salaire_souhaite: text("salaire_souhaite"),
   cv_url: text("cv_url"),
   preferences_accessibilite: json("preferences_accessibilite").$type<string[]>(),
-  visibilite: json("visibilite").$type<{ email?: boolean; telephone?: boolean; handicap?: boolean }>(),
+  visibilite: json("visibilite").$type<{
+    email?: boolean;
+    telephone?: boolean;
+    handicap?: boolean;
+    addresse?: boolean;
+    experience?: boolean;
+    formation?: boolean;
+    competences?: boolean;
+    salaire_souhaite?: boolean;
+    documents?: boolean;
+  }>(),
   carte_handicap_url: text("carte_handicap_url"),
   video_cv_url: text("video_cv_url"),
   photo_profil_url: text("photo_profil_url"),

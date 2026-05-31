@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { Ban, Building2, Eye, Search } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Ban, Building2, Eye, Search, X } from "lucide-react";
 import { createPortal } from "react-dom";
 import { RouteProtegee } from "@/components/route-protegee";
 import { Button } from "@/components/ui/button";
@@ -158,13 +158,14 @@ const styles = `
 
   .companies-toolbar {
     display: grid;
-    grid-template-columns: minmax(280px, 1fr) 210px auto;
+    grid-template-columns: minmax(250px, 1fr) 180px 180px 170px;
     gap: 16px;
     align-items: center;
   }
 
   .companies-search,
-  .companies-select-wrap {
+  .companies-select-wrap,
+  .companies-field {
     position: relative;
     min-width: 0;
   }
@@ -211,6 +212,11 @@ const styles = `
 
   .companies-toolbar input {
     padding: 0 18px 0 54px;
+    font-weight: 700;
+  }
+
+  .companies-field input {
+    padding: 0 14px;
     font-weight: 700;
   }
 
@@ -303,7 +309,7 @@ const styles = `
   .companies-table {
     width: 100%;
     border-collapse: collapse;
-    min-width: 980px;
+    min-width: 940px;
     table-layout: fixed;
     background: #fff;
   }
@@ -409,34 +415,20 @@ const styles = `
     margin: auto;
   }
 
-  .company-verified {
-    width: fit-content;
-    margin-top: 8px;
-    display: inline-flex !important;
-    min-height: 24px;
-    align-items: center;
-    justify-content: center;
-    border-radius: 999px;
-    padding: 0 12px;
-    background: #dff8ea;
-    color: #11a45e !important;
-    font-size: 0.72rem !important;
-    font-weight: 900 !important;
-  }
-
   .company-status {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 74px;
-    min-height: 34px;
-    padding: 0 12px;
+    min-width: 0;
+    min-height: 30px;
+    padding: 0 10px;
     border-radius: 999px;
     font-weight: 900;
-    font-size: 0.78rem;
+    font-size: 0.74rem;
     line-height: 1;
     text-align: center;
     white-space: nowrap;
+    width: fit-content;
   }
 
   .company-status::before {
@@ -466,24 +458,24 @@ const styles = `
   .companies-actions {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 8px;
+    gap: 6px;
     align-items: center;
     width: 112px;
   }
 
   .companies-action-btn {
-    min-height: 38px;
-    border-radius: 14px;
+    min-height: 34px;
+    border-radius: 12px;
     border: 1px solid #e8e1f7;
-    padding: 0 10px;
+    padding: 0 8px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
+    gap: 5px;
     background: #ffffff;
     color: #17113f;
     font-weight: 900;
-    font-size: 0.76rem;
+    font-size: 0.72rem;
     white-space: nowrap;
   }
 
@@ -588,15 +580,21 @@ const styles = `
   }
 
   .companies-modal-close {
-    min-height: 48px;
+    width: 48px;
+    height: 48px;
     border-radius: 18px;
     border: 1px solid #d8cde9;
-    padding: 0 20px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     background: #f4eefb;
     color: #3d1a67;
-    font-size: 1.02rem;
-    font-weight: 800;
-    white-space: nowrap;
+  }
+
+  .companies-modal-close svg {
+    width: 20px;
+    height: 20px;
   }
 
   .company-form {
@@ -739,6 +737,14 @@ function formatDate(value?: string | null) {
   return date.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
 }
 
+function normalizeFilterDate(value: string, maxIsoDate: string) {
+  if (!value) return "";
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return "";
+  const parsed = new Date(`${value}T00:00:00`);
+  if (Number.isNaN(parsed.getTime())) return "";
+  return value > maxIsoDate ? maxIsoDate : value;
+}
+
 function toUpdatePayload(form: CompanyFormState) {
   return {
     nom: form.nom.trim(),
@@ -778,6 +784,9 @@ function AdminCompaniesPage() {
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("");
+  const [region, setRegion] = useState("");
+  const [createdFrom, setCreatedFrom] = useState("");
+  const [todayIso] = useState(() => new Date().toISOString().slice(0, 10));
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalEmployers, setTotalEmployers] = useState(0);
@@ -785,11 +794,13 @@ function AdminCompaniesPage() {
   const [modalMode, setModalMode] = useState<ModalMode>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [selectedCompany, setSelectedCompany] = useState<CompanyProfile | null>(null);
+  const [selectedCompanyCreatedAt, setSelectedCompanyCreatedAt] = useState<string | null>(null);
   const [form, setForm] = useState<CompanyFormState>(EMPTY_FORM);
   const [formError, setFormError] = useState<string | null>(null);
   const [viewError, setViewError] = useState<string | null>(null);
   const [modalLoading, setModalLoading] = useState(false);
   const [actionInProgress, setActionInProgress] = useState<string | null>(null);
+  const normalizedCreatedFrom = useMemo(() => normalizeFilterDate(createdFrom, todayIso), [createdFrom, todayIso]);
 
   const loadEmployers = useCallback(async () => {
     try {
@@ -804,6 +815,8 @@ function AdminCompaniesPage() {
 
       if (status) params.set("statut", status);
       if (search.trim()) params.set("recherche", search.trim());
+      if (region.trim()) params.set("region", region.trim());
+      if (normalizedCreatedFrom) params.set("dateDebut", normalizedCreatedFrom);
 
       const response = await authenticatedFetch(construireUrlApi(`/api/admin/utilisateurs?${params.toString()}`));
       const data: EmployersPayload = await response.json().catch(() => ({}));
@@ -824,7 +837,7 @@ function AdminCompaniesPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, search, status]);
+  }, [normalizedCreatedFrom, page, region, search, status]);
 
   const loadCompanyProfile = useCallback(async (id: string) => {
     const response = await authenticatedFetch(construireUrlApi(`/api/entreprises/profil/${id}`));
@@ -855,7 +868,29 @@ function AdminCompaniesPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [search, status]);
+  }, [createdFrom, region, search, status]);
+
+  const employersFiltres = useMemo(() => {
+    return employers.filter((employer) => {
+      const regionMatch = !region.trim() || [employer.region, employer.gouvernorat, employer.delegation, employer.addresse]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase()
+        .includes(region.trim().toLowerCase());
+
+      if (!regionMatch) return false;
+
+      const createdAt = new Date(employer.created_at);
+      if (Number.isNaN(createdAt.getTime())) return !normalizedCreatedFrom;
+
+      if (normalizedCreatedFrom) {
+        const fromDate = new Date(`${normalizedCreatedFrom}T00:00:00`);
+        if (createdAt < fromDate) return false;
+      }
+
+      return true;
+    });
+  }, [employers, normalizedCreatedFrom, region]);
 
   const refreshAfterAction = async () => {
     await loadEmployers();
@@ -864,6 +899,7 @@ function AdminCompaniesPage() {
   const openView = async (employer: EmployerAccount) => {
     setModalMode("view");
     setSelectedCompany(null);
+    setSelectedCompanyCreatedAt(employer.created_at || null);
     setViewError(null);
     try {
       setModalLoading(true);
@@ -881,6 +917,7 @@ function AdminCompaniesPage() {
     setModalMode(null);
     setSelectedId(null);
     setSelectedCompany(null);
+    setSelectedCompanyCreatedAt(null);
     setForm(EMPTY_FORM);
     setFormError(null);
     setViewError(null);
@@ -983,6 +1020,25 @@ function AdminCompaniesPage() {
                 </svg>
               </span>
             </label>
+            <label className="companies-field">
+              <input
+                type="text"
+                value={region}
+                onChange={(event) => setRegion(event.target.value)}
+                placeholder="Region"
+                aria-label="Filter companies by region"
+              />
+            </label>
+            <label className="companies-field">
+              <input
+                type="date"
+                value={createdFrom}
+                onChange={(event) => setCreatedFrom(event.target.value)}
+                onBlur={() => setCreatedFrom((current) => normalizeFilterDate(current, todayIso))}
+                max={todayIso}
+                aria-label="Filter companies by creation date from"
+              />
+            </label>
           </div>
 
           {error ? <p className="message message-erreur" role="alert">{error}</p> : null}
@@ -993,16 +1049,16 @@ function AdminCompaniesPage() {
                 <col style={{ width: "246px" }} />
                 <col style={{ width: "166px" }} />
                 <col style={{ width: "118px" }} />
-                <col style={{ width: "208px" }} />
-                <col style={{ width: "104px" }} />
-                <col style={{ width: "128px" }} />
+                <col style={{ width: "176px" }} />
+                <col style={{ width: "112px" }} />
+                <col style={{ width: "154px" }} />
               </colgroup>
               <thead>
                 <tr>
                   <th>Company</th>
                   <th>Contact</th>
                   <th>Status</th>
-                  <th>Address</th>
+                  <th>Region</th>
                   <th>Created</th>
                   <th>Actions</th>
                 </tr>
@@ -1012,12 +1068,12 @@ function AdminCompaniesPage() {
                   <tr>
                     <td colSpan={6}>Loading companies...</td>
                   </tr>
-                ) : employers.length === 0 ? (
+                ) : employersFiltres.length === 0 ? (
                   <tr>
                     <td colSpan={6}>No companies match these filters.</td>
                   </tr>
                 ) : (
-                  employers.map((employer) => {
+                  employersFiltres.map((employer) => {
                     const isBusy = actionInProgress === employer.id_utilisateur;
                     const contactValue = employer.telephone?.trim() || employer.email;
 
@@ -1031,7 +1087,6 @@ function AdminCompaniesPage() {
                             <div>
                               <strong className="company-name">{employer.nom_entreprise || employer.nom || "Company"}</strong>
                               <span className="company-email">{employer.email}</span>
-                              <span className="company-verified">Verified</span>
                             </div>
                           </div>
                         </td>
@@ -1045,7 +1100,12 @@ function AdminCompaniesPage() {
                             {STATUS_LABELS[employer.statut] || employer.statut}
                           </span>
                         </td>
-                        <td className="company-address" title={employer.addresse || undefined}>{employer.addresse || "-"}</td>
+                        <td
+                          className="company-address"
+                          title={employer.region || employer.gouvernorat || employer.delegation || employer.addresse || undefined}
+                        >
+                          {employer.region || employer.gouvernorat || employer.delegation || employer.addresse || "-"}
+                        </td>
                         <td className="company-date">{formatDate(employer.created_at)}</td>
                         <td>
                           <div className="companies-actions">
@@ -1074,7 +1134,7 @@ function AdminCompaniesPage() {
 
           <footer className="companies-pagination">
             <span>
-              Page {page} / {totalPages} - {totalEmployers} company account(s)
+              Page {page} / {totalPages} - {employersFiltres.length} shown ({totalEmployers} total)
             </span>
             <div className="companies-pagination-controls">
               <Button
@@ -1118,7 +1178,9 @@ function AdminCompaniesPage() {
                     <h2 className="companies-modal-title">{selectedCompany?.nom_entreprise || selectedCompany?.nom || "Company"}</h2>
                     <p className="companies-modal-email">{selectedCompany?.email || "-"}</p>
                   </div>
-                  <button className="companies-modal-close" type="button" onClick={closeModal}>Close</button>
+                  <button className="companies-modal-close" type="button" onClick={closeModal} aria-label="Close">
+                    <X aria-hidden="true" />
+                  </button>
                 </div>
                 {modalLoading ? <p>Loading profile...</p> : null}
                 {viewError ? <p className="message message-erreur">{viewError}</p> : null}
@@ -1148,7 +1210,7 @@ function AdminCompaniesPage() {
                       <div className="company-detail-box">
                         <strong>Access</strong>
                         <p>Visible: {selectedCompany.profil_publique ? "Yes" : "No"}</p>
-                        <p>Created: {formatDate(selectedCompany.created_at)}</p>
+                        <p>Created: {formatDate(selectedCompany.created_at || selectedCompanyCreatedAt)}</p>
                       </div>
                     </div>
 
@@ -1163,7 +1225,9 @@ function AdminCompaniesPage() {
                     <h2 className="companies-modal-title">{modalMode === "create" ? "Create company account" : "Update company account"}</h2>
                     <p className="texte-secondaire">Fill in the account and company details in one pass.</p>
                   </div>
-                  <Button variant="ghost" onClick={closeModal}>Close</Button>
+                  <button className="companies-modal-close" type="button" onClick={closeModal} aria-label="Close">
+                    <X aria-hidden="true" />
+                  </button>
                 </div>
 
                 {modalLoading ? (

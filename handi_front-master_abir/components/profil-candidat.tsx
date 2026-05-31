@@ -5,11 +5,14 @@ import { motion } from "framer-motion";
 import {
   CalendarClock,
   FileText,
+  Eye,
+  EyeOff,
   Mail,
   Phone,
   ShieldCheck,
   Upload,
   Wallet,
+  X,
 } from "lucide-react";
 import { useI18n } from "@/components/i18n-provider";
 import { construireUrlApi } from "@/lib/config";
@@ -32,7 +35,17 @@ interface ProfilCandidatData {
   disponibilite: string;
   salaire_souhaite: string;
   preferences_accessibilite: string[];
-  visibilite: { email?: boolean; telephone?: boolean; handicap?: boolean };
+  visibilite: {
+    email?: boolean;
+    telephone?: boolean;
+    handicap?: boolean;
+    addresse?: boolean;
+    experience?: boolean;
+    formation?: boolean;
+    competences?: boolean;
+    salaire_souhaite?: boolean;
+    documents?: boolean;
+  };
   carte_handicap_url?: string;
   video_cv_url?: string;
   photo_profil_url?: string;
@@ -51,7 +64,22 @@ const VISIBILITY_FIELDS = [
   { key: "email", labelKey: "profile.candidate.visibility.email" },
   { key: "telephone", labelKey: "profile.candidate.visibility.phone" },
   { key: "handicap", labelKey: "profile.candidate.visibility.disability" },
+  { key: "addresse", labelKey: "profile.candidate.visibility.address" },
+  { key: "experience", labelKey: "profile.candidate.visibility.experience" },
+  { key: "formation", labelKey: "profile.candidate.visibility.education" },
+  { key: "competences", labelKey: "profile.candidate.visibility.skills" },
+  { key: "salaire_souhaite", labelKey: "profile.candidate.visibility.expectedSalary" },
+  { key: "documents", labelKey: "profile.candidate.visibility.documents" },
 ] as const;
+
+type MediaPreview = {
+  open: boolean;
+  title: string;
+  kind: "image" | "pdf" | "video" | "unknown";
+  url: string | null;
+  loading: boolean;
+  error: string | null;
+};
 
 export function ProfilCandidat({ utilisateur }: ProfilCandidatProps) {
   const { t } = useI18n();
@@ -83,6 +111,14 @@ export function ProfilCandidat({ utilisateur }: ProfilCandidatProps) {
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [photoPersistedValue, setPhotoPersistedValue] = useState<string>("");
+  const [mediaPreview, setMediaPreview] = useState<MediaPreview>({
+    open: false,
+    title: "",
+    kind: "unknown",
+    url: null,
+    loading: false,
+    error: null,
+  });
 
   useEffect(() => {
     void chargerProfil();
@@ -106,6 +142,67 @@ export function ProfilCandidat({ utilisateur }: ProfilCandidatProps) {
   }, [photoFile]);
 
   const token = () => localStorage.getItem("token_auth");
+
+  const resolveApiUrl = (path?: string | null) => {
+    if (!path) return null;
+    const trimmed = String(path).trim();
+    if (!trimmed) return null;
+    if (/^https?:\/\//i.test(trimmed)) return trimmed;
+    return construireUrlApi(trimmed);
+  };
+
+  const closePreview = () => {
+    setMediaPreview((current) => {
+      if (current.url) {
+        URL.revokeObjectURL(current.url);
+      }
+      return { open: false, title: "", kind: "unknown", url: null, loading: false, error: null };
+    });
+  };
+
+  const openViewOnlyPreview = async (opts: { title: string; srcPath: string; kindHint?: MediaPreview["kind"] }) => {
+    const resolved = resolveApiUrl(opts.srcPath);
+    if (!resolved) {
+      setErreur(t("profile.candidate.uploadDocuments"));
+      return;
+    }
+
+    setMediaPreview({ open: true, title: opts.title, kind: opts.kindHint || "unknown", url: null, loading: true, error: null });
+
+    try {
+      const response = await fetch(resolved, {
+        headers: {
+          Authorization: `Bearer ${token()}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Unable to open the file.");
+      }
+
+      const blob = await response.blob();
+      const contentType = (blob.type || response.headers.get("content-type") || "").toLowerCase();
+
+      const kind: MediaPreview["kind"] =
+        opts.kindHint ||
+        (contentType.includes("pdf")
+          ? "pdf"
+          : contentType.startsWith("image/")
+            ? "image"
+            : contentType.startsWith("video/")
+              ? "video"
+              : "unknown");
+
+      const objectUrl = URL.createObjectURL(blob);
+      setMediaPreview({ open: true, title: opts.title, kind, url: objectUrl, loading: false, error: null });
+    } catch (cause: unknown) {
+      setMediaPreview((current) => ({
+        ...current,
+        loading: false,
+        error: cause instanceof Error ? cause.message : "Unable to open the file.",
+      }));
+    }
+  };
 
   const chargerProfil = async () => {
     try {
@@ -226,6 +323,12 @@ export function ProfilCandidat({ utilisateur }: ProfilCandidatProps) {
     }));
   };
 
+  const isVisibleFlag = (field: keyof ProfilCandidatData["visibilite"]) => {
+    // Default to visible if not configured yet.
+    if (typeof profil.visibilite?.[field] === "boolean") return Boolean(profil.visibilite[field]);
+    return true;
+  };
+
   const initials = profil.nom
     .split(" ")
     .filter(Boolean)
@@ -315,8 +418,18 @@ export function ProfilCandidat({ utilisateur }: ProfilCandidatProps) {
           </div>
           <div className="candidate-profile-identity-copy">
             <strong>{profil.nom || t("profile.candidate.candidateName")}</strong>
-            <span><Mail size={14} /> {profil.email || "candidat@handitalents.com"}</span>
-            <span><Phone size={14} /> {profil.telephone || t("profile.candidate.phoneNotProvided")}</span>
+            <span>
+              <Mail size={14} /> {profil.email || "candidat@handitalents.com"}
+              <span className="candidate-profile-visibility-pill" aria-label="Email visibility">
+                {isVisibleFlag("email") ? <Eye size={12} /> : <EyeOff size={12} />}
+              </span>
+            </span>
+            <span>
+              <Phone size={14} /> {profil.telephone || t("profile.candidate.phoneNotProvided")}
+              <span className="candidate-profile-visibility-pill" aria-label="Phone visibility">
+                {isVisibleFlag("telephone") ? <Eye size={12} /> : <EyeOff size={12} />}
+              </span>
+            </span>
             <label className="candidate-profile-upload candidate-profile-upload-inline">
               <span><Upload size={14} /> {t("profile.candidate.addPicture")}</span>
               <input
@@ -389,6 +502,9 @@ export function ProfilCandidat({ utilisateur }: ProfilCandidatProps) {
             <div className="candidate-profile-support-chip">
               <ShieldCheck size={14} />
               <span>{profil.handicap || t("profile.candidate.notProvided")}</span>
+              <span className="candidate-profile-visibility-pill" aria-label="Disability visibility">
+                {isVisibleFlag("handicap") ? <Eye size={12} /> : <EyeOff size={12} />}
+              </span>
             </div>
 
             <div className="candidate-profile-accessibility-grid">
@@ -496,8 +612,98 @@ export function ProfilCandidat({ utilisateur }: ProfilCandidatProps) {
               {t("profile.candidate.uploadDocuments")}
             </button>
           </div>
+
+          <div className="candidate-profile-documents">
+            <div className="candidate-profile-doc-row">
+              <div>
+                <strong>{t("profile.candidate.documents.disabilityCard")}</strong>
+                <p>{profil.carte_handicap_url ? t("profile.candidate.documents.available") : t("profile.candidate.documents.notUploaded")}</p>
+              </div>
+              {profil.carte_handicap_url ? (
+                <button
+                  type="button"
+                  className="candidate-profile-button candidate-profile-button-secondary"
+                  onClick={() =>
+                    void openViewOnlyPreview({
+                      title: t("profile.candidate.documents.disabilityCard"),
+                      srcPath: profil.carte_handicap_url || "",
+                    })
+                  }
+                >
+                  {t("common.actions.open")}
+                </button>
+              ) : null}
+            </div>
+            <div className="candidate-profile-doc-row">
+              <div>
+                <strong>{t("profile.candidate.documents.videoCv")}</strong>
+                <p>{profil.video_cv_url ? t("profile.candidate.documents.available") : t("profile.candidate.documents.notUploaded")}</p>
+              </div>
+              {profil.video_cv_url ? (
+                <button
+                  type="button"
+                  className="candidate-profile-button candidate-profile-button-secondary"
+                  onClick={() =>
+                    void openViewOnlyPreview({
+                      title: t("profile.candidate.documents.videoCv"),
+                      srcPath: profil.video_cv_url || "",
+                      kindHint: "video",
+                    })
+                  }
+                >
+                  {t("common.actions.open")}
+                </button>
+              ) : null}
+            </div>
+          </div>
         </motion.article>
       </div>
+
+      {mediaPreview.open ? (
+        <div className="candidate-profile-modal" role="dialog" aria-modal="true" aria-label={mediaPreview.title}>
+          <button type="button" className="candidate-profile-modal-backdrop" onClick={closePreview} aria-label="Close" />
+          <div className="candidate-profile-modal-card" onContextMenu={(event) => event.preventDefault()}>
+            <div className="candidate-profile-modal-head">
+              <strong>{mediaPreview.title}</strong>
+              <button type="button" className="candidate-profile-icon-btn" onClick={closePreview} aria-label="Close preview">
+                <X size={18} />
+              </button>
+            </div>
+
+            {mediaPreview.loading ? (
+              <div className="candidate-profile-modal-body">
+                <p>{t("common.loading")}</p>
+              </div>
+            ) : mediaPreview.error ? (
+              <div className="candidate-profile-modal-body">
+                <p className="message message-erreur">{mediaPreview.error}</p>
+              </div>
+            ) : mediaPreview.url ? (
+              <div className="candidate-profile-modal-body">
+                {mediaPreview.kind === "video" ? (
+                  <video
+                    src={mediaPreview.url}
+                    controls
+                    controlsList="nodownload noremoteplayback"
+                    disablePictureInPicture
+                    playsInline
+                    style={{ width: "100%", borderRadius: 14 }}
+                  />
+                ) : mediaPreview.kind === "pdf" ? (
+                  <iframe
+                    title={mediaPreview.title}
+                    src={mediaPreview.url}
+                    style={{ width: "100%", height: "70vh", border: 0, borderRadius: 14 }}
+                  />
+                ) : (
+                  <img src={mediaPreview.url} alt={mediaPreview.title} style={{ width: "100%", borderRadius: 14 }} />
+                )}
+                <p className="candidate-profile-modal-hint">{t("profile.candidate.documents.viewOnlyHint")}</p>
+              </div>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }

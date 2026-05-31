@@ -104,7 +104,6 @@ function CandidateInterviewTestsPage() {
         badge="Interview tests"
         title="Practice focus, clarity, and confidence before the interview."
         description="Some companies add interview exercises to better understand your thinking, communication, or role-specific approach."
-        actions={<Button variant="secondary" onClick={() => void chargerTests()}>Refresh</Button>}
       />
 
       {message ? <div className="message message-info">{message}</div> : null}
@@ -153,8 +152,8 @@ function CandidateInterviewTestsPage() {
                   <h2>{testActif.titre}</h2>
                   <p>Answer each question as clearly as possible. You can move at your own pace.</p>
                 </div>
-                <Button variant="ghost" onClick={() => setTestActif(null)} disabled={submitting}>
-                  Close
+                <Button variant="ghost" onClick={() => setTestActif(null)} disabled={submitting} aria-label="Close">
+                  ✕
                 </Button>
               </div>
 

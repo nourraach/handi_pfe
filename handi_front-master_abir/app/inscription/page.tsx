@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useI18n } from "@/components/i18n-provider";
+import { useRouter } from "next/navigation";
 
-function ArrowLeftIcon() {
+function CloseIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true" className="signup-icon">
-      <path d="M14.5 6.5L9 12l5.5 5.5M10 12h9" />
+      <path d="M6 6l12 12M18 6L6 18" />
     </svg>
   );
 }
@@ -38,48 +38,47 @@ function CompanyIcon() {
   );
 }
 
+function ArrowRightIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className="signup-icon">
+      <path d="M5 12h14M13 7l5 5-5 5" />
+    </svg>
+  );
+}
+
 const accountCards = [
-  {
-    key: "candidate",
-    badge: "CANDIDATE",
-    index: "01",
-    title: "Job seeker",
-    description:
-      "Create a candidate account to explore roles, save favorites, and track applications in one place.",
-    benefits: ["Explorer des offres inclusives", "Suivre vos candidatures", "Centraliser votre profil"],
-    href: "/inscription/candidat",
-  },
-  {
-    key: "company",
-    badge: "ENTREPRISE",
-    index: "02",
-    title: "Company or staff",
-    description:
-      "Create a company account to publish jobs, review applicants, and coordinate interviews with your team.",
-    benefits: ["Publier des offres rapidement", "Analyser les candidatures", "Planifier les entretiens"],
-    href: "/inscription/entreprise",
-  },
+  { key: "candidate", badge: "CANDIDAT", href: "/inscription/candidat" },
+  { key: "company", badge: "ENTREPRISE", href: "/inscription/entreprise" },
 ] as const;
 
 export default function InscriptionPage() {
-  const { t } = useI18n();
+  const router = useRouter();
+
+  const closeSignup = () => {
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      router.back();
+      return;
+    }
+    router.push("/");
+  };
 
   return (
     <main className="signup-exact">
       <section className="signup-exact__container" aria-labelledby="signup-title">
-        <header className="signup-exact__topbar">
-          <Link href="/" className="signup-exact__brand" aria-label="HandiTalents home">
+        <button type="button" className="signup-exact__close" aria-label="Fermer" onClick={closeSignup}>
+          <CloseIcon />
+        </button>
+
+        <header className="signup-exact__brand-header" aria-label="HandiTalents">
+          <div className="signup-exact__brand">
             <span className="signup-exact__brand-logo" aria-hidden="true" />
             <span className="signup-exact__brand-copy">
-              <strong>HandiTalents</strong>
-              <small>INCLUSIVE HIRING PLATFORM</small>
+              <strong>
+                Handi<span>Talents</span>
+              </strong>
+              <small>PLATEFORME DE RECRUTEMENT INCLUSIVE</small>
             </span>
-          </Link>
-
-          <Link href="/" className="signup-exact__back" aria-label={t("authShell.backToLanding")}>
-            <ArrowLeftIcon />
-            <span>{t("authShell.backToLanding")}</span>
-          </Link>
+          </div>
         </header>
 
         <section className="signup-exact__hero">
@@ -88,49 +87,32 @@ export default function InscriptionPage() {
               <ShieldIcon />
               <span>INSCRIPTION SECURISEE</span>
             </p>
-            <h1 id="signup-title">Create your account</h1>
-            <p>Choose the account that matches your role and continue.</p>
+            <h1 id="signup-title">Creez votre compte</h1>
+            <p>Choisissez le type de compte qui correspond a vos besoins.</p>
           </div>
         </section>
 
         <section className="signup-exact__cards" aria-label="Account options">
           {accountCards.map((card) => (
             <article key={card.key} className={`signup-exact__card signup-exact__card-${card.key}`}>
-              <div className="signup-exact__card-head">
-                <div className="signup-exact__card-badge-wrap">
-                  <span className="signup-exact__card-icon" aria-hidden="true">
-                    {card.key === "candidate" ? <CandidateIcon /> : <CompanyIcon />}
-                  </span>
-                  <span className="signup-exact__card-badge">{card.badge}</span>
-                </div>
-                <span className="signup-exact__card-index">{card.index}</span>
-              </div>
-
-              <h2>{card.title}</h2>
-              <p className="signup-exact__card-description">{card.description}</p>
-
-              <ul className="signup-exact__card-benefits">
-                {card.benefits.map((item) => (
-                  <li key={`${card.key}-${item}`}>
-                    <span className="signup-exact__check" aria-hidden="true">
-                      ✓
-                    </span>
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-
+              <span className="signup-exact__card-icon" aria-hidden="true">
+                {card.key === "candidate" ? <CandidateIcon /> : <CompanyIcon />}
+              </span>
+              <h2>{card.badge}</h2>
               <div className="signup-exact__card-actions">
-                <Link href={card.href} className="signup-exact__cta">
-                  Continue
+                <Link href={card.href} className="signup-exact__circle-arrow" aria-label={`Choisir ${card.badge.toLowerCase()}`}>
+                  <ArrowRightIcon />
                 </Link>
-                <span className="signup-exact__circle-arrow" aria-hidden="true">
-                  →
-                </span>
               </div>
             </article>
           ))}
         </section>
+
+        <div className="signup-exact__or" aria-hidden="true">
+          <span />
+          <strong>ou</strong>
+          <span />
+        </div>
 
         <footer className="signup-exact__footer">
           <div className="signup-exact__footer-security">
@@ -138,14 +120,13 @@ export default function InscriptionPage() {
               <ShieldIcon />
             </span>
             <p>
-              <strong>Your data is safe with us.</strong>
-              <span>We use advanced security to protect your information.</span>
+              <strong>Vos donnees sont en securite</strong>
+              <span>Nous protegeons vos informations personnelles.</span>
             </p>
           </div>
 
           <p className="signup-exact__signin">
-            Already have an account? <Link href="/connexion">Sign in here</Link>
-            <span aria-hidden="true">→</span>
+            Vous avez deja un compte ? <Link href="/connexion">Se connecter</Link>
           </p>
         </footer>
       </section>

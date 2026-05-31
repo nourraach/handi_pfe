@@ -1,6 +1,14 @@
 import nodemailer from "nodemailer";
 import { env } from "../config/env";
 
+const echapperHtml = (valeur: string) =>
+  valeur
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+
 export class CourrielService {
   private transporteur = env.smtpHost
     ? nodemailer.createTransport({
@@ -67,5 +75,28 @@ export class CourrielService {
     });
     return { messageId: info.messageId };
   }
-}
 
+  async envoyerCourrielRefusInscription(email: string, nom: string, motifRefus: string) {
+    const motifSecurise = echapperHtml(motifRefus);
+    const info = await this.transporteur.sendMail({
+      from: env.emailFrom,
+      to: email,
+      subject: "Resultat de votre demande d'inscription HandiTalents",
+      html: `
+        <div style="font-family: Arial, sans-serif; color: #1f2937;">
+          <h2>Demande d'inscription non retenue</h2>
+          <p>Bonjour ${nom || "utilisateur"},</p>
+          <p>Apres examen de votre demande, nous ne pouvons pas valider votre inscription sur la plateforme pour le moment.</p>
+          <p><strong>Motif de refus :</strong></p>
+          <p style="background:#f8fafc; border:1px solid #e5e7eb; border-radius:8px; padding:12px; margin:8px 0 16px;">
+            ${motifSecurise}
+          </p>
+          <p>Vous pouvez mettre a jour votre dossier et soumettre une nouvelle demande si necessaire.</p>
+          <p>L'equipe HandiTalents.</p>
+        </div>
+      `,
+    });
+
+    return { messageId: info.messageId };
+  }
+}

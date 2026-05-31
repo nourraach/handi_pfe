@@ -56,6 +56,12 @@ export class AuthService {
     }
   }
 
+  private validerPatentePhotoObligatoire(patente?: string) {
+    if (!patente?.trim()) {
+      throw new ErreurApi("La photo de la patente est obligatoire lors de l'inscription.", 400);
+    }
+  }
+
   private async resoudreIdentifiantsRole(
     userId: string,
     role: RoleUtilisateur,
@@ -133,6 +139,16 @@ export class AuthService {
   }
 
   async inscrireEntreprise(donnees: InscriptionEntrepriseDto): Promise<ReponseAuthentificationDto> {
+    this.validerPatentePhotoObligatoire(donnees.patente);
+
+    if (!Number.isFinite(Number(donnees.nbr_employe)) || Number(donnees.nbr_employe) < 0) {
+      throw new ErreurApi("Le nombre d'employes est invalide.", 400);
+    }
+
+    if (!Number.isFinite(Number(donnees.nbr_employe_handicape)) || Number(donnees.nbr_employe_handicape) < 0) {
+      throw new ErreurApi("Le nombre d'employes en situation de handicap est invalide.", 400);
+    }
+
     const emailExiste = await this.utilisateurRepository.emailExiste(donnees.email);
 
     if (emailExiste) {
@@ -164,7 +180,7 @@ export class AuthService {
       await transaction.insert(entrepriseTable).values({
         id_utilisateur: utilisateur.id_utilisateur,
         nom_entreprise: donnees.nom_entreprise,
-        patente: donnees.patente,
+        patente: donnees.patente!.trim(),
         rne: donnees.rne,
         statut_validation: StatutValidationEntreprise.INVALIDE,
         profil_publique: donnees.profil_publique,

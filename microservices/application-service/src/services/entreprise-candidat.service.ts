@@ -66,19 +66,32 @@ export class EntrepriseCandidatService {
     const total = Number(totalRows[0]?.count || 0);
 
     const candidats: CandidatVisibleEntreprise[] = rows.map((row) => {
-      const visibilite = (row.visibilite || {}) as { email?: boolean; telephone?: boolean };
+      const visibilite = (row.visibilite || {}) as {
+        email?: boolean;
+        telephone?: boolean;
+        experience?: boolean;
+        competences?: boolean;
+        documents?: boolean;
+      };
+      const isVisible = (key: keyof typeof visibilite) => visibilite?.[key] !== false;
+
+      const competences = Array.isArray(row.competences) ? row.competences : [];
+      const experience = row.experience || null;
+      const cvUrl = row.cv_url || null;
+      const photoUrl = row.photo_profil_url || null;
+
       return {
         id: row.id,
         nom: row.nom,
-        competences: Array.isArray(row.competences) ? row.competences : [],
-        experience: row.experience || null,
+        competences: isVisible("competences") ? competences : [],
+        experience: isVisible("experience") ? experience : null,
         niveau_academique: row.niveau_academique,
         secteur: row.secteur,
         disponibilite: row.disponibilite || null,
-        cv_url: row.cv_url || null,
-        photo_profil_url: row.photo_profil_url || null,
-        ...(visibilite.email !== false ? { email: row.email } : {}),
-        ...(visibilite.telephone !== false ? { telephone: row.telephone } : {}),
+        cv_url: isVisible("documents") ? cvUrl : null,
+        photo_profil_url: isVisible("documents") ? photoUrl : null,
+        ...(isVisible("email") ? { email: row.email } : {}),
+        ...(isVisible("telephone") ? { telephone: row.telephone } : {}),
       };
     });
 

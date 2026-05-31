@@ -708,11 +708,8 @@ export default function EntretiensEntreprisePage() {
               >
                 Create interview
               </Button>
-              <Button variant="secondary" onClick={() => void chargerCandidateuresPlanifiables()}>
-                Refresh applications
-              </Button>
-              <Button variant="ghost" onClick={fermerPlanification}>
-                Close
+              <Button variant="ghost" onClick={fermerPlanification} aria-label="Close">
+                ✕
               </Button>
             </div>
           </div>
@@ -1001,8 +998,8 @@ export default function EntretiensEntreprisePage() {
                             <Button onClick={() => modifierEntretien(entretienSelectionne.entretien.id)} disabled={actionEnCours}>
                               Save changes
                             </Button>
-                            <Button variant="ghost" onClick={fermerEdition} disabled={actionEnCours}>
-                              Close
+                            <Button variant="ghost" onClick={fermerEdition} disabled={actionEnCours} aria-label="Close">
+                              ✕
                             </Button>
                           </div>
                         </div>

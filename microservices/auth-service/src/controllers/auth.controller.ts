@@ -20,7 +20,17 @@ export class AuthController {
 
   inscriptionEntreprise = async (requete: Request, reponse: Response, suivant: NextFunction) => {
     try {
-      const resultat = await this.authService.inscrireEntreprise(requete.body);
+      const patenteFile = (requete as any).file;
+      const resultat = await this.authService.inscrireEntreprise({
+        ...requete.body,
+        patente: patenteFile?.path ? patenteFile.path.replace(/^.*public[\\/]/, "/") : undefined,
+        profil_publique:
+          typeof requete.body?.profil_publique === "string"
+            ? requete.body.profil_publique === "true"
+            : Boolean(requete.body?.profil_publique),
+        nbr_employe: Number(requete.body?.nbr_employe),
+        nbr_employe_handicape: Number(requete.body?.nbr_employe_handicape),
+      });
       return reponseSucces(reponse, 201, resultat.message);
     } catch (erreur) {
       return suivant(erreur);

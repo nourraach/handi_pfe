@@ -1169,8 +1169,8 @@ export default function CandidaturesCompanyPage() {
                   >
                     Confirm schedule
                   </Button>
-                  <Button variant="ghost" onClick={fermerPlanification} disabled={candidatureEnAction === candidatPlanification.id}>
-                    Close
+                  <Button variant="ghost" onClick={fermerPlanification} disabled={candidatureEnAction === candidatPlanification.id} aria-label="Close">
+                    ✕
                   </Button>
                 </div>
               </div>
@@ -1206,8 +1206,8 @@ export default function CandidaturesCompanyPage() {
                     Le motif sera enregistre pour {candidatureEnRejection.offreTitre} et restera visible dans le detail.
                   </p>
                 </div>
-                <Button variant="ghost" onClick={fermerRejection} disabled={candidatureEnAction === candidatureEnRejection.id}>
-                  Fermer
+                <Button variant="ghost" onClick={fermerRejection} disabled={candidatureEnAction === candidatureEnRejection.id} aria-label="Close">
+                  ✕
                 </Button>
               </div>
 

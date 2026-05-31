@@ -532,7 +532,7 @@ function FavorisPage() {
                     {selectedOffre.nom_entreprise || "Company"} - {selectedOffre.localisation}
                   </p>
                 </div>
-                <Button variant="ghost" onClick={() => setSelectedOffre(null)}>Close</Button>
+                <Button variant="ghost" onClick={() => setSelectedOffre(null)} aria-label="Close">✕</Button>
               </div>
 
               <Card tone="accent" padding="md">

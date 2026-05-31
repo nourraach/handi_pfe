@@ -440,8 +440,8 @@ export function ModalCreationTest({ onSave, onCancel }: ModalCreationTestProps) 
             <h3 className="test-create-title">Create a psychological test</h3>
             <p className="test-create-subtitle">Step {etapeActuelle} of 2</p>
           </div>
-          <button onClick={onCancel} className="test-create-close" type="button">
-            Close
+          <button onClick={onCancel} className="test-create-close" type="button" aria-label="Close">
+            ✕
           </button>
         </header>
 

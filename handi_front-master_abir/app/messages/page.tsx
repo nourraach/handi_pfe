@@ -827,7 +827,7 @@ function MessagesPage() {
                       <div className="msg-thread-copy">
                         <div className="msg-thread-line">
                           <strong>{conversation.participant_names || t("messages.messagingSpace")}</strong>
-                          <span>{formatTime(lastMessageAt)}</span>
+                          <span>{formatTime(conversation.last_message_at || conversation.created_at)}</span>
                         </div>
                         <p>{conversation.last_message || t("messages.noMessageDescription")}</p>
                       </div>

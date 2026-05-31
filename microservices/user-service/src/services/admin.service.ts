@@ -1,10 +1,14 @@
 import { DemandeEnAttenteDto } from "../dto/admin.dto";
 import { UtilisateurRepository } from "../repositories/utilisateur.repository";
+import { CourrielService } from "./courriel.service";
 import { RoleUtilisateur, StatutUtilisateur } from "../types/enums";
 import { ErreurApi } from "../utils/erreur-api";
 
 export class AdminService {
-  constructor(private readonly utilisateurRepository = new UtilisateurRepository()) {}
+  constructor(
+    private readonly utilisateurRepository = new UtilisateurRepository(),
+    private readonly courrielService = new CourrielService(),
+  ) {}
 
   async listerDemandesEnAttente(): Promise<DemandeEnAttenteDto[]> {
     const lignes = await this.utilisateurRepository.listerDemandesEnAttente();
@@ -45,7 +49,7 @@ export class AdminService {
     };
   }
 
-  async refuserDemande(id_utilisateur: string) {
+  async refuserDemande(id_utilisateur: string, motifRefus: string) {
     const utilisateur = await this.utilisateurRepository.verifierStatut(id_utilisateur, StatutUtilisateur.EN_ATTENTE);
 
     if (!utilisateur) {
@@ -54,8 +58,17 @@ export class AdminService {
 
     await this.utilisateurRepository.mettreAJourStatut(id_utilisateur, StatutUtilisateur.REFUSE, null);
 
+    try {
+      await this.courrielService.envoyerCourrielRefusInscription(utilisateur.email, utilisateur.nom, motifRefus);
+    } catch (_erreur) {
+      return {
+        message:
+          "La demande a ete refusee, mais l'email de refus n'a pas pu etre envoye. Veuillez verifier la configuration email.",
+      };
+    }
+
     return {
-      message: "La demande a ete refusee.",
+      message: "La demande a ete refusee et un email avec le motif de refus a ete envoye.",
     };
   }
 }

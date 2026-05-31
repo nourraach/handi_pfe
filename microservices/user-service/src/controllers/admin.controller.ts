@@ -45,12 +45,19 @@ export class AdminController {
   refuser = async (requete: Request, reponse: Response, suivant: NextFunction) => {
     try {
       const id = extraireParametre(requete.params.id);
+      const corps = (requete.body as { motif_refus?: unknown; motif?: unknown } | undefined) ?? {};
+      const motifRefusBrut = corps.motif_refus ?? corps.motif;
+      const motifRefus = typeof motifRefusBrut === "string" ? motifRefusBrut.trim() : "";
 
       if (!id) {
         throw new ErreurApi("L'identifiant utilisateur est manquant.", 400);
       }
 
-      const resultat = await this.adminService.refuserDemande(id);
+      if (!motifRefus) {
+        throw new ErreurApi("Le motif de refus est obligatoire.", 400);
+      }
+
+      const resultat = await this.adminService.refuserDemande(id, motifRefus);
       return reponseSucces(reponse, 200, resultat.message);
     } catch (erreur) {
       return suivant(erreur);

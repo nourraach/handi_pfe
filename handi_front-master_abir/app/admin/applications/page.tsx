@@ -235,9 +235,6 @@ export default function AdminApplicationsPage() {
                 <option key={option} value={option}>{option}</option>
               ))}
             </select>
-            <button type="button" onClick={() => void loadApplications()}>
-              Refresh
-            </button>
           </div>
 
           {error ? <p className="message message-erreur">{error}</p> : null}

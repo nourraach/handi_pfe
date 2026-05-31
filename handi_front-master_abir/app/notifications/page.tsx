@@ -159,7 +159,6 @@ function NotificationsPage() {
         description="See platform alerts, interview news, and conversation activity in a single readable stream."
         actions={
           <>
-            <Button variant="secondary" onClick={charger}>Refresh</Button>
             <ButtonLink href={destinationEntretiens}>Open related section</ButtonLink>
           </>
         }

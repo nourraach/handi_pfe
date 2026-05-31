@@ -26,7 +26,7 @@ export interface InscriptionEntrepriseDto {
   mdp: string;
   addresse: string;
   nom_entreprise: string;
-  patente: string;
+  patente?: string;
   rne: string;
   profil_publique: boolean;
   url_site: string;

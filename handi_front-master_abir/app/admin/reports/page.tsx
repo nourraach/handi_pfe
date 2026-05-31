@@ -140,9 +140,6 @@ export default function AdminReportsPage() {
                 <option value="validated">Validated</option>
                 <option value="rejected">Rejected</option>
               </select>
-              <button type="button" onClick={() => void loadReports()}>
-                Refresh
-              </button>
             </div>
 
             {error ? <p className="message message-erreur">{error}</p> : null}

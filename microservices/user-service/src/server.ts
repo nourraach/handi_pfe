@@ -5,6 +5,7 @@ import path from "path";
 import { adminRoutes } from "./routes/admin.routes";
 import { accountMemberRoutes } from "./routes/account-member.routes";
 import { gestionUtilisateursRoutes } from "./routes/gestion-utilisateurs.routes";
+import { mediaRoutes } from "./routes/media.routes";
 import { profilRoutes } from "./routes/profil.routes";
 import { gestionErreursMiddleware } from "./middleware/gestion-erreurs.middleware";
 
@@ -20,7 +21,21 @@ app.use(
   }),
 );
 app.use(express.json({ limit: "15mb" }));
-app.use("/uploads", express.static(path.join(__dirname, "..", "public", "uploads")));
+
+// Protected media access (view-only UX, not publicly downloadable).
+app.use("/uploads", mediaRoutes);
+
+// Keep enterprise uploads available, but require authentication at least.
+app.use(
+  "/uploads/entreprises",
+  express.static(path.join(__dirname, "..", "public", "uploads", "entreprises"), {
+    setHeaders(res) {
+      res.setHeader("Content-Disposition", "inline");
+      res.setHeader("Cache-Control", "no-store");
+      res.setHeader("X-Content-Type-Options", "nosniff");
+    },
+  }),
+);
 
 app.get("/health", (_req, res) => {
   res.json({

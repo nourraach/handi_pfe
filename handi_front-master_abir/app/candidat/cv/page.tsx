@@ -75,12 +75,81 @@ type CvFormState = {
 };
 
 const STORAGE_KEY = "candidate_cv_builder_v1";
+type CvStepId = "profile" | "experience" | "education" | "skills" | "projects" | "extras" | "review";
+
+type CvBuilderTourStep = {
+  stepId: CvStepId;
+  targetId: string;
+  title: string;
+  description: string;
+  tip: string;
+  icon: string;
+};
 
 const themes: CvTheme[] = [
   { id: "handitalents", name: "HandiTalents", primary: "#2f2458", surface: "#f3edff", accent: "#6d2a95" },
   { id: "midnight", name: "Midnight", primary: "#1f2a44", surface: "#eef2ff", accent: "#5669ff" },
   { id: "emerald", name: "Emerald", primary: "#184f46", surface: "#eefaf6", accent: "#2aa889" },
   { id: "sunrise", name: "Sunrise", primary: "#7f3d2f", surface: "#fff4ee", accent: "#ee7b4c" },
+];
+
+const CV_BUILDER_TOUR_STEPS: CvBuilderTourStep[] = [
+  {
+    stepId: "profile",
+    targetId: "cvb-guide-active-fields",
+    title: "Etape 1: Profil",
+    description: "Renseignez vos informations personnelles principales.",
+    tip: "Nom, titre, email et localisation doivent etre remplis.",
+    icon: "1",
+  },
+  {
+    stepId: "experience",
+    targetId: "cvb-guide-active-fields",
+    title: "Etape 2: Experience",
+    description: "Ajoutez au moins une experience avec role, entreprise et details.",
+    tip: "Une experience claire aide le recruteur a comprendre votre impact.",
+    icon: "2",
+  },
+  {
+    stepId: "education",
+    targetId: "cvb-guide-active-fields",
+    title: "Etape 3: Education",
+    description: "Ajoutez votre formation la plus pertinente.",
+    tip: "Diplome + ecole suffisent pour valider cette etape.",
+    icon: "3",
+  },
+  {
+    stepId: "skills",
+    targetId: "cvb-guide-active-fields",
+    title: "Etape 4: Competences",
+    description: "Indiquez vos competences et langues, une ligne par element.",
+    tip: "Restez precis et simple pour une lecture rapide.",
+    icon: "4",
+  },
+  {
+    stepId: "projects",
+    targetId: "cvb-guide-active-fields",
+    title: "Etape 5: Projets",
+    description: "Ajoutez un projet representatif de votre savoir-faire.",
+    tip: "Titre + details concrets permettent de valider l etape.",
+    icon: "5",
+  },
+  {
+    stepId: "extras",
+    targetId: "cvb-guide-active-fields",
+    title: "Etape 6: Extras",
+    description: "Ajoutez un element supplementaire: accroche, objectif, benevolat ou realisation.",
+    tip: "Un petit plus bien choisi peut faire la difference.",
+    icon: "6",
+  },
+  {
+    stepId: "review",
+    targetId: "cvb-guide-preview",
+    title: "Etape 7: Verification",
+    description: "Verifiez le rendu final avant telechargement.",
+    tip: "Controlez la mise en page puis telechargez votre CV.",
+    icon: "7",
+  },
 ];
 
 function createId(prefix: string) {
@@ -281,6 +350,34 @@ function splitTextForPdf(text: string, fontSize: number, maxWidth: number) {
   }
 
   return lines;
+}
+
+function hasValue(value: string) {
+  return value.trim().length > 0;
+}
+
+function getStepCompletion(cv: CvFormState): Record<CvStepId, boolean> {
+  const profileComplete = [cv.fullName, cv.title, cv.email, cv.address].every(hasValue);
+  const experienceComplete = cv.experiences.some((item) => [item.role, item.company, item.details].every(hasValue));
+  const educationComplete = cv.education.some((item) => [item.diploma, item.school].every(hasValue));
+  const skillsComplete = hasValue(cv.skills) && hasValue(cv.languages);
+  const projectsComplete = cv.projects.some((item) => hasValue(item.title) && hasValue(item.details));
+  const extrasComplete =
+    hasValue(cv.headline) ||
+    hasValue(cv.objective) ||
+    cv.achievements.some((item) => hasValue(item.title) || hasValue(item.details)) ||
+    cv.volunteer.some((item) => hasValue(item.role) || hasValue(item.organization) || hasValue(item.details));
+  const reviewComplete = hasValue(cv.template) && hasValue(cv.colorThemeId);
+
+  return {
+    profile: profileComplete,
+    experience: experienceComplete,
+    education: educationComplete,
+    skills: skillsComplete,
+    projects: projectsComplete,
+    extras: extrasComplete,
+    review: reviewComplete,
+  };
 }
 
 function sectionTitle(title: string, theme: CvTheme) {
@@ -682,11 +779,16 @@ export default function CandidateCvPage() {
   const [isSaved, setIsSaved] = useState(true);
   const [previewFrameHeight, setPreviewFrameHeight] = useState(1120);
   const previewFrameRef = useRef<HTMLIFrameElement | null>(null);
+  const [tourOpen, setTourOpen] = useState(true);
+  const [tourRect, setTourRect] = useState<{ top: number; left: number; width: number; height: number } | null>(null);
+  const [tourCardPos, setTourCardPos] = useState<{ top: number; left: number }>({ top: 88, left: 88 });
+  const previousStepCompletionRef = useRef<Record<CvStepId, boolean> | null>(null);
 
   const activeTheme = useMemo(
     () => themes.find((theme) => theme.id === cv.colorThemeId) ?? themes[0],
     [cv.colorThemeId],
   );
+  const stepCompletion = useMemo(() => getStepCompletion(cv), [cv]);
 
   useEffect(() => {
     try {
@@ -793,6 +895,11 @@ export default function CandidateCvPage() {
 
   const stepIndex = CV_STEPS.findIndex((step) => step.id === activeStep);
   const activeStepContent = STEP_CONTENT[activeStep];
+  const completedCount = CV_STEPS.filter((step) => stepCompletion[step.id]).length;
+  const isCurrentStepComplete = stepCompletion[activeStep];
+  const activeTourStep =
+    CV_BUILDER_TOUR_STEPS.find((step) => step.stepId === activeStep) ?? CV_BUILDER_TOUR_STEPS[0];
+  const tourStepIndex = Math.max(0, CV_STEPS.findIndex((step) => step.id === activeStep));
 
   const updateExperienceField = (id: string, key: keyof CvExperience, value: string) => {
     setCv((current) => ({
@@ -894,6 +1001,112 @@ export default function CandidateCvPage() {
     return () => window.clearTimeout(id);
   }, [previewHtml, syncPreviewFrameHeight]);
 
+  useEffect(() => {
+    if (!hydrated) return;
+    const id = window.setTimeout(() => setTourOpen(true), 240);
+    return () => window.clearTimeout(id);
+  }, [hydrated]);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    setTourOpen(true);
+  }, [activeStep, hydrated]);
+
+  useEffect(() => {
+    if (!tourOpen) {
+      setTourRect(null);
+      return;
+    }
+
+    const computeTourPosition = () => {
+      const target = document.getElementById(activeTourStep.targetId);
+      if (!target) {
+        setTourRect(null);
+        return;
+      }
+
+      const rect = target.getBoundingClientRect();
+      const spotlightPadding = 8;
+      const spotlight = {
+        top: rect.top + window.scrollY - spotlightPadding,
+        left: rect.left + window.scrollX - spotlightPadding,
+        width: rect.width + spotlightPadding * 2,
+        height: rect.height + spotlightPadding * 2,
+      };
+      setTourRect(spotlight);
+
+      const cardWidth = 340;
+      const cardHeight = 228;
+      const viewportTop = window.scrollY;
+      const viewportLeft = window.scrollX;
+      const viewportRight = viewportLeft + window.innerWidth;
+      const viewportBottom = viewportTop + window.innerHeight;
+      const gap = 16;
+
+      let left = rect.left + window.scrollX;
+      let top = rect.bottom + window.scrollY + gap;
+
+      if (left + cardWidth > viewportRight - 12) {
+        left = viewportRight - cardWidth - 12;
+      }
+      if (left < viewportLeft + 12) {
+        left = viewportLeft + 12;
+      }
+
+      if (top + cardHeight > viewportBottom - 12) {
+        top = rect.top + window.scrollY - cardHeight - gap;
+      }
+      if (top < viewportTop + 12) {
+        top = viewportTop + 12;
+      }
+
+      setTourCardPos({ top, left });
+    };
+
+    computeTourPosition();
+    window.addEventListener("resize", computeTourPosition);
+    window.addEventListener("scroll", computeTourPosition, { passive: true });
+
+    return () => {
+      window.removeEventListener("resize", computeTourPosition);
+      window.removeEventListener("scroll", computeTourPosition);
+    };
+  }, [activeTourStep, tourOpen]);
+
+  useEffect(() => {
+    if (!hydrated) {
+      return;
+    }
+
+    const previous = previousStepCompletionRef.current;
+    if (!previous) {
+      previousStepCompletionRef.current = stepCompletion;
+      return;
+    }
+
+    const justCompleted = !previous[activeStep] && stepCompletion[activeStep];
+    previousStepCompletionRef.current = stepCompletion;
+
+    if (!justCompleted) {
+      return;
+    }
+
+    const currentIndex = CV_STEPS.findIndex((step) => step.id === activeStep);
+    if (currentIndex < 0 || currentIndex >= CV_STEPS.length - 1) {
+      return;
+    }
+
+    const nextStep = CV_STEPS[currentIndex + 1];
+    window.setTimeout(() => {
+      setActiveStep(nextStep.id);
+      setTourOpen(true);
+    }, 220);
+  }, [activeStep, hydrated, stepCompletion]);
+
+  const closeTour = useCallback(() => {
+    setTourOpen(false);
+  }, []);
+
   if (!hydrated) {
     return <div className="p-6 text-sm text-slate-600">Loading CV builder...</div>;
   }
@@ -927,7 +1140,7 @@ export default function CandidateCvPage() {
               </div>
             </header>
 
-            <nav className="cvb__stepper" aria-label="Step progress">
+            <nav id="cvb-guide-stepper" className="cvb__stepper" aria-label="Step progress">
               {CV_STEPS.map((step, index) => {
                 const isActive = step.id === activeStep;
                 return (
@@ -957,8 +1170,19 @@ export default function CandidateCvPage() {
                   <span className="cvb__step-chip">Step {stepIndex + 1} of {CV_STEPS.length}</span>
                 </div>
 
+                <div className="cvb__guide-inline" role="status" aria-live="polite">
+                  <strong>
+                    Progression: {completedCount}/{CV_STEPS.length}
+                  </strong>
+                  <span>
+                    {isCurrentStepComplete
+                      ? "Etape complete. Passage automatique a l etape suivante."
+                      : "Remplissez les champs essentiels de cette etape pour debloquer la suite."}
+                  </span>
+                </div>
+
                 {activeStep === "profile" ? (
-                  <div className="cvb__fields">
+                  <div id="cvb-guide-active-fields" className="cvb__fields">
                     <Field label="Full name" required>
                       <input type="text" value={cv.fullName} onChange={(event) => updateField("fullName", event.target.value)} />
                     </Field>
@@ -984,7 +1208,7 @@ export default function CandidateCvPage() {
                 ) : null}
 
                 {activeStep === "experience" ? (
-                  <div className="cvb__item-stack">
+                  <div id="cvb-guide-active-fields" className="cvb__item-stack">
                     {cv.experiences.map((item, index) => (
                       <div key={item.id} className="cvb__item-card">
                         <div className="cvb__item-card-head">
@@ -1012,7 +1236,7 @@ export default function CandidateCvPage() {
                 ) : null}
 
                 {activeStep === "education" ? (
-                  <div className="cvb__item-stack">
+                  <div id="cvb-guide-active-fields" className="cvb__item-stack">
                     {cv.education.map((item, index) => (
                       <div key={item.id} className="cvb__item-card">
                         <div className="cvb__item-card-head">
@@ -1040,7 +1264,7 @@ export default function CandidateCvPage() {
                 ) : null}
 
                 {activeStep === "skills" ? (
-                  <div className="cvb__fields">
+                  <div id="cvb-guide-active-fields" className="cvb__fields">
                     <Field label="Skills (one per line)" className="is-wide">
                       <textarea rows={6} value={cv.skills} onChange={(event) => updateField("skills", event.target.value)} />
                     </Field>
@@ -1054,7 +1278,7 @@ export default function CandidateCvPage() {
                 ) : null}
 
                 {activeStep === "projects" ? (
-                  <div className="cvb__item-stack">
+                  <div id="cvb-guide-active-fields" className="cvb__item-stack">
                     {cv.projects.map((item, index) => (
                       <div key={item.id} className="cvb__item-card">
                         <div className="cvb__item-card-head">
@@ -1079,7 +1303,7 @@ export default function CandidateCvPage() {
                 ) : null}
 
                 {activeStep === "extras" ? (
-                  <div className="cvb__item-stack">
+                  <div id="cvb-guide-active-fields" className="cvb__item-stack">
                     <div className="cvb__fields">
                       <Field label="Headline" className="is-wide">
                         <input type="text" value={cv.headline} onChange={(event) => updateField("headline", event.target.value)} />
@@ -1140,7 +1364,7 @@ export default function CandidateCvPage() {
                 ) : null}
 
                 {activeStep === "review" ? (
-                  <div className="cvb__item-stack">
+                  <div id="cvb-guide-active-fields" className="cvb__item-stack">
                     <div className="cvb__fields">
                       <Field label="Template">
                         <select value={cv.template} onChange={(event) => updateField("template", event.target.value as CvTemplate)}>
@@ -1176,7 +1400,7 @@ export default function CandidateCvPage() {
                   <p>{activeStepContent.tip}</p>
                 </div>
 
-                <div className="cvb__form-actions">
+                <div id="cvb-guide-actions" className="cvb__form-actions">
                   <button type="button" className="cvb__ghost" onClick={saveDraft}>
                     Save and exit
                   </button>
@@ -1194,7 +1418,7 @@ export default function CandidateCvPage() {
                 </div>
               </section>
 
-              <aside className="cvb__preview" aria-label="CV preview">
+              <aside id="cvb-guide-preview" className="cvb__preview" aria-label="CV preview">
                 <div className="cvb__preview-head">
                   <h3>CV Preview</h3>
                   <div className="cvb__toggle" role="group" aria-label="Preview mode">
@@ -1236,6 +1460,39 @@ export default function CandidateCvPage() {
             </div>
         </section>
       </div>
+
+      {tourOpen && tourRect ? (
+        <div className="cvb__tour-overlay" role="dialog" aria-modal="true" aria-label="Guide CV Builder">
+          <div
+            className="cvb__tour-spotlight"
+            style={{
+              top: `${tourRect.top}px`,
+              left: `${tourRect.left}px`,
+              width: `${tourRect.width}px`,
+              height: `${tourRect.height}px`,
+            }}
+          />
+          <aside className="cvb__tour-card" style={{ top: `${tourCardPos.top}px`, left: `${tourCardPos.left}px` }}>
+            <div className="cvb__tour-card-head">
+              <span className="cvb__tour-icon" aria-hidden="true">{activeTourStep.icon}</span>
+              <span className="cvb__tour-counter">
+                {tourStepIndex + 1}/{CV_STEPS.length}
+              </span>
+              <button type="button" className="cvb__tour-close" onClick={closeTour} aria-label="Fermer le guide">
+                ✕
+              </button>
+            </div>
+            <h3>{activeTourStep.title}</h3>
+            <p>{activeTourStep.description}</p>
+            <div className="cvb__tour-tip">{activeTourStep.tip}</div>
+            <div className="cvb__tour-actions">
+              <button type="button" className="cvb__primary" onClick={closeTour}>
+                Masquer
+              </button>
+            </div>
+          </aside>
+        </div>
+      ) : null}
 
       <style jsx>{`
         .cvb {
@@ -1406,6 +1663,26 @@ export default function CandidateCvPage() {
           gap: 10px;
           align-items: center;
           margin-bottom: 14px;
+        }
+
+        .cvb__guide-inline {
+          border: 1px solid #e9defc;
+          background: #f8f3ff;
+          border-radius: 12px;
+          padding: 10px 12px;
+          margin-bottom: 12px;
+          display: grid;
+          gap: 4px;
+        }
+
+        .cvb__guide-inline strong {
+          font-size: 0.82rem;
+          color: #4c2d79;
+        }
+
+        .cvb__guide-inline span {
+          font-size: 0.8rem;
+          color: #6f638f;
         }
 
         .cvb__form-icon {
@@ -1625,6 +1902,108 @@ export default function CandidateCvPage() {
           line-height: 1.45;
         }
 
+        .cvb__tour-overlay {
+          position: fixed;
+          inset: 0;
+          z-index: 90;
+          pointer-events: none;
+        }
+
+        .cvb__tour-spotlight {
+          position: absolute;
+          border-radius: 14px;
+          border: 2px solid rgba(189, 153, 247, 0.95);
+          box-shadow: 0 0 0 9999px rgba(22, 13, 40, 0.28);
+          pointer-events: none;
+        }
+
+        .cvb__tour-card {
+          position: absolute;
+          width: min(340px, calc(100vw - 24px));
+          border-radius: 16px;
+          border: 1px solid #e7dcfb;
+          background: #ffffff;
+          box-shadow: 0 22px 48px rgba(32, 18, 58, 0.24);
+          padding: 14px;
+          display: grid;
+          gap: 10px;
+          pointer-events: auto;
+        }
+
+        .cvb__tour-card-head {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .cvb__tour-icon {
+          width: 28px;
+          height: 28px;
+          border-radius: 999px;
+          background: #f3eaff;
+          color: #632d94;
+          font-weight: 700;
+          display: grid;
+          place-items: center;
+          font-size: 0.8rem;
+        }
+
+        .cvb__tour-counter {
+          font-size: 0.76rem;
+          color: #6c5a90;
+          font-weight: 700;
+        }
+
+        .cvb__tour-close {
+          margin-left: auto;
+          width: 30px;
+          height: 30px;
+          border-radius: 10px;
+          border: 1px solid #dfd1f7;
+          background: #fff;
+          color: #5c2f88;
+          font-size: 0;
+          font-weight: 700;
+          line-height: 1;
+          display: grid;
+          place-items: center;
+        }
+
+        .cvb__tour-close::before {
+          content: "X";
+          font-size: 1rem;
+          line-height: 1;
+        }
+
+        .cvb__tour-card h3 {
+          margin: 0;
+          font-size: 1rem;
+          color: #2c1f50;
+        }
+
+        .cvb__tour-card p {
+          margin: 0;
+          color: #6c628a;
+          font-size: 0.86rem;
+          line-height: 1.5;
+        }
+
+        .cvb__tour-tip {
+          border-radius: 11px;
+          border: 1px solid #eee2ff;
+          background: #f8f3ff;
+          color: #5f5281;
+          font-size: 0.79rem;
+          line-height: 1.45;
+          padding: 8px 10px;
+        }
+
+        .cvb__tour-actions {
+          display: flex;
+          justify-content: flex-end;
+          gap: 8px;
+        }
+
         :global(.cvb button:focus-visible),
         :global(.cvb input:focus-visible),
         :global(.cvb textarea:focus-visible) {
@@ -1680,13 +2059,15 @@ export default function CandidateCvPage() {
             grid-column: 1 / -1;
             justify-self: start;
           }
+
+          .cvb__tour-card {
+            width: calc(100vw - 20px);
+          }
         }
       `}</style>
     </main>
   );
 }
-
-type CvStepId = "profile" | "experience" | "education" | "skills" | "projects" | "extras" | "review";
 
 type StepMeta = {
   id: CvStepId;

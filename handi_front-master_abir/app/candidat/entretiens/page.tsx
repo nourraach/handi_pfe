@@ -364,9 +364,6 @@ export default function MesEntretiensPage() {
   return (
     <div className="app-page">
       <div className="page-header-actions">
-        <Button variant="secondary" onClick={charger}>
-          Refresh
-        </Button>
         <ButtonLink href="/notifications">Open notifications</ButtonLink>
       </div>
 

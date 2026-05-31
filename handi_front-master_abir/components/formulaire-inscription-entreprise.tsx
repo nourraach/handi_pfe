@@ -10,7 +10,6 @@ const etatInitial = {
   mdp: "",
   addresse: "",
   nom_entreprise: "",
-  patente: "",
   rne: "",
   profil_publique: false,
   url_site: "",
@@ -22,6 +21,7 @@ const etatInitial = {
 
 export function FormulaireInscriptionEntreprise() {
   const [formulaire, setFormulaire] = useState(etatInitial);
+  const [patentePhoto, setPatentePhoto] = useState<File | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [erreur, setErreur] = useState<string | null>(null);
   const [chargement, setChargement] = useState(false);
@@ -45,17 +45,39 @@ export function FormulaireInscriptionEntreprise() {
       }
     }
 
+    if (!patentePhoto) {
+      setErreur("Patent photo is required.");
+      setChargement(false);
+      return;
+    }
+
+    const mimeAutorises = new Set(["image/png", "image/jpeg", "image/jpg", "image/webp"]);
+    if (!mimeAutorises.has(patentePhoto.type)) {
+      setErreur("Patent photo must be PNG, JPG or WEBP.");
+      setChargement(false);
+      return;
+    }
+
     try {
+      const formData = new FormData();
+      formData.append("nom", formulaire.nom);
+      formData.append("email", formulaire.email);
+      formData.append("telephone", formulaire.telephone);
+      formData.append("mdp", formulaire.mdp);
+      formData.append("addresse", formulaire.addresse);
+      formData.append("nom_entreprise", formulaire.nom_entreprise);
+      formData.append("patente", patentePhoto);
+      formData.append("rne", formulaire.rne);
+      formData.append("profil_publique", String(formulaire.profil_publique));
+      formData.append("url_site", formulaire.url_site);
+      formData.append("date_fondation", formulaire.date_fondation);
+      formData.append("description", formulaire.description);
+      formData.append("nbr_employe", String(Number(formulaire.nbr_employe)));
+      formData.append("nbr_employe_handicape", String(Number(formulaire.nbr_employe_handicape)));
+
       const reponse = await fetch(construireUrlApi("/api/auth/inscription/entreprise"), {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          ...formulaire,
-          nbr_employe: Number(formulaire.nbr_employe),
-          nbr_employe_handicape: Number(formulaire.nbr_employe_handicape),
-        }),
+        body: formData,
       });
 
       const resultat = await reponse.json();
@@ -66,6 +88,7 @@ export function FormulaireInscriptionEntreprise() {
 
       setMessage(resultat.message);
       setFormulaire(etatInitial);
+      setPatentePhoto(null);
     } catch (cause) {
       setErreur(cause instanceof Error ? cause.message : "An error occurred.");
     } finally {
@@ -82,7 +105,17 @@ export function FormulaireInscriptionEntreprise() {
         <Champ label="Password" type="password" valeur={formulaire.mdp} onChange={(mdp) => setFormulaire({ ...formulaire, mdp })} />
         <Champ label="Address" valeur={formulaire.addresse} onChange={(addresse) => setFormulaire({ ...formulaire, addresse })} />
         <Champ label="Company Name" valeur={formulaire.nom_entreprise} onChange={(nom_entreprise) => setFormulaire({ ...formulaire, nom_entreprise })} />
-        <Champ label="Patent Number" valeur={formulaire.patente} onChange={(patente) => setFormulaire({ ...formulaire, patente })} />
+        <div className="groupe-champ">
+          <label htmlFor="patente-photo">Patent Photo</label>
+          <input
+            id="patente-photo"
+            className="champ"
+            type="file"
+            accept=".png,.jpg,.jpeg,.webp"
+            onChange={(event) => setPatentePhoto(event.target.files?.[0] || null)}
+            required
+          />
+        </div>
         <Champ label="RNE" valeur={formulaire.rne} onChange={(rne) => setFormulaire({ ...formulaire, rne })} />
         <Champ label="Website URL" type="url" valeur={formulaire.url_site} onChange={(url_site) => setFormulaire({ ...formulaire, url_site })} />
         <Champ 

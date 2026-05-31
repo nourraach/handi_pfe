@@ -81,7 +81,7 @@ export class CandidatureRepository {
       conditions.push(lte(candidatureTable.score_test, autresFiltres.score_max));
     }
 
-    return await db
+    const rows = await db
       .select({
         candidature: candidatureTable,
         candidat: {
@@ -94,6 +94,7 @@ export class CandidatureRepository {
           experience: candidatTable.experience,
           handicap: candidatTable.handicap,
           cv_url: candidatTable.cv_url,
+          visibilite: candidatTable.visibilite,
         },
         offre: {
           id: offreEmploiTable.id,
@@ -108,6 +109,35 @@ export class CandidatureRepository {
       .orderBy(desc(candidatureTable.date_postulation))
       .limit(limit)
       .offset(offset);
+
+    return rows.map((row) => {
+      const visibilite = (row.candidat?.visibilite || {}) as {
+        email?: boolean;
+        telephone?: boolean;
+        handicap?: boolean;
+        experience?: boolean;
+        competences?: boolean;
+      };
+      const isVisible = (key: keyof typeof visibilite) => visibilite?.[key] !== false;
+
+      const candidat: any = {
+        id: row.candidat.id,
+        id_utilisateur: row.candidat.id_utilisateur,
+        nom: row.candidat.nom,
+        competences: isVisible("competences") ? row.candidat.competences : [],
+        experience: isVisible("experience") ? row.candidat.experience : null,
+        handicap: isVisible("handicap") ? row.candidat.handicap : null,
+        cv_url: row.candidat.cv_url,
+      };
+      if (isVisible("email")) candidat.email = row.candidat.email;
+      if (isVisible("telephone")) candidat.telephone = row.candidat.telephone;
+
+      return {
+        candidature: row.candidature,
+        candidat,
+        offre: row.offre,
+      };
+    });
   }
 
   async modifierStatutCandidature(id: string, donnees: ModifierStatutCandidatureDto) {
@@ -124,7 +154,7 @@ export class CandidatureRepository {
   }
 
   async obtenirCandidatureParId(id: string) {
-    const [candidature] = await db
+    const [row] = await db
       .select({
         candidature: candidatureTable,
         candidat: {
@@ -137,6 +167,7 @@ export class CandidatureRepository {
           experience: candidatTable.experience,
           handicap: candidatTable.handicap,
           cv_url: candidatTable.cv_url,
+          visibilite: candidatTable.visibilite,
         },
         offre: {
           id: offreEmploiTable.id,
@@ -159,7 +190,35 @@ export class CandidatureRepository {
       .innerJoin(entrepriseTable, eq(offreEmploiTable.id_entreprise, entrepriseTable.id))
       .where(eq(candidatureTable.id, id));
 
-    return candidature;
+    if (!row) return row;
+
+    const visibilite = (row.candidat?.visibilite || {}) as {
+      email?: boolean;
+      telephone?: boolean;
+      handicap?: boolean;
+      experience?: boolean;
+      competences?: boolean;
+    };
+    const isVisible = (key: keyof typeof visibilite) => visibilite?.[key] !== false;
+
+    const candidat: any = {
+      id: row.candidat.id,
+      id_utilisateur: row.candidat.id_utilisateur,
+      nom: row.candidat.nom,
+      competences: isVisible("competences") ? row.candidat.competences : [],
+      experience: isVisible("experience") ? row.candidat.experience : null,
+      handicap: isVisible("handicap") ? row.candidat.handicap : null,
+      cv_url: row.candidat.cv_url,
+    };
+    if (isVisible("email")) candidat.email = row.candidat.email;
+    if (isVisible("telephone")) candidat.telephone = row.candidat.telephone;
+
+    return {
+      candidature: row.candidature,
+      candidat,
+      offre: row.offre,
+      entreprise: row.entreprise,
+    };
   }
 
   async obtenirStatistiquesEntreprise(idEntreprise: string) {

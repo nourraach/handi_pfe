@@ -23,8 +23,6 @@ interface Utilisateur {
 interface FiltresUtilisateurs {
   role: string;
   statut: string;
-  dateDebut: string;
-  dateFin: string;
 }
 
 const ROLE_STYLES: Record<string, string> = {
@@ -65,8 +63,6 @@ export function GestionUtilisateurs() {
   const [filtres, setFiltres] = useState<FiltresUtilisateurs>({
     role: "",
     statut: "",
-    dateDebut: "",
-    dateFin: "",
   });
   const [utilisateurSelectionne, setUtilisateurSelectionne] = useState<Utilisateur | null>(null);
   const [modeEdition, setModeEdition] = useState(false);
@@ -89,8 +85,6 @@ export function GestionUtilisateurs() {
         limit: utilisateursParPage.toString(),
         ...(filtres.role && { role: filtres.role }),
         ...(filtres.statut && { statut: filtres.statut }),
-        ...(filtres.dateDebut && { dateDebut: filtres.dateDebut }),
-        ...(filtres.dateFin && { dateFin: filtres.dateFin }),
       });
 
       const response = await fetch(construireUrlApi(`/api/admin/utilisateurs?${params}`), {
@@ -285,8 +279,6 @@ export function GestionUtilisateurs() {
       const params = new URLSearchParams({
         ...(filtres.role && { role: filtres.role }),
         ...(filtres.statut && { statut: filtres.statut }),
-        ...(filtres.dateDebut && { dateDebut: filtres.dateDebut }),
-        ...(filtres.dateFin && { dateFin: filtres.dateFin }),
       });
 
       const response = await fetch(construireUrlApi(`/api/admin/utilisateurs/export?${params}`), {
@@ -320,7 +312,7 @@ export function GestionUtilisateurs() {
   const getRoleLabel = (role: string) => ROLE_LABELS[role] || role;
 
   const utilisateursAffiches = recherche ? utilisateursFiltres : utilisateurs;
-  const filtresActifs = Boolean(recherche.trim() || filtres.role || filtres.statut || filtres.dateDebut || filtres.dateFin);
+  const filtresActifs = Boolean(recherche.trim() || filtres.role || filtres.statut);
   const usersVisibleCount = utilisateursAffiches.length;
   const usersLoadedCount = utilisateurs.length;
   const usersListCount = filtresActifs ? usersVisibleCount : usersLoadedCount;
@@ -353,7 +345,6 @@ export function GestionUtilisateurs() {
         <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
           <div className="min-w-0">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">User governance</p>
-            <h3 className="mt-1 text-lg font-semibold text-slate-900">Search and manage platform users</h3>
           </div>
 
           <div className="flex flex-wrap gap-2">
@@ -373,7 +364,7 @@ export function GestionUtilisateurs() {
               <button
                 onClick={() => {
                   setRecherche("");
-                  setFiltres({ role: "", statut: "", dateDebut: "", dateFin: "" });
+                  setFiltres({ role: "", statut: "" });
                   setPage(1);
                 }}
                 className="inline-flex h-10 items-center rounded-full border border-slate-200 bg-slate-50 px-4 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:bg-white"
@@ -384,7 +375,7 @@ export function GestionUtilisateurs() {
           </div>
         </div>
 
-        <div className="mt-4 grid gap-3 xl:grid-cols-[minmax(0,1.7fr)_repeat(4,minmax(140px,1fr))]">
+        <div className="mt-4 grid gap-3 xl:grid-cols-[minmax(0,1.7fr)_repeat(2,minmax(140px,1fr))]">
           <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-3">
             <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Search</label>
             <input
@@ -427,25 +418,6 @@ export function GestionUtilisateurs() {
             </select>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-3">
-            <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Start date</label>
-            <input
-              type="date"
-              value={filtres.dateDebut}
-              onChange={(event) => setFiltres((prev) => ({ ...prev, dateDebut: event.target.value }))}
-              className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-800 outline-none transition focus:border-purple-300 focus:ring-4 focus:ring-purple-100"
-            />
-          </div>
-
-          <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-3">
-            <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">End date</label>
-            <input
-              type="date"
-              value={filtres.dateFin}
-              onChange={(event) => setFiltres((prev) => ({ ...prev, dateFin: event.target.value }))}
-              className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-800 outline-none transition focus:border-purple-300 focus:ring-4 focus:ring-purple-100"
-            />
-          </div>
         </div>
 
         <div className="mt-4 flex flex-wrap items-center gap-2">

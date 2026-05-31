@@ -1,8 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { construireUrlApi } from "@/lib/config";
 import { DemandeEnAttente, ReponseApi } from "@/types/api";
+
+interface LigneDetail {
+  label: string;
+  value: string;
+}
 
 function lireDemandesLocales() {
   return JSON.parse(localStorage.getItem("demandes_test") || "[]") as DemandeEnAttente[];
@@ -22,7 +27,7 @@ function creerDemandesParDefaut(): DemandeEnAttente[] {
       statut: "en_attente",
       telephone: "0123456789",
       addresse: "123 Test Street, Paris",
-      profil_candidat: {},
+      profil_candidat: { competences: ["JavaScript", "Support client"], experience: "2 ans" },
       profil_entreprise: null,
       created_at: "2024-03-15T10:00:00Z",
     },
@@ -35,7 +40,7 @@ function creerDemandesParDefaut(): DemandeEnAttente[] {
       telephone: "0987654321",
       addresse: "456 Demo Avenue, Lyon",
       profil_candidat: null,
-      profil_entreprise: {},
+      profil_entreprise: { secteur: "Telecom", taille: "50-200", contact_rh: "Marie Martin" },
       created_at: "2024-03-16T14:30:00Z",
     },
   ];
@@ -80,9 +85,81 @@ function getStatusLabel(statut: string) {
     actif: "Active",
     inactif: "Inactive",
     suspendu: "Suspended",
+    refuse: "Rejected",
   };
 
   return labels[statut] ?? statut;
+}
+
+function formaterDate(valeur: string) {
+  if (!valeur) return "-";
+  const date = new Date(valeur);
+  if (Number.isNaN(date.getTime())) return valeur;
+  return new Intl.DateTimeFormat("fr-TN", { dateStyle: "medium", timeStyle: "short" }).format(date);
+}
+
+function normaliserCle(cle: string) {
+  return cle
+    .replaceAll(".", " > ")
+    .replaceAll("_", " ")
+    .replace(/\b\w/g, (caractere) => caractere.toUpperCase());
+}
+
+function transformerValeur(valeur: unknown): string {
+  if (valeur === null || valeur === undefined) return "-";
+  if (typeof valeur === "boolean") return valeur ? "Oui" : "Non";
+  if (typeof valeur === "number") return String(valeur);
+  if (typeof valeur === "string") return valeur.trim() || "-";
+  if (Array.isArray(valeur)) {
+    const tableau = valeur
+      .map((item) => (typeof item === "string" || typeof item === "number" ? String(item) : JSON.stringify(item)))
+      .filter(Boolean);
+    return tableau.length > 0 ? tableau.join(", ") : "-";
+  }
+  return JSON.stringify(valeur);
+}
+
+function aplatirObjet(objet: Record<string, unknown>, prefixe = ""): LigneDetail[] {
+  const lignes: LigneDetail[] = [];
+
+  Object.entries(objet).forEach(([cle, valeur]) => {
+    const cleComposee = prefixe ? `${prefixe}.${cle}` : cle;
+
+    if (valeur && typeof valeur === "object" && !Array.isArray(valeur)) {
+      lignes.push(...aplatirObjet(valeur as Record<string, unknown>, cleComposee));
+      return;
+    }
+
+    lignes.push({
+      label: normaliserCle(cleComposee),
+      value: transformerValeur(valeur),
+    });
+  });
+
+  return lignes;
+}
+
+function construireDetailsDemande(demande: DemandeEnAttente) {
+  const infosGenerales: LigneDetail[] = [
+    { label: "Name", value: demande.nom || "-" },
+    { label: "Email", value: demande.email || "-" },
+    { label: "Phone", value: demande.telephone || "-" },
+    { label: "Address", value: demande.addresse || "-" },
+    { label: "Role", value: getRoleLabel(demande.role) },
+    { label: "Status", value: getStatusLabel(demande.statut) },
+    { label: "Created at", value: formaterDate(demande.created_at) },
+  ];
+
+  const profilCandidat =
+    demande.profil_candidat && typeof demande.profil_candidat === "object"
+      ? aplatirObjet(demande.profil_candidat)
+      : [];
+  const profilEntreprise =
+    demande.profil_entreprise && typeof demande.profil_entreprise === "object"
+      ? aplatirObjet(demande.profil_entreprise)
+      : [];
+
+  return { infosGenerales, profilCandidat, profilEntreprise };
 }
 
 export function TableauDemandesAdmin() {
@@ -90,6 +167,15 @@ export function TableauDemandesAdmin() {
   const [message, setMessage] = useState<string | null>(null);
   const [erreur, setErreur] = useState<string | null>(null);
   const [chargement, setChargement] = useState(true);
+  const [demandeOuverteId, setDemandeOuverteId] = useState<string | null>(null);
+  const [demandeRefus, setDemandeRefus] = useState<DemandeEnAttente | null>(null);
+  const [motifRefus, setMotifRefus] = useState("");
+  const [soumissionRefus, setSoumissionRefus] = useState(false);
+
+  const demandeOuverte = useMemo(
+    () => demandes.find((demande) => demande.id_utilisateur === demandeOuverteId) ?? null,
+    [demandes, demandeOuverteId],
+  );
 
   const chargerDemandes = async () => {
     setChargement(true);
@@ -154,7 +240,7 @@ export function TableauDemandesAdmin() {
     void chargerDemandes();
   }, []);
 
-  const agir = async (id_utilisateur: string, action: "approuver" | "refuser") => {
+  const agir = async (id_utilisateur: string, action: "approuver" | "refuser", motif?: string) => {
     if (!id_utilisateur) {
       setErreur("Missing user identifier.");
       return;
@@ -166,11 +252,14 @@ export function TableauDemandesAdmin() {
         throw new Error("Missing admin token.");
       }
 
+      const corps = action === "refuser" ? JSON.stringify({ motif_refus: motif ?? "" }) : undefined;
       const reponse = await fetch(construireUrlApi(`/api/admin/${action}/${id_utilisateur}`), {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
+          ...(action === "refuser" ? { "Content-Type": "application/json" } : {}),
         },
+        body: corps,
       });
 
       if (reponse.ok) {
@@ -179,6 +268,9 @@ export function TableauDemandesAdmin() {
           (resultat as { message?: string }).message ??
             (action === "approuver" ? "Request approved successfully." : "Request rejected successfully."),
         );
+        setDemandeRefus(null);
+        setMotifRefus("");
+        setDemandeOuverteId(null);
         await chargerDemandes();
         return;
       }
@@ -191,6 +283,9 @@ export function TableauDemandesAdmin() {
             ? "Request approved successfully. (Local mode)"
             : "Request rejected successfully. (Local mode)",
         );
+        setDemandeRefus(null);
+        setMotifRefus("");
+        setDemandeOuverteId(null);
         await chargerDemandes();
         return;
       }
@@ -208,8 +303,27 @@ export function TableauDemandesAdmin() {
             ? "Request approved successfully. (Offline mode)"
             : "Request rejected successfully. (Offline mode)",
         );
+        setDemandeRefus(null);
+        setMotifRefus("");
+        setDemandeOuverteId(null);
         await chargerDemandes();
       }
+    }
+  };
+
+  const confirmerRefus = async () => {
+    if (!demandeRefus) return;
+    const motifNormalise = motifRefus.trim();
+    if (!motifNormalise) {
+      setErreur("Please enter a rejection reason.");
+      return;
+    }
+    setSoumissionRefus(true);
+    setErreur(null);
+    try {
+      await agir(demandeRefus.id_utilisateur, "refuser", motifNormalise);
+    } finally {
+      setSoumissionRefus(false);
     }
   };
 
@@ -217,11 +331,13 @@ export function TableauDemandesAdmin() {
     return <p className="message message-neutre">Loading pending requests...</p>;
   }
 
+  const details = demandeOuverte ? construireDetailsDemande(demandeOuverte) : null;
+
   return (
     <div className="carte bloc-principal">
       <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", marginBottom: 16 }}>
         <p className="texte-secondaire" style={{ margin: 0 }}>
-          This list shows accounts currently marked with the <strong>pending</strong> status.
+          Review each pending request and validate only after checking all candidate/company details.
         </p>
       </div>
 
@@ -244,30 +360,151 @@ export function TableauDemandesAdmin() {
               <td colSpan={5}>{!Array.isArray(demandes) ? "Error: invalid data." : "No pending requests."}</td>
             </tr>
           ) : (
-            demandes.map((demande) => (
-              <tr key={demande.id_utilisateur}>
-                <td>
-                  <strong>{demande.nom}</strong>
-                  <div className="texte-secondaire">{demande.telephone}</div>
-                </td>
-                <td>{demande.email}</td>
-                <td>{getRoleLabel(demande.role)}</td>
-                <td>{getStatusLabel(demande.statut)}</td>
-                <td>
-                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                    <button className="bouton-primaire" onClick={() => void agir(demande.id_utilisateur, "approuver")} type="button">
-                      Approve
-                    </button>
-                    <button className="bouton-danger" onClick={() => void agir(demande.id_utilisateur, "refuser")} type="button">
-                      Reject
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))
+            demandes.map((demande) => {
+              const estOuvert = demandeOuverteId === demande.id_utilisateur;
+              return (
+                <Fragment key={demande.id_utilisateur}>
+                  <tr>
+                    <td>
+                      <strong>{demande.nom}</strong>
+                      <div className="texte-secondaire">{demande.telephone}</div>
+                    </td>
+                    <td>{demande.email}</td>
+                    <td>{getRoleLabel(demande.role)}</td>
+                    <td>{getStatusLabel(demande.statut)}</td>
+                    <td>
+                      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                        <button
+                          className="bouton-secondaire"
+                          onClick={() => setDemandeOuverteId(estOuvert ? null : demande.id_utilisateur)}
+                          type="button"
+                        >
+                          {estOuvert ? "Hide details" : "View details"}
+                        </button>
+                        <button className="bouton-primaire" onClick={() => void agir(demande.id_utilisateur, "approuver")} type="button">
+                          Approve
+                        </button>
+                        <button
+                          className="bouton-danger"
+                          onClick={() => {
+                            setDemandeRefus(demande);
+                            setMotifRefus("");
+                            setErreur(null);
+                          }}
+                          type="button"
+                        >
+                          Reject
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                  {estOuvert && details ? (
+                    <tr>
+                      <td colSpan={5} style={{ background: "#fcfbff" }}>
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 12 }}>
+                          <div style={{ border: "1px solid #e5dcfb", borderRadius: 10, padding: 12 }}>
+                            <h4 style={{ margin: "0 0 8px 0" }}>General information</h4>
+                            <ul style={{ margin: 0, paddingLeft: 18 }}>
+                              {details.infosGenerales.map((item) => (
+                                <li key={item.label}>
+                                  <strong>{item.label}:</strong> {item.value}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+
+                          {details.profilCandidat.length > 0 ? (
+                            <div style={{ border: "1px solid #e5dcfb", borderRadius: 10, padding: 12 }}>
+                              <h4 style={{ margin: "0 0 8px 0" }}>Candidate profile</h4>
+                              <ul style={{ margin: 0, paddingLeft: 18 }}>
+                                {details.profilCandidat.map((item) => (
+                                  <li key={`c-${item.label}`}>
+                                    <strong>{item.label}:</strong> {item.value}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          ) : null}
+
+                          {details.profilEntreprise.length > 0 ? (
+                            <div style={{ border: "1px solid #e5dcfb", borderRadius: 10, padding: 12 }}>
+                              <h4 style={{ margin: "0 0 8px 0" }}>Company profile</h4>
+                              <ul style={{ margin: 0, paddingLeft: 18 }}>
+                                {details.profilEntreprise.map((item) => (
+                                  <li key={`e-${item.label}`}>
+                                    <strong>{item.label}:</strong> {item.value}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          ) : null}
+                        </div>
+                      </td>
+                    </tr>
+                  ) : null}
+                </Fragment>
+              );
+            })
           )}
         </tbody>
       </table>
+
+      {demandeRefus ? (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(15, 23, 42, 0.45)",
+            display: "grid",
+            placeItems: "center",
+            zIndex: 2000,
+            padding: 20,
+          }}
+        >
+          <div style={{ width: "min(620px, 100%)", background: "#ffffff", borderRadius: 14, padding: 16, boxShadow: "0 20px 50px rgba(15, 23, 42, 0.3)" }}>
+            <h3 style={{ margin: "0 0 8px 0" }}>Reject request</h3>
+            <p className="texte-secondaire" style={{ marginTop: 0 }}>
+              The reason below will be sent by email to {demandeRefus.email}.
+            </p>
+
+            <label htmlFor="motif-refus" style={{ display: "block", fontWeight: 600, marginBottom: 8 }}>
+              Motif de refus
+            </label>
+            <textarea
+              id="motif-refus"
+              value={motifRefus}
+              onChange={(event) => setMotifRefus(event.target.value)}
+              placeholder="Exemple: dossier incomplet, informations incoherentes, pieces manquantes..."
+              style={{
+                width: "100%",
+                minHeight: 120,
+                borderRadius: 10,
+                border: "1px solid #d8c9fb",
+                padding: 10,
+                fontSize: 14,
+                resize: "vertical",
+              }}
+            />
+
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 14 }}>
+              <button
+                type="button"
+                className="bouton-secondaire"
+                onClick={() => {
+                  if (soumissionRefus) return;
+                  setDemandeRefus(null);
+                  setMotifRefus("");
+                }}
+              >
+                Cancel
+              </button>
+              <button type="button" className="bouton-danger" onClick={() => void confirmerRefus()} disabled={soumissionRefus}>
+                {soumissionRefus ? "Sending..." : "Reject and send email"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

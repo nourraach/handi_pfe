@@ -178,9 +178,6 @@ export function EnterpriseReportsRequestsHub() {
             <h3>
               Published reports <span>{reports.length}</span>
             </h3>
-            <Button onClick={() => void reload()} variant="ghost" size="sm">
-              Refresh
-            </Button>
           </header>
 
           {reports.length === 0 ? (
@@ -644,5 +641,4 @@ export function EnterpriseReportsRequestsHub() {
     </main>
   );
 }
-
 
