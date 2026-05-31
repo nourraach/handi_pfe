@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { LoadingState } from "@/components/ui/layout";
 import { authenticatedFetch } from "@/lib/auth-utils";
 import { construireUrlApi } from "@/lib/config";
+import { Eye, X } from "lucide-react";
 
 type StatusCandidature = "pending" | "shortlisted" | "interview_scheduled" | "rejected" | "accepted";
 
@@ -25,6 +26,7 @@ type CandidatureRecue = {
     email: string;
     telephone?: string;
     cv_url?: string | null;
+    video_cv_url?: string | null;
     competences?: string[];
     experience?: string | null;
     handicap?: string | null;
@@ -53,6 +55,7 @@ type CandidatureDetail = {
     experience?: string | null;
     handicap?: string | null;
     cv_url?: string | null;
+    video_cv_url?: string | null;
   };
   offre: {
     id?: string;
@@ -164,6 +167,16 @@ const PAGE_SIZE = 12;
 const PAGE_FETCH_LIMIT = PAGE_SIZE + 1;
 const STATS_BATCH_SIZE = 100;
 
+type PreviewKind = "image" | "pdf" | "video" | "unknown";
+type MediaPreviewState = {
+  open: boolean;
+  title: string;
+  kind: PreviewKind;
+  url: string | null;
+  loading: boolean;
+  error: string | null;
+};
+
 const formulaireInitial: FormPlanification = {
   date_heure: "",
   type: "visio",
@@ -205,6 +218,7 @@ function normaliserCandidatures(payload: CandidatureRecuePayload): CandidatureRe
       email: item?.candidat?.email ?? "",
       telephone: item?.candidat?.telephone ?? "",
       cv_url: item?.candidat?.cv_url ?? null,
+      video_cv_url: item?.candidat?.video_cv_url ?? null,
       competences: Array.isArray(item?.candidat?.competences) ? item.candidat.competences : [],
       experience: item?.candidat?.experience ?? null,
       handicap: item?.candidat?.handicap ?? null,
@@ -240,6 +254,7 @@ function normaliserCandidatureDetail(payload: CandidatureDetailPayload): Candida
       experience: item.candidat?.experience ?? null,
       handicap: item.candidat?.handicap ?? null,
       cv_url: item.candidat?.cv_url ?? null,
+      video_cv_url: item.candidat?.video_cv_url ?? null,
     },
     offre: {
       id: item.offre?.id,
@@ -391,6 +406,46 @@ export default function CandidaturesCompanyPage() {
   const [candidatureEnRejection, setCandidatureEnRejection] = useState<RejectionOuvert>(null);
   const [motifRejection, setMotifRejection] = useState("");
   const [formulaire, setFormulaire] = useState<FormPlanification>(formulaireInitial);
+  const [preview, setPreview] = useState<MediaPreviewState>({
+    open: false,
+    title: "",
+    kind: "unknown",
+    url: null,
+    loading: false,
+    error: null,
+  });
+
+  const closePreview = () => {
+    setPreview((current) => {
+      if (current.url) URL.revokeObjectURL(current.url);
+      return { open: false, title: "", kind: "unknown", url: null, loading: false, error: null };
+    });
+  };
+
+  const openPreview = async (opts: { title: string; path: string; kindHint?: PreviewKind }) => {
+    const url = /^https?:\/\//i.test(opts.path) ? opts.path : construireUrlApi(opts.path.startsWith("/") ? opts.path : `/${opts.path}`);
+    setPreview({ open: true, title: opts.title, kind: opts.kindHint || "unknown", url: null, loading: true, error: null });
+    try {
+      const token = localStorage.getItem("token_auth");
+      const response = await fetch(url, { headers: token ? { Authorization: `Bearer ${token}` } : undefined });
+      if (!response.ok) throw new Error("Impossible d'ouvrir le fichier.");
+      const blob = await response.blob();
+      const contentType = (blob.type || response.headers.get("content-type") || "").toLowerCase();
+      const kind: PreviewKind =
+        opts.kindHint ||
+        (contentType.includes("pdf")
+          ? "pdf"
+          : contentType.startsWith("image/")
+            ? "image"
+            : contentType.startsWith("video/")
+              ? "video"
+              : "unknown");
+      const objectUrl = URL.createObjectURL(blob);
+      setPreview({ open: true, title: opts.title, kind, url: objectUrl, loading: false, error: null });
+    } catch (e: any) {
+      setPreview((current) => ({ ...current, loading: false, error: e?.message || "Impossible d'ouvrir le fichier." }));
+    }
+  };
 
   const chargerOffres = async () => {
     try {
@@ -1370,20 +1425,88 @@ export default function CandidaturesCompanyPage() {
               </div>
 
               <div className="page-header-actions">
-                {resolveBackendFileUrl(detailsCandidature.candidature.cv_url || detailsCandidature.candidat.cv_url) ? (
-                  <a
-                    className="ui-button ui-button-secondary"
-                    href={resolveBackendFileUrl(detailsCandidature.candidature.cv_url || detailsCandidature.candidat.cv_url) || "#"}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                {detailsCandidature.candidature.cv_url || detailsCandidature.candidat.cv_url ? (
+                  <Button
+                    variant="secondary"
+                    onClick={() =>
+                      void openPreview({
+                        title: `CV - ${detailsCandidature.candidat.nom}`,
+                        path: detailsCandidature.candidature.cv_url || detailsCandidature.candidat.cv_url || "",
+                        kindHint: "pdf",
+                      })
+                    }
                   >
-                    Open CV
-                  </a>
+                    <Eye size={16} /> Open CV
+                  </Button>
+                ) : null}
+
+                {detailsCandidature.candidat.video_cv_url ? (
+                  <Button
+                    variant="secondary"
+                    onClick={() =>
+                      void openPreview({
+                        title: `Video CV - ${detailsCandidature.candidat.nom}`,
+                        path: detailsCandidature.candidat.video_cv_url || "",
+                        kindHint: "video",
+                      })
+                    }
+                  >
+                    <Eye size={16} /> Open Video CV
+                  </Button>
                 ) : null}
                 <Button variant="ghost" onClick={fermerDetailsCandidature}>
                   Fermer le detail
                 </Button>
               </div>
+            </div>
+          </Card>
+        </div>
+      ) : null}
+
+      {preview.open ? (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={preview.title}
+          className="applicants-modal-overlay"
+          onClick={closePreview}
+        >
+          <Card
+            padding="lg"
+            className="applicants-modal-card applicants-modal-card-lg"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="stack-lg" onContextMenu={(event) => event.preventDefault()}>
+              <div className="notification-meta applicants-modal-header">
+                <div>
+                  <p className="badge applicants-modal-eyebrow">Preview</p>
+                  <h3 className="applicants-modal-title" style={{ fontSize: "1.25rem" }}>
+                    {preview.title}
+                  </h3>
+                </div>
+                <Button variant="ghost" onClick={closePreview} aria-label="Close preview">
+                  <X size={18} />
+                </Button>
+              </div>
+
+              {preview.loading ? <p>Chargement...</p> : null}
+              {preview.error ? <p style={{ color: "#b42318" }}>{preview.error}</p> : null}
+              {!preview.loading && !preview.error && preview.url ? (
+                preview.kind === "video" ? (
+                  <video
+                    src={preview.url}
+                    controls
+                    controlsList="nodownload noremoteplayback"
+                    disablePictureInPicture
+                    playsInline
+                    style={{ width: "100%", borderRadius: 14 }}
+                  />
+                ) : preview.kind === "pdf" ? (
+                  <iframe title={preview.title} src={preview.url} style={{ width: "100%", height: "70vh", border: 0, borderRadius: 14 }} />
+                ) : (
+                  <img src={preview.url} alt={preview.title} style={{ width: "100%", borderRadius: 14 }} />
+                )
+              ) : null}
             </div>
           </Card>
         </div>

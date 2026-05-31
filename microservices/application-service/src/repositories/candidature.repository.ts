@@ -94,6 +94,7 @@ export class CandidatureRepository {
           experience: candidatTable.experience,
           handicap: candidatTable.handicap,
           cv_url: candidatTable.cv_url,
+          video_cv_url: candidatTable.video_cv_url,
           visibilite: candidatTable.visibilite,
         },
         offre: {
@@ -128,6 +129,7 @@ export class CandidatureRepository {
         experience: isVisible("experience") ? row.candidat.experience : null,
         handicap: isVisible("handicap") ? row.candidat.handicap : null,
         cv_url: row.candidat.cv_url,
+        video_cv_url: row.candidat.video_cv_url,
       };
       if (isVisible("email")) candidat.email = row.candidat.email;
       if (isVisible("telephone")) candidat.telephone = row.candidat.telephone;
@@ -167,6 +169,7 @@ export class CandidatureRepository {
           experience: candidatTable.experience,
           handicap: candidatTable.handicap,
           cv_url: candidatTable.cv_url,
+          video_cv_url: candidatTable.video_cv_url,
           visibilite: candidatTable.visibilite,
         },
         offre: {
@@ -209,6 +212,7 @@ export class CandidatureRepository {
       experience: isVisible("experience") ? row.candidat.experience : null,
       handicap: isVisible("handicap") ? row.candidat.handicap : null,
       cv_url: row.candidat.cv_url,
+      video_cv_url: row.candidat.video_cv_url,
     };
     if (isVisible("email")) candidat.email = row.candidat.email;
     if (isVisible("telephone")) candidat.telephone = row.candidat.telephone;

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { RouteProtegee } from "@/components/route-protegee";
 import { authenticatedFetch } from "@/lib/auth-utils";
 import { construireUrlApi } from "@/lib/config";
+import { Eye, X } from "lucide-react";
 
 type CandidatVisible = {
   id: string;
@@ -14,6 +15,7 @@ type CandidatVisible = {
   secteur: string;
   disponibilite?: string | null;
   cv_url?: string | null;
+  video_cv_url?: string | null;
   photo_profil_url?: string | null;
   email?: string;
   telephone?: string;
@@ -32,6 +34,16 @@ type ApiPayload = {
   message?: string;
 };
 
+type PreviewKind = "image" | "pdf" | "video" | "unknown";
+type MediaPreviewState = {
+  open: boolean;
+  title: string;
+  kind: PreviewKind;
+  url: string | null;
+  loading: boolean;
+  error: string | null;
+};
+
 function SectionCandidatsEntreprise() {
   const [candidats, setCandidats] = useState<CandidatVisible[]>([]);
   const [page, setPage] = useState(1);
@@ -40,6 +52,46 @@ function SectionCandidatsEntreprise() {
   const [erreur, setErreur] = useState<string | null>(null);
   const [recherche, setRecherche] = useState("");
   const [competence, setCompetence] = useState("");
+  const [preview, setPreview] = useState<MediaPreviewState>({
+    open: false,
+    title: "",
+    kind: "unknown",
+    url: null,
+    loading: false,
+    error: null,
+  });
+
+  const closePreview = () => {
+    setPreview((current) => {
+      if (current.url) URL.revokeObjectURL(current.url);
+      return { open: false, title: "", kind: "unknown", url: null, loading: false, error: null };
+    });
+  };
+
+  const openPreview = async (opts: { title: string; path: string; kindHint?: PreviewKind }) => {
+    const url = /^https?:\/\//i.test(opts.path) ? opts.path : construireUrlApi(opts.path.startsWith("/") ? opts.path : `/${opts.path}`);
+    setPreview({ open: true, title: opts.title, kind: opts.kindHint || "unknown", url: null, loading: true, error: null });
+    try {
+      const token = localStorage.getItem("token_auth");
+      const response = await fetch(url, { headers: token ? { Authorization: `Bearer ${token}` } : undefined });
+      if (!response.ok) throw new Error("Impossible d'ouvrir le fichier.");
+      const blob = await response.blob();
+      const contentType = (blob.type || response.headers.get("content-type") || "").toLowerCase();
+      const kind: PreviewKind =
+        opts.kindHint ||
+        (contentType.includes("pdf")
+          ? "pdf"
+          : contentType.startsWith("image/")
+            ? "image"
+            : contentType.startsWith("video/")
+              ? "video"
+              : "unknown");
+      const objectUrl = URL.createObjectURL(blob);
+      setPreview({ open: true, title: opts.title, kind, url: objectUrl, loading: false, error: null });
+    } catch (e: any) {
+      setPreview((current) => ({ ...current, loading: false, error: e?.message || "Impossible d'ouvrir le fichier." }));
+    }
+  };
 
   const charger = async (pageCible = 1) => {
     setLoading(true);
@@ -149,6 +201,29 @@ function SectionCandidatsEntreprise() {
                 <strong>Disponibilite:</strong> {candidat.disponibilite || "Non renseignee"}
               </div>
 
+              {candidat.video_cv_url || candidat.cv_url ? (
+                <div className="flex items-center gap-2 border-t pt-3">
+                  {candidat.video_cv_url ? (
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-2 px-3 py-2 rounded-md bg-gray-100 text-gray-900"
+                      onClick={() => void openPreview({ title: `Video CV - ${candidat.nom}`, path: candidat.video_cv_url || "", kindHint: "video" })}
+                    >
+                      <Eye size={16} /> Voir video CV
+                    </button>
+                  ) : null}
+                  {candidat.cv_url ? (
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-2 px-3 py-2 rounded-md bg-gray-100 text-gray-900"
+                      onClick={() => void openPreview({ title: `CV - ${candidat.nom}`, path: candidat.cv_url || "", kindHint: "pdf" })}
+                    >
+                      <Eye size={16} /> Voir CV
+                    </button>
+                  ) : null}
+                </div>
+              ) : null}
+
               {candidat.email || candidat.telephone ? (
                 <div className="text-sm text-gray-700 border-t pt-3">
                   {candidat.email ? <div><strong>Email:</strong> {candidat.email}</div> : null}
@@ -183,6 +258,83 @@ function SectionCandidatsEntreprise() {
           </div>
         ) : null}
       </div>
+
+      {preview.open ? (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={preview.title}
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 60,
+            background: "rgba(15, 23, 42, 0.52)",
+            backdropFilter: "blur(6px)",
+            display: "grid",
+            placeItems: "center",
+            padding: 24,
+          }}
+        >
+          <button
+            type="button"
+            aria-label="Close preview"
+            onClick={closePreview}
+            style={{ position: "absolute", inset: 0, width: "100%", height: "100%", cursor: "default" }}
+          />
+          <div
+            style={{
+              position: "relative",
+              width: "min(100%, 900px)",
+              maxHeight: "min(90vh, 860px)",
+              overflow: "auto",
+              background: "#fff",
+              borderRadius: 18,
+              boxShadow: "0 24px 64px rgba(15,23,42,0.24)",
+              padding: 18,
+            }}
+            onContextMenu={(event) => event.preventDefault()}
+          >
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 12 }}>
+              <strong style={{ color: "#2a1843" }}>{preview.title}</strong>
+              <button
+                type="button"
+                aria-label="Close"
+                onClick={closePreview}
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 12,
+                  border: "1px solid rgba(53, 6, 62, 0.18)",
+                  display: "grid",
+                  placeItems: "center",
+                  background: "#fff",
+                }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {preview.loading ? <p>Chargement...</p> : null}
+            {preview.error ? <p style={{ color: "#b42318" }}>{preview.error}</p> : null}
+            {!preview.loading && !preview.error && preview.url ? (
+              preview.kind === "video" ? (
+                <video
+                  src={preview.url}
+                  controls
+                  controlsList="nodownload noremoteplayback"
+                  disablePictureInPicture
+                  playsInline
+                  style={{ width: "100%", borderRadius: 14 }}
+                />
+              ) : preview.kind === "pdf" ? (
+                <iframe title={preview.title} src={preview.url} style={{ width: "100%", height: "70vh", border: 0, borderRadius: 14 }} />
+              ) : (
+                <img src={preview.url} alt={preview.title} style={{ width: "100%", borderRadius: 14 }} />
+              )
+            ) : null}
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

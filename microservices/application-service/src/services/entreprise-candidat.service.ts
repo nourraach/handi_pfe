@@ -11,6 +11,7 @@ export type CandidatVisibleEntreprise = {
   secteur: string;
   disponibilite: string | null;
   cv_url: string | null;
+  video_cv_url: string | null;
   photo_profil_url: string | null;
   email?: string;
   telephone?: string;
@@ -48,6 +49,7 @@ export class EntrepriseCandidatService {
         secteur: candidatTable.secteur,
         disponibilite: candidatTable.disponibilite,
         cv_url: candidatTable.cv_url,
+        video_cv_url: candidatTable.video_cv_url,
         photo_profil_url: candidatTable.photo_profil_url,
         visibilite: candidatTable.visibilite,
       })
@@ -78,6 +80,7 @@ export class EntrepriseCandidatService {
       const competences = Array.isArray(row.competences) ? row.competences : [];
       const experience = row.experience || null;
       const cvUrl = row.cv_url || null;
+      const videoUrl = row.video_cv_url || null;
       const photoUrl = row.photo_profil_url || null;
 
       return {
@@ -89,6 +92,7 @@ export class EntrepriseCandidatService {
         secteur: row.secteur,
         disponibilite: row.disponibilite || null,
         cv_url: isVisible("documents") ? cvUrl : null,
+        video_cv_url: isVisible("documents") ? videoUrl : null,
         photo_profil_url: isVisible("documents") ? photoUrl : null,
         ...(isVisible("email") ? { email: row.email } : {}),
         ...(isVisible("telephone") ? { telephone: row.telephone } : {}),
