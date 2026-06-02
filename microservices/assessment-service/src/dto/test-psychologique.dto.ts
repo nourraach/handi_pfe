@@ -76,7 +76,9 @@ export interface TestDisponibleDto {
   date_fin_validite: string;
   instructions?: string;
   deja_passe: boolean;
-  peut_passer: boolean; // basé sur la période de validité
+  peut_passer: boolean; // base sur la periode de validite
+  prochain_passage_le?: string | null;
+  blocage_6mois?: boolean;
 }
 
 export interface QuestionTestDto {

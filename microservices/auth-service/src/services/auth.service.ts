@@ -183,7 +183,7 @@ export class AuthService {
         patente: donnees.patente!.trim(),
         rne: donnees.rne,
         statut_validation: StatutValidationEntreprise.INVALIDE,
-        profil_publique: donnees.profil_publique,
+          profil_publique: donnees.profil_publique ?? true,
         url_site: donnees.url_site || null,
         date_fondation: new Date(donnees.date_fondation),
         description: donnees.description,

@@ -38,6 +38,33 @@ type OffreFormulaire = {
 
 const PAGE_SIZE = 12;
 
+const experienceOptions = [
+  "Aucune experience requise",
+  "0-1 an",
+  "1-2 ans",
+  "2-3 ans",
+  "3-5 ans",
+  "5 ans et plus",
+];
+
+const educationOptions = [
+  "Aucun diplome specifique",
+  "Bac",
+  "Bac+2",
+  "Licence",
+  "Master",
+  "Diplome d'ingenieur",
+  "Doctorat",
+];
+
+function getTodayDateInputValue() {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const day = String(today.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 const tndNumberFormatter = new Intl.NumberFormat("fr-TN", {
   maximumFractionDigits: 0,
 });
@@ -186,6 +213,11 @@ function MesOffresPage() {
   const creerNouvelleOffre = async (nouvelleOffre: OffreFormulaire) => {
     try {
       setErreur(null);
+
+      if (nouvelleOffre.date_limite && nouvelleOffre.date_limite < getTodayDateInputValue()) {
+        setErreur("The application deadline cannot be in the past.");
+        return;
+      }
 
       if (!isAuthenticated()) {
         setErreur("Your session has expired. Please sign in again.");
@@ -415,9 +447,6 @@ function MesOffresPage() {
           <p>Manage your roles and track their performance</p>
         </div>
         <div className="header-actions">
-          <ButtonLink href="/entreprise/profil" variant="secondary">
-            Company profile
-          </ButtonLink>
           <Button onClick={() => setShowCreateModal(true)}>Create a role</Button>
         </div>
       </div>
@@ -1035,14 +1064,14 @@ function MesOffresPage() {
           padding: 16px;
         }
         .modal-card {
-          width: min(920px, 100%);
+          width: min(820px, 100%);
           max-height: calc(100vh - 32px);
           overflow: auto;
           border-radius: 18px;
           background: #fff;
           border: 1px solid #ebe2f8;
           box-shadow: 0 24px 44px rgba(53, 6, 62, 0.2);
-          padding: 20px;
+          padding: 18px;
         }
         .modal-head {
           display: flex;
@@ -1178,6 +1207,8 @@ function MesOffresPage() {
 }
 
 function ModalCreationOffre({ onSubmit, onCancel }: { onSubmit: (offre: OffreFormulaire) => void; onCancel: () => void }) {
+  const minimumDeadlineDate = useMemo(() => getTodayDateInputValue(), []);
+  const [skillInput, setSkillInput] = useState("");
   const [formData, setFormData] = useState<OffreFormulaire>({
     titre: "",
     description: "",
@@ -1191,10 +1222,43 @@ function ModalCreationOffre({ onSubmit, onCancel }: { onSubmit: (offre: OffreFor
     niveau_etude: "",
   });
 
+  const skills = useMemo(
+    () =>
+      formData.competences_requises
+        .split(",")
+        .map((skill) => skill.trim())
+        .filter(Boolean),
+    [formData.competences_requises],
+  );
+
+  const updateSkills = (nextSkills: string[]) => {
+    setFormData((current) => ({
+      ...current,
+      competences_requises: nextSkills.join(", "),
+    }));
+  };
+
+  const addSkill = () => {
+    const nextSkill = skillInput.trim();
+    if (!nextSkill || skills.some((skill) => skill.toLowerCase() === nextSkill.toLowerCase())) {
+      setSkillInput("");
+      return;
+    }
+    updateSkills([...skills, nextSkill]);
+    setSkillInput("");
+  };
+
+  const removeSkill = (skillToRemove: string) => {
+    updateSkills(skills.filter((skill) => skill !== skillToRemove));
+  };
+
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
 
     const erreurs = [];
+    const pendingSkill = skillInput.trim();
+    const normalizedSkills =
+      pendingSkill && !skills.some((skill) => skill.toLowerCase() === pendingSkill.toLowerCase()) ? [...skills, pendingSkill] : skills;
 
     if (!formData.titre || formData.titre.length < 3) {
       erreurs.push("The title must be at least 3 characters long.");
@@ -1212,12 +1276,24 @@ function ModalCreationOffre({ onSubmit, onCancel }: { onSubmit: (offre: OffreFor
       erreurs.push("The minimum salary cannot be higher than the maximum salary.");
     }
 
+    if (!formData.date_limite || formData.date_limite < minimumDeadlineDate) {
+      erreurs.push("The application deadline cannot be in the past.");
+    }
+
+    if (!formData.experience_requise) {
+      erreurs.push("Required experience is required.");
+    }
+
+    if (!formData.niveau_etude) {
+      erreurs.push("Education level is required.");
+    }
+
     if (erreurs.length > 0) {
       alert(`Validation errors:\n\n${erreurs.join("\n")}`);
       return;
     }
 
-    onSubmit(formData);
+    onSubmit({ ...formData, competences_requises: normalizedSkills.join(", ") });
   };
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -1228,27 +1304,39 @@ function ModalCreationOffre({ onSubmit, onCancel }: { onSubmit: (offre: OffreFor
   };
 
   const submitDisabled =
-    !formData.titre || formData.titre.length < 3 || !formData.description || formData.description.length < 50 || !formData.localisation;
+    !formData.titre ||
+    formData.titre.length < 3 ||
+    !formData.description ||
+    formData.description.length < 50 ||
+    !formData.localisation ||
+    !formData.date_limite ||
+    formData.date_limite < minimumDeadlineDate ||
+    !formData.experience_requise ||
+    !formData.niveau_etude;
+
+  const fieldBaseClass =
+    "h-11 w-full rounded-xl border border-[#ded4eb] bg-white px-3 text-sm text-[#201337] outline-none transition focus:border-[#35063e] focus:ring-2 focus:ring-[#35063e]/20";
+  const labelClass = "mb-1 block text-xs font-bold text-[#241436]";
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="lg:col-span-2">
+          <label className={labelClass}>
             Role title *
-            <span className="text-xs text-gray-500 ml-2">(Minimum 3 characters)</span>
+            <span className="ml-2 font-medium text-[#7c748f]">(min 3)</span>
           </label>
           <input
             type="text"
             name="titre"
             value={formData.titre}
             onChange={handleChange}
-            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 ${
+            className={`${fieldBaseClass} ${
               formData.titre.length > 0 && formData.titre.length < 3
-                ? "border-red-300 bg-red-50"
+                ? "!border-red-300 bg-red-50"
                 : formData.titre.length >= 3
-                  ? "border-green-300 bg-green-50"
-                  : "border-gray-300"
+                  ? "!border-green-300 bg-green-50"
+                  : ""
             }`}
             placeholder="Example: Full-Stack Developer"
             required
@@ -1259,25 +1347,25 @@ function ModalCreationOffre({ onSubmit, onCancel }: { onSubmit: (offre: OffreFor
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Location *</label>
+          <label className={labelClass}>Location *</label>
           <input
             type="text"
             name="localisation"
             value={formData.localisation}
             onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+            className={fieldBaseClass}
             placeholder="Example: Tunis, Sfax, Remote"
             required
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Role type</label>
+          <label className={labelClass}>Role type</label>
           <select
             name="type_poste"
             value={formData.type_poste}
             onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+            className={fieldBaseClass}
           >
             <option value="CDI">CDI</option>
             <option value="CDD">CDD</option>
@@ -1288,56 +1376,72 @@ function ModalCreationOffre({ onSubmit, onCancel }: { onSubmit: (offre: OffreFor
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Minimum salary (TND)</label>
+          <label className={labelClass}>Minimum salary (TND)</label>
           <input
             type="number"
+            min="0"
             name="salaire_min"
             value={formData.salaire_min}
             onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+            className={fieldBaseClass}
             placeholder="800"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Maximum salary (TND)</label>
+          <label className={labelClass}>Maximum salary (TND)</label>
           <input
             type="number"
+            min="0"
             name="salaire_max"
             value={formData.salaire_max}
             onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+            className={fieldBaseClass}
             placeholder="1200"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Application deadline</label>
+          <label className={labelClass}>Application deadline *</label>
           <input
             type="date"
             name="date_limite"
             value={formData.date_limite}
             onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+            min={minimumDeadlineDate}
+            aria-describedby="deadline-error"
+            className={`${fieldBaseClass} ${
+              formData.date_limite && formData.date_limite < minimumDeadlineDate
+                ? "!border-red-300 bg-red-50"
+                : formData.date_limite
+                  ? "!border-green-300 bg-green-50"
+                  : ""
+            }`}
+            required
           />
+          {formData.date_limite && formData.date_limite < minimumDeadlineDate ? (
+            <p id="deadline-error" className="mt-1 text-xs text-red-600">
+              The application deadline cannot be in the past.
+            </p>
+          ) : null}
         </div>
 
         <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className={labelClass}>
             Role description *
-            <span className="text-xs text-gray-500 ml-2">(Minimum 50 characters - Currently: {formData.description.length})</span>
+            <span className="ml-2 font-medium text-[#7c748f]">(min 50 - {formData.description.length})</span>
           </label>
           <textarea
             name="description"
             value={formData.description}
             onChange={handleChange}
-            rows={4}
-            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 ${
+            rows={3}
+            className={`w-full rounded-xl border border-[#ded4eb] bg-white px-3 py-2 text-sm text-[#201337] outline-none transition focus:border-[#35063e] focus:ring-2 focus:ring-[#35063e]/20 ${
               formData.description.length > 0 && formData.description.length < 50
-                ? "border-red-300 bg-red-50"
+                ? "!border-red-300 bg-red-50"
                 : formData.description.length >= 50
-                  ? "border-green-300 bg-green-50"
-                  : "border-gray-300"
+                  ? "!border-green-300 bg-green-50"
+                  : ""
             }`}
             placeholder="Describe the role, responsibilities, and work environment..."
             required
@@ -1350,56 +1454,101 @@ function ModalCreationOffre({ onSubmit, onCancel }: { onSubmit: (offre: OffreFor
           ) : null}
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Required skills</label>
-          <input
-            type="text"
-            name="competences_requises"
-            value={formData.competences_requises}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-            placeholder="React, Node.js, SQL..."
-          />
+        <div className="md:col-span-2 lg:col-span-1">
+          <label className={labelClass}>Required skills</label>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={skillInput}
+              onChange={(event) => setSkillInput(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  event.preventDefault();
+                  addSkill();
+                }
+              }}
+              className={fieldBaseClass}
+              placeholder="React, Node.js..."
+            />
+            <button
+              type="button"
+              onClick={addSkill}
+              className="h-11 rounded-xl bg-[#35063e] px-4 text-sm font-bold text-white shadow-sm transition hover:bg-[#4a0a58]"
+            >
+              Add
+            </button>
+          </div>
+          {skills.length > 0 ? (
+            <div className="mt-2 flex flex-wrap gap-2">
+              {skills.map((skill) => (
+                <button
+                  key={skill}
+                  type="button"
+                  onClick={() => removeSkill(skill)}
+                  className="rounded-full border border-[#dccff0] bg-[#f8f4ff] px-3 py-1 text-xs font-bold text-[#35063e]"
+                  aria-label={`Remove ${skill}`}
+                >
+                  {skill} x
+                </button>
+              ))}
+            </div>
+          ) : null}
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Required experience</label>
-          <input
-            type="text"
+          <label className={labelClass}>Required experience *</label>
+          <select
             name="experience_requise"
             value={formData.experience_requise}
             onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-            placeholder="2-3 years, junior accepted..."
-          />
+            className={fieldBaseClass}
+            required
+          >
+            <option value="" disabled>
+              Choose experience
+            </option>
+            {experienceOptions.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Education level</label>
-          <input
-            type="text"
+          <label className={labelClass}>Education level *</label>
+          <select
             name="niveau_etude"
             value={formData.niveau_etude}
             onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-            placeholder="Bachelor, Master..."
-          />
+            className={fieldBaseClass}
+            required
+          >
+            <option value="" disabled>
+              Choose education level
+            </option>
+            {educationOptions.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 
-      <div className="flex justify-end space-x-4 pt-6 border-t">
+      <div className="flex justify-end gap-3 border-t border-[#eadff4] pt-4">
         <button
           type="button"
           onClick={onCancel}
-          className="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+          className="h-10 rounded-xl border border-[#d8cfe8] px-5 text-sm font-bold text-[#241436] transition-colors hover:bg-[#f7f3fb]"
         >
           Cancel
         </button>
         <button
           type="submit"
           disabled={submitDisabled}
-          className={`px-6 py-2 rounded-md transition-colors ${
-            submitDisabled ? "bg-gray-300 text-gray-500 cursor-not-allowed" : "bg-purple-700 text-white hover:bg-purple-800"
+          className={`h-10 rounded-xl px-5 text-sm font-bold transition-colors ${
+            submitDisabled ? "cursor-not-allowed bg-gray-200 text-gray-500" : "bg-[#35063e] text-white shadow-lg shadow-[#35063e]/20 hover:bg-[#4a0a58]"
           }`}
         >
           Create role
@@ -1416,4 +1565,3 @@ export default function MesOffresPageProtegee() {
     </RouteProtegee>
   );
 }
-

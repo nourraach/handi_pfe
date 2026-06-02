@@ -15,6 +15,7 @@ export interface UtilisateurConnecte {
 }
 
 export interface DemandeEnAttente {
+  id?: string;
   id_utilisateur: string;
   nom: string;
   email: string;

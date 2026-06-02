@@ -281,6 +281,8 @@ export class TestPsychologiqueService {
           instructions: t.instructions,
           deja_passe: t.deja_passe,
           peut_passer: t.peut_passer,
+          prochain_passage_le: t.prochain_passage_le ? new Date(t.prochain_passage_le).toISOString() : null,
+          blocage_6mois: Boolean(t.blocage_6mois),
         })),
       },
     };
@@ -288,6 +290,12 @@ export class TestPsychologiqueService {
 
   // Commencer un test (obtenir les questions)
   async commencerTest(idTest: string, idCandidat: string) {
+    const prochainPassageLe = await this.repository.obtenirDateProchainPassage(idCandidat);
+    if (prochainPassageLe && prochainPassageLe > new Date()) {
+      const date = prochainPassageLe.toLocaleDateString("fr-FR");
+      throw new ErreurApi(`Vous pourrez repasser un test psychologique a partir du ${date}.`, 403);
+    }
+
     const test = await this.repository.obtenirTestPourPassage(idTest, idCandidat);
 
     if (!test) {

@@ -17,6 +17,8 @@ type TestDisponible = {
   instructions?: string;
   deja_passe?: boolean;
   peut_passer?: boolean;
+  prochain_passage_le?: string | null;
+  blocage_6mois?: boolean;
 };
 
 type Resultat = {
@@ -82,6 +84,7 @@ type EnhancedTest = TestDisponible & {
   accessible: boolean;
   icon: IconName;
   summary: string;
+  blockedUntilLabel?: string | null;
 };
 
 type EnhancedResult = Resultat & {
@@ -277,9 +280,12 @@ function CandidateAssessmentsPage() {
         accessible: true,
         icon: description.icon,
         summary: description.summary,
+        blockedUntilLabel: test.prochain_passage_le
+          ? dateFormatter.format(new Date(test.prochain_passage_le))
+          : null,
       };
     });
-  }, [t, testsDisponibles]);
+  }, [dateFormatter, t, testsDisponibles]);
 
   const results = useMemo<EnhancedResult[]>(() => {
     return resultats
@@ -324,6 +330,40 @@ function CandidateAssessmentsPage() {
     }
     return map;
   }, [results]);
+
+  const latestSoftSkillsResult = useMemo(() => {
+    return results.find((result) => (result.test?.type_test || "").toLowerCase() === "soft_skills") || null;
+  }, [results]);
+
+  const changerVisibiliteScoreProfil = async () => {
+    if (!latestSoftSkillsResult?.id_resultat) return;
+    try {
+      setErreur(null);
+      setMessage(null);
+      const response = await authenticatedFetch(
+        construireUrlApi(`/api/tests-psychologiques/candidat/resultats/${latestSoftSkillsResult.id_resultat}/visibilite`),
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ est_visible: !latestSoftSkillsResult.visible }),
+        },
+      );
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data.message || "Impossible de modifier la visibilite du score.");
+      }
+      setResultats((current) =>
+        current.map((item) =>
+          item.id_resultat === latestSoftSkillsResult.id_resultat
+            ? { ...item, est_visible: !latestSoftSkillsResult.visible }
+            : item,
+        ),
+      );
+      setMessage(!latestSoftSkillsResult.visible ? "Score soft skills affiche sur le profil." : "Score soft skills masque sur le profil.");
+    } catch (error: unknown) {
+      setErreur(error instanceof Error ? error.message : "Impossible de modifier la visibilite du score.");
+    }
+  };
 
   const filteredTests = useMemo(() => {
     return tests.filter((test) => {
@@ -453,6 +493,32 @@ function CandidateAssessmentsPage() {
             </div>
           </div>
 
+          {latestSoftSkillsResult ? (
+            <div className="tests-page__visibility">
+              <div className="tests-page__visibility-icon">
+                <AppIcon name={latestSoftSkillsResult.visible ? "eye" : "eyeOff"} size={20} />
+              </div>
+              <div className="tests-page__visibility-copy">
+                <strong>
+                  Score soft skills: {latestSoftSkillsResult.score}%
+                </strong>
+                <p>
+                  {latestSoftSkillsResult.visible
+                    ? "Ce score est actuellement affiche sur votre profil."
+                    : "Ce score est actuellement masque sur votre profil."}
+                </p>
+              </div>
+              <button
+                type="button"
+                className="tests-page__ghost"
+                onClick={() => void changerVisibiliteScoreProfil()}
+              >
+                <AppIcon name={latestSoftSkillsResult.visible ? "eyeOff" : "eye"} size={14} />
+                {latestSoftSkillsResult.visible ? "Masquer du profil" : "Afficher sur profil"}
+              </button>
+            </div>
+          ) : null}
+
           {filteredTests.length === 0 ? (
             <div className="tests-page__empty">
               <strong>{t("assessments.candidate.dashboard.emptyTestsTitle")}</strong>
@@ -467,6 +533,7 @@ function CandidateAssessmentsPage() {
                     test={test}
                     isStarting={testDemarrageId === test.id_test}
                     result={latestResultByTestId.get(test.id_test)}
+                    canStart={Boolean(test.peut_passer)}
                     onStart={() => void commencerTest(test.id_test)}
                   />
                 ))}
@@ -911,17 +978,20 @@ function TestCard({
   test,
   isStarting,
   result,
+  canStart,
   onStart,
 }: {
   test: EnhancedTest;
   isStarting: boolean;
   result?: EnhancedResult;
+  canStart: boolean;
   onStart: () => void;
 }) {
   const difficultyLabel = test.difficulty === "hard" ? "Difficile" : test.difficulty === "easy" ? "Facile" : "Moyen";
   const isCompleted = Boolean(result || test.deja_passe);
   const isInProgress = isStarting;
   const progress = isInProgress ? 45 : 0;
+  const isBlockedByWindow = !canStart && !isCompleted;
 
   return (
     <article className="test-card">
@@ -952,6 +1022,15 @@ function TestCard({
             <strong>{result?.score ?? 0}%</strong>
             <small>{result?.dateLabel ? `Complete le ${result.dateLabel}` : "Complete"}</small>
           </>
+        ) : isBlockedByWindow ? (
+          <>
+            <span className="test-card__status-badge is-pending">En attente</span>
+            <small>
+              {test.blockedUntilLabel
+                ? `Disponible le ${test.blockedUntilLabel}`
+                : "Disponible apres la fenetre de 6 mois"}
+            </small>
+          </>
         ) : isInProgress ? (
           <>
             <span className="test-card__status-badge is-progress">En cours</span>
@@ -969,10 +1048,18 @@ function TestCard({
         <button
           type="button"
           className={`test-card__btn ${isCompleted ? "test-card__btn--ghost" : ""}`}
-          disabled={isStarting}
-          onClick={isCompleted ? undefined : onStart}
+          disabled={isStarting || isBlockedByWindow}
+          onClick={isCompleted || isBlockedByWindow ? undefined : onStart}
         >
-          {isStarting ? "Chargement..." : isCompleted ? "Voir les resultats" : isInProgress ? "Continuer le test" : "Commencer le test"}
+          {isStarting
+            ? "Chargement..."
+            : isCompleted
+              ? "Voir les resultats"
+              : isBlockedByWindow
+                ? "Indisponible (6 mois)"
+                : isInProgress
+                  ? "Continuer le test"
+                  : "Commencer le test"}
         </button>
         <button type="button" className="test-card__bookmark" aria-label="Plus d'actions">
           <AppIcon name="more" size={15} />

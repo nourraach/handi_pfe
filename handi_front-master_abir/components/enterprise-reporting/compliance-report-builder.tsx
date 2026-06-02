@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { EmptyState, LoadingState, PageHeader } from "@/components/ui/layout";
+import { EmptyState, LoadingState } from "@/components/ui/layout";
 import {
   EnterpriseComplianceContext,
   createEnterpriseComplianceReport,
@@ -69,16 +69,23 @@ function buildDefaultSummary(context: EnterpriseComplianceContext) {
   return `Rapport de conformite a la loi n°41-2016 - ${context.company.company_name} - ${periodLabel}`;
 }
 
+function isVisiblePublicationChannel(channel: Pick<PublicationChannelForm, "key" | "label">) {
+  const value = `${channel.key} ${channel.label}`.toLowerCase();
+  return !value.includes("aneti");
+}
+
 function createDefaultOfferForms(context: EnterpriseComplianceContext) {
   return context.offers.reduce<Record<string, ComplianceOfferForm>>((acc, offer) => {
     acc[offer.offer_id] = {
       matching_candidates_count: String(offer.matching_candidates_count),
-      publication_channels: offer.publication_channels.map((channel) => ({
-        key: channel.key,
-        label: channel.label,
-        screenshot_label: channel.screenshot_label,
-        url: channel.url,
-      })),
+      publication_channels: offer.publication_channels
+        .filter(isVisiblePublicationChannel)
+        .map((channel) => ({
+          key: channel.key,
+          label: channel.label,
+          screenshot_label: channel.screenshot_label,
+          url: channel.url,
+        })),
       candidate_results: offer.candidates.reduce<Record<string, string>>((resultMap, candidate) => {
         resultMap[candidate.application_id] =
           candidate.statut === "accepted"
@@ -181,7 +188,7 @@ function buildComplianceReportBody(context: EnterpriseComplianceContext, payload
     lines.push("");
     lines.push("Canaux de publication :");
 
-    for (const channel of offerForm.publication_channels) {
+    for (const channel of offerForm.publication_channels.filter(isVisiblePublicationChannel)) {
       lines.push(`- ${channel.label}`);
       lines.push(`  Lien de publication : ${channel.url || "non renseigne"}`);
       lines.push(`  Capture associee : ${channel.screenshot_label || "non renseignee"}`);
@@ -372,38 +379,36 @@ export function ComplianceReportBuilder() {
   }
 
   return (
-    <main className="app-page">
-      <PageHeader
-        badge="Generate the compliance report"
-        title="Rapport de Conformite a la Loi n°41-2016"
-        description="Remplissez les informations, verifiez la previsualisation, sauvegardez un brouillon si besoin, puis publiez le rapport final."
-        actions={
-          <div className="page-header-actions">
-            <ButtonLink href="/entreprise/reports-requests" variant="ghost">Return Reports & Requests</ButtonLink>
-            <Button onClick={saveDraft} variant="secondary">Save draft</Button>
-            <Button onClick={() => downloadTextDocument(`${payload.summary || "compliance-report"}.txt`, generatedPreview)} variant="ghost">
-              Download text
-            </Button>
-            <Button onClick={() => downloadPdfDocument(`${payload.summary || "compliance-report"}.pdf`, generatedPreview)} variant="ghost">
-              Download PDF
-            </Button>
-            <Button onClick={() => void submitReport()} disabled={saving}>
-              {saving ? "Generating..." : "Generate compliance report"}
-            </Button>
-          </div>
-        }
-      />
+    <main className="app-page compliance-builder">
+      <section className="builder-hero">
+        <div>
+          <p>Compliance report</p>
+          <h1>Rapport de Conformite a la Loi n°41-2016</h1>
+          <span>Verifier, completer, sauvegarder ou publier le rapport final.</span>
+        </div>
+        <div className="builder-actions">
+          <ButtonLink href="/entreprise/reports-requests" variant="ghost">Return</ButtonLink>
+          <Button onClick={saveDraft} variant="secondary">Save draft</Button>
+          <Button onClick={() => downloadTextDocument(`${payload.summary || "compliance-report"}.txt`, generatedPreview)} variant="ghost">
+            Text
+          </Button>
+          <Button onClick={() => downloadPdfDocument(`${payload.summary || "compliance-report"}.pdf`, generatedPreview)} variant="ghost">
+            PDF
+          </Button>
+          <Button onClick={() => void submitReport()} disabled={saving}>
+            {saving ? "Generating..." : "Generate"}
+          </Button>
+        </div>
+      </section>
 
       {message ? <div className="message message-info">{message}</div> : null}
       {error ? <div className="message message-erreur">{error}</div> : null}
 
-      <section className="split-grid">
-        <Card padding="lg" className="stack-lg">
-          <div>
-            <strong style={{ fontSize: "1.1rem" }}>Report settings</strong>
-            <p className="texte-secondaire" style={{ margin: "10px 0 0" }}>
-              Legal company data and live hiring metrics are prefilled from the platform.
-            </p>
+      <section className="builder-layout">
+        <Card padding="md" className="settings-card">
+          <div className="compact-head">
+            <strong>Report settings</strong>
+            <p>Legal company data and live hiring metrics are prefilled.</p>
           </div>
 
           <div className="form-grid">
@@ -476,18 +481,20 @@ export function ComplianceReportBuilder() {
             </div>
           </div>
 
-          {context.offers.map((offer) => {
+          {context.offers.map((offer, offerIndex) => {
             const offerForm = payload.offer_forms[offer.offer_id];
             return (
-              <Card key={offer.offer_id} padding="md" className="stack-lg">
-                <div>
-                  <strong style={{ display: "block", fontSize: "1.05rem" }}>{offer.offer_title}</strong>
-                  <p className="texte-secondaire" style={{ margin: "8px 0 0" }}>
-                    {offer.localisation} - publie le {formatDate(offer.created_at)}
-                  </p>
-                </div>
+              <details key={offer.offer_id} className="offer-accordion" open={offerIndex === 0}>
+                <summary>
+                  <span>
+                    <strong>{offer.offer_title}</strong>
+                    <small>{offer.localisation} - publie le {formatDate(offer.created_at)}</small>
+                  </span>
+                  <em>{offer.candidates.length} candidat{offer.candidates.length > 1 ? "s" : ""}</em>
+                </summary>
 
-                <div className="form-grid">
+                <div className="offer-accordion-body">
+                <div className="form-grid compact-one">
                   <div className="groupe-champ">
                     <label htmlFor={`matching-${offer.offer_id}`}>Nombre de candidatures conformes</label>
                     <input
@@ -506,9 +513,9 @@ export function ComplianceReportBuilder() {
                   </div>
                 </div>
 
-                <div className="stack-lg">
-                  {offerForm.publication_channels.map((channel, index) => (
-                    <div key={channel.key} className="form-grid">
+                <div className="channel-grid">
+                  {offerForm.publication_channels.filter(isVisiblePublicationChannel).map((channel) => (
+                    <div key={channel.key} className="channel-card">
                       <div className="groupe-champ">
                         <label htmlFor={`${offer.offer_id}-${channel.key}-url`}>{channel.label} - lien</label>
                         <input
@@ -518,24 +525,8 @@ export function ComplianceReportBuilder() {
                           onChange={(event) =>
                             updateOfferForm(offer.offer_id, (current) => ({
                               ...current,
-                              publication_channels: current.publication_channels.map((item, itemIndex) =>
-                                itemIndex === index ? { ...item, url: event.target.value } : item,
-                              ),
-                            }))
-                          }
-                        />
-                      </div>
-                      <div className="groupe-champ">
-                        <label htmlFor={`${offer.offer_id}-${channel.key}-capture`}>{channel.label} - capture</label>
-                        <input
-                          id={`${offer.offer_id}-${channel.key}-capture`}
-                          className="champ"
-                          value={channel.screenshot_label}
-                          onChange={(event) =>
-                            updateOfferForm(offer.offer_id, (current) => ({
-                              ...current,
-                              publication_channels: current.publication_channels.map((item, itemIndex) =>
-                                itemIndex === index ? { ...item, screenshot_label: event.target.value } : item,
+                              publication_channels: current.publication_channels.map((item) =>
+                                item.key === channel.key ? { ...item, url: event.target.value } : item,
                               ),
                             }))
                           }
@@ -546,14 +537,12 @@ export function ComplianceReportBuilder() {
                 </div>
 
                 {offer.candidates.length > 0 ? (
-                  <div className="stack-lg">
+                  <div className="candidate-status-block">
                     <strong>Resultat des candidats convoques</strong>
-                    {offer.candidates.map((candidate) => (
-                      <div key={candidate.application_id} className="form-grid">
-                        <div className="groupe-champ">
-                          <label>{candidate.candidate_name}</label>
-                          <input className="champ" value={candidate.candidate_name} disabled />
-                        </div>
+                    <div className="candidate-status-grid">
+                      {offer.candidates.map((candidate) => (
+                        <div key={candidate.application_id} className="candidate-status-row">
+                          <span>{candidate.candidate_name}</span>
                         <div className="groupe-champ">
                           <label htmlFor={`${candidate.application_id}-result`}>Statut dans le rapport</label>
                           <select
@@ -570,18 +559,20 @@ export function ComplianceReportBuilder() {
                               }))
                             }
                           >
-                            <option value="En cours d'evaluation">En cours d'evaluation</option>
+                            <option value="En cours d'evaluation">En cours d&apos;evaluation</option>
                             <option value="Entretien planifie">Entretien planifie</option>
                             <option value="Selectionne">Selectionne</option>
                             <option value="Recrute">Recrute</option>
                             <option value="Non retenu">Non retenu</option>
                           </select>
                         </div>
-                      </div>
-                    ))}
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 ) : null}
-              </Card>
+                </div>
+              </details>
             );
           })}
 
@@ -610,32 +601,308 @@ export function ComplianceReportBuilder() {
           </div>
         </Card>
 
-        <Card padding="lg" className="stack-lg">
-          <div>
-            <strong style={{ fontSize: "1.1rem" }}>Generated preview</strong>
-            <p className="texte-secondaire" style={{ margin: "10px 0 0" }}>
-              This text is generated from the current data and the values you edit on the left.
-            </p>
+        <Card padding="md" className="preview-card">
+          <div className="compact-head">
+            <strong>Generated preview</strong>
+            <p>Generated from the current data and your edits.</p>
           </div>
 
           <div
-            style={{
-              whiteSpace: "pre-wrap",
-              lineHeight: 1.8,
-              fontSize: "0.96rem",
-              color: "var(--app-text-soft)",
-              maxHeight: "75vh",
-              overflowY: "auto",
-              border: "1px solid var(--app-border)",
-              borderRadius: "20px",
-              padding: "20px",
-              background: "rgba(255,255,255,0.7)",
-            }}
+            className="preview-box"
           >
             {generatedPreview}
           </div>
         </Card>
       </section>
+      <style jsx>{`
+        .compliance-builder {
+          display: grid;
+          gap: 14px;
+        }
+
+        .builder-hero {
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) auto;
+          align-items: center;
+          gap: 16px;
+          border: 1px solid rgba(var(--app-primary-rgb), 0.1);
+          border-radius: 18px;
+          padding: 16px 18px;
+          background:
+            linear-gradient(135deg, rgba(var(--app-primary-rgb), 0.06), rgba(var(--app-secondary-rgb), 0.16)),
+            rgba(255,255,255,0.9);
+          box-shadow: 0 14px 34px rgba(var(--app-primary-rgb), 0.07);
+        }
+
+        .builder-hero p,
+        .builder-hero h1,
+        .builder-hero span {
+          margin: 0;
+        }
+
+        .builder-hero p {
+          color: var(--app-primary);
+          font-size: 0.74rem;
+          font-weight: 900;
+          text-transform: uppercase;
+        }
+
+        .builder-hero h1 {
+          margin-top: 4px;
+          color: var(--app-text);
+          font-family: var(--app-heading);
+          font-size: clamp(1.35rem, 2vw, 2rem);
+          line-height: 1.1;
+        }
+
+        .builder-hero span {
+          display: block;
+          margin-top: 6px;
+          color: var(--app-muted);
+          font-size: 0.9rem;
+        }
+
+        .builder-actions {
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: flex-end;
+          gap: 8px;
+        }
+
+        .builder-layout {
+          display: grid;
+          grid-template-columns: minmax(0, 1.15fr) minmax(360px, 0.85fr);
+          gap: 14px;
+          align-items: start;
+        }
+
+        :global(.settings-card),
+        :global(.preview-card) {
+          border-radius: 18px !important;
+          box-shadow: 0 12px 30px rgba(var(--app-primary-rgb), 0.06) !important;
+        }
+
+        :global(.preview-card) {
+          position: sticky;
+          top: 18px;
+        }
+
+        .compact-head {
+          display: flex;
+          justify-content: space-between;
+          gap: 12px;
+          align-items: flex-start;
+          margin-bottom: 12px;
+        }
+
+        .compact-head strong {
+          color: var(--app-text);
+          font-size: 1rem;
+        }
+
+        .compact-head p {
+          max-width: 420px;
+          margin: 0;
+          color: var(--app-muted);
+          font-size: 0.82rem;
+          line-height: 1.35;
+        }
+
+        :global(.compliance-builder .form-grid) {
+          gap: 10px !important;
+        }
+
+        :global(.compliance-builder .groupe-champ) {
+          gap: 4px !important;
+        }
+
+        :global(.compliance-builder label) {
+          font-size: 0.76rem !important;
+        }
+
+        :global(.compliance-builder .champ),
+        :global(.compliance-builder .champ-select),
+        :global(.compliance-builder .champ-zone) {
+          min-height: 38px !important;
+          border-radius: 12px !important;
+          font-size: 0.86rem !important;
+        }
+
+        :global(.compliance-builder .champ-zone) {
+          min-height: 86px !important;
+        }
+
+        :global(.compliance-builder .details-grid) {
+          grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+          gap: 8px !important;
+          margin-top: 10px !important;
+        }
+
+        :global(.compliance-builder .detail-box) {
+          border-radius: 12px !important;
+          padding: 10px 12px !important;
+          background: rgba(var(--app-primary-rgb), 0.035) !important;
+        }
+
+        :global(.compliance-builder .detail-box strong) {
+          font-size: 0.68rem !important;
+        }
+
+        :global(.compliance-builder .detail-box p) {
+          margin-top: 4px !important;
+          font-size: 0.95rem !important;
+        }
+
+        .offer-accordion {
+          margin-top: 10px;
+          border: 1px solid rgba(var(--app-primary-rgb), 0.1);
+          border-radius: 14px;
+          background: rgba(255,255,255,0.82);
+          overflow: hidden;
+        }
+
+        .offer-accordion summary {
+          cursor: pointer;
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) auto;
+          align-items: center;
+          gap: 12px;
+          padding: 12px 14px;
+          list-style: none;
+        }
+
+        .offer-accordion summary::-webkit-details-marker {
+          display: none;
+        }
+
+        .offer-accordion summary strong,
+        .offer-accordion summary small {
+          display: block;
+        }
+
+        .offer-accordion summary strong {
+          color: var(--app-text);
+          font-size: 0.94rem;
+        }
+
+        .offer-accordion summary small {
+          margin-top: 3px;
+          color: var(--app-muted);
+          font-size: 0.74rem;
+        }
+
+        .offer-accordion summary em {
+          border-radius: 999px;
+          padding: 6px 10px;
+          color: var(--app-primary);
+          background: rgba(var(--app-primary-rgb), 0.07);
+          font-size: 0.72rem;
+          font-style: normal;
+          font-weight: 900;
+        }
+
+        .offer-accordion-body {
+          display: grid;
+          gap: 12px;
+          border-top: 1px solid rgba(var(--app-primary-rgb), 0.08);
+          padding: 12px;
+        }
+
+        :global(.compact-one) {
+          grid-template-columns: minmax(220px, 320px) !important;
+        }
+
+        .channel-grid {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 10px;
+        }
+
+        .channel-card {
+          display: grid;
+          gap: 8px;
+          border-radius: 12px;
+          padding: 10px;
+          background: rgba(var(--app-primary-rgb), 0.03);
+        }
+
+        .candidate-status-block {
+          display: grid;
+          gap: 8px;
+        }
+
+        .candidate-status-block > strong {
+          font-size: 0.86rem;
+        }
+
+        .candidate-status-grid {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 8px;
+        }
+
+        .candidate-status-row {
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) minmax(160px, 0.9fr);
+          align-items: end;
+          gap: 8px;
+          border-radius: 12px;
+          padding: 8px 10px;
+          background: rgba(var(--app-primary-rgb), 0.03);
+        }
+
+        .candidate-status-row > span {
+          color: var(--app-text);
+          font-weight: 800;
+          font-size: 0.82rem;
+          padding-bottom: 10px;
+        }
+
+        .preview-box {
+          white-space: pre-wrap;
+          line-height: 1.48;
+          font-size: 0.8rem;
+          color: var(--app-text-soft);
+          max-height: calc(100vh - 190px);
+          overflow-y: auto;
+          border: 1px solid var(--app-border);
+          border-radius: 14px;
+          padding: 14px;
+          background: rgba(255,255,255,0.72);
+        }
+
+        @media (max-width: 1200px) {
+          .builder-layout {
+            grid-template-columns: 1fr;
+          }
+
+          :global(.preview-card) {
+            position: static;
+          }
+
+          .preview-box {
+            max-height: 420px;
+          }
+        }
+
+        @media (max-width: 760px) {
+          .builder-hero {
+            grid-template-columns: 1fr;
+          }
+
+          .builder-actions {
+            justify-content: flex-start;
+          }
+
+          :global(.compliance-builder .details-grid),
+          .channel-grid,
+          .channel-card,
+          .candidate-status-grid,
+          .candidate-status-row {
+            grid-template-columns: 1fr !important;
+          }
+        }
+      `}</style>
     </main>
   );
 }

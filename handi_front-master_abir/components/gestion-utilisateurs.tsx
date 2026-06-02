@@ -315,7 +315,6 @@ export function GestionUtilisateurs() {
   const filtresActifs = Boolean(recherche.trim() || filtres.role || filtres.statut);
   const usersVisibleCount = utilisateursAffiches.length;
   const usersLoadedCount = utilisateurs.length;
-  const usersListCount = filtresActifs ? usersVisibleCount : usersLoadedCount;
   const usersActiveCount = utilisateursAffiches.filter((user) => user.statut === "actif").length;
   const usersPendingCount = utilisateursAffiches.filter((user) => user.statut === "en_attente").length;
   const usersSuspendedCount = utilisateursAffiches.filter((user) => user.statut === "suspendu").length;
@@ -443,11 +442,6 @@ export function GestionUtilisateurs() {
       </div>
 
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900">
-            User list ({usersListCount})
-          </h3>
-          </div>
 
         {chargement ? (
           <div className="p-8 text-center">

@@ -188,6 +188,9 @@ export const translations: Record<Locale, TranslationTree> = {
         "Les candidats et les employeurs partagent maintenant le même système d'interface, pour une inscription cohérente dès le premier clic.",
       createTitle: "Créez votre compte",
       createDescription: "Choisissez le compte correspondant à votre rôle puis continuez.",
+      backToChoice: "Retour au choix",
+      companyTitle: "Créez votre compte entreprise",
+      companyPageDescription: "Renseignez les informations de votre entreprise pour lancer votre demande d'inscription.",
       jobSeeker: "Chercheur d'emploi",
       jobSeekerDescription:
         "Créez un compte candidat pour explorer les offres, enregistrer vos favoris et suivre vos candidatures au même endroit.",
@@ -1040,6 +1043,9 @@ export const translations: Record<Locale, TranslationTree> = {
         "Candidates and employers now share the same polished UI system, so onboarding feels consistent from the first click.",
       createTitle: "Create your account",
       createDescription: "Choose the account that matches your role and continue.",
+      backToChoice: "Back to choice",
+      companyTitle: "Create your company account",
+      companyPageDescription: "Enter your company details to start your registration request.",
       jobSeeker: "Job seeker",
       jobSeekerDescription:
         "Create a candidate account to explore roles, save favorites, and track applications in one place.",
@@ -1855,6 +1861,9 @@ export const translations: Record<Locale, TranslationTree> = {
         "أصبح المرشحون وأصحاب العمل يشتركون الآن في نفس نظام الواجهة المصقول، ليكون التسجيل متسقًا من أول نقرة.",
       createTitle: "أنشئ حسابك",
       createDescription: "اختر الحساب الذي يناسب دورك ثم تابع.",
+      backToChoice: "العودة إلى الاختيار",
+      companyTitle: "أنشئ حساب شركتك",
+      companyPageDescription: "املأ معلومات شركتك لبدء طلب التسجيل.",
       jobSeeker: "باحث عن عمل",
       jobSeekerDescription:
         "أنشئ حساب مرشح لاستكشاف الوظائف وحفظ المفضلة ومتابعة الترشحات في مكان واحد.",

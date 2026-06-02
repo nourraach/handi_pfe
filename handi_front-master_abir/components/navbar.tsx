@@ -240,7 +240,7 @@ export function Navbar({
   const isAdmin = utilisateur.role === "admin";
   const isEntreprise = utilisateur.role === "entreprise";
   const usesReferenceSidebar = isCandidate || isEntreprise || isAdmin;
-  const hasCollapsibleSidebar = utilisateur.role === "candidat" || utilisateur.role === "entreprise";
+  const hasCollapsibleSidebar = utilisateur.role === "candidat";
   const keyboardModeEnabled = settings.keyboardMoveMode;
   const keyboardAnnouncement = keyboardModeEnabled ? t("accessibility.keyboardAnnouncement") : "";
   const socialBadgeCount = notificationsNonLues + messagesNonLus;
@@ -418,7 +418,6 @@ export function Navbar({
       { id: "ent-shortlist", label: "IA Shortlisting", subtitle: "Preselection", icon: "tests", href: "/entreprise/shortlist" },
       { id: "ent-reports-requests", label: "Demandes de rapport", subtitle: "Conformite", icon: "achievements", href: "/entreprise/reports-requests" },
       { id: "ent-messages", label: "Messagerie", subtitle: "Inbox", icon: "messages", href: "/messages", badgeCount: messagesNonLus },
-      { id: "ent-settings", label: "Profil & Parametres", subtitle: "Compte", icon: "settings", href: "/entreprise/profil" },
     ],
     [messagesNonLus],
   );

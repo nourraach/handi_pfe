@@ -12,6 +12,28 @@ import {
 import { ListeTestsQueryDto } from "../dto/test-psychologique.dto";
 
 export class TestPsychologiqueRepository {
+  async obtenirDateProchainPassage(idCandidat: string): Promise<Date | null> {
+    const sixMoisAvant = new Date();
+    sixMoisAvant.setMonth(sixMoisAvant.getMonth() - 6);
+
+    const [dernierResultat] = await db
+      .select({ date_passage: resultatTestTable.date_passage })
+      .from(resultatTestTable)
+      .where(
+        and(
+          eq(resultatTestTable.id_candidat, idCandidat),
+          gte(resultatTestTable.date_passage, sixMoisAvant),
+        ),
+      )
+      .orderBy(desc(resultatTestTable.date_passage))
+      .limit(1);
+
+    if (!dernierResultat?.date_passage) return null;
+
+    const prochaineDate = new Date(dernierResultat.date_passage);
+    prochaineDate.setMonth(prochaineDate.getMonth() + 6);
+    return prochaineDate;
+  }
   // ADMIN - Gestion des tests
 
   // Créer un test complet avec questions et options
@@ -200,6 +222,8 @@ export class TestPsychologiqueRepository {
   // Obtenir les tests disponibles pour un candidat
   async obtenirTestsDisponibles(idCandidat: string) {
     const maintenant = new Date();
+    const prochainPassageLe = await this.obtenirDateProchainPassage(idCandidat);
+    const blocage6Mois = Boolean(prochainPassageLe && prochainPassageLe > maintenant);
     
     // Tests actifs et dans la période de validité
     const testsActifs = await db
@@ -232,7 +256,9 @@ export class TestPsychologiqueRepository {
         return {
           ...test,
           deja_passe: !!tentative,
-          peut_passer: !tentative,
+          peut_passer: !tentative && !blocage6Mois,
+          prochain_passage_le: blocage6Mois ? prochainPassageLe : null,
+          blocage_6mois: blocage6Mois,
         };
       })
     );
@@ -242,22 +268,9 @@ export class TestPsychologiqueRepository {
 
   // Obtenir un test pour passage (sans les bonnes réponses)
   async obtenirTestPourPassage(idTest: string, idCandidat: string) {
-    // Vérifier si déjà passé dans les 6 derniers mois
-    const sixMoisAvant = new Date();
-    sixMoisAvant.setMonth(sixMoisAvant.getMonth() - 6);
-    const [dernier] = await db
-      .select()
-      .from(resultatTestTable)
-      .where(
-        and(
-          eq(resultatTestTable.id_test, idTest),
-          eq(resultatTestTable.id_candidat, idCandidat),
-          gte(resultatTestTable.date_passage, sixMoisAvant)
-        )
-      )
-      .orderBy(desc(resultatTestTable.date_passage));
-
-    if (dernier) return null; // Périodicité 6 mois
+    // Periodicite globale: un test psychologique tous les 6 mois.
+    const prochainPassageLe = await this.obtenirDateProchainPassage(idCandidat);
+    if (prochainPassageLe && prochainPassageLe > new Date()) return null;
 
     // Vérifier si le candidat peut passer ce test
     const maintenant = new Date();
@@ -530,3 +543,7 @@ export class TestPsychologiqueRepository {
     return resultats;
   }
 }
+
+
+
+

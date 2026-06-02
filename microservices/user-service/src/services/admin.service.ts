@@ -44,6 +44,10 @@ export class AdminService {
       throw new ErreurApi("Impossible d'approuver cette demande.", 500);
     }
 
+    if (utilisateur.role === RoleUtilisateur.ENTREPRISE) {
+      await this.utilisateurRepository.validerEntreprise(id_utilisateur);
+    }
+
     return {
       message: "La demande a ete approuvee et le compte est maintenant actif.",
     };

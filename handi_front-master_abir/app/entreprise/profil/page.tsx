@@ -24,83 +24,7 @@ type ProfilEntreprise = {
   profil_publique?: boolean;
   patente_url?: string;
   rne_url?: string;
-  subscription_pack?: string;
-  subscription_status?: string;
-  subscription_price_tnd?: number;
-  subscription_cycle?: string;
-  subscribed_at?: string | null;
 };
-
-type SubscriptionPack = {
-  code: string;
-  name: string;
-  price_tnd: number;
-  cycle: string;
-  features: string[];
-};
-
-const DEFAULT_PACKS: SubscriptionPack[] = [
-  {
-    code: "essential",
-    name: "Pack 1 - Essential",
-    price_tnd: 4000,
-    cycle: "yearly",
-    features: [
-      "Unlimited access to validated candidates",
-      "Video CV viewing",
-      "Direct contact via HandiTalents messaging",
-      "Interview scheduling via the platform",
-      "Conducting online interviews",
-      "Up to 8 positions job posting publication",
-      "Sharing job offers on HandiSuccess & HandiTalents social media",
-      "Sharing job offers with ANETI",
-      "Interview preparation training via ANETI",
-    ],
-  },
-  {
-    code: "advanced",
-    name: "Pack 2 - Advanced Recruitment",
-    price_tnd: 7000,
-    cycle: "yearly",
-    features: [
-      "Unlimited access to validated candidates",
-      "Video CV viewing",
-      "Direct contact via HandiTalents messaging",
-      "Interview scheduling via the platform",
-      "Conducting online interviews",
-      "Up to 18 positions job posting publication",
-      "Sharing job offers on HandiSuccess & HandiTalents social media",
-      "Sharing job offers with ANETI",
-      "Interview preparation training via ANETI",
-      "Automatic candidate shortlisting",
-      "Job posting publication report",
-      "Compliance report with Law No. 41 of 2016",
-    ],
-  },
-  {
-    code: "compliance",
-    name: "Pack 3 - Compliance Inclusion",
-    price_tnd: 12000,
-    cycle: "yearly",
-    features: [
-      "Unlimited access to validated candidates",
-      "Video CV viewing",
-      "Direct contact via HandiTalents messaging",
-      "Interview scheduling via the platform",
-      "Conducting online interviews",
-      "Job posting publication",
-      "Sharing job offers on HandiSuccess & HandiTalents social media",
-      "Sharing job offers with ANETI",
-      "Interview preparation training via ANETI",
-      "Smart candidate shortlisting",
-      "Job posting publication report",
-      "Compliance report with Law No. 41 of 2016",
-      "Support in defining and adjusting job offers",
-      "Legal assistance for compliance with Law No. 41 of 2016",
-      "Account management and application compliance support",
-    ],
-  },
-];
 
 function getErrorMessage(error: unknown, fallback: string) {
   return error instanceof Error ? error.message : fallback;
@@ -161,8 +85,19 @@ function ProfilEntreprisePage() {
   const [rneFile, setRneFile] = useState<File | null>(null);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoActionLoading, setLogoActionLoading] = useState(false);
-  const [availablePacks, setAvailablePacks] = useState<SubscriptionPack[]>([]);
-  const [subscriptionSaving, setSubscriptionSaving] = useState<string | null>(null);
+  const industryOptions = [
+    "Technology / Software",
+    "Healthcare / Medical",
+    "Finance / Banking",
+    "Education / Training",
+    "Retail / Sales",
+    "Industry / Manufacturing",
+    "Services / Consulting",
+    "Transport / Logistics",
+    "Tourism / Hospitality",
+    "Agriculture / Food",
+    "Other",
+  ];
 
   useEffect(() => {
     void chargerProfil();
@@ -202,14 +137,8 @@ function ProfilEntreprisePage() {
         contact_rh_email: entreprise?.contact_rh_email || "",
         contact_rh_telephone: entreprise?.contact_rh_telephone || "",
         logo_url: entreprise?.logo_url || "",
-        profil_publique: entreprise?.profil_publique ?? false,
-        subscription_pack: profilePayload.subscription_pack || entreprise?.subscription_pack || "",
-        subscription_status: profilePayload.subscription_status || entreprise?.subscription_status || "inactive",
-        subscription_price_tnd: profilePayload.subscription_price_tnd || entreprise?.subscription_price_tnd || 0,
-        subscription_cycle: profilePayload.subscription_cycle || entreprise?.subscription_cycle || "yearly",
-        subscribed_at: profilePayload.subscribed_at || entreprise?.subscribed_at || null,
+        profil_publique: entreprise?.profil_publique ?? true,
       });
-      setAvailablePacks(profilePayload.available_packs || DEFAULT_PACKS);
     } catch (error: unknown) {
       setErreur(getErrorMessage(error, "Unable to load the company profile."));
     } finally {
@@ -238,7 +167,7 @@ function ProfilEntreprisePage() {
       const res = await authenticatedFetch(construireUrlApi("/api/entreprises/profil"), {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(profil),
+        body: JSON.stringify({ ...profil, profil_publique: true }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Unable to save your changes.");
@@ -278,29 +207,6 @@ function ProfilEntreprisePage() {
       setErreur(getErrorMessage(error, "Unable to upload the documents."));
     } finally {
       setLogoActionLoading(false);
-    }
-  };
-
-  const choisirPack = async (packCode: string) => {
-    try {
-      setSubscriptionSaving(packCode);
-      setMessage(null);
-      setErreur(null);
-
-      const res = await authenticatedFetch(construireUrlApi("/api/entreprises/profil/subscription"), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ pack_code: packCode }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Unable to select this package.");
-
-      setMessage("Package selected successfully.");
-      await chargerProfil();
-    } catch (error: unknown) {
-      setErreur(getErrorMessage(error, "Unable to select this package."));
-    } finally {
-      setSubscriptionSaving(null);
     }
   };
 
@@ -391,56 +297,6 @@ function ProfilEntreprisePage() {
           {input("Phone", profil.telephone, (value) => setProfil({ ...profil, telephone: value }))}
           {input("Address", profil.addresse, (value) => setProfil({ ...profil, addresse: value }))}
         </div>
-
-        <div className="border-t pt-6 space-y-4">
-          <div>
-            <h2 className="text-xl font-semibold text-gray-900">Inclusive subscription packages</h2>
-            <p className="text-gray-600">Choose the package that matches your company needs. The payment process is intentionally not implemented yet.</p>
-          </div>
-
-          <div className="rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-900">
-            <p>Current package: <strong>{profil.subscription_pack || "No package selected"}</strong></p>
-            <p>
-              Status: {profil.subscription_status || "inactive"}
-              {profil.subscription_price_tnd ? ` • ${profil.subscription_price_tnd.toLocaleString("fr-TN")} TND/${profil.subscription_cycle === "yearly" ? "year" : profil.subscription_cycle}` : ""}
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
-            {availablePacks.map((pack) => {
-              const isCurrent = profil.subscription_pack === pack.code;
-              return (
-                <div key={pack.code} className={`overflow-hidden rounded-2xl border bg-white shadow-sm ${isCurrent ? "border-blue-500 ring-2 ring-blue-100" : "border-gray-200"}`}>
-                  <div className="border-b border-gray-100 px-5 py-4">
-                    <p className="text-sm font-semibold uppercase tracking-wide text-gray-700">{pack.name}</p>
-                  </div>
-                  <div className="bg-gray-50 px-5 py-4">
-                    <p className="text-3xl font-bold text-gray-900">{pack.price_tnd.toLocaleString("fr-TN")} <span className="text-xl">TND</span></p>
-                    <p className="text-xs uppercase tracking-[0.25em] text-gray-500">per year</p>
-                  </div>
-                  <div className="space-y-4 px-5 py-4">
-                    <ul className="space-y-2 text-sm text-gray-700">
-                      {pack.features.map((feature) => (
-                        <li key={feature} className="flex gap-2">
-                          <span className="text-blue-600">✓</span>
-                          <span>{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
-                    <button
-                      onClick={() => choisirPack(pack.code)}
-                      disabled={subscriptionSaving === pack.code}
-                      className={`w-full rounded-full px-4 py-2 text-sm font-medium text-white transition ${isCurrent ? "bg-slate-700 hover:bg-slate-800" : "bg-blue-600 hover:bg-blue-700"} disabled:opacity-60`}
-                    >
-                      {subscriptionSaving === pack.code ? "Saving..." : isCurrent ? "Selected package" : "Choose this package"}
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {input("Company name", profil.nom_entreprise, (value) => setProfil({ ...profil, nom_entreprise: value }))}
           {input("Website", profil.site_web || "", (value) => setProfil({ ...profil, site_web: value }))}
@@ -449,7 +305,21 @@ function ProfilEntreprisePage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {input("Industry", profil.secteur_activite || "", (value) => setProfil({ ...profil, secteur_activite: value }))}
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-medium text-gray-700">Industry</label>
+            <select
+              value={profil.secteur_activite || ""}
+              onChange={(event) => setProfil({ ...profil, secteur_activite: event.target.value })}
+              className="border rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 bg-white"
+            >
+              <option value="">Select an industry</option>
+              {industryOptions.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+          </div>
           {input("Company size", profil.taille_entreprise || "", (value) => setProfil({ ...profil, taille_entreprise: value }))}
         </div>
 
@@ -469,16 +339,6 @@ function ProfilEntreprisePage() {
           />
         </div>
 
-        <div className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            checked={!!profil.profil_publique}
-            onChange={(event) => setProfil({ ...profil, profil_publique: event.target.checked })}
-            className="h-4 w-4"
-          />
-          <span className="text-sm text-gray-700">Public profile</span>
-        </div>
-
         <div className="flex items-center justify-between">
           <div className="space-y-1">
             {message && <div className="text-green-700 text-sm">{message}</div>}
@@ -495,7 +355,7 @@ function ProfilEntreprisePage() {
             <div>
               <label className="text-sm font-medium text-gray-700">Patente (PDF/Image)</label>
               <input type="file" accept=".pdf,.png,.jpg,.jpeg" onChange={(event) => setPatenteFile(event.target.files?.[0] || null)} />
-              {profil.patente_url && (
+              {profil.patente_url?.startsWith("/") || profil.patente_url?.startsWith("http") ? (
                 <a
                   className="text-blue-600 text-sm"
                   href={construireUrlFichier(profil.patente_url)}
@@ -504,12 +364,12 @@ function ProfilEntreprisePage() {
                 >
                   View current file
                 </a>
-              )}
+              ) : null}
             </div>
             <div>
               <label className="text-sm font-medium text-gray-700">RNE / SIRET (PDF/Image)</label>
               <input type="file" accept=".pdf,.png,.jpg,.jpeg" onChange={(event) => setRneFile(event.target.files?.[0] || null)} />
-              {profil.rne_url && (
+              {profil.rne_url?.startsWith("/") || profil.rne_url?.startsWith("http") ? (
                 <a
                   className="text-blue-600 text-sm"
                   href={construireUrlFichier(profil.rne_url)}
@@ -518,6 +378,8 @@ function ProfilEntreprisePage() {
                 >
                   View current file
                 </a>
+              ) : (
+                <p className="text-xs text-slate-500">RNE: {profil.rne || "-"}</p>
               )}
             </div>
             <div>
@@ -615,3 +477,4 @@ function ProfilEntreprisePage() {
     </div>
   );
 }
+

@@ -112,6 +112,10 @@ function formatDate(value?: string | null) {
   return date.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
 }
 
+function csvEscape(value: unknown) {
+  return `"${String(value ?? "").replace(/"/g, '""')}"`;
+}
+
 function normalizeApplication(item: AdminApplicationApiItem, index: number): AdminApplication {
   const candidature = item.candidature ?? item;
   const candidateUser = item.candidat?.utilisateur;
@@ -208,6 +212,47 @@ export default function AdminApplicationsPage() {
     currentPage * ITEMS_PER_PAGE,
   );
 
+  const exportApplications = () => {
+    if (filteredApplications.length === 0) {
+      return;
+    }
+
+    const headers = [
+      "Candidate",
+      "Email",
+      "Phone",
+      "Company",
+      "Role",
+      "Status",
+      "Applied",
+      "Updated",
+      "Score",
+      "Offer status",
+    ];
+
+    const rows = filteredApplications.map((item) => [
+      item.candidateName,
+      item.candidateEmail,
+      item.candidatePhone,
+      item.companyName,
+      item.roleTitle,
+      item.statusLabel,
+      formatDate(item.datePostulation),
+      formatDate(item.updatedAt),
+      typeof item.score === "number" ? `${item.score}%` : "-",
+      item.offerStatus,
+    ]);
+
+    const csv = [headers.map(csvEscape).join(","), ...rows.map((row) => row.map(csvEscape).join(","))].join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = `applications_${new Date().toISOString().split("T")[0]}.csv`;
+    anchor.click();
+    URL.revokeObjectURL(url);
+  };
+
   useEffect(() => {
     setPage(1);
   }, [company, search, status]);
@@ -217,6 +262,14 @@ export default function AdminApplicationsPage() {
       <section className="admin-interviews-page admin-applications-page">
         <section className="admin-interviews-panel">
           <div className="admin-interviews-toolbar admin-applications-toolbar">
+            <button
+              type="button"
+              onClick={exportApplications}
+              disabled={loading || filteredApplications.length === 0}
+              aria-label="Exporter les candidatures"
+            >
+              Exporter les candidatures
+            </button>
             <input
               type="search"
               value={search}

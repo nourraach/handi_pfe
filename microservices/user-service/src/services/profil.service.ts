@@ -365,7 +365,7 @@ export class ProfilService {
       description: donnees.description.trim(),
       nbr_employe: donnees.nbr_employe ?? 1,
       nbr_employe_handicape: donnees.nbr_employe_handicape ?? 0,
-      profil_publique: donnees.profil_publique ?? false,
+      profil_publique: donnees.profil_publique ?? true,
       secteur_activite: donnees.secteur_activite ?? null,
       taille_entreprise: donnees.taille_entreprise ?? null,
       siret: donnees.siret ?? null,

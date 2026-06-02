@@ -59,7 +59,7 @@ export function FormulaireConnexion() {
 
   return (
     <form className="bloc-principal" onSubmit={soumettre}>
-      <div className="grille-formulaire">
+      <div className="grille-formulaire" style={{ gridTemplateColumns: "minmax(0, 1fr)", gap: 12 }}>
         <div className="groupe-champ">
           <label htmlFor="email">{t("login.email")}</label>
           <input
@@ -83,8 +83,9 @@ export function FormulaireConnexion() {
           />
         </div>
       </div>
-      <div style={{ display: "flex", gap: 12, marginTop: 24, flexWrap: "wrap" }}>
-        <button className="bouton-primaire" disabled={chargement} type="submit">
+
+      <div style={{ display: "flex", gap: 12, marginTop: 20, flexWrap: "wrap" }}>
+        <button className="bouton-primaire ui-button-full" disabled={chargement} type="submit">
           {chargement ? t("login.signingIn") : t("login.signInButton")}
         </button>
       </div>

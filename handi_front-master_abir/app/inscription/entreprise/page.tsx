@@ -1,29 +1,26 @@
 "use client";
 
-import { useI18n } from "@/components/i18n-provider";
 import { FormulaireInscriptionEntreprise } from "@/components/formulaire-inscription-entreprise";
 import { Card } from "@/components/ui/card";
 import { ButtonLink } from "@/components/ui/button";
+import styles from "./page.module.css";
 
 export default function InscriptionEntreprisePage() {
-  const { t } = useI18n();
-
   return (
-    <main className="app-theme">
-      <section className="auth-shell" style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", padding: "40px 20px" }}>
-        <Card className="auth-panel" padding="lg" style={{ maxWidth: "1200px", width: "100%", margin: "0 auto" }}>
-          <div className="stack-lg">
-            <ButtonLink href="/inscription" variant="ghost" size="sm">
-              {t("signup.backToChoice")}
+    <main className={styles.page}>
+      <section className={styles.shell}>
+        <Card className={styles.card} padding="md">
+          <div className={styles.top}>
+            <ButtonLink href="/inscription" variant="ghost" size="sm" className={styles.backLink}>
+              Retour
             </ButtonLink>
-            <div>
-              <h2 className="page-title page-title-sm">{t("signup.companyTitle")}</h2>
-              <p className="page-description" style={{ margin: "12px 0 0" }}>
-                {t("signup.companyPageDescription")}
-              </p>
-            </div>
-            <FormulaireInscriptionEntreprise />
+            <h1 className={styles.title}>Inscription entreprise</h1>
+            <ButtonLink href="/" variant="ghost" size="sm" className={styles.homeLink}>
+              Accueil
+            </ButtonLink>
           </div>
+
+          <FormulaireInscriptionEntreprise />
         </Card>
       </section>
     </main>

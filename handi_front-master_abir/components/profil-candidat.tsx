@@ -81,6 +81,12 @@ type MediaPreview = {
   error: string | null;
 };
 
+type SoftSkillsScoreState = {
+  id_resultat: string;
+  score: number;
+  est_visible: boolean;
+} | null;
+
 export function ProfilCandidat({ utilisateur }: ProfilCandidatProps) {
   const { t } = useI18n();
   const [profil, setProfil] = useState<ProfilCandidatData>({
@@ -119,9 +125,12 @@ export function ProfilCandidat({ utilisateur }: ProfilCandidatProps) {
     loading: false,
     error: null,
   });
+  const [softSkillsScore, setSoftSkillsScore] = useState<SoftSkillsScoreState>(null);
+  const [softSkillsLoading, setSoftSkillsLoading] = useState(false);
 
   useEffect(() => {
     void chargerProfil();
+    void chargerScoreSoftSkills();
   }, []);
 
   useEffect(() => {
@@ -220,6 +229,72 @@ export function ProfilCandidat({ utilisateur }: ProfilCandidatProps) {
       }
     } catch (cause: unknown) {
       setErreur(cause instanceof Error ? cause.message : t("common.loadingWorkspaceDescription"));
+    }
+  };
+
+  const chargerScoreSoftSkills = async () => {
+    try {
+      setSoftSkillsLoading(true);
+      const response = await fetch(construireUrlApi("/api/tests-psychologiques/candidat/mes-resultats"), {
+        headers: { Authorization: `Bearer ${token()}` },
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data?.message || "Unable to load score.");
+      }
+      const resultats = Array.isArray(data?.donnees?.resultats)
+        ? (data.donnees.resultats as Array<{
+            id_resultat?: string;
+            score_obtenu?: number | string;
+            pourcentage?: number | string;
+            est_visible?: boolean;
+            test?: { type_test?: string };
+          }>)
+        : [];
+      const softSkills = resultats.find((item) => String(item?.test?.type_test || "").toLowerCase() === "soft_skills");
+      if (!softSkills) {
+        setSoftSkillsScore(null);
+        return;
+      }
+      const pourcentage = Number(softSkills?.pourcentage);
+      const scoreObtenu = Number(softSkills?.score_obtenu);
+      const score = Number.isFinite(pourcentage) && pourcentage > 0 ? pourcentage : Number.isFinite(scoreObtenu) ? scoreObtenu : 0;
+      setSoftSkillsScore({
+        id_resultat: String(softSkills.id_resultat || ""),
+        score: Math.max(0, Math.min(100, Math.round(score))),
+        est_visible: Boolean(softSkills.est_visible),
+      });
+    } catch {
+      setSoftSkillsScore(null);
+    } finally {
+      setSoftSkillsLoading(false);
+    }
+  };
+
+  const basculerVisibiliteScoreSoftSkills = async () => {
+    if (!softSkillsScore?.id_resultat) return;
+    try {
+      setErreur(null);
+      const response = await fetch(
+        construireUrlApi(`/api/tests-psychologiques/candidat/resultats/${softSkillsScore.id_resultat}/visibilite`),
+        {
+          method: "PATCH",
+          headers: {
+            Authorization: `Bearer ${token()}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ est_visible: !softSkillsScore.est_visible }),
+        },
+      );
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data?.message || "Unable to update visibility.");
+      }
+      setSoftSkillsScore((current) =>
+        current ? { ...current, est_visible: !current.est_visible } : current,
+      );
+    } catch (cause: unknown) {
+      setErreur(cause instanceof Error ? cause.message : "Unable to update visibility.");
     }
   };
 
@@ -505,6 +580,35 @@ export function ProfilCandidat({ utilisateur }: ProfilCandidatProps) {
               <span className="candidate-profile-visibility-pill" aria-label="Disability visibility">
                 {isVisibleFlag("handicap") ? <Eye size={12} /> : <EyeOff size={12} />}
               </span>
+            </div>
+
+            <div className="candidate-profile-support-chip">
+              <FileText size={14} />
+              <span>
+                Score soft skills:{" "}
+                {softSkillsLoading
+                  ? "..."
+                  : softSkillsScore
+                    ? `${softSkillsScore.score}%`
+                    : "Aucun resultat"}
+              </span>
+              {softSkillsScore ? (
+                <button
+                  type="button"
+                  className="candidate-profile-button candidate-profile-button-secondary"
+                  onClick={() => void basculerVisibiliteScoreSoftSkills()}
+                >
+                  {softSkillsScore.est_visible ? (
+                    <>
+                      <EyeOff size={12} /> Masquer du profil
+                    </>
+                  ) : (
+                    <>
+                      <Eye size={12} /> Afficher sur profil
+                    </>
+                  )}
+                </button>
+              ) : null}
             </div>
 
             <div className="candidate-profile-accessibility-grid">

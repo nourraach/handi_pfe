@@ -139,6 +139,33 @@ function aplatirObjet(objet: Record<string, unknown>, prefixe = ""): LigneDetail
   return lignes;
 }
 
+function lireChamp(objet: Record<string, unknown> | null | undefined, cle: string) {
+  if (!objet) return "-";
+  return transformerValeur(objet[cle]);
+}
+
+function construireDetailsEntreprise(demande: DemandeEnAttente) {
+  const profil =
+    demande.profil_entreprise && typeof demande.profil_entreprise === "object"
+      ? demande.profil_entreprise
+      : null;
+
+  return [
+    { label: "Id", value: lireChamp(profil, "id") },
+    { label: "Id Utilisateur", value: demande.id_utilisateur || lireChamp(profil, "id_utilisateur") },
+    { label: "Nom Entreprise", value: lireChamp(profil, "nom_entreprise") },
+    { label: "Patente", value: lireChamp(profil, "patente") },
+    { label: "Rne", value: lireChamp(profil, "rne") },
+    { label: "Statut Validation", value: lireChamp(profil, "statut_validation") },
+    { label: "Profil Publique", value: lireChamp(profil, "profil_publique") },
+    { label: "Url Site", value: lireChamp(profil, "url_site") },
+    { label: "Date Fondation", value: lireChamp(profil, "date_fondation") },
+    { label: "Description", value: lireChamp(profil, "description") },
+    { label: "Nbr Employe", value: lireChamp(profil, "nbr_employe") },
+    { label: "Nbr Employe Handicape", value: lireChamp(profil, "nbr_employe_handicape") },
+  ];
+}
+
 function construireDetailsDemande(demande: DemandeEnAttente) {
   const infosGenerales: LigneDetail[] = [
     { label: "Name", value: demande.nom || "-" },
@@ -154,10 +181,7 @@ function construireDetailsDemande(demande: DemandeEnAttente) {
     demande.profil_candidat && typeof demande.profil_candidat === "object"
       ? aplatirObjet(demande.profil_candidat)
       : [];
-  const profilEntreprise =
-    demande.profil_entreprise && typeof demande.profil_entreprise === "object"
-      ? aplatirObjet(demande.profil_entreprise)
-      : [];
+  const profilEntreprise = demande.role === "entreprise" ? construireDetailsEntreprise(demande) : [];
 
   return { infosGenerales, profilCandidat, profilEntreprise };
 }
@@ -401,10 +425,10 @@ export function TableauDemandesAdmin() {
                   {estOuvert && details ? (
                     <tr>
                       <td colSpan={5} style={{ background: "#fcfbff" }}>
-                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 12 }}>
-                          <div style={{ border: "1px solid #e5dcfb", borderRadius: 10, padding: 12 }}>
-                            <h4 style={{ margin: "0 0 8px 0" }}>General information</h4>
-                            <ul style={{ margin: 0, paddingLeft: 18 }}>
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 10 }}>
+                          <div style={{ border: "1px solid #e5dcfb", borderRadius: 10, padding: 10 }}>
+                            <h4 style={{ margin: "0 0 6px 0" }}>General information</h4>
+                            <ul style={{ margin: 0, paddingLeft: 16, lineHeight: 1.55 }}>
                               {details.infosGenerales.map((item) => (
                                 <li key={item.label}>
                                   <strong>{item.label}:</strong> {item.value}
@@ -414,9 +438,9 @@ export function TableauDemandesAdmin() {
                           </div>
 
                           {details.profilCandidat.length > 0 ? (
-                            <div style={{ border: "1px solid #e5dcfb", borderRadius: 10, padding: 12 }}>
-                              <h4 style={{ margin: "0 0 8px 0" }}>Candidate profile</h4>
-                              <ul style={{ margin: 0, paddingLeft: 18 }}>
+                            <div style={{ border: "1px solid #e5dcfb", borderRadius: 10, padding: 10 }}>
+                              <h4 style={{ margin: "0 0 6px 0" }}>Candidate profile</h4>
+                              <ul style={{ margin: 0, paddingLeft: 16, lineHeight: 1.55 }}>
                                 {details.profilCandidat.map((item) => (
                                   <li key={`c-${item.label}`}>
                                     <strong>{item.label}:</strong> {item.value}
@@ -427,9 +451,9 @@ export function TableauDemandesAdmin() {
                           ) : null}
 
                           {details.profilEntreprise.length > 0 ? (
-                            <div style={{ border: "1px solid #e5dcfb", borderRadius: 10, padding: 12 }}>
-                              <h4 style={{ margin: "0 0 8px 0" }}>Company profile</h4>
-                              <ul style={{ margin: 0, paddingLeft: 18 }}>
+                            <div style={{ border: "1px solid #e5dcfb", borderRadius: 10, padding: 10 }}>
+                              <h4 style={{ margin: "0 0 6px 0" }}>Company request</h4>
+                              <ul style={{ margin: 0, paddingLeft: 16, lineHeight: 1.55 }}>
                                 {details.profilEntreprise.map((item) => (
                                   <li key={`e-${item.label}`}>
                                     <strong>{item.label}:</strong> {item.value}

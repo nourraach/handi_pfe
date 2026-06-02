@@ -1,0 +1,98 @@
+.page {
+  width: 100vw;
+  height: 100dvh;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  padding: 8px;
+  background:
+    radial-gradient(circle at 12% 6%, rgba(216, 202, 246, 0.7), transparent 22%),
+    linear-gradient(180deg, #fbf9ff 0%, #f3efff 100%);
+}
+
+.shell {
+  width: min(1160px, calc(100vw - 16px));
+  max-height: calc(100dvh - 16px);
+  margin: 0 auto;
+  padding: 0;
+}
+
+.card {
+  max-height: calc(100dvh - 16px);
+  border-radius: 18px;
+  border: 1px solid rgba(102, 70, 186, 0.12);
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 22px 52px rgba(55, 36, 116, 0.14);
+  overflow: hidden;
+  padding: 12px !important;
+}
+
+.top {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.backLink,
+.homeLink {
+  width: fit-content;
+  min-height: 34px;
+  border-radius: 12px;
+  padding-inline: 14px;
+}
+
+.homeLink {
+  color: var(--app-primary);
+  background: rgba(var(--app-primary-rgb), 0.06);
+}
+
+.title {
+  margin: 0;
+  color: var(--app-primary);
+  font-family: var(--app-heading);
+  font-size: clamp(1.35rem, 2vw, 1.9rem);
+  line-height: 1;
+  text-align: center;
+  letter-spacing: -0.03em;
+}
+
+@media (max-width: 720px) {
+  .page {
+    height: auto;
+    min-height: 100dvh;
+    overflow: auto;
+    padding: 10px;
+  }
+
+  .shell {
+    width: 100%;
+    max-height: none;
+  }
+
+  .card {
+    max-height: none;
+    border-radius: 16px;
+  }
+
+  .top {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .title {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+
+  .backLink {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .homeLink {
+    grid-column: 2;
+    grid-row: 2;
+    justify-self: end;
+  }
+}

@@ -6,21 +6,10 @@ import { UtilisateurConnecte } from "@/types/api";
 
 export function AppShell({ utilisateur, children }: { utilisateur: UtilisateurConnecte; children: ReactNode }) {
   const roleClassName = `app-shell-${utilisateur.role}`;
-  const isEntreprise = utilisateur.role === "entreprise";
   const [candidateSidebarCollapsedState, setCandidateSidebarCollapsedState] = useState(false);
-  const [entrepriseSidebarCollapsed, setEntrepriseSidebarCollapsed] = useState(true);
-  const hasCollapsibleSidebar = utilisateur.role === "candidat" || isEntreprise;
-  const candidateSidebarCollapsed = hasCollapsibleSidebar
-    ? isEntreprise
-      ? entrepriseSidebarCollapsed
-      : candidateSidebarCollapsedState
-    : false;
-  const collapsedClassName =
-    hasCollapsibleSidebar && candidateSidebarCollapsed
-      ? isEntreprise
-        ? "app-shell-entreprise-collapsed"
-        : "app-shell-candidat-collapsed"
-      : "";
+  const hasCollapsibleSidebar = utilisateur.role === "candidat";
+  const candidateSidebarCollapsed = hasCollapsibleSidebar ? candidateSidebarCollapsedState : false;
+  const collapsedClassName = hasCollapsibleSidebar && candidateSidebarCollapsed ? "app-shell-candidat-collapsed" : "";
 
   return (
     <div
@@ -32,10 +21,6 @@ export function AppShell({ utilisateur, children }: { utilisateur: UtilisateurCo
         utilisateur={utilisateur}
         candidateSidebarCollapsed={candidateSidebarCollapsed}
         onToggleCandidateSidebar={() => {
-          if (isEntreprise) {
-            setEntrepriseSidebarCollapsed((current) => !current);
-            return;
-          }
           setCandidateSidebarCollapsedState((current) => !current);
         }}
       />

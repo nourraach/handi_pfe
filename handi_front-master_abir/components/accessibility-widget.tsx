@@ -267,26 +267,57 @@ export function AccessibilityWidget() {
   const executeVoiceCommand = (rawTranscript: string) => {
     const transcript = normalizeVoiceText(rawTranscript);
     const scrollTarget = getScrollableContainer();
+    const clickButtonByText = (labels: string[]) => {
+      const buttons = Array.from(document.querySelectorAll<HTMLButtonElement>("button"));
+      const target = buttons.find((button) => {
+        if (button.disabled) return false;
+        const text = normalizeVoiceText(button.textContent || "");
+        return labels.some((label) => text.includes(normalizeVoiceText(label)));
+      });
+      if (!target) return false;
+      target.click();
+      return true;
+    };
     const navigateTo = (path: string) => {
       if (window.location.pathname !== path) {
         window.location.assign(path);
       }
     };
 
-    const isDown = /\b(down|bas|descendre|en bas)\b/.test(transcript);
-    const isUp = /\b(up|haut|monter|en haut)\b/.test(transcript);
-    const isHome =
-      /\b(home|accueil|acceuil|menu principal|tableau de bord|dashboard)\b/.test(transcript) ||
-      hasVoiceKeyword(transcript, ["page home", "go home", "aller home", "aller accueil", "page accueil"]);
-    const isBack = /\b(back|retour|precedent|page precedente)\b/.test(transcript);
-    const isTop = /\b(top|debut|start|commencer|haut de page)\b/.test(transcript);
-    const isBottom = /\b(bottom|fin|bas de page)\b/.test(transcript);
-    const isJobs = /\b(jobs|offres|explore jobs)\b/.test(transcript);
-    const isApplications = /\b(applications|candidatures)\b/.test(transcript);
-    const isProfile = /\b(profile|profil|mon profil)\b/.test(transcript);
-    const isMessages = /\b(messages|inbox|boite)\b/.test(transcript);
-    const isHelp = /\b(help|aide|commandes|show commands)\b/.test(transcript);
-    const isStopListening = /\b(stop listening|arreter ecoute|stop voice|arreter voix)\b/.test(transcript);
+    const isDown = hasVoiceKeyword(transcript, ["down", "bas", "descendre", "plus bas", "scroll bas"]);
+    const isUp = hasVoiceKeyword(transcript, ["up", "haut", "monter", "plus haut", "scroll haut"]);
+    const isTop = hasVoiceKeyword(transcript, ["top", "debut", "start", "haut de page", "tout en haut"]);
+    const isBottom = hasVoiceKeyword(transcript, ["bottom", "fin", "bas de page", "tout en bas"]);
+
+    const isNextStep = hasVoiceKeyword(transcript, ["suivant", "etape suivante", "continue", "continuer", "next"]);
+    const isPreviousStep = hasVoiceKeyword(transcript, ["precedent", "etape precedente", "retour etape", "back step"]);
+    const isBack = hasVoiceKeyword(transcript, ["retour page", "page precedente", "go back", "history back"]);
+
+    const isHome = hasVoiceKeyword(transcript, [
+      "home",
+      "accueil",
+      "acceuil",
+      "menu principal",
+      "tableau de bord",
+      "dashboard",
+      "aller accueil",
+      "page accueil",
+    ]);
+    const isCandidateDashboard = hasVoiceKeyword(transcript, ["dashboard candidat", "tableau candidat", "espace candidat"]);
+    const isJobs = hasVoiceKeyword(transcript, ["jobs", "offres", "emplois", "explore jobs"]);
+    const isApplications = hasVoiceKeyword(transcript, ["applications", "candidatures", "mes candidatures"]);
+    const isProfile = hasVoiceKeyword(transcript, ["profile", "profil", "mon profil", "profil candidat"]);
+    const isMessages = hasVoiceKeyword(transcript, ["messages", "messagerie", "inbox", "boite de reception", "chat"]);
+    const isCv = hasVoiceKeyword(transcript, ["cv", "cv builder", "cv manager", "curriculum"]);
+    const isInterviews = hasVoiceKeyword(transcript, ["entretiens", "interviews"]);
+    const isInterviewTests = hasVoiceKeyword(transcript, ["test entretien", "tests entretien", "quiz"]);
+    const isPsychologicalTests = hasVoiceKeyword(transcript, ["test psychologique", "tests psychologiques", "psychologique"]);
+
+    const isOpenAccessibility = hasVoiceKeyword(transcript, ["ouvrir accessibilite", "open accessibility", "ouvrir panneau accessibilite"]);
+    const isCloseAccessibility = hasVoiceKeyword(transcript, ["fermer accessibilite", "close accessibility", "fermer panneau"]);
+    const isHelp = hasVoiceKeyword(transcript, ["help", "aide", "commandes", "show commands", "guide vocal"]);
+    const isHideGuide = hasVoiceKeyword(transcript, ["masquer guide", "hide guide"]);
+    const isStopListening = hasVoiceKeyword(transcript, ["stop listening", "arreter ecoute", "stop voice", "arreter voix", "couper micro"]);
 
     if (isDown && scrollTarget) {
       scrollTarget.scrollBy({ top: 320, behavior: "smooth" });
@@ -306,6 +337,15 @@ export function AccessibilityWidget() {
     if (isBottom && scrollTarget) {
       scrollTarget.scrollTo({ top: scrollTarget.scrollHeight, behavior: "smooth" });
     }
+    if (isNextStep) {
+      clickButtonByText(["suivant", "continuer", "next", "envoyer", "soumettre", "submit"]);
+    }
+    if (isPreviousStep) {
+      clickButtonByText(["retour", "precedent", "back", "annuler", "cancel"]);
+    }
+    if (isCandidateDashboard) {
+      navigateTo("/candidat/dashboard");
+    }
     if (isJobs) {
       navigateTo("/offres");
     }
@@ -313,13 +353,34 @@ export function AccessibilityWidget() {
       navigateTo("/candidat/candidatures");
     }
     if (isProfile) {
-      navigateTo("/candidat/profil");
+      navigateTo("/profil");
     }
     if (isMessages) {
       navigateTo("/messages");
     }
+    if (isCv) {
+      navigateTo("/candidat/cv");
+    }
+    if (isInterviews) {
+      navigateTo("/candidat/entretiens");
+    }
+    if (isInterviewTests) {
+      navigateTo("/candidat/tests-entretien");
+    }
+    if (isPsychologicalTests) {
+      navigateTo("/candidat/tests-psychologiques");
+    }
+    if (isOpenAccessibility) {
+      triggerAccessibilityPanel("open");
+    }
+    if (isCloseAccessibility) {
+      setOpen(false);
+    }
     if (isHelp) {
       setShowVoiceGuide(true);
+    }
+    if (isHideGuide) {
+      setShowVoiceGuide(false);
     }
     if (isStopListening) {
       setIsListening(false);
@@ -333,14 +394,24 @@ export function AccessibilityWidget() {
       isBack ||
       isTop ||
       isBottom ||
+      isNextStep ||
+      isPreviousStep ||
       isJobs ||
       isApplications ||
       isProfile ||
       isMessages ||
+      isCv ||
+      isInterviews ||
+      isInterviewTests ||
+      isPsychologicalTests ||
+      isCandidateDashboard ||
+      isOpenAccessibility ||
+      isCloseAccessibility ||
       isHelp ||
+      isHideGuide ||
       isStopListening;
 
-    setVoiceStatus(matched ? `Heard: ${rawTranscript}` : `Heard: ${rawTranscript} (no matching command)`);
+    setVoiceStatus(matched ? `Commande reconnue: ${rawTranscript}` : `Commande non reconnue: ${rawTranscript}`);
     return matched;
   };
 
@@ -811,11 +882,12 @@ export function AccessibilityWidget() {
           {showVoiceGuide ? (
             <div style={{ marginTop: "12px", border: "1px solid var(--app-border)", borderRadius: "12px", padding: "10px", background: "#fff" }}>
               <p style={{ margin: "0 0 8px", fontWeight: 700 }}>Say a command...</p>
-              <p style={{ margin: "0 0 6px" }}><strong>Scroll:</strong> bas, haut, top, bottom</p>
-              <p style={{ margin: "0 0 6px" }}><strong>Navigation:</strong> accueil/home/dashboard, retour/back</p>
-              <p style={{ margin: "0 0 6px" }}><strong>Pages:</strong> offres/jobs, candidatures/applications, profil/profile, messages</p>
-              <p style={{ margin: "0 0 6px" }}><strong>Help:</strong> aide/help/show commands</p>
-              <p style={{ margin: 0 }}><strong>Stop:</strong> stop listening / arreter ecoute</p>
+              <p style={{ margin: "0 0 6px" }}><strong>Defilement:</strong> bas, haut, tout en haut, tout en bas</p>
+              <p style={{ margin: "0 0 6px" }}><strong>Navigation:</strong> accueil/home, retour page</p>
+              <p style={{ margin: "0 0 6px" }}><strong>Etapes formulaire:</strong> suivant, precedent</p>
+              <p style={{ margin: "0 0 6px" }}><strong>Pages candidat:</strong> dashboard candidat, offres, candidatures, profil, messages, cv, entretiens, test psychologique</p>
+              <p style={{ margin: "0 0 6px" }}><strong>Panneau:</strong> ouvrir accessibilite, fermer accessibilite, guide vocal, masquer guide</p>
+              <p style={{ margin: 0 }}><strong>Micro:</strong> stop listening / arreter ecoute</p>
             </div>
             ) : null}
         </section>
@@ -965,6 +1037,5 @@ export function AccessibilityWidget() {
 
   return createPortal(panel, document.body);
 }
-
 
 

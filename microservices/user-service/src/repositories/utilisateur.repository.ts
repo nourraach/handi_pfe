@@ -1,7 +1,7 @@
 import { and, eq } from "drizzle-orm";
 import { db } from "../db";
 import { candidatTable, entrepriseTable, utilisateurTable } from "../db/schema";
-import { StatutUtilisateur } from "../types/enums";
+import { StatutUtilisateur, StatutValidationEntreprise } from "../types/enums";
 
 export class UtilisateurRepository {
   async creer(donnees: typeof utilisateurTable.$inferInsert) {
@@ -39,6 +39,19 @@ export class UtilisateurRepository {
       .leftJoin(candidatTable, eq(candidatTable.id_utilisateur, utilisateurTable.id_utilisateur))
       .leftJoin(entrepriseTable, eq(entrepriseTable.id_utilisateur, utilisateurTable.id_utilisateur))
       .where(eq(utilisateurTable.statut, StatutUtilisateur.EN_ATTENTE));
+  }
+
+  async validerEntreprise(id_utilisateur: string) {
+    const [entreprise] = await db
+      .update(entrepriseTable)
+      .set({
+        statut_validation: StatutValidationEntreprise.VALIDE,
+        updated_at: new Date(),
+      })
+      .where(eq(entrepriseTable.id_utilisateur, id_utilisateur))
+      .returning();
+
+    return entreprise ?? null;
   }
 
   async emailExiste(email: string) {
