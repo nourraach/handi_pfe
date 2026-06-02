@@ -89,6 +89,7 @@ export class OffreEmploiService {
             competences_requises: donnees.competences_requises,
             experience_requise: donnees.experience_requise,
             niveau_etude: donnees.niveau_etude,
+            statut: "inactive",
             date_limite: donnees.date_limite ? new Date(donnees.date_limite) : null,
             accessibilite_handicap: donnees.accessibilite_handicap ?? true,
             amenagements_possibles: donnees.amenagements_possibles,

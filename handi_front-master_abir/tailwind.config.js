@@ -77,12 +77,12 @@ module.exports = {
       },
       // Responsive typography using clamp()
       fontSize: {
-        'hero': 'clamp(2.15rem, 4.8vw, 4rem)',
-        'h2': 'clamp(1.8rem, 3.2vw, 2.8rem)',
-        'h3': 'clamp(1.5rem, 2.6vw, 2rem)',
-        'body': '1rem',
-        'small': '0.9rem',
-        'tiny': '0.74rem',
+        'hero': 'clamp(1.95rem, 4.2vw, 3.45rem)',
+        'h2': 'clamp(1.55rem, 2.8vw, 2.35rem)',
+        'h3': 'clamp(1.28rem, 2.25vw, 1.75rem)',
+        'body': '0.95rem',
+        'small': '0.84rem',
+        'tiny': '0.68rem',
       },
       // Animations
       animation: {

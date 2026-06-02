@@ -18,7 +18,7 @@ export const offreEmploiTable = pgTable("offre_emploi", {
   competences_requises: text("competences_requises"),
   experience_requise: text("experience_requise"),
   niveau_etude: text("niveau_etude"),
-  statut: statutOffreEnum("statut").notNull().default("active"),
+  statut: statutOffreEnum("statut").notNull().default("inactive"),
   date_limite: timestamp("date_limite", { withTimezone: false }),
   accessibilite_handicap: boolean("accessibilite_handicap").default(true),
   amenagements_possibles: text("amenagements_possibles"),

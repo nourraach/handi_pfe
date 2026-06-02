@@ -282,7 +282,6 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
               highlightFocus: true,
               fontScale: Math.max(base.fontScale, 1.12),
               lineHeight: Math.max(base.lineHeight, 1.75),
-              highlightFocus: true,
             };
           }
 

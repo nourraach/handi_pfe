@@ -77,9 +77,11 @@ const interviewBoardStyles = `
     gap: 24px;
     padding: 22px;
     border-radius: 24px;
-    border: 1px solid #eee8ff;
-    background: rgba(255, 255, 255, 0.97);
-    box-shadow: 0 22px 52px rgba(76, 48, 139, 0.08);
+    border: 1px solid rgba(255,255,255,0.06);
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.025), transparent),
+      rgba(11,8,20,0.9);
+    box-shadow: 0 24px 60px rgba(0,0,0,0.34), inset 0 1px 0 rgba(255,255,255,0.03);
   }
 
   .interviews-board__toolbar {
@@ -117,11 +119,11 @@ const interviewBoardStyles = `
     width: 100%;
     min-height: 54px;
     border-radius: 18px;
-    border: 1px solid #e5ddfb;
-    background: #ffffff;
-    color: #171142;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(7,5,13,0.74);
+    color: #fff;
     outline: none;
-    box-shadow: 0 10px 24px rgba(77, 55, 135, 0.04);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
     font-weight: 800;
   }
 
@@ -130,7 +132,7 @@ const interviewBoardStyles = `
   }
 
   .interviews-board__search input::placeholder {
-    color: #8d86b2;
+    color: rgba(216,208,255,0.42);
   }
 
   .interviews-board__select select {
@@ -142,10 +144,10 @@ const interviewBoardStyles = `
     overflow-x: auto;
     overflow-y: hidden;
     border-radius: 18px;
-    border: 1px solid #ede7fa;
-    background: #ffffff;
+    border: 1px solid rgba(255,255,255,0.06);
+    background: rgba(11,8,20,0.84);
     scrollbar-width: thin;
-    scrollbar-color: #d8c8fb transparent;
+    scrollbar-color: rgba(138,99,210,0.44) transparent;
   }
 
   .interviews-board__table-wrap::-webkit-scrollbar {
@@ -156,7 +158,7 @@ const interviewBoardStyles = `
 
   .interviews-board__table-wrap::-webkit-scrollbar-thumb {
     border-radius: 999px;
-    background: #d8c8fb;
+    background: rgba(138,99,210,0.44);
   }
 
   .interviews-board__table {
@@ -170,14 +172,14 @@ const interviewBoardStyles = `
   .interviews-board__table th {
     height: 56px;
     padding: 14px 12px;
-    background: #f8f4ff;
-    color: #5f5688;
+    background: rgba(255,255,255,0.025);
+    color: rgba(216,208,255,0.66);
     text-align: left;
     text-transform: uppercase;
     font-size: 0.7rem;
     font-weight: 950;
     letter-spacing: 0.02em;
-    border-bottom: 1px solid #ede7fa;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
     white-space: nowrap;
   }
 
@@ -197,8 +199,8 @@ const interviewBoardStyles = `
     height: 116px;
     padding: 18px 12px;
     vertical-align: middle;
-    border-bottom: 1px solid #ede7fa;
-    color: #171142;
+    border-bottom: 1px solid rgba(255,255,255,0.045);
+    color: rgba(255,255,255,0.86);
     font-size: 0.84rem;
     font-weight: 750;
     line-height: 1.35;
@@ -226,8 +228,8 @@ const interviewBoardStyles = `
     padding: 0;
     margin: 0;
     box-sizing: border-box;
-    background: #f0e8ff;
-    color: #722ff3;
+    background: linear-gradient(135deg, rgba(45,23,77,0.82), rgba(91,45,145,0.18));
+    color: #ccb8ed;
     line-height: 1;
   }
 
@@ -242,7 +244,7 @@ const interviewBoardStyles = `
   .interviews-board__candidate strong,
   .interviews-board__company strong {
     display: block;
-    color: #171142;
+    color: #f3eefc;
     font-weight: 950;
     min-width: 0;
   }
@@ -256,7 +258,7 @@ const interviewBoardStyles = `
   .interviews-board__company > span {
     display: block;
     margin-top: 5px;
-    color: #6e6693;
+    color: rgba(216,208,255,0.62);
     font-size: 0.8rem;
     line-height: 1.4;
     font-weight: 700;
@@ -278,10 +280,10 @@ const interviewBoardStyles = `
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, #f2e8ff, #e4f0ff);
-    color: #2a1b58;
+    background: linear-gradient(135deg, rgba(45,23,77,0.82), rgba(91,45,145,0.18));
+    color: #e8dfff;
     font-weight: 950;
-    box-shadow: inset 0 0 0 2px #ffffff;
+    box-shadow: inset 0 0 0 2px rgba(255,255,255,0.04);
     font-size: 0.72rem;
   }
 
@@ -329,7 +331,7 @@ const interviewBoardStyles = `
     display: inline-flex;
     align-items: center;
     gap: 9px;
-    color: #3f3474;
+    color: #d7c8f3;
     font-weight: 850;
     max-width: 100%;
     min-width: 0;
@@ -350,7 +352,7 @@ const interviewBoardStyles = `
     flex: 0 0 auto;
     width: 17px;
     height: 17px;
-    color: #762fff;
+    color: #a77bff;
   }
 
   .interviews-board__status {
@@ -374,23 +376,23 @@ const interviewBoardStyles = `
   }
 
   .interviews-board__status--done {
-    background: #dbf7e9;
-    color: #07955d;
+    background: rgba(34,197,94,0.12);
+    color: #80d8a0;
   }
 
   .interviews-board__status--scheduled {
-    background: #efe8ff;
-    color: #6931e6;
+    background: rgba(91,45,145,0.2);
+    color: #d6c4ff;
   }
 
   .interviews-board__status--warning {
-    background: #fff3df;
-    color: #d97807;
+    background: rgba(217,120,7,0.16);
+    color: #f4bf73;
   }
 
   .interviews-board__status--cancelled {
-    background: #ffe8ee;
-    color: #d92f58;
+    background: rgba(217,47,88,0.12);
+    color: #ff9cb4;
   }
 
   .interviews-board__pagination {
@@ -398,7 +400,7 @@ const interviewBoardStyles = `
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    color: #6e6693;
+    color: rgba(216,208,255,0.66);
     font-size: 0.86rem;
     font-weight: 800;
   }
@@ -410,11 +412,11 @@ const interviewBoardStyles = `
 
   .interviews-board__pagination button {
     min-height: 38px;
-    border: 1px solid #e5ddfb;
+    border: 1px solid rgba(255,255,255,0.08);
     border-radius: 13px;
     padding: 0 14px;
-    background: #ffffff;
-    color: #170d49;
+    background: rgba(19,16,33,0.92);
+    color: #fff;
     font-weight: 900;
   }
 

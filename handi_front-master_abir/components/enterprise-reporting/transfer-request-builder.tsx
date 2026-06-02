@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { EmptyState, LoadingState, PageHeader } from "@/components/ui/layout";
+import { EmptyState, LoadingState } from "@/components/ui/layout";
 import {
   downloadTextDocument,
   fetchEnterpriseComplianceContext,
@@ -233,33 +233,53 @@ export function TransferRequestBuilder() {
   }
 
   return (
-    <main className="app-page">
-      <PageHeader
-        badge="Generate a transfer request"
-        title="Prepare a formal transfer request"
-        description="Link the request to a compliance report if needed, customize the legal narrative, and export the final document."
-        actions={
-          <div className="page-header-actions">
-            <ButtonLink href="/entreprise/reports-requests" variant="ghost">Return Reports & Requests</ButtonLink>
-            <Button onClick={saveDraft} variant="secondary">Save draft</Button>
-            <Button onClick={generateTransferRequest}>Generate transfer request</Button>
-          </div>
-        }
-      />
+    <main className="app-page transfer-builder">
+      <section className="transfer-hero">
+        <div>
+          <p>Demande de transfert</p>
+          <h1>Preparer la demande</h1>
+          <span>Redigez, liez au rapport de conformite, puis exportez le document.</span>
+        </div>
+        <div className="builder-actions">
+          <ButtonLink href="/entreprise/reports-requests" variant="ghost">Retour</ButtonLink>
+          <Button onClick={saveDraft} variant="secondary">Enregistrer</Button>
+          <Button onClick={generateTransferRequest}>Generer</Button>
+        </div>
+      </section>
 
       {message ? <div className="message message-info">{message}</div> : null}
       {error ? <div className="message message-erreur">{error}</div> : null}
 
-      <section className="split-grid">
-        <Card padding="lg" className="stack-lg">
-          <div>
-            <strong style={{ fontSize: "1.1rem" }}>Request settings</strong>
-            <p className="texte-secondaire" style={{ margin: "10px 0 0" }}>
-              This builder uses your company context and optionally references one of your published compliance reports.
-            </p>
+      <section className="transfer-layout">
+        <Card padding="md" className="transfer-form-card">
+          <div className="compact-head">
+            <div>
+              <strong>Parametres</strong>
+              <p>Contexte entreprise et destinataire de la demande.</p>
+            </div>
+            <div className="status-pill">{reports.length} rapport(s)</div>
           </div>
 
-          <div className="form-grid">
+          <div className="metrics-row">
+            <div className="metric-chip">
+              <span>Entreprise</span>
+              <strong>{context.company.company_name}</strong>
+            </div>
+            <div className="metric-chip">
+              <span>RNE</span>
+              <strong>{context.company.rne || "-"}</strong>
+            </div>
+            <div className="metric-chip">
+              <span>Effectif</span>
+              <strong>{context.company.workforce_total}</strong>
+            </div>
+            <div className="metric-chip">
+              <span>Restants</span>
+              <strong>{context.company.remaining_reserved_positions}</strong>
+            </div>
+          </div>
+
+          <div className="form-grid form-grid-tight">
             <div className="groupe-champ">
               <label htmlFor="transfer-title">Request title</label>
               <input
@@ -278,6 +298,9 @@ export function TransferRequestBuilder() {
                 onChange={(event) => setPayload((current) => (current ? { ...current, recipient_name: event.target.value } : current))}
               />
             </div>
+          </div>
+
+          <div className="form-grid form-grid-tight">
             <div className="groupe-champ">
               <label htmlFor="recipient-department">Service / delegation</label>
               <input
@@ -287,67 +310,49 @@ export function TransferRequestBuilder() {
                 onChange={(event) => setPayload((current) => (current ? { ...current, recipient_department: event.target.value } : current))}
               />
             </div>
-          </div>
-
-          <div className="details-grid">
-            <div className="detail-box">
-              <strong>Entreprise</strong>
-              <p>{context.company.company_name}</p>
-            </div>
-            <div className="detail-box">
-              <strong>RNE</strong>
-              <p>{context.company.rne || "-"}</p>
-            </div>
-            <div className="detail-box">
-              <strong>Effectif</strong>
-              <p>{context.company.workforce_total}</p>
-            </div>
-            <div className="detail-box">
-              <strong>Postes restants</strong>
-              <p>{context.company.remaining_reserved_positions}</p>
+            <div className="groupe-champ">
+              <label htmlFor="related-report">Related compliance report</label>
+              <select
+                id="related-report"
+                className="champ-select"
+                value={payload.related_report_id}
+                onChange={(event) => setPayload((current) => (current ? { ...current, related_report_id: event.target.value } : current))}
+              >
+                <option value="">No linked report</option>
+                {reports.map((report) => (
+                  <option key={report.id} value={report.id}>
+                    {report.summary} - {formatDate(report.submitted_at)}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
 
-          <div className="groupe-champ">
-            <label htmlFor="related-report">Related compliance report</label>
-            <select
-              id="related-report"
-              className="champ-select"
-              value={payload.related_report_id}
-              onChange={(event) => setPayload((current) => (current ? { ...current, related_report_id: event.target.value } : current))}
-            >
-              <option value="">No linked report</option>
-              {reports.map((report) => (
-                <option key={report.id} value={report.id}>
-                  {report.summary} - {formatDate(report.submitted_at)}
-                </option>
-              ))}
-            </select>
+          <div className="textareas-grid">
+            <div className="groupe-champ">
+              <label htmlFor="request-reason">Request reason</label>
+              <textarea
+                id="request-reason"
+                className="champ-zone"
+                rows={4}
+                value={payload.request_reason}
+                onChange={(event) => setPayload((current) => (current ? { ...current, request_reason: event.target.value } : current))}
+              />
+            </div>
+
+            <div className="groupe-champ">
+              <label htmlFor="requested-action">Requested action</label>
+              <textarea
+                id="requested-action"
+                className="champ-zone"
+                rows={4}
+                value={payload.requested_action}
+                onChange={(event) => setPayload((current) => (current ? { ...current, requested_action: event.target.value } : current))}
+              />
+            </div>
           </div>
 
-          <div className="groupe-champ">
-            <label htmlFor="request-reason">Request reason</label>
-            <textarea
-              id="request-reason"
-              className="champ-zone"
-              rows={6}
-              value={payload.request_reason}
-              onChange={(event) => setPayload((current) => (current ? { ...current, request_reason: event.target.value } : current))}
-            />
-          </div>
-
-          <div className="groupe-champ">
-            <label htmlFor="requested-action">Requested action</label>
-            <textarea
-              id="requested-action"
-              className="champ-zone"
-              rows={6}
-              value={payload.requested_action}
-              onChange={(event) => setPayload((current) => (current ? { ...current, requested_action: event.target.value } : current))}
-            />
-          </div>
-
-          <div className="form-grid">
+          <div className="form-grid form-grid-tight">
             <div className="groupe-champ">
               <label htmlFor="timeline">Preferred timeline</label>
               <input
@@ -357,7 +362,7 @@ export function TransferRequestBuilder() {
                 onChange={(event) => setPayload((current) => (current ? { ...current, preferred_timeline: event.target.value } : current))}
               />
             </div>
-            <div className="groupe-champ" style={{ gridColumn: "span 2" }}>
+            <div className="groupe-champ">
               <label htmlFor="legal-basis">Legal basis</label>
               <input
                 id="legal-basis"
@@ -373,7 +378,7 @@ export function TransferRequestBuilder() {
             <textarea
               id="additional-notes"
               className="champ-zone"
-              rows={6}
+              rows={3}
               placeholder="Add any detail that should appear in the final request."
               value={payload.additional_notes}
               onChange={(event) => setPayload((current) => (current ? { ...current, additional_notes: event.target.value } : current))}
@@ -381,31 +386,243 @@ export function TransferRequestBuilder() {
           </div>
         </Card>
 
-        <Card padding="lg" className="stack-lg">
-          <div>
-            <strong style={{ fontSize: "1.1rem" }}>Generated preview</strong>
-            <p className="texte-secondaire" style={{ margin: "10px 0 0" }}>
-              The request text updates live from the information you edit on the left.
-            </p>
+        <Card padding="md" className="transfer-preview-card">
+          <div className="compact-head preview-head">
+            <div>
+              <strong>Apercu genere</strong>
+              <p>Mis a jour automatiquement.</p>
+            </div>
+            <Button onClick={generateTransferRequest} variant="secondary">Exporter</Button>
           </div>
 
-          <div
-            style={{
-              whiteSpace: "pre-wrap",
-              lineHeight: 1.8,
-              fontSize: "0.96rem",
-              color: "var(--app-text-soft)",
-              minHeight: "540px",
-              border: "1px solid var(--app-border)",
-              borderRadius: "20px",
-              padding: "20px",
-              background: "rgba(255,255,255,0.7)",
-            }}
-          >
+          <div className="preview-box">
             {generatedPreview}
           </div>
         </Card>
       </section>
+
+      <style jsx>{`
+        .transfer-builder {
+          display: grid;
+          gap: 14px;
+        }
+
+        .transfer-hero {
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) auto;
+          align-items: center;
+          gap: 16px;
+          border: 1px solid rgba(var(--app-primary-rgb), 0.1);
+          border-radius: 18px;
+          padding: 16px 18px;
+          background:
+            linear-gradient(135deg, rgba(var(--app-primary-rgb), 0.06), rgba(var(--app-secondary-rgb), 0.14)),
+            rgba(255,255,255,0.92);
+          box-shadow: 0 14px 34px rgba(var(--app-primary-rgb), 0.07);
+        }
+
+        .transfer-hero p,
+        .transfer-hero h1,
+        .transfer-hero span {
+          margin: 0;
+        }
+
+        .transfer-hero p {
+          color: var(--app-primary);
+          font-size: 0.74rem;
+          font-weight: 900;
+          text-transform: uppercase;
+        }
+
+        .transfer-hero h1 {
+          margin-top: 4px;
+          color: var(--app-text);
+          font-family: var(--app-heading);
+          font-size: clamp(1.35rem, 2vw, 2rem);
+          line-height: 1.1;
+        }
+
+        .transfer-hero span {
+          display: block;
+          margin-top: 6px;
+          color: var(--app-muted);
+          font-size: 0.9rem;
+        }
+
+        .builder-actions {
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: flex-end;
+          gap: 8px;
+        }
+
+        .transfer-layout {
+          display: grid;
+          grid-template-columns: minmax(0, 1.12fr) minmax(360px, 0.88fr);
+          gap: 14px;
+          align-items: start;
+        }
+
+        :global(.transfer-form-card),
+        :global(.transfer-preview-card) {
+          border-radius: 18px !important;
+          box-shadow: 0 12px 30px rgba(var(--app-primary-rgb), 0.06) !important;
+        }
+
+        :global(.transfer-form-card) {
+          display: grid;
+          gap: 12px;
+        }
+
+        :global(.transfer-preview-card) {
+          position: sticky;
+          top: 18px;
+          display: grid;
+          gap: 12px;
+        }
+
+        .compact-head {
+          display: flex;
+          justify-content: space-between;
+          gap: 12px;
+          align-items: flex-start;
+        }
+
+        .compact-head strong {
+          color: var(--app-text);
+          font-size: 1rem;
+        }
+
+        .compact-head p {
+          margin: 4px 0 0;
+          color: var(--app-muted);
+          font-size: 0.82rem;
+          line-height: 1.35;
+        }
+
+        .status-pill {
+          flex: 0 0 auto;
+          border-radius: 999px;
+          padding: 7px 11px;
+          color: var(--app-primary);
+          background: rgba(var(--app-primary-rgb), 0.08);
+          font-size: 0.72rem;
+          font-weight: 900;
+        }
+
+        .metrics-row {
+          display: grid;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+          gap: 8px;
+        }
+
+        .metric-chip {
+          min-width: 0;
+          border-radius: 13px;
+          padding: 10px 12px;
+          background: rgba(var(--app-primary-rgb), 0.04);
+          border: 1px solid rgba(var(--app-primary-rgb), 0.08);
+        }
+
+        .metric-chip span,
+        .metric-chip strong {
+          display: block;
+        }
+
+        .metric-chip span {
+          color: var(--app-muted);
+          font-size: 0.68rem;
+          font-weight: 800;
+          text-transform: uppercase;
+        }
+
+        .metric-chip strong {
+          margin-top: 4px;
+          overflow: hidden;
+          color: var(--app-text);
+          font-size: 0.9rem;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        .form-grid-tight,
+        .textareas-grid {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 10px;
+        }
+
+        :global(.transfer-builder .groupe-champ) {
+          gap: 4px !important;
+        }
+
+        :global(.transfer-builder label) {
+          color: var(--app-text);
+          font-size: 0.76rem !important;
+          font-weight: 850;
+        }
+
+        :global(.transfer-builder .champ),
+        :global(.transfer-builder .champ-select),
+        :global(.transfer-builder .champ-zone) {
+          min-height: 38px !important;
+          border-radius: 12px !important;
+          font-size: 0.86rem !important;
+        }
+
+        :global(.transfer-builder .champ-zone) {
+          min-height: 96px !important;
+          line-height: 1.45 !important;
+        }
+
+        .preview-head {
+          align-items: center;
+        }
+
+        .preview-box {
+          white-space: pre-wrap;
+          line-height: 1.48;
+          font-size: 0.8rem;
+          color: var(--app-text-soft);
+          max-height: calc(100vh - 230px);
+          overflow-y: auto;
+          border: 1px solid var(--app-border);
+          border-radius: 14px;
+          padding: 14px;
+          background: rgba(255,255,255,0.74);
+        }
+
+        @media (max-width: 1180px) {
+          .transfer-layout {
+            grid-template-columns: 1fr;
+          }
+
+          :global(.transfer-preview-card) {
+            position: static;
+          }
+
+          .preview-box {
+            max-height: 420px;
+          }
+        }
+
+        @media (max-width: 760px) {
+          .transfer-hero,
+          .form-grid-tight,
+          .textareas-grid,
+          .metrics-row {
+            grid-template-columns: 1fr;
+          }
+
+          .builder-actions {
+            justify-content: flex-start;
+          }
+
+          .preview-head {
+            align-items: flex-start;
+          }
+        }
+      `}</style>
     </main>
   );
 }

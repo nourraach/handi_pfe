@@ -127,7 +127,7 @@ export class OffreEmploiSimpleController {
         .from(offreEmploiTable)
         .innerJoin(entrepriseTable, eq(offreEmploiTable.id_entreprise, entrepriseTable.id))
         .leftJoin(offreStatistiquesTable, eq(offreEmploiTable.id, offreStatistiquesTable.id_offre))
-        .where(eq(offreEmploiTable.id, req.params.id))
+        .where(eq(offreEmploiTable.id, typeof req.params.id === "string" ? req.params.id : String(req.params.id?.[0] || "")))
         .limit(1);
 
       const offre = rows[0];

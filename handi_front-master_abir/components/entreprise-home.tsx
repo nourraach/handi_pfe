@@ -64,6 +64,14 @@ function asNumber(value: unknown) {
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
+function asOptionalNumber(value: unknown) {
+  if (value === null || value === undefined || value === "") {
+    return null;
+  }
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
 function normalizeLabel(value: string) {
   return value
     .trim()
@@ -219,7 +227,7 @@ export function EntrepriseHome({ utilisateurNom, stats, loadingStats, erreurStat
               id: item?.candidature?.id ?? `application-${index}`,
               statut: item?.candidature?.statut ?? "pending",
               date_postulation: item?.candidature?.date_postulation ?? item?.candidature?.created_at ?? "",
-              score_test: item?.candidature?.score_test ?? null,
+              score_test: asOptionalNumber(item?.candidature?.score_test),
               candidat: {
                 nom: item?.candidat?.nom ?? "Candidat",
                 email: item?.candidat?.email ?? "",

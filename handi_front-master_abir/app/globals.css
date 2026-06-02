@@ -51,6 +51,7 @@
   --landing-max: var(--app-max);
   --landing-heading: var(--app-heading);
   --landing-body: var(--app-body);
+  --app-type-scale: 0.85;
   --accessibility-font-scale: 1;
   --accessibility-line-height: 1.6;
   --accessibility-reading-y: -200px;
@@ -62,6 +63,7 @@
 
 html {
   scroll-behavior: smooth;
+  font-size: calc(16px * var(--app-type-scale));
 }
 
 body {
@@ -73,8 +75,8 @@ body {
     radial-gradient(circle at 85% 16%, rgba(var(--app-accent-rgb), 0.18), transparent 25%),
     linear-gradient(180deg, #fdfbff 0%, var(--app-bg) 46%, #f4efff 100%);
   font-family: var(--app-body);
-  font-size: calc(16px * var(--accessibility-font-scale));
-  line-height: var(--accessibility-line-height);
+  font-size: calc(1rem * var(--accessibility-font-scale));
+  line-height: 1.52;
   accent-color: var(--app-primary);
   caret-color: var(--app-primary);
   --accessibility-filter-brightness: 1;
@@ -454,6 +456,49 @@ button {
   cursor: pointer;
 }
 
+body.app-theme:not([data-bold-text="true"]) :is(p, li, label, small, td, input, select, textarea) {
+  font-weight: 400 !important;
+  letter-spacing: -0.005em;
+}
+
+body.app-theme:not([data-bold-text="true"]) th {
+  font-weight: 500 !important;
+  letter-spacing: 0.04em;
+}
+
+body.app-theme:not([data-bold-text="true"]) :is(button, [role="button"], .btn, .button, .nav-chip, .candidate-sidebar-ref__item, .candidate-sidebar-ref__profile-copy button, .candidate-sidebar-ref__logout-link) {
+  font-weight: 500 !important;
+}
+
+body.app-theme:not([data-bold-text="true"]) :is(h1, h2, h3, h4, h5, h6, .titre-page, .page-title, .section-title, .hero-title, .page-header h1, .page-header h2, .card-header h2, .panel-head h2, .welcome-text h1, .candidate-profile-topbar h2, .candidate-workspace-copy h1, .candidate-home-clean__hero-copy h1, .enterprise-home-hero-content h1, .enterprise-home-panel-head h2, .jobs-studio-heading h1, .signup-saas-hero__copy h1, .signup-neo-hero__copy h1, .signup-exact__hero-copy h1, .admin-command__hero h1, .admin-home-v2__welcome h1, .admin-interviews-hero h1, .admin-queue-hero h1, .admin-reports-hero h1, .companies-hero h1) {
+  font-weight: 600 !important;
+  letter-spacing: -0.035em;
+  line-height: 1.06;
+}
+
+body.app-theme:not([data-bold-text="true"]) :is(.badge, .section-badge, .hero-badge, .signup-saas-hero__badge, .signup-neo-badge, .signup-exact__security-badge, .admin-reports-kicker, .admin-queue-kicker, .admin-interviews-kicker, .admin-command__eyebrow, .admin-home-v2__eyebrow, .companies-kicker, .messages-studio-brand-badge, .messages-studio-thread-badge, .candidate-home-v2x__hero-badge, .candidate-home-v2x__action-badge, .jobs-studio-contractbadge, .jobs-studio-statusbadge, [class*="kicker"], [class*="eyebrow"]) {
+  font-weight: 600 !important;
+  letter-spacing: 0.06em;
+  text-transform: none !important;
+}
+
+body.app-theme:not([data-bold-text="true"]) .uppercase {
+  text-transform: none !important;
+  letter-spacing: 0.05em;
+}
+
+body.app-theme:not([data-bold-text="true"]) :is(.font-semibold) {
+  font-weight: 500 !important;
+}
+
+body.app-theme:not([data-bold-text="true"]) :is(.font-bold, strong, b) {
+  font-weight: 600 !important;
+}
+
+body.app-theme:not([data-bold-text="true"]) :is(.font-extrabold, .font-black) {
+  font-weight: 700 !important;
+}
+
 ::selection {
   background: rgba(var(--app-secondary-rgb), 0.54);
   color: var(--app-text);
@@ -546,10 +591,10 @@ button {
   align-items: center;
   gap: 10px;
   margin: 0 0 18px;
-  font-size: 0.82rem;
-  font-weight: 700;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
+  font-size: 0.76rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: none;
   color: var(--app-primary);
 }
 
@@ -567,13 +612,13 @@ button {
 .section-title {
   margin: 0;
   font-family: var(--app-heading);
-  font-size: clamp(2.2rem, 4.5vw, 4rem);
-  line-height: 0.96;
-  letter-spacing: -0.05em;
+  font-size: clamp(1.9rem, 3.9vw, 3.4rem);
+  line-height: 1;
+  letter-spacing: -0.04em;
 }
 
 .page-title-sm {
-  font-size: clamp(1.95rem, 3.8vw, 3rem);
+  font-size: clamp(1.7rem, 3.3vw, 2.55rem);
 }
 
 .texte-secondaire,
@@ -588,7 +633,7 @@ button {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 20px;
+  gap: 32px;
   margin-bottom: 28px;
 }
 
@@ -650,7 +695,7 @@ button {
 
 .surface-grid {
   display: grid;
-  gap: 18px;
+  gap: 40px;
 }
 
 .surface-grid-2 {
@@ -666,7 +711,7 @@ button {
 .filters-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 18px;
+  gap: 26px;
 }
 
 .split-grid {
@@ -1004,14 +1049,14 @@ button {
 .profile-surface {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 34px;
 }
 
 .profile-surface-head {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 18px;
+  gap: 28px;
   flex-wrap: wrap;
 }
 
@@ -1052,7 +1097,7 @@ button {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 18px;
+  gap: 32px;
   padding: 18px 20px;
   border-radius: 20px;
   border: 1px solid var(--app-border);
@@ -1093,12 +1138,12 @@ button {
 
 .list-stack {
   display: grid;
-  gap: 18px;
+  gap: 28px;
 }
 
 .form-section {
   display: grid;
-  gap: 16px;
+  gap: 24px;
 }
 
 .notification-item {
@@ -1417,7 +1462,7 @@ button {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 18px;
+  gap: 32px;
   padding: 14px 18px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.74);
@@ -2561,7 +2606,7 @@ button {
   width: auto;
   min-width: 0;
   margin: 0;
-  padding: 16px 0 40px;
+  padding: 16px 0 40px 18px;
 }
 
 .app-shell-admin .page-centree,
@@ -2902,6 +2947,10 @@ body:has(.app-shell-admin)::-webkit-scrollbar,
     --sidebar-column-width: 112px;
   }
 
+  .app-shell-admin {
+    --sidebar-column-width: 260px;
+  }
+
   .app-shell-candidat .app-header,
   .app-shell-admin .app-header,
   .app-shell-entreprise .app-header {
@@ -3121,7 +3170,7 @@ body:has(.app-shell-admin)::-webkit-scrollbar,
 .candidate-metric-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 18px;
+  gap: 40px;
 }
 
 .candidate-showcase {
@@ -3203,7 +3252,7 @@ body:has(.app-shell-admin)::-webkit-scrollbar,
   overflow: hidden;
   display: grid;
   grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
-  gap: 18px;
+  gap: 32px;
   padding: 28px;
   border-radius: 36px;
   background:
@@ -4688,7 +4737,7 @@ body:has(.app-shell-admin)::-webkit-scrollbar,
   }
 
   .candidate-workspace-visual {
-    gap: 14px;
+    gap: 24px;
   }
 
   .candidate-workspace-stats {
@@ -5024,7 +5073,7 @@ body:has(.app-shell-admin)::-webkit-scrollbar,
   .app-shell-admin,
   .app-shell-entreprise {
     padding: 16px;
-    gap: 18px;
+    gap: 22px;
   }
 
   .app-shell-candidat .page-header,
@@ -5662,7 +5711,7 @@ body:has(.app-shell-admin)::-webkit-scrollbar,
   }
   
   .partner-logos {
-    gap: 20px;
+    gap: 32px;
   }
   
   .hero-actions {
@@ -6347,7 +6396,7 @@ body:has(.app-shell-admin)::-webkit-scrollbar,
   }
   
   .partners-grid {
-    gap: 20px;
+    gap: 32px;
   }
   
   .hero-actions {
@@ -10292,7 +10341,7 @@ body:has(.app-shell-admin)::-webkit-scrollbar,
 
 @media (max-width: 720px) {
   .candidate-home-v2x {
-    gap: 18px;
+    gap: 22px;
   }
 
   .candidate-home-v2x__hero,
@@ -10312,7 +10361,7 @@ body:has(.app-shell-admin)::-webkit-scrollbar,
   }
 
   .candidate-home-v2x__journey {
-    gap: 18px;
+    gap: 22px;
   }
 
   .candidate-home-v2x__journey-actions {
@@ -10393,17 +10442,18 @@ body:has(.app-shell-admin)::-webkit-scrollbar,
 }
 
 .candidate-sidebar-ref__brand-copy strong {
-  font-size: 1.5rem;
+  font-size: 1.34rem;
   line-height: 1;
   letter-spacing: -0.02em;
   font-family: var(--app-heading);
+  font-weight: 600;
 }
 
 .candidate-sidebar-ref__brand-copy span {
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   color: #5f4d8a;
-  letter-spacing: 0.12em;
-  font-weight: 700;
+  letter-spacing: 0.08em;
+  font-weight: 500;
 }
 
 .candidate-sidebar-ref__brand-copy.is-collapsed {
@@ -10451,13 +10501,15 @@ body:has(.app-shell-admin)::-webkit-scrollbar,
 }
 
 .candidate-sidebar-ref__item-copy strong {
-  font-size: 0.88rem;
+  font-size: 0.83rem;
   line-height: 1.2;
+  font-weight: 600;
 }
 
 .candidate-sidebar-ref__item-copy small {
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   color: #7a6e9d;
+  font-weight: 400;
 }
 
 .candidate-sidebar-ref__item-copy.is-collapsed {
@@ -10474,8 +10526,8 @@ body:has(.app-shell-admin)::-webkit-scrollbar,
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.78rem;
-  font-weight: 700;
+  font-size: 0.72rem;
+  font-weight: 600;
   padding: 0 8px;
 }
 
@@ -10544,7 +10596,8 @@ body:has(.app-shell-admin)::-webkit-scrollbar,
 }
 
 .candidate-sidebar-ref__accessibility-copy strong {
-  font-size: 0.88rem;
+  font-size: 0.82rem;
+  font-weight: 600;
 }
 
 .candidate-sidebar-ref__accessibility-copy.is-collapsed {
@@ -10583,8 +10636,9 @@ body:has(.app-shell-admin)::-webkit-scrollbar,
 }
 
 .candidate-sidebar-ref__profile-copy strong {
-  font-size: 0.88rem;
+  font-size: 0.82rem;
   color: #2a1d4d;
+  font-weight: 600;
 }
 
 .candidate-sidebar-ref__profile-copy button {
@@ -10592,9 +10646,9 @@ body:has(.app-shell-admin)::-webkit-scrollbar,
   padding: 0;
   background: transparent;
   color: #5c2da0;
-  font-weight: 700;
+  font-weight: 500;
   text-align: left;
-  font-size: 0.8rem;
+  font-size: 0.76rem;
 }
 
 .candidate-sidebar-ref .sidebar-toggle {
@@ -10631,9 +10685,9 @@ body:has(.app-shell-admin)::-webkit-scrollbar,
   background: transparent;
   color: #8f2233;
   text-align: left;
-  font-size: 0.78rem;
+  font-size: 0.74rem;
   padding: 0 8px 2px;
-  font-weight: 700;
+  font-weight: 500;
 }
 
 .candidate-sidebar-ref__logout-link:hover {
@@ -10671,9 +10725,10 @@ body:has(.app-shell-admin)::-webkit-scrollbar,
 .candidate-dashboard-ref__topbar h1 {
   grid-area: title;
   margin: 0;
-  font-size: 1.85rem;
+  font-size: 1.65rem;
   color: #1f1537;
   line-height: 1.1;
+  font-weight: 600;
 }
 
 .candidate-dashboard-ref__search {
@@ -10691,7 +10746,7 @@ body:has(.app-shell-admin)::-webkit-scrollbar,
   border-radius: 12px;
   border: 1px solid rgba(53, 6, 62, 0.14);
   padding: 0 14px;
-  font-size: 0.96rem;
+  font-size: 0.9rem;
 }
 
 .candidate-dashboard-ref__search button {
@@ -10699,7 +10754,7 @@ body:has(.app-shell-admin)::-webkit-scrollbar,
   border-radius: 12px;
   border: 1px solid rgba(53, 6, 62, 0.14);
   background: #ffffff;
-  font-weight: 700;
+  font-weight: 500;
   color: #35063e;
 }
 
@@ -10718,9 +10773,9 @@ body:has(.app-shell-admin)::-webkit-scrollbar,
   border: 1px solid rgba(53, 6, 62, 0.14);
   background: #ffffff;
   color: #25183f;
-  font-weight: 600;
+  font-weight: 500;
   padding: 0 10px;
-  font-size: 0.92rem;
+  font-size: 0.86rem;
 }
 
 .candidate-dashboard-ref__control.is-active {
@@ -10742,7 +10797,7 @@ body:has(.app-shell-admin)::-webkit-scrollbar,
   border: 0;
   background: #ffffff;
   color: #25183f;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .candidate-dashboard-ref__font-group button + button {
@@ -16376,11 +16431,11 @@ body:has(.app-shell-admin)::-webkit-scrollbar,
 
 @media (max-width: 1280px) {
   .app-shell-admin {
-    --sidebar-column-width: 280px;
+    --sidebar-column-width: 244px;
     --shell-inline-padding: 18px;
     --shell-grid-gap: 18px;
-    grid-template-columns: 280px minmax(0, 1fr);
-    gap: 18px;
+    grid-template-columns: 244px minmax(0, 1fr);
+    gap: 32px;
     padding-inline: 18px;
   }
 
@@ -16409,8 +16464,8 @@ body:has(.app-shell-admin)::-webkit-scrollbar,
 
 @media (max-width: 900px) {
   .app-shell-admin {
-    grid-template-columns: 240px minmax(0, 1fr);
-    gap: 14px;
+    grid-template-columns: 228px minmax(0, 1fr);
+    gap: 32px;
     padding-inline: 12px;
   }
 
@@ -16436,8 +16491,8 @@ body:has(.app-shell-admin)::-webkit-scrollbar,
 
 @media (max-width: 680px) {
   .app-shell-admin {
-    grid-template-columns: 216px minmax(0, 1fr);
-    gap: 10px;
+    grid-template-columns: 208px minmax(0, 1fr);
+    gap: 24px;
     padding-inline: 8px;
   }
 
@@ -17127,5 +17182,1551 @@ body:has(.app-shell-admin)::-webkit-scrollbar,
 
   .candidate-profile-mini-stat {
     min-height: 124px;
+  }
+}
+
+/* Admin dark SaaS design system */
+html:has(.app-shell-admin),
+body:has(.app-shell-admin) {
+  background:
+    radial-gradient(circle at 14% -10%, rgba(45, 23, 77, 0.34), transparent 24%),
+    radial-gradient(circle at 86% 0%, rgba(91, 45, 145, 0.16), transparent 26%),
+    linear-gradient(135deg, #05030a 0%, #07040d 44%, #0b0814 100%) !important;
+}
+
+.app-shell-admin {
+  --admin-bg: #05030a;
+  --admin-bg-2: #0b0814;
+  --admin-elevated: #0f0b19;
+  --admin-card: #120d1f;
+  --admin-card-2: rgba(18, 13, 31, 0.88);
+  --admin-purple: #5b2d91;
+  --admin-purple-2: #6d3dbb;
+  --admin-glow: #8a63d2;
+  --admin-purple-deep: #2d174d;
+  --admin-text: #ffffff;
+  --admin-muted: #aaa1bc;
+  --admin-soft: #c7b9e4;
+  --admin-border: rgba(255,255,255,0.06);
+  --admin-border-strong: rgba(138,99,210,0.22);
+  --admin-shadow: 0 28px 72px rgba(0,0,0,0.54), 0 0 46px rgba(45,23,77,0.12);
+  max-width: none;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0 22px 24px 0;
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: 32px;
+  color: var(--admin-text);
+  background:
+    linear-gradient(90deg, rgba(45,23,77,0.1), transparent 18%),
+    transparent;
+}
+
+.app-shell-admin .app-main {
+  padding: 30px 0 38px 18px;
+  color: var(--admin-text);
+}
+
+.app-shell-admin .app-page,
+.app-shell-admin .section-page,
+.app-shell-admin .page-centree {
+  padding: 0 !important;
+  color: var(--admin-text);
+}
+
+.app-shell-admin .app-header-inner.candidate-sidebar-ref {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto auto;
+  align-content: stretch;
+  top: 0;
+  min-height: 100vh;
+  border-radius: 0 22px 22px 0;
+  padding: 24px 20px 22px;
+  gap: 20px;
+  background:
+    radial-gradient(circle at 15% 7%, rgba(45,23,77,0.34), transparent 24%),
+    linear-gradient(180deg, rgba(8,5,14,0.99), rgba(5,3,10,0.98));
+  border: 1px solid rgba(91,45,145,0.16);
+  border-left: 0;
+  box-shadow: 18px 0 60px rgba(0,0,0,0.36), inset -1px 0 0 rgba(255,255,255,0.04);
+  overflow: hidden;
+}
+
+.app-shell-admin .candidate-sidebar-ref__brand {
+  gap: 12px;
+}
+
+.app-shell-admin .candidate-sidebar-ref__brand-mark {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  color: #fff;
+  background: linear-gradient(135deg, #3d225f, var(--admin-purple));
+  box-shadow: 0 0 22px rgba(91,45,145,0.2);
+}
+
+.app-shell-admin .candidate-sidebar-ref__brand-copy strong {
+  color: var(--admin-text);
+  font-size: 1.2rem;
+  letter-spacing: -0.02em;
+  font-weight: 600;
+}
+
+.app-shell-admin .candidate-sidebar-ref__brand-copy span {
+  color: rgba(216,208,255,0.68);
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  font-weight: 500;
+}
+
+.app-shell-admin .candidate-sidebar-ref__nav {
+  gap: 10px;
+  min-height: 0;
+  padding-right: 2px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  align-content: start;
+}
+
+.app-shell-admin .candidate-sidebar-ref__item {
+  min-height: 50px;
+  border-radius: 12px;
+  padding: 0 14px;
+  color: rgba(255,255,255,0.78);
+  background: transparent;
+  border: 1px solid transparent;
+  box-shadow: none;
+}
+
+.app-shell-admin .candidate-sidebar-ref__item:hover,
+.app-shell-admin .candidate-sidebar-ref__item.is-active {
+  color: #fff;
+  background:
+    linear-gradient(135deg, rgba(45,23,77,0.92), rgba(31,20,49,0.92)),
+    rgba(18,13,31,0.92);
+  border-color: rgba(138,99,210,0.38);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 12px 28px rgba(0,0,0,0.28);
+}
+
+.app-shell-admin .candidate-sidebar-ref__item-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 11px;
+  color: rgba(216,208,255,0.74);
+  background: rgba(91,45,145,0.1);
+}
+
+.app-shell-admin .candidate-sidebar-ref__item:hover .candidate-sidebar-ref__item-icon,
+.app-shell-admin .candidate-sidebar-ref__item.is-active .candidate-sidebar-ref__item-icon {
+  color: #fff;
+  background: rgba(109,61,187,0.18);
+}
+
+.app-shell-admin .candidate-sidebar-ref__item-copy strong {
+  color: currentColor;
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+
+.app-shell-admin .candidate-sidebar-ref__item-copy small {
+  color: rgba(216,208,255,0.58);
+  font-size: 0.68rem;
+  font-weight: 400;
+}
+
+.app-shell-admin .candidate-sidebar-ref__profile-card {
+  border-radius: 14px;
+  background: rgba(11,8,20,0.94) !important;
+  border: 1px solid rgba(255,255,255,0.06) !important;
+  color: var(--admin-text);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+  margin-top: 6px;
+}
+
+.app-shell-admin .candidate-sidebar-ref__profile-card {
+  margin-top: 0;
+}
+
+.app-shell-admin .candidate-sidebar-ref__profile-copy strong {
+  color: #fff;
+}
+
+.app-shell-admin .candidate-sidebar-ref__profile-copy button,
+.app-shell-admin .candidate-sidebar-ref__chevron {
+  color: rgba(216,208,255,0.62);
+}
+
+.app-shell-admin .candidate-sidebar-ref__profile-copy button {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  color: rgba(255,255,255,0.76) !important;
+  padding: 0 !important;
+  min-height: 0 !important;
+  font-size: 0.78rem;
+  font-weight: 500;
+  line-height: 1.2;
+  text-align: left;
+  border-radius: 0 !important;
+  width: auto;
+  display: inline-flex;
+  align-items: center;
+}
+
+.app-shell-admin .candidate-sidebar-ref__profile-copy button:hover {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  color: #ffffff !important;
+  text-decoration: none;
+  transform: none;
+  box-shadow: none !important;
+}
+
+.app-shell-admin .candidate-sidebar-ref__profile-copy button:focus-visible {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+}
+
+.app-shell-admin .candidate-sidebar-ref__logout-link {
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  min-height: 0;
+  margin: 10px 8px 2px;
+  padding: 4px 2px;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  color: #ff8585;
+  font-size: 0.78rem;
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: 0;
+  width: auto;
+}
+
+.app-shell-admin h1,
+.app-shell-admin h2,
+.app-shell-admin h3,
+.app-shell-admin h4,
+.app-shell-admin strong {
+  color: var(--admin-text);
+  font-weight: 600;
+}
+
+.app-shell-admin p,
+.app-shell-admin small,
+.app-shell-admin .texte-secondaire,
+.app-shell-admin .texte-muted {
+  color: var(--admin-muted);
+}
+
+.app-shell-admin a {
+  color: var(--admin-glow);
+}
+
+.app-shell-admin .admin-command,
+.app-shell-admin .admin-home-v2,
+.app-shell-admin [class$="-page"] {
+  max-width: 100%;
+  color: var(--admin-text);
+}
+
+.app-shell-admin .admin-command__hero,
+.app-shell-admin .admin-home-v2__top,
+.app-shell-admin .admin-interviews-hero,
+.app-shell-admin .admin-queue-hero,
+.app-shell-admin .admin-reports-hero,
+.app-shell-admin .companies-hero,
+.app-shell-admin .candidate-profile-hero {
+  min-height: 0;
+  padding: 20px 22px;
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at 72% 4%, rgba(45,23,77,0.28), transparent 26%),
+    linear-gradient(135deg, rgba(15,11,25,0.96), rgba(11,8,20,0.9));
+  border: 1px solid var(--admin-border);
+  box-shadow: var(--admin-shadow);
+}
+
+.app-shell-admin .admin-command__hero {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  min-height: 218px;
+  padding: 28px 30px;
+}
+
+.app-shell-admin .admin-command__hello {
+  margin: 0 0 10px !important;
+  color: #fff !important;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.app-shell-admin .admin-command__top-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.app-shell-admin .admin-command__top-actions button,
+.app-shell-admin .admin-command__top-actions a {
+  position: relative;
+  min-height: 52px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.08) !important;
+  background: rgba(13,9,23,0.76) !important;
+  color: #fff !important;
+  text-decoration: none;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
+}
+
+.app-shell-admin .admin-command__top-actions button {
+  width: 52px;
+  padding: 0;
+}
+
+.app-shell-admin .admin-command__top-actions a {
+  padding: 0 20px;
+  background: linear-gradient(135deg, #4a256f, var(--admin-purple)) !important;
+  font-weight: 600;
+  box-shadow: 0 18px 40px rgba(45,23,77,0.26);
+}
+
+.app-shell-admin .admin-command__top-actions span {
+  position: absolute;
+  top: -7px;
+  right: -6px;
+  min-width: 24px;
+  height: 24px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--admin-purple);
+  color: #fff;
+  font-size: 0.74rem;
+  font-weight: 600;
+}
+
+.app-shell-admin .admin-command__eyebrow,
+.app-shell-admin .admin-home-v2__eyebrow,
+.app-shell-admin .admin-queue-kicker,
+.app-shell-admin .admin-reports-kicker,
+.app-shell-admin .admin-interviews-kicker,
+.app-shell-admin .companies-kicker {
+  color: var(--admin-glow) !important;
+  letter-spacing: 0.08em;
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: none;
+}
+
+.app-shell-admin .admin-command__hero h1,
+.app-shell-admin .admin-home-v2__welcome h1,
+.app-shell-admin .admin-interviews-hero h1,
+.app-shell-admin .admin-queue-hero h1,
+.app-shell-admin .admin-reports-hero h1,
+.app-shell-admin .companies-hero h1 {
+  color: #fff;
+  font-size: clamp(1.85rem, 3.5vw, 3rem);
+  line-height: 1.04;
+  letter-spacing: -0.035em;
+  font-weight: 600;
+}
+
+.app-shell-admin .admin-command__hero h1 span {
+  color: var(--admin-purple);
+  text-shadow: 0 0 14px rgba(91,45,145,0.18);
+}
+
+.app-shell-admin .admin-command__hero h1 strong,
+.app-shell-admin .admin-home-v2__welcome h1 strong {
+  color: var(--admin-purple);
+  text-shadow: 0 0 14px rgba(91,45,145,0.16);
+}
+
+.app-shell-admin .admin-command__hero p,
+.app-shell-admin .admin-home-v2__welcome p,
+.app-shell-admin .admin-interviews-hero p,
+.app-shell-admin .admin-reports-hero p,
+.app-shell-admin .companies-hero p {
+  color: rgba(216,208,255,0.7);
+}
+
+.app-shell-admin .carte,
+.app-shell-admin .card,
+.app-shell-admin [class*="panel"],
+.app-shell-admin [class*="Panel"],
+.app-shell-admin [class*="__panel"],
+.app-shell-admin [class*="-panel"],
+.app-shell-admin .admin-home-v2__kpi,
+.app-shell-admin .admin-home-v2__panel,
+.app-shell-admin .admin-command__metric,
+.app-shell-admin .admin-command__card,
+.app-shell-admin .admin-command__panel,
+.app-shell-admin .candidate-profile-card {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.028), transparent),
+    var(--admin-card-2) !important;
+  border: 1px solid var(--admin-border) !important;
+  border-radius: 18px !important;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.34), inset 0 1px 0 rgba(255,255,255,0.03) !important;
+  color: var(--admin-text) !important;
+}
+
+.app-shell-admin .admin-command__kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0;
+  border: 1px solid var(--admin-border);
+  border-radius: 16px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.025), transparent),
+    rgba(11,8,20,0.84);
+  box-shadow: 0 20px 58px rgba(0,0,0,0.34), inset 0 1px 0 rgba(255,255,255,0.03);
+  overflow: hidden;
+}
+
+.app-shell-admin .admin-home-v2__kpi,
+.app-shell-admin .admin-command__metric {
+  min-height: 86px;
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+  padding: 14px 22px;
+  border: 0 !important;
+  border-right: 1px solid var(--admin-border) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.app-shell-admin .admin-command__metric:last-child {
+  border-right: 0 !important;
+}
+
+.app-shell-admin .admin-command__metric > span {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  color: var(--admin-glow);
+  background: rgba(91,45,145,0.14);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+}
+
+.app-shell-admin .admin-command__metric svg {
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.app-shell-admin .admin-home-v2__kpi strong,
+.app-shell-admin .admin-command__metric strong {
+  color: #fff;
+  font-size: 1.32rem;
+  line-height: 1;
+}
+
+.app-shell-admin .admin-home-v2__kpi p,
+.app-shell-admin .admin-command__metric span {
+  color: var(--admin-muted);
+}
+
+.app-shell-admin .admin-command__metric p {
+  margin: 5px 0 0;
+  color: rgba(255,255,255,0.78);
+  font-size: 0.88rem;
+}
+
+.app-shell-admin .admin-command__metric > span {
+  color: var(--admin-glow);
+}
+
+.app-shell-admin .admin-home-v2__kpi-icon,
+.app-shell-admin .admin-home-v2__quick-icon,
+.app-shell-admin .admin-command__icon,
+.app-shell-admin [class*="-icon"] {
+  background: linear-gradient(135deg, rgba(45,23,77,0.72), rgba(91,45,145,0.18));
+  color: var(--admin-glow);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+}
+
+.app-shell-admin .admin-home-v2__footer-grid,
+.app-shell-admin .admin-command__grid {
+  gap: 14px;
+}
+
+.app-shell-admin .admin-home-v2__panel {
+  min-height: 0;
+  padding: 18px;
+}
+
+.app-shell-admin .admin-home-v2__panel-head {
+  margin-bottom: 16px;
+}
+
+.app-shell-admin .admin-home-v2__panel-head h2 {
+  color: #fff;
+  font-size: 1.2rem;
+}
+
+.app-shell-admin .admin-home-v2__pipeline-row div,
+.app-shell-admin .admin-home-v2__accessibility-item,
+.app-shell-admin .admin-home-v2__activity li,
+.app-shell-admin .admin-reports-detail-block,
+.app-shell-admin .candidate-profile-field-row,
+.app-shell-admin .candidate-profile-toggle-item {
+  border-color: var(--admin-border) !important;
+  color: rgba(255,255,255,0.82);
+}
+
+.app-shell-admin .admin-home-v2__pipeline-row i {
+  background: rgba(255,255,255,0.08);
+}
+
+.app-shell-admin .admin-command__focus-fill--blue,
+.app-shell-admin .admin-command__focus-fill--green,
+.app-shell-admin .admin-command__focus-fill--orange,
+.app-shell-admin .admin-home-v2__pipeline-fill--blue,
+.app-shell-admin .admin-home-v2__pipeline-fill--green {
+  background: linear-gradient(90deg, #3a215f, #65419b) !important;
+  box-shadow: 0 0 10px rgba(91,45,145,0.16);
+}
+
+.app-shell-admin .admin-home-v2__pipeline-fill,
+.app-shell-admin .admin-home-v2__kpi-line {
+  background: linear-gradient(90deg, #44246f, var(--admin-purple));
+  box-shadow: 0 0 10px rgba(91,45,145,0.2);
+}
+
+.app-shell-admin .admin-home-v2__donut {
+  background:
+    radial-gradient(closest-side, #0b0814 67%, transparent 68% 100%),
+    conic-gradient(var(--admin-purple) calc(var(--progress) * 1%), rgba(255,255,255,0.08) 0);
+  filter: drop-shadow(0 0 14px rgba(45,23,77,0.26));
+}
+
+.app-shell-admin .admin-home-v2__donut strong {
+  color: #fff;
+}
+
+.app-shell-admin .admin-command__activity-icon--green,
+.app-shell-admin .admin-command__activity-icon--blue,
+.app-shell-admin .admin-command__activity-icon--orange,
+.app-shell-admin .admin-home-v2__activity-icon--green,
+.app-shell-admin .admin-home-v2__activity-icon--blue,
+.app-shell-admin .admin-home-v2__activity-icon--orange,
+.app-shell-admin .admin-home-v2__accessibility-item--green .admin-home-v2__accessibility-icon,
+.app-shell-admin .admin-home-v2__accessibility-item--blue .admin-home-v2__accessibility-icon,
+.app-shell-admin .admin-home-v2__accessibility-item--orange .admin-home-v2__accessibility-icon {
+  background: linear-gradient(135deg, rgba(45,23,77,0.82), rgba(91,45,145,0.18)) !important;
+  color: #b89ddd !important;
+}
+
+.app-shell-admin .admin-command__activity-icon--purple,
+.app-shell-admin .admin-home-v2__activity-icon--purple {
+  background: linear-gradient(135deg, rgba(52,27,84,0.88), rgba(109,61,187,0.2)) !important;
+  color: #ccb8ed !important;
+}
+
+.app-shell-admin .admin-command__activity li strong,
+.app-shell-admin .admin-home-v2__activity li strong,
+.app-shell-admin .admin-home-v2__accessibility-item strong {
+  color: #f3eefc !important;
+}
+
+.app-shell-admin .admin-command__activity li p,
+.app-shell-admin .admin-command__activity li small,
+.app-shell-admin .admin-home-v2__activity li p,
+.app-shell-admin .admin-home-v2__activity li small {
+  color: rgba(216,208,255,0.62) !important;
+}
+
+.app-shell-admin .interviews-board__panel,
+.app-shell-admin .admin-reports-list-panel,
+.app-shell-admin .admin-reports-detail-panel,
+.app-shell-admin .tests-grid-container,
+.app-shell-admin .test-card,
+.app-shell-admin .message,
+.app-shell-admin .test-create-modal-card,
+.app-shell-admin .test-create-field,
+.app-shell-admin .test-create-error,
+.app-shell-admin .test-create-empty {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.03), transparent),
+    rgba(13,9,23,0.88) !important;
+  border: 1px solid var(--admin-border) !important;
+  color: var(--admin-text) !important;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.34), inset 0 1px 0 rgba(255,255,255,0.03) !important;
+}
+
+.app-shell-admin .interviews-board__search input,
+.app-shell-admin .interviews-board__select select,
+.app-shell-admin .admin-reports-toolbar input,
+.app-shell-admin .admin-reports-toolbar select,
+.app-shell-admin .test-create-field input,
+.app-shell-admin .test-create-field select,
+.app-shell-admin .test-create-field textarea {
+  background: rgba(7,5,13,0.72) !important;
+  border-color: rgba(255,255,255,0.08) !important;
+  color: #fff !important;
+}
+
+.app-shell-admin .interviews-board__search input::placeholder,
+.app-shell-admin .admin-reports-toolbar input::placeholder,
+.app-shell-admin .test-create-field input::placeholder,
+.app-shell-admin .test-create-field textarea::placeholder {
+  color: rgba(216,208,255,0.42) !important;
+}
+
+.app-shell-admin .interviews-board__table-wrap,
+.app-shell-admin .admin-reports-table-wrap {
+  background: rgba(11,8,20,0.82) !important;
+  border: 1px solid var(--admin-border) !important;
+}
+
+.app-shell-admin .interviews-board__table th,
+.app-shell-admin .admin-reports-table th {
+  background: rgba(255,255,255,0.025) !important;
+  color: rgba(216,208,255,0.66) !important;
+  border-bottom: 1px solid var(--admin-border) !important;
+}
+
+.app-shell-admin .interviews-board__table td,
+.app-shell-admin .admin-reports-table td {
+  background: rgba(13,9,23,0.36) !important;
+  color: rgba(255,255,255,0.86) !important;
+  border-bottom: 1px solid rgba(255,255,255,0.045) !important;
+}
+
+.app-shell-admin .interviews-board__table tr:hover td,
+.app-shell-admin .interviews-board__table tr.is-selected td,
+.app-shell-admin .admin-reports-table tr:hover td,
+.app-shell-admin .admin-reports-table tr.is-selected td {
+  background: rgba(91,45,145,0.14) !important;
+}
+
+.app-shell-admin .interviews-board__avatar,
+.app-shell-admin .interviews-board__schedule-icon {
+  background: linear-gradient(135deg, rgba(45,23,77,0.82), rgba(91,45,145,0.16)) !important;
+  color: #ccb8ed !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04) !important;
+}
+
+.app-shell-admin .interviews-board__type,
+.app-shell-admin .interviews-board__location,
+.app-shell-admin .interviews-board__pagination,
+.app-shell-admin .admin-reports-pagination,
+.app-shell-admin .admin-reports-detail-empty,
+.app-shell-admin .admin-reports-detail-head p,
+.app-shell-admin .admin-reports-detail-block p,
+.app-shell-admin .tests-count-subtitle,
+.app-shell-admin .page-info,
+.app-shell-admin .validity-label,
+.app-shell-admin .meta-label,
+.app-shell-admin .meta-value,
+.app-shell-admin .test-description {
+  color: rgba(216,208,255,0.7) !important;
+}
+
+.app-shell-admin .interviews-board__status--done {
+  background: rgba(34,197,94,0.12) !important;
+  color: #80d8a0 !important;
+}
+
+.app-shell-admin .interviews-board__status--scheduled,
+.app-shell-admin .admin-reports-status--validated,
+.app-shell-admin .status-actif {
+  background: rgba(91,45,145,0.2) !important;
+  color: #d6c4ff !important;
+}
+
+.app-shell-admin .interviews-board__status--warning,
+.app-shell-admin .status-brouillon,
+.app-shell-admin .admin-reports-status--submitted {
+  background: rgba(217,120,7,0.16) !important;
+  color: #f4bf73 !important;
+}
+
+.app-shell-admin .interviews-board__status--cancelled,
+.app-shell-admin .admin-reports-status--rejected,
+.app-shell-admin .message-error {
+  background: rgba(217,47,88,0.12) !important;
+  color: #ff9cb4 !important;
+}
+
+.app-shell-admin .interviews-board__pagination button,
+.app-shell-admin .admin-reports-pagination button,
+.app-shell-admin .pagination-btn,
+.app-shell-admin .test-create-btn,
+.app-shell-admin .test-create-close,
+.app-shell-admin .message-close {
+  background: rgba(19,16,33,0.92) !important;
+  color: #fff !important;
+  border: 1px solid var(--admin-border) !important;
+}
+
+.app-shell-admin .empty-action-btn,
+.app-shell-admin .test-create-btn--primary,
+.app-shell-admin .admin-reports-toolbar button {
+  background: linear-gradient(135deg, #43236a, var(--admin-purple)) !important;
+  color: #fff !important;
+  border: 1px solid rgba(255,255,255,0.06) !important;
+}
+
+.app-shell-admin .test-create-btn--soft {
+  background: rgba(91,45,145,0.12) !important;
+  color: #e8d7ff !important;
+  border-color: rgba(91,45,145,0.18) !important;
+}
+
+.app-shell-admin .message-success {
+  background: rgba(19,16,33,0.92) !important;
+  color: #9ef2bc !important;
+  border: 1px solid rgba(68,189,122,0.18) !important;
+}
+
+.app-shell-admin .loading-spinner {
+  border-color: rgba(255,255,255,0.08) !important;
+  border-top-color: var(--admin-glow) !important;
+}
+
+.app-shell-admin .admin-home-v2__quick a,
+.app-shell-admin .admin-home-v2__report-link,
+.app-shell-admin .admin-command__action,
+.app-shell-admin .admin-command__quick a {
+  min-height: 48px;
+  border: 1px solid var(--admin-border) !important;
+  border-radius: 12px;
+  background: rgba(19,16,33,0.8) !important;
+  color: #fff;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+}
+
+.app-shell-admin .admin-home-v2__quick a:hover,
+.app-shell-admin .admin-home-v2__report-link:hover,
+.app-shell-admin .admin-command__action:hover {
+  border-color: var(--admin-border-strong) !important;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.22);
+}
+
+.app-shell-admin button,
+.app-shell-admin .bouton,
+.app-shell-admin .bouton-primaire,
+.app-shell-admin .btn,
+.app-shell-admin [class*="button"],
+.app-shell-admin [type="button"],
+.app-shell-admin [type="submit"] {
+  border-color: rgba(192,132,252,0.28);
+}
+
+.app-shell-admin .bouton-primaire,
+.app-shell-admin .btn-primary,
+.app-shell-admin .ui-button-primary,
+.app-shell-admin .ui-button[href],
+.app-shell-admin a.ui-button,
+.app-shell-admin button:not(.candidate-sidebar-ref__item):not(.candidate-sidebar-ref__logout-link):not(.profile-trigger),
+.app-shell-admin [type="submit"] {
+  background: linear-gradient(135deg, #43236a, var(--admin-purple)) !important;
+  color: #fff !important;
+  box-shadow: 0 14px 34px rgba(45,23,77,0.26);
+}
+
+.app-shell-admin .bouton-secondaire,
+.app-shell-admin .bouton-neutre,
+.app-shell-admin .btn-secondary {
+  background: rgba(19,16,33,0.86) !important;
+  color: #fff !important;
+  border: 1px solid var(--admin-border) !important;
+  box-shadow: none;
+}
+
+.app-shell-admin .admin-command__top-actions button {
+  background: rgba(13,9,23,0.76) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.06) !important;
+}
+
+#main-content .app-shell-admin .candidate-sidebar-ref__profile-card .candidate-sidebar-ref__profile-copy > button {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  color: rgba(255,255,255,0.76) !important;
+  box-shadow: none !important;
+  border: 0 !important;
+  padding: 0 !important;
+  min-height: 0 !important;
+  width: auto !important;
+}
+
+.app-shell-admin input,
+.app-shell-admin select,
+.app-shell-admin textarea,
+.app-shell-admin .champ,
+.app-shell-admin .champ-select,
+.app-shell-admin .champ-zone {
+  background: rgba(7,5,13,0.7) !important;
+  border: 1px solid rgba(255,255,255,0.08) !important;
+  border-radius: 12px !important;
+  color: #fff !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+}
+
+.app-shell-admin input::placeholder,
+.app-shell-admin textarea::placeholder {
+  color: rgba(216,208,255,0.45) !important;
+}
+
+.app-shell-admin input:focus,
+.app-shell-admin select:focus,
+.app-shell-admin textarea:focus,
+.app-shell-admin .champ:focus,
+.app-shell-admin .champ-select:focus,
+.app-shell-admin .champ-zone:focus {
+  border-color: var(--admin-purple) !important;
+  box-shadow: 0 0 0 3px rgba(91,45,145,0.18), 0 0 18px rgba(45,23,77,0.16) !important;
+  outline: none;
+}
+
+.app-shell-admin label {
+  color: rgba(255,255,255,0.84) !important;
+}
+
+.app-shell-admin .tableau,
+.app-shell-admin table,
+.app-shell-admin .admin-interviews-table,
+.app-shell-admin .admin-applications-table,
+.app-shell-admin .admin-reports-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  color: var(--admin-text);
+}
+
+.app-shell-admin .tableau thead,
+.app-shell-admin table thead {
+  background: transparent;
+}
+
+.app-shell-admin .tableau th,
+.app-shell-admin table th {
+  padding: 13px 16px !important;
+  color: rgba(216,208,255,0.64) !important;
+  background: rgba(255,255,255,0.025) !important;
+  border-bottom: 1px solid var(--admin-border) !important;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: none;
+}
+
+.app-shell-admin .tableau td,
+.app-shell-admin table td {
+  padding: 14px 16px !important;
+  color: rgba(255,255,255,0.86) !important;
+  background: rgba(13,9,23,0.32);
+  border-bottom: 1px solid rgba(255,255,255,0.045) !important;
+}
+
+.app-shell-admin .tableau tbody tr,
+.app-shell-admin table tbody tr {
+  transition: background 0.18s ease, transform 0.18s ease;
+}
+
+.app-shell-admin .tableau tbody tr:hover td,
+.app-shell-admin table tbody tr:hover td {
+  background: rgba(139,92,246,0.12) !important;
+}
+
+.app-shell-admin .badge,
+.app-shell-admin [class*="status"],
+.app-shell-admin [class*="badge"],
+.app-shell-admin .etiquette {
+  border: 1px solid rgba(138,99,210,0.18) !important;
+  background: rgba(45,23,77,0.42) !important;
+  color: #d8c8f1 !important;
+}
+
+.app-shell-admin .message,
+.app-shell-admin .alerte,
+.app-shell-admin .empty-state,
+.app-shell-admin [class*="empty"] {
+  border-color: var(--admin-border) !important;
+  background: rgba(19,16,33,0.72) !important;
+  color: var(--admin-muted) !important;
+}
+
+.app-shell-admin [role="dialog"],
+.app-shell-admin .modal,
+.app-shell-admin [class*="modal"],
+.app-shell-admin .candidate-profile-modal-card {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.03), transparent),
+    #131021 !important;
+  border: 1px solid var(--admin-border-strong) !important;
+  color: var(--admin-text) !important;
+  box-shadow: 0 36px 100px rgba(0,0,0,0.62), 0 0 36px rgba(45,23,77,0.14) !important;
+}
+
+.app-shell-admin [class*="backdrop"],
+.app-shell-admin .modal-backdrop {
+  background: rgba(2,1,6,0.78) !important;
+  backdrop-filter: blur(14px);
+}
+
+.app-shell-admin .admin-interviews-toolbar,
+.app-shell-admin .admin-applications-toolbar,
+.app-shell-admin .admin-employers-toolbar,
+.app-shell-admin .admin-reports-toolbar,
+.app-shell-admin .companies-toolbar {
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--admin-border);
+  border-radius: 16px;
+  background: rgba(13,9,23,0.58);
+}
+
+.app-shell-admin .admin-interviews-pagination,
+.app-shell-admin .admin-reports-pagination {
+  color: var(--admin-muted);
+}
+
+.app-shell-admin .admin-reports-grid,
+.app-shell-admin .admin-interviews-page,
+.app-shell-admin .admin-applications-page,
+.app-shell-admin .admin-queue-page,
+.app-shell-admin .companies-page,
+.app-shell-admin .admin-reports-page {
+  display: grid;
+  gap: 14px;
+}
+
+.app-shell-admin .admin-reports-detail-metrics,
+.app-shell-admin .admin-applications-summary,
+.app-shell-admin .admin-employers-summary,
+.app-shell-admin .admin-reports-summary,
+.app-shell-admin .admin-interviews-summary {
+  gap: 10px;
+}
+
+.app-shell-admin .admin-profile-status-active {
+  background: rgba(16,185,129,0.16) !important;
+  color: #86efac !important;
+}
+
+.app-shell-admin .admin-profile-status-muted {
+  background: rgba(161,161,170,0.12) !important;
+  color: var(--admin-muted) !important;
+}
+
+.app-shell-admin .candidate-profile-field-row,
+.app-shell-admin .candidate-profile-upload-compact,
+.app-shell-admin .candidate-profile-file-item,
+.app-shell-admin .candidate-profile-chip-soft,
+.app-shell-admin .candidate-profile-toggle-item,
+.app-shell-admin .candidate-profile-support-chip {
+  background: rgba(13,9,23,0.58) !important;
+  border-color: var(--admin-border) !important;
+  color: var(--admin-text) !important;
+}
+
+.app-shell-admin .admin-users-manager .admin-users-table-shell {
+  border: 1px solid var(--admin-border) !important;
+  border-radius: 18px !important;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.022), transparent),
+    rgba(18,13,31,0.9) !important;
+  box-shadow: 0 24px 58px rgba(0,0,0,0.34), inset 0 1px 0 rgba(255,255,255,0.03);
+}
+
+.app-shell-admin .admin-users-manager .admin-users-toolbar-shell {
+  border-color: var(--admin-border) !important;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.022), transparent),
+    rgba(18,13,31,0.9) !important;
+  box-shadow: 0 24px 58px rgba(0,0,0,0.34), inset 0 1px 0 rgba(255,255,255,0.03) !important;
+}
+
+.app-shell-admin .admin-users-manager .admin-users-toolbar-shell p,
+.app-shell-admin .admin-users-manager .admin-users-toolbar-shell label,
+.app-shell-admin .admin-users-manager .admin-users-toolbar-shell span {
+  color: rgba(216,208,255,0.66) !important;
+}
+
+.app-shell-admin .admin-users-manager .admin-users-toolbar-shell .admin-users-toolbar-shell__filter {
+  border-color: rgba(255,255,255,0.08) !important;
+  background: rgba(13,9,23,0.78) !important;
+}
+
+.app-shell-admin .admin-users-manager .admin-users-toolbar-shell input,
+.app-shell-admin .admin-users-manager .admin-users-toolbar-shell select {
+  background: rgba(7,5,13,0.72) !important;
+  border-color: rgba(255,255,255,0.08) !important;
+  color: #fff !important;
+}
+
+.app-shell-admin .admin-users-manager .admin-users-toolbar-shell input::placeholder {
+  color: rgba(216,208,255,0.42) !important;
+}
+
+.app-shell-admin .admin-users-manager .admin-users-toolbar-shell button {
+  border-color: rgba(255,255,255,0.08) !important;
+}
+
+.app-shell-admin .admin-users-manager .admin-users-toolbar-shell .bg-purple-950 {
+  background: linear-gradient(135deg, #43236a, var(--admin-purple)) !important;
+  color: #fff !important;
+}
+
+.app-shell-admin .admin-users-manager .admin-users-toolbar-shell .border-slate-200.bg-white {
+  background: rgba(13,9,23,0.82) !important;
+  color: #eee7fb !important;
+}
+
+.app-shell-admin .admin-users-manager .admin-users-toolbar-shell .border-slate-200.bg-slate-50\/80 {
+  background: rgba(13,9,23,0.74) !important;
+}
+
+.app-shell-admin .admin-users-manager .admin-users-toolbar-shell .bg-slate-50\/80 {
+  background: rgba(13,9,23,0.74) !important;
+}
+
+.app-shell-admin .admin-users-manager .admin-users-toolbar-shell .border-slate-200 {
+  border-color: var(--admin-border) !important;
+}
+
+.app-shell-admin .admin-users-manager .admin-users-toolbar-shell .text-slate-500,
+.app-shell-admin .admin-users-manager .admin-users-toolbar-shell .text-slate-600,
+.app-shell-admin .admin-users-manager .admin-users-toolbar-shell .text-slate-700 {
+  color: rgba(216,208,255,0.68) !important;
+}
+
+.app-shell-admin .admin-users-manager .admin-users-toolbar-shell .border-emerald-200,
+.app-shell-admin .admin-users-manager .admin-users-toolbar-shell .border-amber-200,
+.app-shell-admin .admin-users-manager .admin-users-toolbar-shell .border-rose-200 {
+  border-color: rgba(138,99,210,0.18) !important;
+}
+
+.app-shell-admin .admin-users-manager .admin-users-toolbar-shell .bg-emerald-50,
+.app-shell-admin .admin-users-manager .admin-users-toolbar-shell .bg-amber-50,
+.app-shell-admin .admin-users-manager .admin-users-toolbar-shell .bg-rose-50 {
+  background: rgba(13,9,23,0.76) !important;
+}
+
+.app-shell-admin .admin-reports-page .admin-reports-hero {
+  background:
+    radial-gradient(circle at 72% 4%, rgba(45,23,77,0.28), transparent 26%),
+    linear-gradient(135deg, rgba(15,11,25,0.96), rgba(11,8,20,0.9)) !important;
+  border-color: var(--admin-border) !important;
+  box-shadow: var(--admin-shadow) !important;
+}
+
+.app-shell-admin .admin-reports-page .admin-reports-summary span {
+  background: rgba(13,9,23,0.84) !important;
+  border-color: var(--admin-border) !important;
+  color: rgba(216,208,255,0.72) !important;
+}
+
+.app-shell-admin .admin-reports-page .admin-reports-summary strong {
+  color: #fff !important;
+}
+
+.app-shell-admin .admin-reports-page .admin-reports-list-panel,
+.app-shell-admin .admin-reports-page .admin-reports-detail-panel {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.022), transparent),
+    rgba(18,13,31,0.9) !important;
+  border-color: var(--admin-border) !important;
+  box-shadow: 0 24px 58px rgba(0,0,0,0.34), inset 0 1px 0 rgba(255,255,255,0.03) !important;
+}
+
+.app-shell-admin .admin-reports-page .admin-reports-toolbar {
+  background: rgba(13,9,23,0.58) !important;
+  border: 1px solid var(--admin-border) !important;
+}
+
+.app-shell-admin .admin-reports-page .admin-reports-toolbar input,
+.app-shell-admin .admin-reports-page .admin-reports-toolbar select {
+  background: rgba(7,5,13,0.72) !important;
+  border-color: rgba(255,255,255,0.08) !important;
+  color: #fff !important;
+}
+
+.app-shell-admin .admin-reports-page .admin-reports-toolbar input::placeholder {
+  color: rgba(216,208,255,0.42) !important;
+}
+
+.app-shell-admin .admin-reports-page .admin-reports-table-wrap {
+  border-color: var(--admin-border) !important;
+  background: rgba(11,8,20,0.84) !important;
+}
+
+.app-shell-admin .admin-reports-page .admin-reports-table,
+.app-shell-admin .admin-reports-page .admin-reports-table thead,
+.app-shell-admin .admin-reports-page .admin-reports-table tbody,
+.app-shell-admin .admin-reports-page .admin-reports-table tr {
+  background: transparent !important;
+}
+
+.app-shell-admin .admin-reports-page .admin-reports-table th {
+  background: rgba(255,255,255,0.02) !important;
+  color: rgba(216,208,255,0.66) !important;
+  border-bottom: 1px solid var(--admin-border) !important;
+}
+
+.app-shell-admin .admin-reports-page .admin-reports-table tbody tr td {
+  background: rgba(13,9,23,0.36) !important;
+  background-color: rgba(13,9,23,0.36) !important;
+  background-image: none !important;
+  color: rgba(255,255,255,0.86) !important;
+  border-bottom: 1px solid rgba(255,255,255,0.045) !important;
+}
+
+.app-shell-admin .admin-reports-page .admin-reports-table tbody tr:hover td,
+.app-shell-admin .admin-reports-page .admin-reports-table tbody tr.is-selected td {
+  background: rgba(91,45,145,0.14) !important;
+  background-color: rgba(91,45,145,0.14) !important;
+  background-image: none !important;
+}
+
+.app-shell-admin .admin-reports-page .admin-reports-table tbody td strong,
+.app-shell-admin .admin-reports-page .admin-reports-table tbody td span {
+  color: inherit !important;
+}
+
+.app-shell-admin .admin-reports-page .admin-reports-status {
+  background: rgba(45,23,77,0.42) !important;
+  border-color: rgba(138,99,210,0.18) !important;
+  color: #d8c8f1 !important;
+}
+
+.app-shell-admin .admin-reports-page .admin-reports-detail-head h2,
+.app-shell-admin .admin-reports-page .admin-reports-detail-block strong {
+  color: #f3eefc !important;
+}
+
+.app-shell-admin .admin-reports-page .admin-reports-detail-head p,
+.app-shell-admin .admin-reports-page .admin-reports-detail-empty,
+.app-shell-admin .admin-reports-page .admin-reports-detail-block p {
+  color: rgba(216,208,255,0.66) !important;
+}
+
+.app-shell-admin .admin-reports-page .admin-reports-detail-metrics span {
+  background: rgba(13,9,23,0.74) !important;
+  border-color: var(--admin-border) !important;
+  color: rgba(216,208,255,0.72) !important;
+}
+
+.app-shell-admin .admin-reports-page .admin-reports-detail-metrics strong {
+  color: #fff !important;
+}
+
+.app-shell-admin .admin-reports-page .admin-reports-pagination button {
+  background: rgba(19,16,33,0.92) !important;
+  color: #fff !important;
+  border: 1px solid var(--admin-border) !important;
+}
+
+.app-shell-admin .admin-users-manager .admin-users-loading {
+  background: transparent !important;
+}
+
+.app-shell-admin .admin-users-manager .admin-users-loading p {
+  color: rgba(216,208,255,0.66) !important;
+}
+
+.app-shell-admin .admin-users-manager .admin-users-table {
+  background: transparent !important;
+}
+
+.app-shell-admin .admin-users-manager .admin-users-table-head,
+.app-shell-admin .admin-users-manager .admin-users-table-head tr,
+.app-shell-admin .admin-users-manager .admin-users-table-head th {
+  background: rgba(255,255,255,0.02) !important;
+}
+
+.app-shell-admin .admin-users-manager .admin-users-table-body,
+.app-shell-admin .admin-users-manager .admin-users-table-body tr {
+  background: transparent !important;
+}
+
+.app-shell-admin .admin-users-manager .admin-users-table-row td {
+  background: rgba(13,9,23,0.36) !important;
+}
+
+.app-shell-admin .admin-users-manager .admin-users-table-row:hover td {
+  background: rgba(45,23,77,0.24) !important;
+}
+
+.app-shell-admin .admin-users-manager .admin-users-table-row .text-gray-900,
+.app-shell-admin .admin-users-manager .admin-users-table-row .text-sm.font-medium {
+  color: #f3eefc !important;
+}
+
+.app-shell-admin .admin-users-manager .admin-users-table-row .text-gray-500,
+.app-shell-admin .admin-users-manager .admin-users-table-row .text-sm.text-gray-500,
+.app-shell-admin .admin-users-manager .text-slate-500 {
+  color: rgba(216,208,255,0.62) !important;
+}
+
+.app-shell-admin .admin-users-manager .text-blue-600,
+.app-shell-admin .admin-users-manager .text-yellow-600,
+.app-shell-admin .admin-users-manager .text-orange-600,
+.app-shell-admin .admin-users-manager .text-green-600,
+.app-shell-admin .admin-users-manager .text-red-600 {
+  color: #cbb5f0 !important;
+}
+
+.app-shell-admin .admin-users-manager .text-blue-600:hover,
+.app-shell-admin .admin-users-manager .text-yellow-600:hover,
+.app-shell-admin .admin-users-manager .text-orange-600:hover,
+.app-shell-admin .admin-users-manager .text-green-600:hover,
+.app-shell-admin .admin-users-manager .text-red-600:hover {
+  color: #ffffff !important;
+}
+
+.app-shell-admin .admin-users-manager .admin-users-pagination {
+  background: rgba(11,8,20,0.78) !important;
+  border-top-color: var(--admin-border) !important;
+}
+
+.app-shell-admin .admin-users-manager .admin-users-pagination .text-sm {
+  color: rgba(216,208,255,0.66) !important;
+}
+
+.app-shell-admin .admin-users-manager .admin-users-pagination button {
+  border-color: rgba(255,255,255,0.08) !important;
+  background: rgba(18,13,31,0.9) !important;
+  color: #eee7fb !important;
+  box-shadow: none !important;
+}
+
+.app-shell-admin .admin-users-manager .admin-users-pagination button:hover:not(:disabled) {
+  border-color: rgba(138,99,210,0.28) !important;
+  background: rgba(45,23,77,0.72) !important;
+}
+
+.app-shell-admin .admin-users-modal-backdrop {
+  background: rgba(2,1,6,0.8) !important;
+  backdrop-filter: blur(14px);
+}
+
+.app-shell-admin .admin-users-modal-card {
+  border-color: var(--admin-border-strong) !important;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.03), transparent),
+    #131021 !important;
+  box-shadow: 0 36px 100px rgba(0,0,0,0.62), 0 0 36px rgba(45,23,77,0.14) !important;
+}
+
+.app-shell-admin .admin-users-modal-card .text-\[\#17113f\],
+.app-shell-admin .admin-users-modal-card .text-\[\#1e173e\] {
+  color: #f3eefc !important;
+}
+
+.app-shell-admin .admin-users-modal-card .text-\[\#6b6488\],
+.app-shell-admin .admin-users-modal-card .text-\[\#5f587f\],
+.app-shell-admin .admin-users-modal-card .text-slate-500,
+.app-shell-admin .admin-users-modal-card .text-xs {
+  color: rgba(216,208,255,0.62) !important;
+}
+
+.app-shell-admin .admin-users-modal-card .bg-white,
+.app-shell-admin .admin-users-modal-card .admin-users-modal-footer {
+  background: transparent !important;
+}
+
+.app-shell-admin .admin-users-modal-card .border-\[\#ebe6f7\] {
+  border-color: var(--admin-border) !important;
+}
+
+.app-shell-admin .admin-users-modal-card input,
+.app-shell-admin .admin-users-modal-card select,
+.app-shell-admin .admin-users-modal-card textarea {
+  background: rgba(7,5,13,0.72) !important;
+  border-color: rgba(255,255,255,0.08) !important;
+  color: #fff !important;
+}
+
+.app-shell-admin .admin-users-modal-card input::placeholder,
+.app-shell-admin .admin-users-modal-card textarea::placeholder {
+  color: rgba(216,208,255,0.42) !important;
+}
+
+.app-shell-admin .companies-panel {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.022), transparent),
+    rgba(18,13,31,0.9) !important;
+  border-color: var(--admin-border) !important;
+  box-shadow: 0 24px 58px rgba(0,0,0,0.34), inset 0 1px 0 rgba(255,255,255,0.03) !important;
+}
+
+.app-shell-admin .companies-toolbar input,
+.app-shell-admin .companies-toolbar select,
+.app-shell-admin .company-form input,
+.app-shell-admin .company-form textarea,
+.app-shell-admin .company-form select {
+  background: rgba(7,5,13,0.72) !important;
+  border-color: rgba(255,255,255,0.08) !important;
+  color: #fff !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04) !important;
+}
+
+.app-shell-admin .companies-toolbar input::placeholder,
+.app-shell-admin .company-form input::placeholder,
+.app-shell-admin .company-form textarea::placeholder {
+  color: rgba(216,208,255,0.42) !important;
+}
+
+.app-shell-admin .companies-toolbar input:focus,
+.app-shell-admin .companies-toolbar select:focus,
+.app-shell-admin .company-form input:focus,
+.app-shell-admin .company-form textarea:focus,
+.app-shell-admin .company-form select:focus {
+  border-color: var(--admin-purple) !important;
+  box-shadow: 0 0 0 3px rgba(91,45,145,0.18), 0 0 18px rgba(45,23,77,0.16) !important;
+}
+
+.app-shell-admin .companies-table-wrap {
+  border-color: var(--admin-border) !important;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.02), transparent),
+    rgba(11,8,20,0.84) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+  scrollbar-color: rgba(138,99,210,0.44) transparent !important;
+}
+
+.app-shell-admin .companies-table-wrap::-webkit-scrollbar-thumb {
+  background: rgba(138,99,210,0.4) !important;
+}
+
+.app-shell-admin .companies-table,
+.app-shell-admin .companies-table thead,
+.app-shell-admin .companies-table tbody,
+.app-shell-admin .companies-table tr {
+  background: transparent !important;
+}
+
+.app-shell-admin .companies-table thead th {
+  background: rgba(255,255,255,0.02) !important;
+  color: rgba(216,208,255,0.64) !important;
+  border-bottom-color: var(--admin-border) !important;
+}
+
+.app-shell-admin .companies-table tbody td {
+  background: rgba(13,9,23,0.36) !important;
+  color: rgba(255,255,255,0.86) !important;
+  border-bottom-color: rgba(255,255,255,0.045) !important;
+}
+
+.app-shell-admin .companies-table tbody tr:hover td {
+  background: rgba(45,23,77,0.24) !important;
+}
+
+.app-shell-admin .companies-table td span {
+  color: rgba(216,208,255,0.62) !important;
+}
+
+.app-shell-admin .companies-table .company-name,
+.app-shell-admin .companies-table .company-contact strong,
+.app-shell-admin .companies-table .company-address,
+.app-shell-admin .companies-table .company-date {
+  color: #f3eefc !important;
+}
+
+.app-shell-admin .companies-table .company-icon {
+  background: linear-gradient(135deg, rgba(45,23,77,0.82), rgba(91,45,145,0.18)) !important;
+  color: #cdb9ec !important;
+}
+
+.app-shell-admin .companies-table .company-status {
+  border: 1px solid rgba(138,99,210,0.18) !important;
+  background: rgba(45,23,77,0.42) !important;
+  color: #d8c8f1 !important;
+}
+
+.app-shell-admin .companies-table .company-status--actif,
+.app-shell-admin .companies-table .company-status--en_attente,
+.app-shell-admin .companies-table .company-status--suspendu,
+.app-shell-admin .companies-table .company-status--inactif {
+  background: rgba(45,23,77,0.42) !important;
+  color: #d8c8f1 !important;
+}
+
+.app-shell-admin .companies-action-btn {
+  border-color: rgba(255,255,255,0.08) !important;
+  background: rgba(18,13,31,0.82) !important;
+  color: #f3eefc !important;
+  box-shadow: none !important;
+}
+
+.app-shell-admin .companies-action-btn--view,
+.app-shell-admin .companies-action-btn--suspend {
+  background: rgba(45,23,77,0.58) !important;
+  border-color: rgba(138,99,210,0.18) !important;
+  color: #d9c8f5 !important;
+}
+
+.app-shell-admin .companies-pagination {
+  color: rgba(216,208,255,0.66) !important;
+}
+
+.app-shell-admin .companies-pagination-btn {
+  border-color: rgba(255,255,255,0.08) !important;
+  background: rgba(18,13,31,0.9) !important;
+  color: #eee7fb !important;
+  box-shadow: none !important;
+}
+
+.app-shell-admin .companies-modal-overlay {
+  background: rgba(2,1,6,0.8) !important;
+  backdrop-filter: blur(14px);
+}
+
+.app-shell-admin .companies-modal-card {
+  border-color: var(--admin-border-strong) !important;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.03), transparent),
+    #131021 !important;
+  box-shadow: 0 36px 100px rgba(0,0,0,0.62), 0 0 36px rgba(45,23,77,0.14) !important;
+}
+
+.app-shell-admin .companies-modal-title,
+.app-shell-admin .company-detail-box strong,
+.app-shell-admin .company-form-field label {
+  color: #f3eefc !important;
+}
+
+.app-shell-admin .companies-modal-email,
+.app-shell-admin .company-detail-box p,
+.app-shell-admin .texte-secondaire {
+  color: rgba(216,208,255,0.62) !important;
+}
+
+.app-shell-admin .companies-modal-close {
+  border-color: rgba(255,255,255,0.08) !important;
+  background: rgba(18,13,31,0.82) !important;
+  color: #d8c8f1 !important;
+}
+
+.app-shell-admin .company-detail-box {
+  background: rgba(13,9,23,0.58) !important;
+  border-color: var(--admin-border) !important;
+}
+
+@media (max-width: 1180px) {
+  .app-shell-admin {
+    grid-template-columns: 1fr;
+    padding: 0 16px 24px;
+  }
+
+  .app-shell-admin .app-header-inner.candidate-sidebar-ref {
+    position: relative;
+    min-height: auto;
+    border-radius: 0 0 20px 20px;
+    grid-template-rows: auto auto auto auto;
+    overflow: visible;
+  }
+
+  .app-shell-admin .candidate-sidebar-ref__nav {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    overflow: visible;
+  }
+
+  .app-shell-admin .app-main {
+    padding-top: 0;
+  }
+
+  .app-shell-admin .admin-command__hero {
+    grid-template-columns: 1fr;
+  }
+
+  .app-shell-admin .admin-command__top-actions {
+    justify-content: flex-start;
+  }
+
+  .app-shell-admin .admin-command__kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .app-shell-admin .admin-command__metric:nth-child(2) {
+    border-right: 0 !important;
+  }
+}
+
+@media (max-height: 820px) {
+  .app-shell-admin .app-header-inner.candidate-sidebar-ref {
+    padding: 22px 18px 18px;
+    gap: 14px;
+  }
+
+  .app-shell-admin .candidate-sidebar-ref__brand-mark {
+    width: 48px;
+    height: 48px;
+  }
+
+  .app-shell-admin .candidate-sidebar-ref__brand-copy strong {
+    font-size: 1.12rem;
+  }
+
+  .app-shell-admin .candidate-sidebar-ref__item {
+    min-height: 54px;
+  }
+}
+
+@media (max-width: 760px) {
+  .app-shell-admin {
+    padding-inline: 10px;
+  }
+
+  .app-shell-admin .candidate-sidebar-ref__nav {
+    grid-template-columns: 1fr;
+  }
+
+  .app-shell-admin .admin-command__hero h1,
+  .app-shell-admin .admin-home-v2__welcome h1,
+  .app-shell-admin .admin-interviews-hero h1,
+  .app-shell-admin .admin-queue-hero h1,
+  .app-shell-admin .admin-reports-hero h1,
+  .app-shell-admin .companies-hero h1 {
+    font-size: 1.95rem;
+  }
+
+  .app-shell-admin .tableau th,
+  .app-shell-admin table th,
+  .app-shell-admin .tableau td,
+  .app-shell-admin table td {
+    padding: 10px 12px !important;
+  }
+
+  .app-shell-admin .admin-command__kpis {
+    grid-template-columns: 1fr;
+  }
+
+  .app-shell-admin .admin-command__metric,
+  .app-shell-admin .admin-command__metric:nth-child(2) {
+    border-right: 0 !important;
+    border-bottom: 1px solid var(--admin-border) !important;
+  }
+
+  .app-shell-admin .admin-command__metric:last-child {
+    border-bottom: 0 !important;
   }
 }

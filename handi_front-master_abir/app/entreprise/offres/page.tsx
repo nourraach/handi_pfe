@@ -242,61 +242,16 @@ function MesOffresPage() {
 
       if (response.ok) {
         setShowCreateModal(false);
-        setMessage("Role created successfully.");
-        void chargerOffres();
-        return;
-      }
-
-      if (response.status === 404) {
-        const offresTest = JSON.parse(localStorage.getItem("offres_test") || "[]") as OffreEntreprise[];
-        const nouvelleOffreAvecId: OffreEntreprise = {
-          id_offre: Date.now().toString(),
-          titre: nouvelleOffre.titre,
-          description: nouvelleOffre.description,
-          localisation: nouvelleOffre.localisation,
-          type_poste: nouvelleOffre.type_poste,
-          salaire_min: nouvelleOffre.salaire_min || undefined,
-          salaire_max: nouvelleOffre.salaire_max || undefined,
-          date_limite: nouvelleOffre.date_limite || undefined,
-          statut: "active",
-          created_at: new Date().toISOString(),
-          candidatures_count: 0,
-          vues_count: 0,
-        };
-
-        offresTest.unshift(nouvelleOffreAvecId);
-        localStorage.setItem("offres_test", JSON.stringify(offresTest));
-
-        setShowCreateModal(false);
-        setMessage("Role created successfully. (Local mode)");
+        setMessage("Offer submitted for admin validation.");
         void chargerOffres();
         return;
       }
 
       const errorData = await response.json().catch(() => ({ message: "Unknown error." }));
-      setErreur(`Unable to create the role: ${errorData.message || "Unknown error."}`);
-    } catch {
-      const offresTest = JSON.parse(localStorage.getItem("offres_test") || "[]") as OffreEntreprise[];
-      const nouvelleOffreAvecId: OffreEntreprise = {
-        id_offre: Date.now().toString(),
-        titre: nouvelleOffre.titre,
-        description: nouvelleOffre.description,
-        localisation: nouvelleOffre.localisation,
-        type_poste: nouvelleOffre.type_poste,
-        salaire_min: nouvelleOffre.salaire_min || undefined,
-        salaire_max: nouvelleOffre.salaire_max || undefined,
-        date_limite: nouvelleOffre.date_limite || undefined,
-        statut: "active",
-        created_at: new Date().toISOString(),
-        candidatures_count: 0,
-        vues_count: 0,
-      };
-
-      offresTest.unshift(nouvelleOffreAvecId);
-      localStorage.setItem("offres_test", JSON.stringify(offresTest));
-      setShowCreateModal(false);
-      setMessage("Role created successfully. (Offline mode)");
-      void chargerOffres();
+      setErreur(`Unable to create the offer: ${errorData.message || "Unknown error."}`);
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : "Unknown error.";
+      setErreur(`Unable to create the offer: ${detail}`);
     }
   };
 

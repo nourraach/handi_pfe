@@ -153,11 +153,15 @@ export function GestionTestsPsychologiques() {
 
       <div className="tests-grid-container">
         <div className="tests-header">
-          <div>
-            <h3 className="tests-count">Psychological Tests ({tests.length})</h3>
-            <p className="tests-count-subtitle">Cards are shown in a denser grid so you can scan status, timing, and actions faster.</p>
+          <div className="tests-header-copy">
+            <h3 className="tests-count">Tests psychologiques</h3>
+            <span className="tests-count-chip">{tests.length} test(s)</span>
           </div>
-          {totalPages > 1 && (
+          <div className="tests-header-actions">
+            <button type="button" onClick={() => setModeCreation(true)} className="create-test-btn">
+              Créer un test
+            </button>
+            {totalPages > 1 && (
             <div className="pagination-controls">
               <span className="page-info">Page {page} of {totalPages}</span>
               <div className="pagination-buttons">
@@ -177,7 +181,8 @@ export function GestionTestsPsychologiques() {
                 </button>
               </div>
             </div>
-          )}
+            )}
+          </div>
         </div>
 
         {chargement ? (
@@ -186,14 +191,14 @@ export function GestionTestsPsychologiques() {
             <p>Loading tests...</p>
           </div>
         ) : tests.length === 0 ? (
-          <div className="empty-state">
-            <div className="empty-icon">📝</div>
-            <h3>No tests available</h3>
-            <p>Create your first psychological test to get started</p>
-            <button onClick={() => setModeCreation(true)} className="empty-action-btn">
-              Create Test
-            </button>
-          </div>
+            <div className="empty-state">
+              <div className="empty-icon">📝</div>
+              <h3>No tests available</h3>
+              <p>Create your first psychological test to get started</p>
+              <button onClick={() => setModeCreation(true)} className="empty-action-btn">
+              Créer un test
+              </button>
+            </div>
         ) : (
           <div className="tests-grid">
             {tests.map((test) => (
@@ -369,11 +374,13 @@ export function GestionTestsPsychologiques() {
         }
 
         .tests-grid-container {
-          background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(var(--app-secondary-rgb), 0.05));
-          border: 1px solid rgba(var(--app-primary-rgb), 0.1);
+          background:
+            linear-gradient(180deg, rgba(255,255,255,0.022), transparent),
+            rgba(18,13,31,0.9);
+          border: 1px solid rgba(255,255,255,0.06);
           border-radius: var(--app-radius-lg);
           padding: 1.15rem;
-          box-shadow: var(--app-shadow-soft);
+          box-shadow: 0 24px 58px rgba(0,0,0,0.34), inset 0 1px 0 rgba(255,255,255,0.03);
           display: flex;
           flex-direction: column;
           min-height: 0;
@@ -386,21 +393,63 @@ export function GestionTestsPsychologiques() {
           align-items: center;
           margin-bottom: 1rem;
           flex-shrink: 0;
+          gap: 1rem;
+          flex-wrap: wrap;
+        }
+
+        .tests-header-copy {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          flex-wrap: wrap;
+        }
+
+        .tests-header-actions {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.85rem;
+          margin-left: auto;
+          flex-wrap: wrap;
         }
 
         .tests-count {
           margin: 0;
           font-size: 1.1rem;
           font-family: var(--app-heading);
-          color: var(--app-primary);
+          color: #f3eefc;
           font-weight: 600;
         }
 
-        .tests-count-subtitle {
-          margin: 0.3rem 0 0;
-          color: var(--app-text-soft);
-          font-size: 0.88rem;
-          line-height: 1.4;
+        .tests-count-chip {
+          display: inline-flex;
+          align-items: center;
+          min-height: 30px;
+          padding: 0 12px;
+          border-radius: 999px;
+          background: rgba(45,23,77,0.48);
+          border: 1px solid rgba(138,99,210,0.18);
+          color: #d8c8f1;
+          font-size: 0.76rem;
+          font-weight: 800;
+        }
+
+        .create-test-btn {
+          min-height: 40px;
+          border: 1px solid rgba(255,255,255,0.08);
+          border-radius: 12px;
+          padding: 0 14px;
+          background: linear-gradient(135deg, #43236a, var(--admin-purple));
+          color: #fff;
+          font-size: 0.86rem;
+          font-weight: 800;
+          cursor: pointer;
+          transition: all 0.18s ease;
+          box-shadow: 0 14px 34px rgba(45,23,77,0.26);
+        }
+
+        .create-test-btn:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 18px 38px rgba(45,23,77,0.32);
         }
 
         .pagination-controls {
@@ -411,7 +460,7 @@ export function GestionTestsPsychologiques() {
 
         .page-info {
           font-size: 0.9rem;
-          color: var(--app-text-soft);
+          color: rgba(216,208,255,0.66);
         }
 
         .pagination-buttons {
@@ -422,9 +471,9 @@ export function GestionTestsPsychologiques() {
         .pagination-btn {
           width: 2rem;
           height: 2rem;
-          border: 1px solid rgba(var(--app-primary-rgb), 0.2);
-          background: rgba(var(--app-secondary-rgb), 0.3);
-          color: var(--app-primary);
+          border: 1px solid rgba(255,255,255,0.08);
+          background: rgba(19,16,33,0.92);
+          color: #fff;
           border-radius: 8px;
           cursor: pointer;
           transition: all 0.2s ease;
@@ -434,7 +483,7 @@ export function GestionTestsPsychologiques() {
         }
 
         .pagination-btn:hover:not(:disabled) {
-          background: rgba(var(--app-secondary-rgb), 0.5);
+          background: rgba(45,23,77,0.72);
           transform: translateY(-1px);
         }
 
@@ -455,8 +504,8 @@ export function GestionTestsPsychologiques() {
         .loading-spinner {
           width: 2rem;
           height: 2rem;
-          border: 3px solid rgba(var(--app-primary-rgb), 0.1);
-          border-top: 3px solid var(--app-primary);
+          border: 3px solid rgba(255,255,255,0.08);
+          border-top: 3px solid var(--admin-glow);
           border-radius: 50%;
           animation: spin 1s linear infinite;
           margin-bottom: 1rem;
@@ -475,6 +524,7 @@ export function GestionTestsPsychologiques() {
           padding: 2.2rem;
           text-align: center;
           min-height: 320px;
+          color: rgba(216,208,255,0.72);
         }
 
         .empty-icon {
@@ -486,18 +536,18 @@ export function GestionTestsPsychologiques() {
         .empty-state h3 {
           margin: 0 0 0.5rem 0;
           font-size: 1.25rem;
-          color: var(--app-primary);
+          color: #fff;
           font-weight: 600;
         }
 
         .empty-state p {
           margin: 0 0 1.5rem 0;
-          color: var(--app-text-soft);
+          color: rgba(216,208,255,0.66);
         }
 
         .empty-action-btn {
           padding: 0.7rem 1.35rem;
-          background: linear-gradient(135deg, var(--app-primary), var(--app-primary-hover));
+          background: linear-gradient(135deg, #43236a, var(--admin-purple));
           color: white;
           border: none;
           border-radius: 999px;
@@ -520,11 +570,13 @@ export function GestionTestsPsychologiques() {
         }
 
         .test-card {
-          background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(var(--app-secondary-rgb), 0.08));
-          border: 1px solid rgba(var(--app-primary-rgb), 0.1);
+          background:
+            linear-gradient(180deg, rgba(255,255,255,0.028), transparent),
+            rgba(13,9,23,0.88);
+          border: 1px solid rgba(255,255,255,0.06);
           border-radius: var(--app-radius-md);
           padding: 1.15rem;
-          box-shadow: var(--app-shadow-soft);
+          box-shadow: 0 24px 58px rgba(0,0,0,0.32), inset 0 1px 0 rgba(255,255,255,0.03);
           transition: all 0.2s ease;
           display: flex;
           flex-direction: column;
@@ -533,8 +585,8 @@ export function GestionTestsPsychologiques() {
 
         .test-card:hover {
           transform: translateY(-2px);
-          box-shadow: var(--app-shadow);
-          border-color: rgba(var(--app-primary-rgb), 0.2);
+          box-shadow: 0 26px 64px rgba(0,0,0,0.38);
+          border-color: rgba(138,99,210,0.24);
         }
 
         .test-card-header {
@@ -548,14 +600,14 @@ export function GestionTestsPsychologiques() {
           margin: 0 0 0.5rem 0;
           font-size: 1rem;
           font-weight: 600;
-          color: var(--app-primary);
+          color: #fff;
           line-height: 1.28;
         }
 
         .test-description {
           margin: 0;
           font-size: 0.88rem;
-          color: var(--app-text-soft);
+          color: rgba(216,208,255,0.66);
           line-height: 1.4;
         }
 
@@ -570,18 +622,18 @@ export function GestionTestsPsychologiques() {
         }
 
         .status-actif {
-          background: linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(34, 197, 94, 0.05));
-          color: #059669;
+          background: rgba(34,197,94,0.12);
+          color: #80d8a0;
         }
 
         .status-inactif {
-          background: rgba(var(--app-muted), 0.1);
-          color: var(--app-muted);
+          background: rgba(255,255,255,0.06);
+          color: rgba(216,208,255,0.72);
         }
 
         .status-brouillon {
-          background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(245, 158, 11, 0.05));
-          color: #d97706;
+          background: rgba(217,120,7,0.16);
+          color: #f4bf73;
         }
 
         .test-meta {
@@ -597,7 +649,7 @@ export function GestionTestsPsychologiques() {
         .meta-label {
           display: block;
           font-size: 0.7rem;
-          color: var(--app-muted);
+          color: rgba(216,208,255,0.58);
           text-transform: uppercase;
           letter-spacing: 0.05em;
           margin-bottom: 0.25rem;
@@ -607,7 +659,7 @@ export function GestionTestsPsychologiques() {
           display: block;
           font-size: 0.9rem;
           font-weight: 600;
-          color: var(--app-primary);
+          color: #fff;
         }
 
         .type-badge {
@@ -619,18 +671,18 @@ export function GestionTestsPsychologiques() {
         }
 
         .type-soft_skills {
-          background: rgba(59, 130, 246, 0.15);
-          color: #2563eb;
+          background: rgba(91,45,145,0.18);
+          color: #d9c8f5;
         }
 
         .type-personnalite {
-          background: rgba(var(--app-accent-rgb), 0.15);
-          color: var(--app-accent);
+          background: rgba(109,61,187,0.18);
+          color: #e4d8f8;
         }
 
         .type-competences {
-          background: rgba(249, 115, 22, 0.15);
-          color: #ea580c;
+          background: rgba(217,120,7,0.16);
+          color: #f4bf73;
         }
 
         .test-validity {
@@ -638,7 +690,8 @@ export function GestionTestsPsychologiques() {
           grid-template-columns: 1fr 1fr;
           gap: 0.6rem;
           padding: 0.7rem;
-          background: rgba(var(--app-secondary-rgb), 0.1);
+          background: rgba(13,9,23,0.72);
+          border: 1px solid rgba(255,255,255,0.06);
           border-radius: 12px;
         }
 
@@ -649,7 +702,7 @@ export function GestionTestsPsychologiques() {
         .validity-label {
           display: block;
           font-size: 0.7rem;
-          color: var(--app-muted);
+          color: rgba(216,208,255,0.58);
           text-transform: uppercase;
           letter-spacing: 0.05em;
           margin-bottom: 0.25rem;
@@ -659,7 +712,7 @@ export function GestionTestsPsychologiques() {
           display: block;
           font-size: 0.85rem;
           font-weight: 500;
-          color: var(--app-primary);
+          color: #fff;
         }
 
         .test-actions {
@@ -672,61 +725,63 @@ export function GestionTestsPsychologiques() {
           flex: 1;
           min-width: 0;
           padding: 0.45rem 0.7rem;
-          border: none;
+          border: 1px solid rgba(255,255,255,0.06);
           border-radius: 8px;
           font-size: 0.8rem;
           font-weight: 500;
           cursor: pointer;
           transition: all 0.2s ease;
+          background: rgba(19,16,33,0.9);
+          color: #fff;
         }
 
         .edit-btn {
-          background: rgba(59, 130, 246, 0.1);
-          color: #2563eb;
+          background: rgba(91,45,145,0.16);
+          color: #d9c8f5;
         }
 
         .edit-btn:hover {
-          background: rgba(59, 130, 246, 0.2);
+          background: rgba(91,45,145,0.3);
           transform: translateY(-1px);
         }
 
         .stats-btn {
-          background: rgba(34, 197, 94, 0.1);
-          color: #059669;
+          background: rgba(34,197,94,0.12);
+          color: #80d8a0;
         }
 
         .stats-btn:hover {
-          background: rgba(34, 197, 94, 0.2);
+          background: rgba(34,197,94,0.22);
           transform: translateY(-1px);
         }
 
         .activate-btn {
-          background: rgba(34, 197, 94, 0.1);
-          color: #059669;
+          background: rgba(34,197,94,0.12);
+          color: #80d8a0;
         }
 
         .activate-btn:hover {
-          background: rgba(34, 197, 94, 0.2);
+          background: rgba(34,197,94,0.22);
           transform: translateY(-1px);
         }
 
         .deactivate-btn {
-          background: rgba(245, 158, 11, 0.1);
-          color: #d97706;
+          background: rgba(217,120,7,0.16);
+          color: #f4bf73;
         }
 
         .deactivate-btn:hover {
-          background: rgba(245, 158, 11, 0.2);
+          background: rgba(217,120,7,0.24);
           transform: translateY(-1px);
         }
 
         .delete-btn {
-          background: rgba(239, 68, 68, 0.1);
-          color: #dc2626;
+          background: rgba(217,47,88,0.12);
+          color: #ff9cb4;
         }
 
         .delete-btn:hover {
-          background: rgba(239, 68, 68, 0.2);
+          background: rgba(217,47,88,0.22);
           transform: translateY(-1px);
         }
 

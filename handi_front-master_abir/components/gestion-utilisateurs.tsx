@@ -26,18 +26,18 @@ interface FiltresUtilisateurs {
 }
 
 const ROLE_STYLES: Record<string, string> = {
-  admin: "bg-red-100 text-red-800",
-  entreprise: "bg-blue-100 text-blue-800",
-  candidat: "bg-green-100 text-green-800",
-  inspecteur: "bg-purple-100 text-purple-800",
-  aneti: "bg-indigo-100 text-indigo-800",
+  admin: "border border-[rgba(138,99,210,0.22)] bg-[rgba(45,23,77,0.52)] text-[#e4d8f8]",
+  entreprise: "border border-[rgba(138,99,210,0.18)] bg-[rgba(33,20,56,0.52)] text-[#d7c6f3]",
+  candidat: "border border-[rgba(138,99,210,0.18)] bg-[rgba(40,24,66,0.52)] text-[#d9c9f4]",
+  inspecteur: "border border-[rgba(138,99,210,0.26)] bg-[rgba(52,27,84,0.62)] text-[#eadfff]",
+  aneti: "border border-[rgba(138,99,210,0.2)] bg-[rgba(36,22,60,0.58)] text-[#d8caf2]",
 };
 
 const STATUS_STYLES: Record<string, string> = {
-  actif: "bg-green-100 text-green-800",
-  inactif: "bg-gray-100 text-gray-800",
-  en_attente: "bg-yellow-100 text-yellow-800",
-  suspendu: "bg-red-100 text-red-800",
+  actif: "border border-[rgba(138,99,210,0.18)] bg-[rgba(35,22,58,0.56)] text-[#dfd2f7]",
+  inactif: "border border-[rgba(255,255,255,0.08)] bg-[rgba(18,13,31,0.72)] text-[#b5acc8]",
+  en_attente: "border border-[rgba(138,99,210,0.22)] bg-[rgba(52,27,84,0.6)] text-[#eadfff]",
+  suspendu: "border border-[rgba(109,61,187,0.24)] bg-[rgba(44,23,72,0.66)] text-[#d9c5fb]",
 };
 
 const ROLE_LABELS: Record<string, string> = {
@@ -321,7 +321,7 @@ export function GestionUtilisateurs() {
   const totalDisplayCount = totalUtilisateurs || usersLoadedCount || usersVisibleCount;
 
   return (
-    <div className="space-y-6">
+    <div className="admin-users-manager space-y-6">
       {message && (
         <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-md">
           {message}
@@ -340,7 +340,7 @@ export function GestionUtilisateurs() {
         </div>
       )}
 
-      <div className="rounded-2xl border border-slate-200 bg-white/95 p-4 shadow-sm">
+      <div className="admin-users-toolbar-shell rounded-2xl border border-slate-200 bg-white/95 p-4 shadow-sm">
         <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
           <div className="min-w-0">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">User governance</p>
@@ -374,8 +374,8 @@ export function GestionUtilisateurs() {
           </div>
         </div>
 
-        <div className="mt-4 grid gap-3 xl:grid-cols-[minmax(0,1.7fr)_repeat(2,minmax(140px,1fr))]">
-          <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-3">
+        <div className="admin-users-toolbar-shell__filters mt-4 grid gap-3 xl:grid-cols-[minmax(0,1.7fr)_repeat(2,minmax(140px,1fr))]">
+          <div className="admin-users-toolbar-shell__filter rounded-2xl border border-slate-200 bg-slate-50/80 p-3">
             <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Search</label>
             <input
               type="text"
@@ -386,7 +386,7 @@ export function GestionUtilisateurs() {
             />
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-3">
+          <div className="admin-users-toolbar-shell__filter rounded-2xl border border-slate-200 bg-slate-50/80 p-3">
             <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Role</label>
             <select
               value={filtres.role}
@@ -402,7 +402,7 @@ export function GestionUtilisateurs() {
             </select>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-3">
+          <div className="admin-users-toolbar-shell__filter rounded-2xl border border-slate-200 bg-slate-50/80 p-3">
             <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Status</label>
             <select
               value={filtres.statut}
@@ -416,10 +416,9 @@ export function GestionUtilisateurs() {
               <option value="suspendu">Suspended</option>
             </select>
           </div>
-
         </div>
 
-        <div className="mt-4 flex flex-wrap items-center gap-2">
+        <div className="admin-users-toolbar-shell__stats mt-4 flex flex-wrap items-center gap-2">
           <span className="inline-flex items-center rounded-full bg-purple-950 px-3 py-1 text-xs font-semibold text-white">
             Visible {usersVisibleCount}
           </span>
@@ -441,17 +440,17 @@ export function GestionUtilisateurs() {
         </div>
       </div>
 
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
+      <div className="admin-users-table-shell bg-white rounded-lg shadow-md overflow-hidden">
 
         {chargement ? (
-          <div className="p-8 text-center">
+          <div className="admin-users-loading p-8 text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
             <p className="mt-2 text-gray-600">Loading...</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+            <table className="admin-users-table min-w-full divide-y divide-gray-200">
+              <thead className="admin-users-table-head bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     User
@@ -470,9 +469,9 @@ export function GestionUtilisateurs() {
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="admin-users-table-body bg-white divide-y divide-gray-200">
                 {utilisateursAffiches.map((utilisateur) => (
-                  <tr key={utilisateur.id_utilisateur} className="hover:bg-gray-50">
+                  <tr key={utilisateur.id_utilisateur} className="admin-users-table-row hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
                         <div className="text-sm font-medium text-gray-900">{utilisateur.nom}</div>
@@ -538,7 +537,7 @@ export function GestionUtilisateurs() {
         )}
 
         {!recherche && totalPages > 1 && (
-          <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+          <div className="admin-users-pagination px-6 py-4 border-t border-gray-200 flex items-center justify-between">
             <div className="text-sm text-gray-700">
               Page {page} of {totalPages} ({totalUtilisateurs} users total)
             </div>
@@ -637,13 +636,13 @@ function ModalUtilisateur({ utilisateur, modeCreation, onSave, onCancel }: Modal
     "h-11 w-full appearance-none rounded-xl border border-[#ddd7ef] bg-white px-10 pr-9 text-[14px] font-semibold text-[#1f173f] outline-none transition focus:border-[#7c3aed] focus:ring-4 focus:ring-[#7c3aed1f]";
 
   return (
-    <div
-      className="fixed inset-0 z-[2200] flex items-center justify-center overflow-y-auto bg-[#1a122b]/45 p-4 backdrop-blur-[6px]"
+      <div
+        className="admin-users-modal-backdrop fixed inset-0 z-[2200] flex items-center justify-center overflow-y-auto bg-[#1a122b]/45 p-4 backdrop-blur-[6px]"
       role="dialog"
       aria-modal="true"
       aria-labelledby="admin-user-modal-title"
     >
-      <div className="flex max-h-[calc(100vh-2.5rem)] w-full max-w-[760px] flex-col overflow-hidden rounded-[16px] border border-[#ebe6f7] bg-white shadow-[0_28px_70px_rgba(31,18,49,0.24)]">
+      <div className="admin-users-modal-card flex max-h-[calc(100vh-2.5rem)] w-full max-w-[760px] flex-col overflow-hidden rounded-[16px] border border-[#ebe6f7] bg-white shadow-[0_28px_70px_rgba(31,18,49,0.24)]">
         <div className="flex items-start justify-between gap-4 px-5 pt-5 pb-4">
           <div className="flex items-start gap-3">
             <div className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#efe6ff] text-[#6b35e6]">
@@ -829,7 +828,7 @@ function ModalUtilisateur({ utilisateur, modeCreation, onSave, onCancel }: Modal
             )}
           </div>
 
-          <div className="flex flex-wrap justify-end gap-3 border-t border-[#ebe6f7] bg-white px-5 py-3.5">
+          <div className="admin-users-modal-footer flex flex-wrap justify-end gap-3 border-t border-[#ebe6f7] bg-white px-5 py-3.5">
             <button
               type="button"
               onClick={onCancel}

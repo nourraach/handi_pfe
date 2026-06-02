@@ -422,7 +422,11 @@ export function Navbar({
     [messagesNonLus],
   );
 
-  const sidebarItems = isAdmin ? adminSidebarItems : isEntreprise ? entrepriseSidebarItems : candidateSidebarItems;
+  const sidebarItems = isAdmin
+    ? adminSidebarItems
+    : isEntreprise
+      ? entrepriseSidebarItems.filter((item) => item.href !== "/entreprise/profil" && item.icon !== "settings")
+      : candidateSidebarItems;
 
   const isPathActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
 
@@ -781,7 +785,7 @@ export function Navbar({
   const deconnexion = () => {
     localStorage.removeItem("token_auth");
     localStorage.removeItem("utilisateur_connecte");
-    router.push("/connexion");
+    router.push("/");
   };
 
   const ouvrirPanneauAccessibilite = () => {
@@ -924,25 +928,29 @@ export function Navbar({
             </button>
           ) : null}
 
-          <div className="candidate-sidebar-ref__divider" aria-hidden="true" />
+          {!isEntreprise ? (
+            <>
+              <div className="candidate-sidebar-ref__divider" aria-hidden="true" />
 
-          <div className={classes("candidate-sidebar-ref__profile-card", candidateSidebarCollapsed && "is-collapsed")}>
-            <Image
-              src={candidateProfilePhoto || "/uploads/photo1.png"}
-              alt={utilisateur.nom}
-              width={44}
-              height={44}
-              className="candidate-sidebar-ref__profile-image"
-              unoptimized={!!candidateProfilePhoto?.startsWith("data:")}
-            />
-            <div className={classes("candidate-sidebar-ref__profile-copy", candidateSidebarCollapsed && "is-collapsed")}>
-              <strong>{utilisateur.nom}</strong>
-              <button type="button" onClick={() => naviguerVers(profilHref)}>
-                Voir mon profil
-              </button>
-            </div>
-            {!candidateSidebarCollapsed ? <span className="candidate-sidebar-ref__chevron">›</span> : null}
-          </div>
+              <div className={classes("candidate-sidebar-ref__profile-card", candidateSidebarCollapsed && "is-collapsed")}>
+                <Image
+                  src={candidateProfilePhoto || "/uploads/photo1.png"}
+                  alt={utilisateur.nom}
+                  width={44}
+                  height={44}
+                  className="candidate-sidebar-ref__profile-image"
+                  unoptimized={!!candidateProfilePhoto?.startsWith("data:")}
+                />
+                <div className={classes("candidate-sidebar-ref__profile-copy", candidateSidebarCollapsed && "is-collapsed")}>
+                  <strong>{utilisateur.nom}</strong>
+                  <button type="button" onClick={() => naviguerVers(profilHref)}>
+                    Voir mon profil
+                  </button>
+                </div>
+                {!candidateSidebarCollapsed ? <span className="candidate-sidebar-ref__chevron">›</span> : null}
+              </div>
+            </>
+          ) : null}
 
           {!candidateSidebarCollapsed ? (
             <button type="button" className="candidate-sidebar-ref__logout-link" onClick={deconnexion}>

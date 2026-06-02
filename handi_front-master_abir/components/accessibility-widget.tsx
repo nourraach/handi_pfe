@@ -11,6 +11,19 @@ const ACCESSIBILITY_PANEL_EVENT = "handitalents:accessibility-panel";
 
 type AccessibilityPanelAction = "open" | "close" | "toggle";
 
+type SpeechRecognitionLike = {
+  lang: string;
+  continuous: boolean;
+  interimResults: boolean;
+  maxAlternatives?: number;
+  start: () => void;
+  stop: () => void;
+  onstart: (() => void) | null;
+  onend: (() => void) | null;
+  onresult: ((event: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void) | null;
+  onerror: ((event: { error: string }) => void) | null;
+};
+
 export function triggerAccessibilityPanel(action: AccessibilityPanelAction = "toggle") {
   if (typeof window === "undefined") return;
   window.dispatchEvent(new CustomEvent(ACCESSIBILITY_PANEL_EVENT, { detail: { action } }));
@@ -220,7 +233,7 @@ export function AccessibilityWidget() {
   const [showVoiceGuide, setShowVoiceGuide] = useState(false);
   const [keyboardStatus, setKeyboardStatus] = useState("");
   const [portalReady, setPortalReady] = useState(false);
-  const recognitionRef = useRef<{ stop: () => void } | null>(null);
+  const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const virtualKeyboardTargetRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null);
 
   const fontLabel = settings.fontScale === 1 ? t("accessibility.default") : `${Math.round(settings.fontScale * 100)}%`;
@@ -533,24 +546,8 @@ export function AccessibilityWidget() {
       return;
     }
     const maybeWindow = window as unknown as {
-      SpeechRecognition?: new () => {
-        lang: string;
-        continuous: boolean;
-        interimResults: boolean;
-        start: () => void;
-        stop: () => void;
-        onresult: ((event: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void) | null;
-        onerror: ((event: { error: string }) => void) | null;
-      };
-      webkitSpeechRecognition?: new () => {
-        lang: string;
-        continuous: boolean;
-        interimResults: boolean;
-        start: () => void;
-        stop: () => void;
-        onresult: ((event: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void) | null;
-        onerror: ((event: { error: string }) => void) | null;
-      };
+      SpeechRecognition?: new () => SpeechRecognitionLike;
+      webkitSpeechRecognition?: new () => SpeechRecognitionLike;
     };
     const SpeechRecognitionCtor = maybeWindow.SpeechRecognition || maybeWindow.webkitSpeechRecognition;
     if (!SpeechRecognitionCtor) {
@@ -565,7 +562,6 @@ export function AccessibilityWidget() {
     recognition.lang = speechLang;
     recognition.continuous = true;
     recognition.interimResults = false;
-    // @ts-expect-error Optional on some implementations.
     recognition.maxAlternatives = 3;
     let shouldRestart = true;
     let stoppedByUser = false;
@@ -1037,5 +1033,4 @@ export function AccessibilityWidget() {
 
   return createPortal(panel, document.body);
 }
-
 

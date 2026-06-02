@@ -1,19 +1,22 @@
 ﻿"use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { type ReactNode, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   ArrowRight,
+  Bell,
   Bookmark,
   BrainCircuit,
   BriefcaseBusiness,
   CalendarClock,
   CheckCircle2,
+  Download,
   FileText,
   MessageCircle,
+  Search,
   ShieldCheck,
   Sparkles,
   UserRoundCheck,
@@ -781,11 +784,11 @@ function RoleWorkspaceHome({
             />
             <StatCard
               label={t("adminStats.hiringRate")}
-              value={`${formatPercent(adminStats.taux_recrutement)} %`}
+              value={`${formatPercent(asNumber(adminStats.taux_recrutement))} %`}
             />
             <StatCard
               label={t("adminStats.averageTime")}
-              value={formatPercent(adminStats.temps_moyen_traitement_jours)}
+              value={formatPercent(asNumber(adminStats.temps_moyen_traitement_jours))}
             />
             <StatCard
               label={t("adminStats.pending")}
@@ -1143,6 +1146,13 @@ function AdminDashboardHome({
     { href: "/admin/statistiques", label: "Open analytics report", icon: metricIcon("report") },
   ];
 
+  const commandKpis = [
+    { label: "Entreprises actives", value: activeCompanies, icon: metricIcon("jobs") },
+    { label: "Candidats recommandes", value: shortlisted, icon: metricIcon("candidates") },
+    { label: "Entretiens planifies", value: interviews, icon: metricIcon("clipboard") },
+    { label: "Nouveaux embauches", value: accepted, icon: metricIcon("hire") },
+  ];
+
   const platformActivity = [
     {
       id: "activity-shortlist",
@@ -1178,7 +1188,7 @@ function AdminDashboardHome({
     },
   ] as Array<{
     id: string;
-    icon: JSX.Element;
+    icon: ReactNode;
     title: string;
     detail: string;
     time: string;
@@ -1201,18 +1211,34 @@ function AdminDashboardHome({
       <div className="admin-command">
         <section className="admin-command__hero">
           <div className="admin-command__hero-copy">
-            <p className="admin-command__eyebrow">Inclusive hiring operations</p>
-            <h1>Admin command center</h1>
-            <p>{firstName}, track decisions, accessibility quality, and hiring momentum from one polished workspace.</p>
+            <p className="admin-command__hello">Bonjour, {firstName} 👋</p>
+            <h1>Admin <span>command</span> center</h1>
+            <p>Administrez la plateforme, suivez les decisions, la qualite d&apos;accessibilite et la dynamique de recrutement.</p>
             <div className="admin-command__hero-actions">
-              <Link href="/admin/demandes-en-attente">Review queue</Link>
-              <Link href="/admin/statistiques">View reports</Link>
+              <Link href="/admin/demandes-en-attente">Voir la file d&apos;attente <ArrowRight size={17} /></Link>
+              <Link href="/admin/statistiques">Voir les rapports</Link>
             </div>
           </div>
-
+          <div className="admin-command__top-actions" aria-label="Admin workspace actions">
+            <button type="button" aria-label="Rechercher"><Search size={22} /></button>
+            <button type="button" aria-label="Notifications"><Bell size={22} /><span>3</span></button>
+            <Link href="/admin/statistiques"><Download size={19} /> Exporter un rapport</Link>
+          </div>
         </section>
 
         {erreurStats ? <div className="message message-erreur">{erreurStats}</div> : null}
+
+        <section className="admin-command__kpis" aria-label="Admin key indicators">
+          {commandKpis.map((item) => (
+            <article key={item.label} className="admin-command__metric">
+              <span aria-hidden="true">{item.icon}</span>
+              <div>
+                <strong>{item.value.toLocaleString()}</strong>
+                <p>{item.label}</p>
+              </div>
+            </article>
+          ))}
+        </section>
 
         <section className="admin-command__grid">
           <article className="admin-command__card admin-command__card--focus">
@@ -2042,7 +2068,7 @@ function CandidateHome({
     </main>
   );
 }
-function buildOfferMark(company?: string) {
+function buildOfferMark(company?: string | null) {
   const clean = company?.trim() || "HT";
   const parts = clean.split(/\s+/).filter(Boolean);
   return (parts[0]?.[0] || "H") + (parts[1]?.[0] || parts[0]?.[1] || "T");

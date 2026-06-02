@@ -52,7 +52,7 @@ export function useAuth() {
     localStorage.removeItem('utilisateur_connecte');
     setUtilisateur(null);
     setEstConnecte(false);
-    router.push('/connexion');
+    router.push('/');
   };
 
   const estAdmin = () => utilisateur?.role === 'admin';

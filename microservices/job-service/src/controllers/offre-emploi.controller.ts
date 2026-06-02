@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { OffreEmploiService } from "../services/offre-emploi.service";
+import { OffrePublicationReviewService } from "../services/offre-publication-review.service";
 import { MatchingService } from "../services/matching.service";
 import { reponseSucces, reponseErreur } from "../utils/reponse";
 import { asString } from "../utils/request-helpers";
@@ -9,6 +10,7 @@ import { RoleUtilisateur } from "../types/enums";
 export class OffreEmploiController {
   constructor(private readonly offreEmploiService = new OffreEmploiService()) {}
   private readonly matchingService = new MatchingService();
+  private readonly offrePublicationReviewService = new OffrePublicationReviewService();
 
   private normaliserTypePoste(typePoste: unknown): string | undefined {
     if (typeof typePoste !== "string") return undefined;
@@ -71,6 +73,7 @@ export class OffreEmploiController {
       };
 
       const nouvelleOffre = await this.offreEmploiService.creerOffre(donneesOffre);
+      await this.offrePublicationReviewService.soumettrePourPublication(nouvelleOffre.id);
 
       return reponseSucces(res, 201, "Offre créée avec succès", nouvelleOffre);
     } catch (error: any) {
