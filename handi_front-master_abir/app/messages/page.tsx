@@ -1213,10 +1213,10 @@ function MessagesPage() {
         .msg-icon-btn {
           inline-size: 40px;
           block-size: 40px;
-          border: 1px solid var(--line);
+          border: 1px solid rgba(91, 45, 145, 0.18);
           border-radius: 12px;
-          background: #fff;
-          color: #5e4b87;
+          background: rgba(45, 23, 77, 0.04);
+          color: #5b2d91;
           display: inline-grid;
           place-items: center;
           position: relative;
@@ -1238,14 +1238,15 @@ function MessagesPage() {
         }
 
         .msg-icon-btn.is-active {
-          background: rgba(109, 42, 149, 0.08);
-          border-color: rgba(109, 42, 149, 0.25);
+          background: rgba(91, 45, 145, 0.12);
+          border-color: rgba(91, 45, 145, 0.28);
+          color: #2d174d;
         }
 
         .msg-icon-btn.is-recording {
-          color: #b42318;
-          border-color: rgba(180, 35, 24, 0.22);
-          background: rgba(180, 35, 24, 0.07);
+          color: #fff;
+          border-color: rgba(91, 45, 145, 0.4);
+          background: linear-gradient(135deg, #2d174d, #5b2d91);
         }
 
         .msg-user-chip {
@@ -1308,9 +1309,9 @@ function MessagesPage() {
 
         .msg-new-conversation {
           min-height: 42px;
-          border: 0;
+          border: 1px solid var(--app-primary);
           border-radius: 12px;
-          background: linear-gradient(135deg, #6d2a95, #7e42be);
+          background: var(--app-primary);
           color: #fff;
           font-weight: 700;
           display: inline-flex;
@@ -1318,6 +1319,12 @@ function MessagesPage() {
           justify-content: center;
           gap: 8px;
           padding: 0 12px;
+          box-shadow: 0 14px 28px -16px rgba(var(--app-primary-rgb), 0.85);
+        }
+
+        .msg-new-conversation:hover {
+          background: var(--app-primary-hover);
+          border-color: var(--app-primary-hover);
         }
 
         .msg-thread-list {
@@ -1769,11 +1776,80 @@ function MessagesPage() {
           block-size: 40px;
           border: 0;
           border-radius: 12px;
-          background: #6d2a95;
+          background: linear-gradient(135deg, #2d174d, #5b2d91);
           color: #fff;
           display: inline-grid;
           place-items: center;
           align-self: center;
+          box-shadow: 0 10px 24px rgba(45, 23, 77, 0.18);
+        }
+
+        .msg-send:hover {
+          background: linear-gradient(135deg, #35205a, #6937a3);
+        }
+
+        .messages-studio-modal-close,
+        .messages-studio-ghost {
+          min-height: 40px;
+          padding: 0 14px;
+          border-radius: 12px;
+          border: 1px solid rgba(91, 45, 145, 0.18);
+          background: rgba(45, 23, 77, 0.04);
+          color: #2d174d;
+          font-weight: 600;
+        }
+
+        .messages-studio-modal-close:hover,
+        .messages-studio-ghost:hover {
+          background: rgba(91, 45, 145, 0.08);
+          border-color: rgba(91, 45, 145, 0.26);
+        }
+
+        .messages-studio-primary {
+          min-height: 40px;
+          padding: 0 16px;
+          border-radius: 12px;
+          border: 1px solid rgba(91, 45, 145, 0.18);
+          background: linear-gradient(135deg, #2d174d, #5b2d91);
+          color: #fff;
+          font-weight: 700;
+          box-shadow: 0 10px 24px rgba(45, 23, 77, 0.14);
+        }
+
+        .messages-studio-primary:hover {
+          background: linear-gradient(135deg, #35205a, #6937a3);
+        }
+
+        .messages-studio-admin-chip {
+          min-height: 34px;
+          padding: 0 12px;
+          border-radius: 999px;
+          border: 1px solid rgba(91, 45, 145, 0.14);
+          background: rgba(45, 23, 77, 0.03);
+          color: #2d174d;
+          font-weight: 600;
+        }
+
+        .messages-studio-admin-chip.is-active {
+          background: rgba(91, 45, 145, 0.12);
+          border-color: rgba(91, 45, 145, 0.3);
+        }
+
+        .messages-studio-suggestion {
+          border: 1px solid rgba(91, 45, 145, 0.12);
+          background: #fff;
+          color: #24163f;
+        }
+
+        .messages-studio-suggestion.is-active {
+          border-color: rgba(91, 45, 145, 0.28);
+          background: rgba(91, 45, 145, 0.06);
+        }
+
+        .messages-studio-selected {
+          border: 1px solid rgba(91, 45, 145, 0.14);
+          background: rgba(45, 23, 77, 0.04);
+          color: #24163f;
         }
 
         .msg-icon-btn:focus-visible,

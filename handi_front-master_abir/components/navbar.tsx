@@ -928,7 +928,7 @@ export function Navbar({
             </button>
           ) : null}
 
-          {!isEntreprise ? (
+          {(isCandidate || isEntreprise || isAdmin) ? (
             <>
               <div className="candidate-sidebar-ref__divider" aria-hidden="true" />
 

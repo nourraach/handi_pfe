@@ -6,6 +6,7 @@ import { UtilisateurConnecte } from "@/types/api";
 
 export function AppShell({ utilisateur, children }: { utilisateur: UtilisateurConnecte; children: ReactNode }) {
   const roleClassName = `app-shell-${utilisateur.role}`;
+  const designSystemClassName = utilisateur.role === "admin" ? "" : "app-shell-product";
   const [candidateSidebarCollapsedState, setCandidateSidebarCollapsedState] = useState(false);
   const hasCollapsibleSidebar = utilisateur.role === "candidat";
   const candidateSidebarCollapsed = hasCollapsibleSidebar ? candidateSidebarCollapsedState : false;
@@ -14,6 +15,8 @@ export function AppShell({ utilisateur, children }: { utilisateur: UtilisateurCo
   return (
     <div
       className={`app-shell app-theme ${roleClassName} ${
+        designSystemClassName
+      } ${
         collapsedClassName
       }`}
     >

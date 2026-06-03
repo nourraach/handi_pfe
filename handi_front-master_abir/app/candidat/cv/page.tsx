@@ -2,8 +2,16 @@
 
 import type { ReactNode } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  ChevronDown,
+  Download,
+  Eye,
+  FileText,
+  Grid3X3,
+  Sparkles,
+} from "lucide-react";
 
-type CvTemplate = "classic" | "modern" | "sidebar";
+type CvTemplate = "classic" | "modern" | "sidebar" | "creative";
 
 type CvTheme = {
   id: string;
@@ -87,10 +95,17 @@ type CvBuilderTourStep = {
 };
 
 const themes: CvTheme[] = [
-  { id: "handitalents", name: "HandiTalents", primary: "#2f2458", surface: "#f3edff", accent: "#6d2a95" },
+  { id: "handitalents", name: "HandiTalents", primary: "#1f1738", surface: "#111325", accent: "#7b4dd9" },
   { id: "midnight", name: "Midnight", primary: "#1f2a44", surface: "#eef2ff", accent: "#5669ff" },
   { id: "emerald", name: "Emerald", primary: "#184f46", surface: "#eefaf6", accent: "#2aa889" },
   { id: "sunrise", name: "Sunrise", primary: "#7f3d2f", surface: "#fff4ee", accent: "#ee7b4c" },
+];
+
+const templateCards: Array<{ id: CvTemplate; title: string; subtitle: string; accent: string; tone: string }> = [
+  { id: "sidebar", title: "Moderne", subtitle: "Mise en page latérale", accent: "#2d174d", tone: "Sidebar sombre" },
+  { id: "modern", title: "Minimaliste", subtitle: "Ligne claire", accent: "#5b2d91", tone: "Deux colonnes épurées" },
+  { id: "creative", title: "Creatif", subtitle: "Accent visuel", accent: "#8f3a62", tone: "Plus expressif" },
+  { id: "classic", title: "Classique", subtitle: "Sobre et formel", accent: "#8b7b65", tone: "Structure traditionelle" },
 ];
 
 const CV_BUILDER_TOUR_STEPS: CvBuilderTourStep[] = [
@@ -263,7 +278,10 @@ function normalizeCvState(value: unknown): CvFormState {
     skills: typeof data.skills === "string" ? data.skills : defaults.skills,
     languages: typeof data.languages === "string" ? data.languages : defaults.languages,
     certifications: typeof data.certifications === "string" ? data.certifications : defaults.certifications,
-    template: data.template === "classic" || data.template === "modern" || data.template === "sidebar" ? data.template : defaults.template,
+    template:
+      data.template === "classic" || data.template === "modern" || data.template === "sidebar" || data.template === "creative"
+        ? data.template
+        : defaults.template,
     colorThemeId: typeof data.colorThemeId === "string" ? data.colorThemeId : defaults.colorThemeId,
     experiences: Array.isArray(data.experiences) ? data.experiences : defaults.experiences,
     education: Array.isArray(data.education) ? data.education : defaults.education,
@@ -356,6 +374,16 @@ function hasValue(value: string) {
   return value.trim().length > 0;
 }
 
+function getInitials(name: string) {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase() || "CV";
+}
+
 function getStepCompletion(cv: CvFormState): Record<CvStepId, boolean> {
   const profileComplete = [cv.fullName, cv.title, cv.email, cv.address].every(hasValue);
   const experienceComplete = cv.experiences.some((item) => [item.role, item.company, item.details].every(hasValue));
@@ -393,22 +421,38 @@ function buildCvHtml(cv: CvFormState, theme: CvTheme) {
   const projects = cv.projects.filter((item) => item.title || item.details);
   const achievements = cv.achievements.filter((item) => item.title || item.details);
   const volunteer = cv.volunteer.filter((item) => item.role || item.organization || item.details);
+  const isSidebarTemplate = cv.template === "sidebar";
+  const effectiveTemplate = cv.template === "creative" ? "modern" : cv.template;
+  const titleColor = isSidebarTemplate ? "#ffffff" : theme.primary;
+  const mutedColor = isSidebarTemplate ? "rgba(255,255,255,0.72)" : "#334155";
+  const accentColor = theme.accent;
+  const lineColor = isSidebarTemplate ? "rgba(255,255,255,0.12)" : "rgba(109, 42, 149, 0.12)";
+  const sidebarBackground = isSidebarTemplate
+    ? "linear-gradient(180deg, #1a1630 0%, #101521 100%)"
+    : theme.surface;
+  const sidebarInitials = getInitials(cv.fullName || "CV");
+  const contactItems = [cv.email, cv.phone, cv.address, cv.website, cv.linkedin]
+    .filter(Boolean)
+    .map((item) => `<div style="display:flex;align-items:center;gap:8px;"><span style="width:6px;height:6px;border-radius:999px;background:${isSidebarTemplate ? "rgba(255,255,255,0.7)" : theme.accent};flex:none;"></span><span>${escapeHtml(item)}</span></div>`)
+    .join("");
 
-  const header = `
-    <header style="padding:28px 32px;background:${cv.template === "classic" ? "#fff" : theme.surface};border-bottom:3px solid ${theme.accent};">
-      <h1 style="margin:0;color:${theme.primary};font-size:34px;">${escapeHtml(cv.fullName || "Your Name")}</h1>
-      <p style="margin:8px 0 0;color:#334155;font-size:18px;">${escapeHtml(cv.title || "Professional Title")}</p>
-      ${cv.headline ? `<p style="margin:8px 0 0;color:${theme.accent};font-size:14px;font-weight:600;">${escapeHtml(cv.headline)}</p>` : ""}
-      <p style="margin:14px 0 0;color:#475569;font-size:14px;">${[cv.email, cv.phone, cv.address, cv.website, cv.linkedin, cv.github].filter(Boolean).map(escapeHtml).join(" | ")}</p>
+  const header = isSidebarTemplate
+    ? ""
+    : `
+    <header style="padding:0 0 10px;background:${effectiveTemplate === "classic" ? "#fff" : theme.surface};border-bottom:1px solid rgba(109,42,149,0.12);">
+      <h1 style="margin:0;color:${theme.primary};font-size:32px;line-height:1.05;">${escapeHtml(cv.fullName || "Votre nom")}</h1>
+      <p style="margin:8px 0 0;color:#475569;font-size:16px;">${escapeHtml(cv.title || "Titre professionnel")}</p>
+      ${cv.headline ? `<p style="margin:8px 0 0;color:${theme.accent};font-size:13px;font-weight:600;">${escapeHtml(cv.headline)}</p>` : ""}
+      <p style="margin:12px 0 0;color:#64748b;font-size:13px;">${[cv.email, cv.phone, cv.address, cv.website, cv.linkedin, cv.github].filter(Boolean).map(escapeHtml).join(" | ")}</p>
     </header>
   `;
 
   const summary = cv.summary
-    ? `<section>${sectionTitle("Professional Summary", theme)}<p style="margin:0;color:#334155;line-height:1.7;">${escapeHtml(cv.summary)}</p></section>`
+    ? `<section>${sectionTitle("Professional Summary", theme)}<p style="margin:0;color:${mutedColor};line-height:1.7;">${escapeHtml(cv.summary)}</p></section>`
     : "";
 
   const objective = cv.objective
-    ? `<section>${sectionTitle("Career Objective", theme)}<p style="margin:0;color:#334155;line-height:1.7;">${escapeHtml(cv.objective)}</p></section>`
+    ? `<section>${sectionTitle("Career Objective", theme)}<p style="margin:0;color:${mutedColor};line-height:1.7;">${escapeHtml(cv.objective)}</p></section>`
     : "";
 
   const expHtml = experiences.length
@@ -418,12 +462,12 @@ function buildCvHtml(cv: CvFormState, theme: CvTheme) {
           <article style="margin-bottom:16px;">
             <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;">
               <div>
-                <strong style="display:block;color:#0f172a;font-size:16px;">${escapeHtml(item.role || "Role")}</strong>
-                <span style="color:${theme.accent};font-weight:600;">${escapeHtml(item.company || "Company")}</span>
+                <strong style="display:block;color:${titleColor};font-size:16px;">${escapeHtml(item.role || "Role")}</strong>
+                <span style="color:${accentColor};font-weight:600;">${escapeHtml(item.company || "Company")}</span>
               </div>
-              <span style="color:#64748b;font-size:13px;white-space:nowrap;">${escapeHtml(item.period)}</span>
+              <span style="color:${isSidebarTemplate ? "rgba(255,255,255,0.58)" : "#64748b"};font-size:13px;white-space:nowrap;">${escapeHtml(item.period)}</span>
             </div>
-            <p style="margin:8px 0 0;color:#334155;line-height:1.7;">${escapeHtml(item.details)}</p>
+            <p style="margin:8px 0 0;color:${mutedColor};line-height:1.7;">${escapeHtml(item.details)}</p>
           </article>`,
         )
         .join("")}</section>`
@@ -436,12 +480,12 @@ function buildCvHtml(cv: CvFormState, theme: CvTheme) {
           <article style="margin-bottom:16px;">
             <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;">
               <div>
-                <strong style="display:block;color:#0f172a;font-size:16px;">${escapeHtml(item.diploma || "Diploma")}</strong>
-                <span style="color:${theme.accent};font-weight:600;">${escapeHtml(item.school || "School")}</span>
+                <strong style="display:block;color:${titleColor};font-size:16px;">${escapeHtml(item.diploma || "Diploma")}</strong>
+                <span style="color:${accentColor};font-weight:600;">${escapeHtml(item.school || "School")}</span>
               </div>
-              <span style="color:#64748b;font-size:13px;white-space:nowrap;">${escapeHtml(item.period)}</span>
+              <span style="color:${isSidebarTemplate ? "rgba(255,255,255,0.58)" : "#64748b"};font-size:13px;white-space:nowrap;">${escapeHtml(item.period)}</span>
             </div>
-            <p style="margin:8px 0 0;color:#334155;line-height:1.7;">${escapeHtml(item.details)}</p>
+            <p style="margin:8px 0 0;color:${mutedColor};line-height:1.7;">${escapeHtml(item.details)}</p>
           </article>`,
         )
         .join("")}</section>`
@@ -453,10 +497,10 @@ function buildCvHtml(cv: CvFormState, theme: CvTheme) {
           (item) => `
           <article style="margin-bottom:16px;">
             <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;">
-              <strong style="display:block;color:#0f172a;font-size:16px;">${escapeHtml(item.title || "Project")}</strong>
-              <span style="color:#64748b;font-size:13px;white-space:nowrap;">${escapeHtml(item.period)}</span>
+              <strong style="display:block;color:${titleColor};font-size:16px;">${escapeHtml(item.title || "Project")}</strong>
+              <span style="color:${isSidebarTemplate ? "rgba(255,255,255,0.58)" : "#64748b"};font-size:13px;white-space:nowrap;">${escapeHtml(item.period)}</span>
             </div>
-            <p style="margin:8px 0 0;color:#334155;line-height:1.7;">${escapeHtml(item.details)}</p>
+            <p style="margin:8px 0 0;color:${mutedColor};line-height:1.7;">${escapeHtml(item.details)}</p>
           </article>`,
         )
         .join("")}</section>`
@@ -467,8 +511,8 @@ function buildCvHtml(cv: CvFormState, theme: CvTheme) {
         .map(
           (item) => `
           <article style="margin-bottom:16px;">
-            <strong style="display:block;color:#0f172a;font-size:16px;">${escapeHtml(item.title || "Achievement")}</strong>
-            <p style="margin:8px 0 0;color:#334155;line-height:1.7;">${escapeHtml(item.details)}</p>
+            <strong style="display:block;color:${titleColor};font-size:16px;">${escapeHtml(item.title || "Achievement")}</strong>
+            <p style="margin:8px 0 0;color:${mutedColor};line-height:1.7;">${escapeHtml(item.details)}</p>
           </article>`,
         )
         .join("")}</section>`
@@ -481,46 +525,63 @@ function buildCvHtml(cv: CvFormState, theme: CvTheme) {
           <article style="margin-bottom:16px;">
             <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;">
               <div>
-                <strong style="display:block;color:#0f172a;font-size:16px;">${escapeHtml(item.role || "Role")}</strong>
-                <span style="color:${theme.accent};font-weight:600;">${escapeHtml(item.organization || "Organization")}</span>
+                <strong style="display:block;color:${titleColor};font-size:16px;">${escapeHtml(item.role || "Role")}</strong>
+                <span style="color:${accentColor};font-weight:600;">${escapeHtml(item.organization || "Organization")}</span>
               </div>
-              <span style="color:#64748b;font-size:13px;white-space:nowrap;">${escapeHtml(item.period)}</span>
+              <span style="color:${isSidebarTemplate ? "rgba(255,255,255,0.58)" : "#64748b"};font-size:13px;white-space:nowrap;">${escapeHtml(item.period)}</span>
             </div>
-            <p style="margin:8px 0 0;color:#334155;line-height:1.7;">${escapeHtml(item.details)}</p>
+            <p style="margin:8px 0 0;color:${mutedColor};line-height:1.7;">${escapeHtml(item.details)}</p>
           </article>`,
         )
         .join("")}</section>`
     : "";
 
   const sidebarLists = [
-    skills.length ? `<section>${sectionTitle("Skills", theme)}<ul style="margin:0;padding-left:18px;color:#334155;line-height:1.8;">${skills.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul></section>` : "",
-    languages.length ? `<section>${sectionTitle("Languages", theme)}<ul style="margin:0;padding-left:18px;color:#334155;line-height:1.8;">${languages.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul></section>` : "",
-    certifications.length ? `<section>${sectionTitle("Certifications", theme)}<ul style="margin:0;padding-left:18px;color:#334155;line-height:1.8;">${certifications.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul></section>` : "",
+    skills.length
+      ? `<section>${isSidebarTemplate ? `<h2 style="margin:0 0 12px;font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:${titleColor};border-bottom:1px solid ${lineColor};padding-bottom:8px;">Compétences</h2>` : sectionTitle("Skills", theme)}<ul style="margin:0;padding-left:18px;color:${isSidebarTemplate ? "rgba(255,255,255,0.82)" : "#334155"};line-height:1.8;font-size:13px;">${skills.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul></section>`
+      : "",
+    languages.length
+      ? `<section>${isSidebarTemplate ? `<h2 style="margin:0 0 12px;font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:${titleColor};border-bottom:1px solid ${lineColor};padding-bottom:8px;">Langues</h2>` : sectionTitle("Languages", theme)}<ul style="margin:0;padding-left:18px;color:${isSidebarTemplate ? "rgba(255,255,255,0.82)" : "#334155"};line-height:1.8;font-size:13px;">${languages.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul></section>`
+      : "",
+    certifications.length
+      ? `<section>${isSidebarTemplate ? `<h2 style="margin:0 0 12px;font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:${titleColor};border-bottom:1px solid ${lineColor};padding-bottom:8px;">Certifications</h2>` : sectionTitle("Certifications", theme)}<ul style="margin:0;padding-left:18px;color:${isSidebarTemplate ? "rgba(255,255,255,0.82)" : "#334155"};line-height:1.8;font-size:13px;">${certifications.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul></section>`
+      : "",
   ].join("");
 
   const mainSections = [summary, objective, expHtml, eduHtml, projectHtml, achievementHtml, volunteerHtml].join("");
 
   const content =
-    cv.template === "sidebar"
+    isSidebarTemplate
       ? `
-      <div style="display:grid;grid-template-columns:250px 1fr;min-height:900px;">
-        <aside style="background:${theme.surface};padding:28px 24px;display:flex;flex-direction:column;gap:24px;">${sidebarLists}</aside>
-        <main style="padding:28px 32px;display:flex;flex-direction:column;gap:26px;">${mainSections}</main>
+      <div style="display:grid;grid-template-columns:168px 1fr;min-height:900px;background:#fff;">
+        <aside style="background:${sidebarBackground};padding:22px 18px;display:flex;flex-direction:column;gap:18px;color:#fff;">
+          <div style="padding-bottom:18px;border-bottom:1px solid ${lineColor};display:grid;gap:12px;">
+            <div style="width:60px;height:60px;border-radius:18px;background:linear-gradient(135deg, rgba(255,255,255,0.14), rgba(255,255,255,0.08));display:grid;place-items:center;color:#fff;font-size:19px;font-weight:700;letter-spacing:0.04em;">${escapeHtml(sidebarInitials)}</div>
+            <div style="display:grid;gap:4px;">
+              <strong style="color:#fff;font-size:17px;line-height:1.08;">${escapeHtml(cv.fullName || "Votre nom")}</strong>
+              <span style="color:rgba(255,255,255,0.74);font-size:12px;font-weight:600;">${escapeHtml(cv.title || "Titre professionnel")}</span>
+            </div>
+            ${cv.headline ? `<p style="margin:0;color:rgba(255,255,255,0.72);font-size:12px;line-height:1.55;">${escapeHtml(cv.headline)}</p>` : ""}
+            <div style="display:grid;gap:8px;font-size:11px;line-height:1.5;color:rgba(255,255,255,0.74);">${contactItems}</div>
+          </div>
+          ${sidebarLists}
+        </aside>
+        <main style="padding:26px 30px;display:flex;flex-direction:column;gap:24px;background:#fff;">${mainSections}</main>
       </div>`
       : `
-      <main style="padding:28px 32px;display:grid;grid-template-columns:${cv.template === "modern" ? "1.4fr 0.8fr" : "1fr"};gap:28px;">
-        <div style="display:flex;flex-direction:column;gap:26px;">${mainSections}</div>
-        ${cv.template === "modern" ? `<aside style="display:flex;flex-direction:column;gap:24px;">${sidebarLists}</aside>` : ""}
+      <main style="padding:28px 32px;display:grid;grid-template-columns:${effectiveTemplate === "modern" ? "1.4fr 0.8fr" : "1fr"};gap:28px;background:#fff;">
+        <div style="display:flex;flex-direction:column;gap:26px;">${header}${mainSections}</div>
+        ${effectiveTemplate === "modern" ? `<aside style="display:flex;flex-direction:column;gap:24px;">${sidebarLists}</aside>` : ""}
       </main>`;
 
   return `<!DOCTYPE html>
-  <html lang="en">
+  <html lang="fr">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>${escapeHtml(cv.fullName || "CV")}</title>
     <style>
-      html, body { margin:0; padding:0; overflow:hidden; background:#e2e8f0; font-family: Georgia, "Times New Roman", serif; }
+      html, body { margin:0; padding:0; overflow:hidden; background:#e2e8f0; font-family: Inter, "Segoe UI", sans-serif; color:#1f1839; }
       .page { width:210mm; min-height:297mm; margin:24px auto; background:#fff; box-shadow:0 20px 40px rgba(15,23,42,0.12); }
       * { box-sizing:border-box; }
       @media print {
@@ -1120,22 +1181,27 @@ export default function CandidateCvPage() {
           </div>
         ) : null}
 
-        <section className="cvb__content">
+        <section className="cvb__content" data-saved={isSaved ? "true" : "false"}>
             <header className="cvb__header">
               <div>
                 <h1>CV Builder</h1>
-                <p>Create a professional CV that highlights your strengths.</p>
+                <p>Créez un CV professionnel qui met en valeur vos compétences.</p>
               </div>
 
               <div className="cvb__header-actions">
-                <span className={`cvb__save-state ${isSaved ? "is-saved" : ""}`}>
-                  {isSaved ? "Saved" : "Draft changes"}
-                </span>
-                <button type="button" className="cvb__ghost" onClick={previewInNewTab}>
-                  Preview
+                <button type="button" className="cvb__action cvb__action--ghost" onClick={previewInNewTab}>
+                  <Eye size={16} strokeWidth={2.1} />
+                  <span>Aperçu</span>
                 </button>
-                <button type="button" className="cvb__primary" onClick={downloadPdf}>
-                  Download CV
+                <button type="button" className="cvb__action cvb__action--ghost" onClick={() => setActiveStep("review")}>
+                  <Sparkles size={16} strokeWidth={2.1} />
+                  <span>Conseils IA</span>
+                  <span className="cvb__dot" aria-hidden="true" />
+                </button>
+                <button type="button" className="cvb__action cvb__action--primary" onClick={downloadPdf}>
+                  <Download size={16} strokeWidth={2.1} />
+                  <span>Télécharger le CV</span>
+                  <ChevronDown size={15} strokeWidth={2.3} />
                 </button>
               </div>
             </header>
@@ -1183,25 +1249,25 @@ export default function CandidateCvPage() {
 
                 {activeStep === "profile" ? (
                   <div id="cvb-guide-active-fields" className="cvb__fields">
-                    <Field label="Full name" required>
+                    <Field label="Prénom et nom" required>
                       <input type="text" value={cv.fullName} onChange={(event) => updateField("fullName", event.target.value)} />
                     </Field>
-                    <Field label="Professional title" required>
+                    <Field label="Titre professionnel" required>
                       <input type="text" value={cv.title} onChange={(event) => updateField("title", event.target.value)} />
                     </Field>
                     <Field label="Email" required>
                       <input type="email" value={cv.email} onChange={(event) => updateField("email", event.target.value)} />
                     </Field>
-                    <Field label="Phone">
+                    <Field label="Téléphone">
                       <input type="text" value={cv.phone} onChange={(event) => updateField("phone", event.target.value)} />
                     </Field>
-                    <Field label="Location" required>
+                    <Field label="Localisation" required>
                       <input type="text" value={cv.address} onChange={(event) => updateField("address", event.target.value)} />
                     </Field>
                     <Field label="LinkedIn">
                       <input type="text" value={cv.linkedin} onChange={(event) => updateField("linkedin", event.target.value)} />
                     </Field>
-                    <Field label="About you" className="is-wide">
+                    <Field label="À propos de vous" className="is-wide">
                       <textarea rows={5} value={cv.summary} onChange={(event) => updateField("summary", event.target.value)} />
                     </Field>
                   </div>
@@ -1212,26 +1278,26 @@ export default function CandidateCvPage() {
                     {cv.experiences.map((item, index) => (
                       <div key={item.id} className="cvb__item-card">
                         <div className="cvb__item-card-head">
-                          <strong>Experience {index + 1}</strong>
-                          <button type="button" className="cvb__remove" onClick={() => removeExperience(item.id)}>Remove</button>
+                          <strong>Expérience {index + 1}</strong>
+                          <button type="button" className="cvb__remove" onClick={() => removeExperience(item.id)}>Supprimer</button>
                         </div>
                         <div className="cvb__fields">
-                          <Field label="Role">
+                          <Field label="Poste">
                             <input type="text" value={item.role} onChange={(event) => updateExperienceField(item.id, "role", event.target.value)} />
                           </Field>
-                          <Field label="Company">
+                          <Field label="Entreprise">
                             <input type="text" value={item.company} onChange={(event) => updateExperienceField(item.id, "company", event.target.value)} />
                           </Field>
-                          <Field label="Period">
+                          <Field label="Période">
                             <input type="text" value={item.period} onChange={(event) => updateExperienceField(item.id, "period", event.target.value)} />
                           </Field>
-                          <Field label="Details" className="is-wide">
+                          <Field label="Détails" className="is-wide">
                             <textarea rows={4} value={item.details} onChange={(event) => updateExperienceField(item.id, "details", event.target.value)} />
                           </Field>
                         </div>
                       </div>
                     ))}
-                    <button type="button" className="cvb__ghost cvb__add" onClick={addExperience}>+ Add experience</button>
+                    <button type="button" className="cvb__ghost cvb__add" onClick={addExperience}>+ Ajouter une expérience</button>
                   </div>
                 ) : null}
 
@@ -1240,38 +1306,38 @@ export default function CandidateCvPage() {
                     {cv.education.map((item, index) => (
                       <div key={item.id} className="cvb__item-card">
                         <div className="cvb__item-card-head">
-                          <strong>Education {index + 1}</strong>
-                          <button type="button" className="cvb__remove" onClick={() => removeEducation(item.id)}>Remove</button>
+                          <strong>Formation {index + 1}</strong>
+                          <button type="button" className="cvb__remove" onClick={() => removeEducation(item.id)}>Supprimer</button>
                         </div>
                         <div className="cvb__fields">
-                          <Field label="Diploma">
+                          <Field label="Diplôme">
                             <input type="text" value={item.diploma} onChange={(event) => updateEducationField(item.id, "diploma", event.target.value)} />
                           </Field>
-                          <Field label="School">
+                          <Field label="École">
                             <input type="text" value={item.school} onChange={(event) => updateEducationField(item.id, "school", event.target.value)} />
                           </Field>
-                          <Field label="Period">
+                          <Field label="Période">
                             <input type="text" value={item.period} onChange={(event) => updateEducationField(item.id, "period", event.target.value)} />
                           </Field>
-                          <Field label="Details" className="is-wide">
+                          <Field label="Détails" className="is-wide">
                             <textarea rows={4} value={item.details} onChange={(event) => updateEducationField(item.id, "details", event.target.value)} />
                           </Field>
                         </div>
                       </div>
                     ))}
-                    <button type="button" className="cvb__ghost cvb__add" onClick={addEducation}>+ Add education</button>
+                    <button type="button" className="cvb__ghost cvb__add" onClick={addEducation}>+ Ajouter une formation</button>
                   </div>
                 ) : null}
 
                 {activeStep === "skills" ? (
                   <div id="cvb-guide-active-fields" className="cvb__fields">
-                    <Field label="Skills (one per line)" className="is-wide">
+                    <Field label="Compétences (une par ligne)" className="is-wide">
                       <textarea rows={6} value={cv.skills} onChange={(event) => updateField("skills", event.target.value)} />
                     </Field>
-                    <Field label="Languages (one per line)" className="is-wide">
+                    <Field label="Langues (une par ligne)" className="is-wide">
                       <textarea rows={4} value={cv.languages} onChange={(event) => updateField("languages", event.target.value)} />
                     </Field>
-                    <Field label="Certifications (one per line)" className="is-wide">
+                    <Field label="Certifications (une par ligne)" className="is-wide">
                       <textarea rows={4} value={cv.certifications} onChange={(event) => updateField("certifications", event.target.value)} />
                     </Field>
                   </div>
@@ -1282,39 +1348,39 @@ export default function CandidateCvPage() {
                     {cv.projects.map((item, index) => (
                       <div key={item.id} className="cvb__item-card">
                         <div className="cvb__item-card-head">
-                          <strong>Project {index + 1}</strong>
-                          <button type="button" className="cvb__remove" onClick={() => removeProject(item.id)}>Remove</button>
+                          <strong>Projet {index + 1}</strong>
+                          <button type="button" className="cvb__remove" onClick={() => removeProject(item.id)}>Supprimer</button>
                         </div>
                         <div className="cvb__fields">
-                          <Field label="Title">
+                          <Field label="Titre">
                             <input type="text" value={item.title} onChange={(event) => updateProjectField(item.id, "title", event.target.value)} />
                           </Field>
-                          <Field label="Period">
+                          <Field label="Période">
                             <input type="text" value={item.period} onChange={(event) => updateProjectField(item.id, "period", event.target.value)} />
                           </Field>
-                          <Field label="Details" className="is-wide">
+                          <Field label="Détails" className="is-wide">
                             <textarea rows={4} value={item.details} onChange={(event) => updateProjectField(item.id, "details", event.target.value)} />
                           </Field>
                         </div>
                       </div>
                     ))}
-                    <button type="button" className="cvb__ghost cvb__add" onClick={addProject}>+ Add project</button>
+                    <button type="button" className="cvb__ghost cvb__add" onClick={addProject}>+ Ajouter un projet</button>
                   </div>
                 ) : null}
 
                 {activeStep === "extras" ? (
                   <div id="cvb-guide-active-fields" className="cvb__item-stack">
                     <div className="cvb__fields">
-                      <Field label="Headline" className="is-wide">
+                      <Field label="Accroche" className="is-wide">
                         <input type="text" value={cv.headline} onChange={(event) => updateField("headline", event.target.value)} />
                       </Field>
-                      <Field label="Website">
+                      <Field label="Site web">
                         <input type="text" value={cv.website} onChange={(event) => updateField("website", event.target.value)} />
                       </Field>
                       <Field label="GitHub">
                         <input type="text" value={cv.github} onChange={(event) => updateField("github", event.target.value)} />
                       </Field>
-                      <Field label="Career objective" className="is-wide">
+                      <Field label="Objectif de carrière" className="is-wide">
                         <textarea rows={4} value={cv.objective} onChange={(event) => updateField("objective", event.target.value)} />
                       </Field>
                     </div>
@@ -1322,58 +1388,59 @@ export default function CandidateCvPage() {
                     {cv.achievements.map((item, index) => (
                       <div key={item.id} className="cvb__item-card">
                         <div className="cvb__item-card-head">
-                          <strong>Achievement {index + 1}</strong>
-                          <button type="button" className="cvb__remove" onClick={() => removeAchievement(item.id)}>Remove</button>
+                          <strong>Réalisation {index + 1}</strong>
+                          <button type="button" className="cvb__remove" onClick={() => removeAchievement(item.id)}>Supprimer</button>
                         </div>
                         <div className="cvb__fields">
-                          <Field label="Title">
+                          <Field label="Titre">
                             <input type="text" value={item.title} onChange={(event) => updateAchievementField(item.id, "title", event.target.value)} />
                           </Field>
-                          <Field label="Details" className="is-wide">
+                          <Field label="Détails" className="is-wide">
                             <textarea rows={4} value={item.details} onChange={(event) => updateAchievementField(item.id, "details", event.target.value)} />
                           </Field>
                         </div>
                       </div>
                     ))}
-                    <button type="button" className="cvb__ghost cvb__add" onClick={addAchievement}>+ Add achievement</button>
+                    <button type="button" className="cvb__ghost cvb__add" onClick={addAchievement}>+ Ajouter une réalisation</button>
 
                     {cv.volunteer.map((item, index) => (
                       <div key={item.id} className="cvb__item-card">
                         <div className="cvb__item-card-head">
-                          <strong>Volunteer {index + 1}</strong>
-                          <button type="button" className="cvb__remove" onClick={() => removeVolunteer(item.id)}>Remove</button>
+                          <strong>Bénévolat {index + 1}</strong>
+                          <button type="button" className="cvb__remove" onClick={() => removeVolunteer(item.id)}>Supprimer</button>
                         </div>
                         <div className="cvb__fields">
-                          <Field label="Role">
+                          <Field label="Rôle">
                             <input type="text" value={item.role} onChange={(event) => updateVolunteerField(item.id, "role", event.target.value)} />
                           </Field>
-                          <Field label="Organization">
+                          <Field label="Organisation">
                             <input type="text" value={item.organization} onChange={(event) => updateVolunteerField(item.id, "organization", event.target.value)} />
                           </Field>
-                          <Field label="Period">
+                          <Field label="Période">
                             <input type="text" value={item.period} onChange={(event) => updateVolunteerField(item.id, "period", event.target.value)} />
                           </Field>
-                          <Field label="Details" className="is-wide">
+                          <Field label="Détails" className="is-wide">
                             <textarea rows={4} value={item.details} onChange={(event) => updateVolunteerField(item.id, "details", event.target.value)} />
                           </Field>
                         </div>
                       </div>
                     ))}
-                    <button type="button" className="cvb__ghost cvb__add" onClick={addVolunteer}>+ Add volunteer</button>
+                    <button type="button" className="cvb__ghost cvb__add" onClick={addVolunteer}>+ Ajouter un bénévolat</button>
                   </div>
                 ) : null}
 
                 {activeStep === "review" ? (
                   <div id="cvb-guide-active-fields" className="cvb__item-stack">
                     <div className="cvb__fields">
-                      <Field label="Template">
+                      <Field label="Modèle">
                         <select value={cv.template} onChange={(event) => updateField("template", event.target.value as CvTemplate)}>
-                          <option value="classic">Classic</option>
-                          <option value="modern">Modern</option>
-                          <option value="sidebar">Sidebar</option>
+                          <option value="classic">Classique</option>
+                          <option value="modern">Minimaliste</option>
+                          <option value="sidebar">Moderne</option>
+                          <option value="creative">Créatif</option>
                         </select>
                       </Field>
-                      <Field label="Theme">
+                      <Field label="Thème">
                         <select value={cv.colorThemeId} onChange={(event) => updateField("colorThemeId", event.target.value)}>
                           {themes.map((theme) => (
                             <option key={theme.id} value={theme.id}>
@@ -1385,24 +1452,24 @@ export default function CandidateCvPage() {
                     </div>
 
                     <div className="cvb__review-grid">
-                      <div><strong>Profile</strong><span>{cv.fullName || "Missing name"}</span></div>
-                      <div><strong>Experience entries</strong><span>{cv.experiences.length}</span></div>
-                      <div><strong>Education entries</strong><span>{cv.education.length}</span></div>
-                      <div><strong>Project entries</strong><span>{cv.projects.length}</span></div>
-                      <div><strong>Achievements</strong><span>{cv.achievements.length}</span></div>
-                      <div><strong>Volunteer</strong><span>{cv.volunteer.length}</span></div>
+                      <div><strong>Profil</strong><span>{cv.fullName || "Nom manquant"}</span></div>
+                      <div><strong>Expériences</strong><span>{cv.experiences.length}</span></div>
+                      <div><strong>Formations</strong><span>{cv.education.length}</span></div>
+                      <div><strong>Projets</strong><span>{cv.projects.length}</span></div>
+                      <div><strong>Réalisations</strong><span>{cv.achievements.length}</span></div>
+                      <div><strong>Bénévolat</strong><span>{cv.volunteer.length}</span></div>
                     </div>
                   </div>
                 ) : null}
 
                 <div className="cvb__tip" role="note" aria-label="Tip">
-                  <strong>Tip</strong>
+                  <strong>Conseil</strong>
                   <p>{activeStepContent.tip}</p>
                 </div>
 
                 <div id="cvb-guide-actions" className="cvb__form-actions">
                   <button type="button" className="cvb__ghost" onClick={saveDraft}>
-                    Save and exit
+                    Enregistrer et quitter
                   </button>
                   <button
                     type="button"
@@ -1413,14 +1480,14 @@ export default function CandidateCvPage() {
                       setActiveStep(next.id);
                     }}
                   >
-                    Save and continue
+                    Enregistrer et continuer
                   </button>
                 </div>
               </section>
 
               <aside id="cvb-guide-preview" className="cvb__preview" aria-label="CV preview">
                 <div className="cvb__preview-head">
-                  <h3>CV Preview</h3>
+                  <h3>Aperçu du CV</h3>
                   <div className="cvb__toggle" role="group" aria-label="Preview mode">
                     <button
                       type="button"
@@ -1455,9 +1522,50 @@ export default function CandidateCvPage() {
                   </div>
                 </div>
 
-                <p className="cvb__preview-note">This is a preview. Your CV adapts to template and settings.</p>
+                <p className="cvb__preview-note">Aperçu en direct. Votre CV s’adapte au modèle et aux réglages.</p>
               </aside>
             </div>
+
+            <section className="cvb__templates" aria-labelledby="cvb-templates-title">
+              <div className="cvb__templates-head">
+                <div>
+                  <h2 id="cvb-templates-title">Choisir un modèle</h2>
+                </div>
+                <button type="button" className="cvb__templates-link">
+                  Voir tous les modèles
+                </button>
+              </div>
+
+              <div className="cvb__template-grid">
+                {templateCards.map((card) => {
+                  const isActive = cv.template === card.id;
+
+                  return (
+                    <button
+                      key={card.id}
+                      type="button"
+                      className={`cvb__template-card${isActive ? " is-active" : ""}`}
+                      onClick={() => updateField("template", card.id)}
+                    >
+                      <div className="cvb__template-thumb" aria-hidden="true">
+                        <span className="cvb__template-thumb-sidebar" style={{ background: card.accent }} />
+                        <span className="cvb__template-thumb-paper">
+                          <span className="cvb__template-thumb-line is-title" />
+                          <span className="cvb__template-thumb-line" />
+                          <span className="cvb__template-thumb-line is-short" />
+                          <span className="cvb__template-thumb-line" />
+                        </span>
+                        {isActive ? <span className="cvb__template-check">✓</span> : null}
+                      </div>
+                      <div className="cvb__template-copy">
+                        <strong>{card.title}</strong>
+                        <span>{card.subtitle}</span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
         </section>
       </div>
 
@@ -1497,14 +1605,14 @@ export default function CandidateCvPage() {
       <style jsx>{`
         .cvb {
           min-height: 100vh;
-          background: #f8f6fb;
+          background: #fbf9ff;
           color: #1f1839;
           font-family: Inter, Poppins, "Segoe UI", sans-serif;
-          padding: 20px;
+          padding: 18px;
         }
 
         .cvb__frame {
-          max-width: 1600px;
+          max-width: 1560px;
           margin: 0 auto;
         }
 
@@ -1521,39 +1629,82 @@ export default function CandidateCvPage() {
         .cvb__content {
           background: #ffffff;
           border: 1px solid #e8e0f6;
-          border-radius: 18px;
-          padding: 18px;
+          border-radius: 22px;
+          padding: 20px;
           display: grid;
-          gap: 16px;
+          gap: 18px;
+          box-shadow: 0 18px 40px rgba(42, 25, 71, 0.05);
         }
 
         .cvb__header {
           display: flex;
           align-items: flex-start;
           justify-content: space-between;
-          gap: 12px;
+          gap: 16px;
           border-bottom: 1px solid #eee8f8;
-          padding-bottom: 12px;
+          padding-bottom: 16px;
         }
 
         .cvb__header h1 {
           margin: 0;
-          font-size: 2rem;
+          font-size: 2.1rem;
           line-height: 1.05;
+          font-weight: 800;
         }
 
         .cvb__header p {
-          margin: 6px 0 0;
+          margin: 8px 0 0;
           color: #6f678c;
-          font-size: 0.95rem;
+          font-size: 0.94rem;
         }
 
         .cvb__header-actions {
           display: flex;
           align-items: center;
-          gap: 8px;
+          gap: 10px;
           flex-wrap: wrap;
           justify-content: flex-end;
+        }
+
+        .cvb__action {
+          min-height: 42px;
+          border-radius: 14px;
+          padding: 0 14px;
+          border: 1px solid transparent;
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          font-size: 0.88rem;
+          font-weight: 700;
+          letter-spacing: 0;
+          white-space: nowrap;
+        }
+
+        .cvb__action--ghost {
+          background: var(--app-primary);
+          border-color: var(--app-primary);
+          color: #fff;
+          box-shadow: 0 14px 28px -16px rgba(var(--app-primary-rgb), 0.85);
+        }
+
+        .cvb__action--primary {
+          background: var(--app-primary);
+          color: #fff;
+          box-shadow: 0 14px 28px -16px rgba(var(--app-primary-rgb), 0.85);
+        }
+
+        .cvb__action--ghost:hover,
+        .cvb__action--primary:hover {
+          background: var(--app-primary-hover);
+          border-color: var(--app-primary-hover);
+        }
+
+        .cvb__dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 999px;
+          background: var(--app-primary);
+          flex: none;
         }
 
         .cvb__save-state {
@@ -1576,25 +1727,33 @@ export default function CandidateCvPage() {
           border-radius: 12px;
           padding: 0 14px;
           font-weight: 700;
-          font-size: 0.88rem;
+          font-size: 0.87rem;
           border: 1px solid transparent;
         }
 
         .cvb__ghost {
-          border-color: #ddcff6;
-          background: #fff;
-          color: #6d2a95;
+          border-color: var(--app-primary);
+          background: var(--app-primary);
+          color: #fff;
+          box-shadow: 0 14px 28px -16px rgba(var(--app-primary-rgb), 0.85);
         }
 
         .cvb__primary {
-          background: #6d2a95;
+          background: var(--app-primary);
           color: #fff;
+          box-shadow: 0 14px 28px -16px rgba(var(--app-primary-rgb), 0.85);
+        }
+
+        .cvb__ghost:hover,
+        .cvb__primary:hover {
+          background: var(--app-primary-hover);
+          border-color: var(--app-primary-hover);
         }
 
         .cvb__stepper {
           display: flex;
           align-items: center;
-          gap: 8px;
+          gap: 10px;
           overflow-x: auto;
           padding-bottom: 2px;
         }
@@ -1604,13 +1763,14 @@ export default function CandidateCvPage() {
           align-items: center;
           gap: 8px;
           flex-shrink: 0;
-          font-size: 0.82rem;
+          font-size: 0.8rem;
           color: #5e557b;
           border: 0;
           background: transparent;
           padding: 2px 0;
           cursor: pointer;
           text-align: left;
+          font-weight: 600;
         }
 
         .cvb__stepper-item[aria-current="step"] {
@@ -1618,8 +1778,8 @@ export default function CandidateCvPage() {
         }
 
         .cvb__circle {
-          width: 24px;
-          height: 24px;
+          width: 26px;
+          height: 26px;
           border-radius: 50%;
           border: 1px solid #d6caee;
           display: grid;
@@ -1630,9 +1790,9 @@ export default function CandidateCvPage() {
         }
 
         .cvb__circle.is-active {
-          background: #6d2a95;
+          background: var(--app-primary);
           color: #fff;
-          border-color: #6d2a95;
+          border-color: var(--app-primary);
         }
 
         .cvb__line {
@@ -1645,7 +1805,7 @@ export default function CandidateCvPage() {
         .cvb__main-grid {
           display: grid;
           grid-template-columns: minmax(0, 1fr) 360px;
-          gap: 14px;
+          gap: 16px;
           align-items: start;
         }
 
@@ -1653,7 +1813,7 @@ export default function CandidateCvPage() {
         .cvb__preview {
           background: #fff;
           border: 1px solid #ece3f8;
-          border-radius: 18px;
+          border-radius: 20px;
           padding: 16px;
         }
 
@@ -1699,7 +1859,8 @@ export default function CandidateCvPage() {
 
         .cvb__form-head h2 {
           margin: 0;
-          font-size: 1.3rem;
+          font-size: 1.26rem;
+          line-height: 1.15;
         }
 
         .cvb__form-head p {
@@ -1756,9 +1917,9 @@ export default function CandidateCvPage() {
         }
 
         .cvb__remove {
-          border: 1px solid #eadffb;
-          background: #fff;
-          color: #6d2a95;
+          border: 1px solid var(--app-primary);
+          background: var(--app-primary);
+          color: #fff;
           border-radius: 10px;
           min-height: 32px;
           padding: 0 10px;
@@ -1837,36 +1998,39 @@ export default function CandidateCvPage() {
 
         .cvb__preview-head h3 {
           margin: 0;
-          font-size: 1.1rem;
+          font-size: 1.06rem;
         }
 
         .cvb__toggle {
           display: inline-flex;
           border: 1px solid #decff5;
-          border-radius: 10px;
-          padding: 2px;
+          border-radius: 12px;
+          padding: 3px;
           gap: 2px;
+          background: #fff;
         }
 
         .cvb__toggle button {
-          min-width: 30px;
-          min-height: 28px;
-          border-radius: 8px;
+          width: 34px;
+          height: 34px;
+          border-radius: 9px;
           border: 0;
           background: transparent;
-          color: #6d2a95;
+          color: var(--app-primary);
           font-weight: 700;
+          display: grid;
+          place-items: center;
         }
 
         .cvb__toggle button.is-active {
-          background: #6d2a95;
+          background: var(--app-primary);
           color: #fff;
         }
 
         .cvb__preview-box {
-          background: #f8f6fb;
+          background: #f7f5fb;
           border: 1px solid #e6ddf4;
-          border-radius: 14px;
+          border-radius: 16px;
           padding: 14px;
           height: min(78vh, 980px);
           overflow: auto;
@@ -1900,6 +2064,146 @@ export default function CandidateCvPage() {
           color: #746c90;
           font-size: 0.8rem;
           line-height: 1.45;
+        }
+
+        .cvb__templates {
+          background: #fff;
+          border: 1px solid #ebe2f8;
+          border-radius: 20px;
+          padding: 18px;
+          display: grid;
+          gap: 14px;
+          box-shadow: 0 18px 40px rgba(42, 25, 71, 0.04);
+        }
+
+        .cvb__templates-head {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+        }
+
+        .cvb__templates-head h2 {
+          margin: 0;
+          font-size: 1rem;
+          color: #1f1839;
+        }
+
+        .cvb__templates-link {
+          border: 1px solid var(--app-primary);
+          border-radius: 12px;
+          background: var(--app-primary);
+          color: #fff;
+          font-size: 0.88rem;
+          font-weight: 700;
+          min-height: 38px;
+          padding: 0 12px;
+          box-shadow: 0 14px 28px -16px rgba(var(--app-primary-rgb), 0.85);
+        }
+
+        .cvb__remove:hover,
+        .cvb__templates-link:hover {
+          background: var(--app-primary-hover);
+          border-color: var(--app-primary-hover);
+        }
+
+        .cvb__template-grid {
+          display: grid;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+          gap: 14px;
+        }
+
+        .cvb__template-card {
+          border: 1px solid #e6ddf4;
+          background: #fff;
+          border-radius: 16px;
+          padding: 12px;
+          display: grid;
+          gap: 10px;
+          text-align: left;
+          cursor: pointer;
+          transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+        }
+
+        .cvb__template-card:hover {
+          transform: translateY(-1px);
+          border-color: #ceb9ea;
+          box-shadow: 0 14px 32px rgba(49, 25, 84, 0.08);
+        }
+
+        .cvb__template-card.is-active {
+          border-color: var(--app-primary);
+          box-shadow: 0 16px 34px rgba(var(--app-primary-rgb), 0.14);
+        }
+
+        .cvb__template-thumb {
+          position: relative;
+          display: grid;
+          grid-template-columns: 40px minmax(0, 1fr);
+          gap: 10px;
+          align-items: stretch;
+          min-height: 96px;
+          padding: 10px;
+          border-radius: 14px;
+          background: linear-gradient(180deg, #fbf8ff 0%, #f2eefb 100%);
+          overflow: hidden;
+        }
+
+        .cvb__template-thumb-sidebar {
+          border-radius: 12px;
+        }
+
+        .cvb__template-thumb-paper {
+          display: grid;
+          align-content: start;
+          gap: 6px;
+          padding: 2px 0;
+        }
+
+        .cvb__template-thumb-line {
+          height: 6px;
+          border-radius: 999px;
+          background: rgba(68, 43, 102, 0.14);
+        }
+
+        .cvb__template-thumb-line.is-title {
+          width: 78%;
+          margin-bottom: 2px;
+        }
+
+        .cvb__template-thumb-line.is-short {
+          width: 52%;
+        }
+
+        .cvb__template-check {
+          position: absolute;
+          top: 10px;
+          right: 10px;
+          width: 22px;
+          height: 22px;
+          border-radius: 999px;
+          background: var(--app-primary);
+          color: #fff;
+          display: grid;
+          place-items: center;
+          font-size: 0.75rem;
+          font-weight: 800;
+          box-shadow: 0 8px 18px rgba(var(--app-primary-rgb), 0.22);
+        }
+
+        .cvb__template-copy {
+          display: grid;
+          gap: 3px;
+        }
+
+        .cvb__template-copy strong {
+          color: #1f1839;
+          font-size: 0.92rem;
+        }
+
+        .cvb__template-copy span {
+          color: #6f678c;
+          font-size: 0.8rem;
         }
 
         .cvb__tour-overlay {
@@ -2016,6 +2320,10 @@ export default function CandidateCvPage() {
             grid-template-columns: 1fr;
           }
 
+          .cvb__template-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+          }
+
           .cvb__preview {
             position: static;
           }
@@ -2043,6 +2351,11 @@ export default function CandidateCvPage() {
             justify-content: flex-start;
           }
 
+          .cvb__action {
+            width: 100%;
+            justify-content: center;
+          }
+
           .cvb__fields {
             grid-template-columns: 1fr;
           }
@@ -2063,6 +2376,10 @@ export default function CandidateCvPage() {
           .cvb__tour-card {
             width: calc(100vw - 20px);
           }
+
+          .cvb__templates {
+            padding: 14px;
+          }
         }
       `}</style>
     </main>
@@ -2075,57 +2392,57 @@ type StepMeta = {
 };
 
 const CV_STEPS: StepMeta[] = [
-  { id: "profile", title: "Profile" },
-  { id: "experience", title: "Experience" },
-  { id: "education", title: "Education" },
-  { id: "skills", title: "Skills" },
-  { id: "projects", title: "Projects" },
+  { id: "profile", title: "Identité" },
+  { id: "experience", title: "Expérience" },
+  { id: "education", title: "Formation" },
+  { id: "skills", title: "Compétences" },
+  { id: "projects", title: "Projets" },
   { id: "extras", title: "Extras" },
-  { id: "review", title: "Review" },
+  { id: "review", title: "Finalisation" },
 ];
 
 const STEP_CONTENT: Record<CvStepId, { icon: string; title: string; description: string; tip: string }> = {
   profile: {
-    icon: "PI",
-    title: "Personal information",
-    description: "Add your personal details. This information appears at the top of your CV.",
-    tip: "A short summary (2-3 lines) helps recruiters quickly understand who you are and what you do.",
+    icon: "ID",
+    title: "Identité professionnelle",
+    description: "Vos informations principales apparaissent en haut de votre CV.",
+    tip: "Un résumé court et clair aide les recruteurs à comprendre votre profil en quelques secondes.",
   },
   experience: {
     icon: "EX",
-    title: "Experience",
-    description: "List your professional experience with concrete impact and responsibilities.",
-    tip: "Use action verbs and measurable outcomes whenever possible.",
+    title: "Expérience",
+    description: "Ajoutez vos expériences professionnelles avec des résultats concrets.",
+    tip: "Utilisez des verbes d’action et des résultats mesurables dès que possible.",
   },
   education: {
     icon: "ED",
-    title: "Education",
-    description: "Show your education background, diplomas, and key learning highlights.",
-    tip: "Keep the most relevant and recent education first.",
+    title: "Formation",
+    description: "Présentez vos diplômes et votre parcours académique de façon claire.",
+    tip: "Gardez en premier la formation la plus récente ou la plus pertinente.",
   },
   skills: {
     icon: "SK",
-    title: "Skills and competencies",
-    description: "Add your core skills, languages, and certifications in a clear format.",
-    tip: "Prefer concise and specific skills over generic statements.",
+    title: "Compétences",
+    description: "Listez vos compétences, langues et certifications de manière lisible.",
+    tip: "Privilégiez des compétences précises plutôt que des formulations génériques.",
   },
   projects: {
     icon: "PR",
-    title: "Projects",
-    description: "Highlight projects that demonstrate your strengths and problem-solving.",
-    tip: "Focus on projects that align with your target roles.",
+    title: "Projets",
+    description: "Mettez en avant les projets qui illustrent vos points forts.",
+    tip: "Choisissez surtout les projets en lien avec les postes visés.",
   },
   extras: {
     icon: "EX+",
     title: "Extras",
-    description: "Add achievements, volunteer experience, and extra professional details.",
-    tip: "These sections can differentiate you from similar profiles.",
+    description: "Ajoutez des réalisations, du bénévolat ou une accroche complémentaire.",
+    tip: "Ces sections peuvent vraiment faire la différence entre deux profils proches.",
   },
   review: {
     icon: "RV",
-    title: "Review and settings",
-    description: "Check your CV structure and choose template/theme before exporting.",
-    tip: "Use preview and export only after checking all sections.",
+    title: "Finalisation",
+    description: "Vérifiez la structure du CV et choisissez le modèle avant export.",
+    tip: "Utilisez l’aperçu et l’export seulement après avoir vérifié toutes les sections.",
   },
 };
 

@@ -677,8 +677,9 @@ function CandidateAssessmentsPage() {
 
         .tests-page__filter.is-active {
           color: #fff;
-          border-color: transparent;
-          background: linear-gradient(135deg, #5d32d1, #7e56e7);
+          border-color: var(--app-primary);
+          background: var(--app-primary);
+          box-shadow: 0 14px 28px -16px rgba(var(--app-primary-rgb), 0.85);
         }
 
         .tests-page__all-tests {
@@ -1173,7 +1174,7 @@ function TestCard({
           display: block;
           height: 100%;
           border-radius: inherit;
-          background: linear-gradient(90deg, #4c1bf4, #7b57ed);
+          background: var(--app-primary);
         }
 
         .test-card__action {
@@ -1195,21 +1196,27 @@ function TestCard({
         }
 
         .test-card__btn {
-          border: 0;
+          border: 1px solid var(--app-primary);
           border-radius: 10px;
           min-height: 38px;
           padding: 0 14px;
-          background: linear-gradient(135deg, #5f2fe3, #7b57ee);
+          background: var(--app-primary);
           color: #fff;
           font-size: 0.86rem;
           font-weight: 800;
           white-space: nowrap;
+          box-shadow: 0 14px 28px -16px rgba(var(--app-primary-rgb), 0.85);
+        }
+
+        .test-card__btn:hover {
+          background: var(--app-primary-hover);
+          border-color: var(--app-primary-hover);
         }
 
         .test-card__btn--ghost {
-          background: #fff;
-          color: #5c35bc;
-          border: 1px solid #d9cefa;
+          background: var(--app-primary);
+          color: #fff;
+          border: 1px solid var(--app-primary);
         }
 
         @media (max-width: 1180px) {

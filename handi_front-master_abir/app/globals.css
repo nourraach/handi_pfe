@@ -1066,6 +1066,18 @@ body.app-theme:not([data-bold-text="true"]) :is(.font-extrabold, .font-black) {
   flex-wrap: wrap;
 }
 
+.profile-surface-actions :is(.ui-button-primary, .ui-button-secondary, .ui-button-ghost) {
+  background: var(--app-primary);
+  border-color: var(--app-primary);
+  color: #fff;
+  box-shadow: 0 14px 28px -16px rgba(var(--app-primary-rgb), 0.85);
+}
+
+.profile-surface-actions :is(.ui-button-primary, .ui-button-secondary, .ui-button-ghost):hover {
+  background: var(--app-primary-hover);
+  border-color: var(--app-primary-hover);
+}
+
 .profile-field-span-full {
   grid-column: 1 / -1;
 }
@@ -4271,15 +4283,23 @@ body:has(.app-shell-admin)::-webkit-scrollbar,
 }
 
 .candidate-profile-button-primary {
-  background: linear-gradient(135deg, var(--app-primary), var(--app-secondary));
+  background: var(--app-primary);
+  border-color: var(--app-primary);
   color: white;
-  box-shadow: 0 14px 28px rgba(91, 63, 153, 0.18);
+  box-shadow: 0 14px 28px -16px rgba(var(--app-primary-rgb), 0.85);
 }
 
 .candidate-profile-button-secondary {
-  background: rgba(255, 255, 255, 0.82);
-  border-color: rgba(91, 63, 153, 0.12);
-  color: var(--app-primary);
+  background: var(--app-primary);
+  border-color: var(--app-primary);
+  color: #fff;
+  box-shadow: 0 14px 28px -16px rgba(var(--app-primary-rgb), 0.85);
+}
+
+.candidate-profile-button-primary:hover,
+.candidate-profile-button-secondary:hover {
+  background: var(--app-primary-hover);
+  border-color: var(--app-primary-hover);
 }
 
 .candidate-profile-card {
@@ -4337,7 +4357,7 @@ body:has(.app-shell-admin)::-webkit-scrollbar,
   border-radius: 50%;
   display: grid;
   place-items: center;
-  background: linear-gradient(135deg, rgba(91, 63, 153, 0.14), rgba(183, 137, 255, 0.18));
+  background: linear-gradient(135deg, rgba(var(--app-primary-rgb), 0.14), rgba(var(--app-primary-rgb), 0.08));
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.78);
 }
 
@@ -4355,7 +4375,7 @@ body:has(.app-shell-admin)::-webkit-scrollbar,
 .candidate-profile-photo-fallback {
   display: grid;
   place-items: center;
-  background: linear-gradient(135deg, var(--app-primary), var(--app-secondary));
+  background: var(--app-primary);
   color: white;
   font-family: var(--app-heading);
   font-size: 2rem;
@@ -4385,8 +4405,8 @@ body:has(.app-shell-admin)::-webkit-scrollbar,
   gap: 8px;
   padding: 14px;
   border-radius: 18px;
-  border: 1px dashed rgba(91, 63, 153, 0.22);
-  background: rgba(246, 241, 255, 0.6);
+  border: 1px dashed rgba(var(--app-primary-rgb), 0.22);
+  background: rgba(var(--app-primary-rgb), 0.04);
 }
 
 .candidate-profile-upload span {
@@ -4409,8 +4429,8 @@ body:has(.app-shell-admin)::-webkit-scrollbar,
   margin-right: 12px;
   border: 0;
   border-radius: 12px;
-  background: rgba(91, 63, 153, 0.1);
-  color: var(--app-primary);
+  background: var(--app-primary);
+  color: #fff;
   padding: 9px 12px;
   font-weight: 700;
   cursor: pointer;
@@ -16526,10 +16546,10 @@ body:has(.app-shell-admin)::-webkit-scrollbar,
 .candidate-profile-medical {
   --cp-bg: #f7f4fc;
   --cp-surface: rgba(255, 255, 255, 0.92);
-  --cp-border: rgba(91, 46, 255, 0.12);
+  --cp-border: rgba(var(--app-primary-rgb), 0.12);
   --cp-text: #1b1230;
   --cp-muted: #6f6591;
-  --cp-primary: #5b2eff;
+  --cp-primary: var(--app-primary);
   --cp-lavender: #e9ddfd;
   display: grid;
   gap: 12px;
@@ -16583,15 +16603,23 @@ body:has(.app-shell-admin)::-webkit-scrollbar,
 }
 
 .candidate-profile-button-primary {
-  background: linear-gradient(135deg, #5b2eff, #7f5cff);
+  background: var(--app-primary);
+  border-color: var(--app-primary);
   color: #fff;
-  box-shadow: 0 10px 18px rgba(91, 46, 255, 0.22);
+  box-shadow: 0 14px 28px -16px rgba(var(--app-primary-rgb), 0.85);
 }
 
 .candidate-profile-button-secondary {
-  background: #fff;
-  border-color: var(--cp-border);
-  color: #4d2fb8;
+  background: var(--app-primary);
+  border-color: var(--app-primary);
+  color: #fff;
+  box-shadow: 0 14px 28px -16px rgba(var(--app-primary-rgb), 0.85);
+}
+
+.candidate-profile-button-primary:hover,
+.candidate-profile-button-secondary:hover {
+  background: var(--app-primary-hover);
+  border-color: var(--app-primary-hover);
 }
 
 .candidate-profile-card {
@@ -16618,7 +16646,7 @@ body:has(.app-shell-admin)::-webkit-scrollbar,
   inset: -35% auto auto -8%;
   width: 340px;
   height: 240px;
-  background: radial-gradient(circle, rgba(91, 46, 255, 0.12), transparent 70%);
+  background: radial-gradient(circle, rgba(var(--app-primary-rgb), 0.12), transparent 70%);
   pointer-events: none;
 }
 
@@ -16636,7 +16664,7 @@ body:has(.app-shell-admin)::-webkit-scrollbar,
   border-radius: 50%;
   display: grid;
   place-items: center;
-  background: linear-gradient(135deg, rgba(91, 46, 255, 0.18), rgba(146, 111, 255, 0.24));
+  background: linear-gradient(135deg, rgba(var(--app-primary-rgb), 0.18), rgba(var(--app-primary-rgb), 0.08));
 }
 
 .candidate-profile-photo,
@@ -16653,7 +16681,7 @@ body:has(.app-shell-admin)::-webkit-scrollbar,
 .candidate-profile-photo-fallback {
   display: grid;
   place-items: center;
-  background: linear-gradient(135deg, #5b2eff, #8c67ff);
+  background: var(--app-primary);
   color: #fff;
   font-size: 1.8rem;
   font-weight: 800;
@@ -16691,9 +16719,9 @@ body:has(.app-shell-admin)::-webkit-scrollbar,
   grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
   padding: 10px 12px;
-  border: 1px dashed #d8c9fa;
+  border: 1px dashed rgba(var(--app-primary-rgb), 0.22);
   border-radius: 14px;
-  background: rgba(243, 236, 255, 0.6);
+  background: rgba(var(--app-primary-rgb), 0.04);
 }
 
 .candidate-profile-upload-inline span {
@@ -16702,13 +16730,13 @@ body:has(.app-shell-admin)::-webkit-scrollbar,
   align-items: center;
   font-size: 0.88rem;
   font-weight: 700;
-  color: #4f35b3;
+  color: var(--app-primary);
 }
 
 .candidate-profile-upload input {
   width: 100%;
   min-width: 0;
-  border: 1px solid #dfd3fb;
+  border: 1px solid rgba(var(--app-primary-rgb), 0.16);
   border-radius: 12px;
   background: #fff;
   padding: 7px 8px;
@@ -16720,8 +16748,8 @@ body:has(.app-shell-admin)::-webkit-scrollbar,
   margin-right: 8px;
   border: 0;
   border-radius: 10px;
-  background: rgba(91, 46, 255, 0.14);
-  color: #4e30bf;
+  background: var(--app-primary);
+  color: #fff;
   padding: 6px 8px;
   font-size: 0.82rem;
   font-weight: 700;
@@ -16734,7 +16762,7 @@ body:has(.app-shell-admin)::-webkit-scrollbar,
   border-radius: 50%;
   display: grid;
   place-items: center;
-  background: conic-gradient(var(--cp-primary) var(--completion, 0%), #ede6ff 0);
+  background: conic-gradient(var(--cp-primary) var(--completion, 0%), rgba(var(--app-primary-rgb), 0.12) 0);
   position: relative;
 }
 
@@ -16762,7 +16790,7 @@ body:has(.app-shell-admin)::-webkit-scrollbar,
 
 .candidate-profile-mini-stat {
   min-height: 108px;
-  border: 1px solid #e4d9fd;
+  border: 1px solid rgba(var(--app-primary-rgb), 0.14);
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.86);
   padding: 10px 11px;
@@ -16772,7 +16800,7 @@ body:has(.app-shell-admin)::-webkit-scrollbar,
 }
 
 .candidate-profile-mini-stat svg {
-  color: #5b2eff;
+  color: var(--app-primary);
   width: 20px;
   height: 20px;
 }
@@ -16855,7 +16883,7 @@ body:has(.app-shell-admin)::-webkit-scrollbar,
   align-items: center;
   gap: 8px;
   padding: 8px 0;
-  border-bottom: 1px solid rgba(91, 46, 255, 0.08);
+  border-bottom: 1px solid rgba(var(--app-primary-rgb), 0.08);
 }
 
 .candidate-profile-field-row:last-child {
@@ -16929,9 +16957,9 @@ body:has(.app-shell-admin)::-webkit-scrollbar,
 }
 
 .candidate-profile-chip-active {
-  background: linear-gradient(135deg, #5b2eff, #7f5cff);
+  background: var(--app-primary);
   color: #fff;
-  border-color: transparent;
+  border-color: var(--app-primary);
 }
 
 .candidate-profile-chip-soft {
@@ -17011,7 +17039,7 @@ body:has(.app-shell-admin)::-webkit-scrollbar,
 
 .candidate-profile-upload-compact span {
   font-size: 0.82rem;
-  color: #4a36a6;
+  color: var(--app-primary);
   font-weight: 700;
 }
 
@@ -18728,5 +18756,356 @@ body:has(.app-shell-admin) {
 
   .app-shell-admin .admin-command__metric:last-child {
     border-bottom: 0 !important;
+  }
+}
+
+/* Non-admin product design system migration.
+   Keep these rules scoped to .app-shell-product so the approved admin workspace remains untouched. */
+html:has(.app-shell-product),
+body:has(.app-shell-product) {
+  background: #fafafc;
+}
+
+body:has(.app-shell-product)::before,
+body:has(.app-shell-product)::after {
+  display: none;
+}
+
+.app-shell-product {
+  --app-bg: #fafafc;
+  --app-bg-soft: #f7f6fb;
+  --app-surface: #ffffff;
+  --app-surface-strong: #ffffff;
+  --app-border: #ece8f5;
+  --app-text: #1f1830;
+  --app-text-soft: #3c344f;
+  --app-muted: #6e6883;
+  --app-muted-soft: #9b95ae;
+  --app-primary: #4a1d59;
+  --app-primary-hover: #5a246b;
+  --app-primary-light: #f3eaf7;
+  --app-primary-deep: #2b1035;
+  --app-secondary: #f3eaf7;
+  --app-accent: #4a1d59;
+  --app-success: #22c55e;
+  --app-warning: #f59e0b;
+  --app-danger: #ef4444;
+  --app-primary-rgb: 74, 29, 89;
+  --app-secondary-rgb: 243, 234, 247;
+  --app-accent-rgb: 74, 29, 89;
+  --app-shadow: 0 18px 48px rgba(31, 24, 48, 0.08);
+  --app-shadow-soft: 0 10px 28px rgba(31, 24, 48, 0.06);
+  --shadow-1: 0 1px 2px rgba(31, 24, 48, 0.05), 0 8px 18px rgba(31, 24, 48, 0.04);
+  --shadow-2: 0 16px 34px rgba(31, 24, 48, 0.08);
+  --ring-focus: 0 0 0 3px rgba(74, 29, 89, 0.14);
+  --app-radius-xl: 24px;
+  --app-radius-lg: 18px;
+  --app-radius-md: 14px;
+  --app-radius-sm: 10px;
+  color: var(--app-text);
+  background: linear-gradient(180deg, #fafafc 0%, #f7f6fb 100%);
+  letter-spacing: 0;
+}
+
+.app-shell-product.app-shell-candidat,
+.app-shell-product.app-shell-entreprise {
+  background: linear-gradient(180deg, #fafafc 0%, #f7f6fb 100%);
+  max-width: 1500px;
+  padding: 24px;
+  gap: 24px;
+}
+
+.app-shell-product.app-shell-inspecteur,
+.app-shell-product.app-shell-aneti {
+  width: 100%;
+  max-width: none;
+  padding: 0;
+  background: linear-gradient(180deg, #fafafc 0%, #f7f6fb 100%);
+}
+
+.app-shell-product.app-shell-candidat::before,
+.app-shell-product.app-shell-candidat::after {
+  display: none;
+}
+
+.app-shell-product .app-main {
+  color: var(--app-text);
+}
+
+.app-shell-product .app-page,
+.app-shell-product .stack-lg,
+.app-shell-product .surface-grid,
+.app-shell-product .pageContent {
+  gap: 24px;
+}
+
+.app-shell-product :is(h1, h2, h3, h4, h5, h6, .page-title, .section-title, .titre-page) {
+  color: var(--app-text);
+  font-weight: 600 !important;
+  letter-spacing: 0 !important;
+  line-height: 1.12;
+}
+
+.app-shell-product :is(.page-title, .titre-page) {
+  font-size: clamp(1.55rem, 2.8vw, 2.7rem);
+}
+
+.app-shell-product :is(.page-title-sm, .page-header h1, .page-header-card h1) {
+  font-size: clamp(1.45rem, 2.4vw, 2.25rem);
+}
+
+.app-shell-product :is(.page-description, .texte-secondaire, .muted-copy, p, li) {
+  color: var(--app-muted);
+}
+
+.app-shell-product :is(.badge, .section-badge, [class*="kicker"], [class*="eyebrow"]) {
+  color: var(--app-primary);
+  font-size: 0.72rem;
+  font-weight: 500 !important;
+  letter-spacing: 0.04em !important;
+  text-transform: none !important;
+}
+
+.app-shell-product :is(.badge, .section-badge)::before {
+  background: var(--app-primary);
+  opacity: 0.8;
+}
+
+.app-shell-product :is(.ui-card, .carte, .panelCard, [class*="Panel"], [class*="Card"]) {
+  background: #ffffff;
+  border-color: var(--app-border);
+  box-shadow: var(--shadow-1);
+  color: var(--app-text);
+}
+
+.app-shell-product :is(.ui-card-accent, .candidate-showcase, .candidate-home-clean, .candidate-dashboard-ref__hero) {
+  background: #ffffff;
+  border-color: var(--app-border);
+  box-shadow: var(--shadow-1);
+}
+
+.app-shell-product :is(.ui-card-dark, .carte-sombre, .page-header-card) {
+  background: #ffffff;
+  border: 1px solid var(--app-border);
+  box-shadow: var(--shadow-1);
+  color: var(--app-text);
+}
+
+.app-shell-product :is(.ui-card-dark, .carte-sombre, .page-header-card) :is(h1, h2, h3, p, span, strong, .badge, .page-description) {
+  color: inherit;
+}
+
+.app-shell-product .page-header,
+.app-shell-product.app-shell-candidat .page-header,
+.app-shell-product.app-shell-entreprise .page-header {
+  position: relative;
+  align-items: flex-end;
+  padding: 24px;
+  border-radius: var(--app-radius-xl);
+  background: #ffffff;
+  border: 1px solid var(--app-border);
+  box-shadow: var(--shadow-1);
+}
+
+.app-shell-product .page-header::after,
+.app-shell-product.app-shell-candidat .page-header::after,
+.app-shell-product.app-shell-entreprise .page-header::after,
+.app-shell-product .page-header-card::before {
+  display: none;
+}
+
+.app-shell-product :is(.stat-card strong, .kpiCard strong, [class*="metric"] strong, [class*="Metric"] strong) {
+  color: var(--app-text);
+  font-size: clamp(1.45rem, 2.2vw, 2.15rem);
+  font-weight: 600 !important;
+}
+
+.app-shell-product :is(.ui-button, .btn, .bouton, button, [type="button"], [type="submit"]) {
+  border-radius: var(--app-radius-md);
+  font-weight: 500 !important;
+  letter-spacing: 0 !important;
+}
+
+.app-shell-product :is(.ui-button-primary, .btn-primary, .bouton-primaire, .primary, button[type="submit"]) {
+  background: var(--app-primary);
+  border-color: var(--app-primary);
+  color: #ffffff;
+  box-shadow: 0 10px 22px rgba(74, 29, 89, 0.14);
+}
+
+.app-shell-product :is(.ui-button-primary, .btn-primary, .bouton-primaire, .primary, button[type="submit"]):hover {
+  background: var(--app-primary-hover);
+  border-color: var(--app-primary-hover);
+  box-shadow: 0 12px 26px rgba(74, 29, 89, 0.18);
+}
+
+.app-shell-product :is(.ui-button-secondary, .ui-button-ghost, .btn-secondary, .bouton-secondaire, .bouton-neutre) {
+  background: #ffffff;
+  border-color: var(--app-border);
+  color: var(--app-text);
+  box-shadow: none;
+}
+
+.app-shell-product :is(input, select, textarea, .champ, .champ-select, .champ-zone) {
+  background: #ffffff;
+  border-color: var(--app-border);
+  border-radius: var(--app-radius-md);
+  color: var(--app-text);
+  box-shadow: none;
+}
+
+.app-shell-product :is(input, select, textarea, .champ, .champ-select, .champ-zone):focus {
+  border-color: rgba(74, 29, 89, 0.34);
+  box-shadow: var(--ring-focus);
+  outline: none;
+}
+
+.app-shell-product :is(table, .tableau) {
+  background: #ffffff;
+  border-color: var(--app-border);
+  color: var(--app-text);
+}
+
+.app-shell-product :is(th, .table th) {
+  color: var(--app-muted);
+  font-size: 0.72rem;
+  font-weight: 500 !important;
+  letter-spacing: 0.04em !important;
+}
+
+.app-shell-product :is(td, .table td) {
+  color: var(--app-text-soft);
+  border-color: var(--app-border);
+}
+
+.app-shell-product .badge-count,
+.app-shell-product [class*="status"],
+.app-shell-product [class*="badge"] {
+  border-color: rgba(74, 29, 89, 0.12);
+}
+
+.app-shell-product .app-header-inner,
+.app-shell-product .candidate-sidebar-ref,
+.app-shell-product.app-shell-entreprise .app-header-inner {
+  background: #ffffff;
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-xl);
+  box-shadow: var(--shadow-1);
+}
+
+.app-shell-product.app-shell-candidat .app-header-inner,
+.app-shell-product.app-shell-entreprise .app-header-inner {
+  min-height: calc(100vh - 48px);
+  padding: 12px;
+}
+
+.app-shell-product :is(.brand-mark, .candidate-sidebar-ref__brand-mark, .nav-chip-glyph, .candidate-sidebar-ref__item-icon) {
+  background: var(--app-primary-light);
+  color: var(--app-primary);
+}
+
+.app-shell-product :is(.brand-copy span, .candidate-sidebar-ref__brand-copy span, .candidate-sidebar-ref__item-copy small, .profile-meta span) {
+  color: var(--app-muted);
+  letter-spacing: 0.04em;
+  text-transform: none;
+}
+
+.app-shell-product :is(.nav-chip, .candidate-sidebar-ref__item) {
+  min-height: 44px;
+  border-radius: var(--app-radius-md);
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--app-text-soft);
+  box-shadow: none;
+}
+
+.app-shell-product :is(.nav-chip:hover, .nav-chip-active, .candidate-sidebar-ref__item:hover, .candidate-sidebar-ref__item.is-active) {
+  background: var(--app-primary-light);
+  border-color: rgba(74, 29, 89, 0.12);
+  color: var(--app-primary);
+  box-shadow: none;
+}
+
+.app-shell-product :is(.nav-chip:hover, .nav-chip-active, .candidate-sidebar-ref__item:hover, .candidate-sidebar-ref__item.is-active) :is(.nav-chip-glyph, .candidate-sidebar-ref__item-icon, small) {
+  color: var(--app-primary);
+}
+
+.app-shell-product :is(.candidate-sidebar-ref__profile-card, .profile-trigger) {
+  background: #fafafc;
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-lg);
+  box-shadow: none;
+}
+
+.app-shell-product :is(.profile-menu, .nav-dropdown-menu, .mobile-nav) {
+  background: #ffffff;
+  border: 1px solid var(--app-border);
+  box-shadow: var(--shadow-2);
+}
+
+.app-shell-product .candidate-sidebar-ref__divider {
+  background: var(--app-border);
+}
+
+.app-shell-product .candidate-sidebar-ref__accessibility:hover {
+  background: var(--app-primary-light);
+  color: var(--app-primary);
+}
+
+.app-shell-product .candidate-sidebar-ref__logout-link,
+.app-shell-product .ui-button-danger {
+  color: var(--app-danger);
+}
+
+.app-shell-product .message,
+.app-shell-product .alerte,
+.app-shell-product .empty-state,
+.app-shell-product [class*="empty"] {
+  border-color: var(--app-border);
+  background: #ffffff;
+  color: var(--app-muted);
+}
+
+.app-shell-product [class*="success"],
+.app-shell-product [class*="Good"],
+.app-shell-product [class*="positive"] {
+  color: var(--app-success);
+}
+
+.app-shell-product [class*="warning"],
+.app-shell-product [class*="Warning"] {
+  color: var(--app-warning);
+}
+
+.app-shell-product [class*="danger"],
+.app-shell-product [class*="error"],
+.app-shell-product [class*="Critical"],
+.app-shell-product [class*="negative"] {
+  color: var(--app-danger);
+}
+
+@media (max-width: 1180px) {
+  .app-shell-product.app-shell-candidat,
+  .app-shell-product.app-shell-entreprise {
+    padding: 16px;
+  }
+
+  .app-shell-product.app-shell-candidat .app-header-inner,
+  .app-shell-product.app-shell-entreprise .app-header-inner {
+    min-height: auto;
+  }
+}
+
+@media (max-width: 760px) {
+  .app-shell-product.app-shell-candidat,
+  .app-shell-product.app-shell-entreprise {
+    padding: 10px;
+  }
+
+  .app-shell-product .page-header,
+  .app-shell-product.app-shell-candidat .page-header,
+  .app-shell-product.app-shell-entreprise .page-header {
+    padding: 16px;
+    border-radius: 18px;
   }
 }

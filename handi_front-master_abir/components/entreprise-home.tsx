@@ -726,7 +726,7 @@ export function EntrepriseHome({ utilisateurNom, stats, loadingStats, erreurStat
           align-items: center;
           width: fit-content;
           font-weight: 950;
-          background: linear-gradient(90deg, #5d28ec, #ef5bd3);
+          background: linear-gradient(90deg, var(--app-primary, #35063e), #cf5f8f);
           -webkit-background-clip: text;
           color: transparent;
         }
@@ -788,7 +788,7 @@ export function EntrepriseHome({ utilisateurNom, stats, loadingStats, erreurStat
           top: 22px;
           width: 405px;
           height: 305px;
-          border: 1px dashed rgba(116, 84, 213, 0.18);
+          border: 1px dashed rgba(var(--app-primary-rgb, 53, 6, 62), 0.18);
           border-radius: 50%;
         }
 
@@ -799,11 +799,11 @@ export function EntrepriseHome({ utilisateurNom, stats, loadingStats, erreurStat
           width: 250px;
           height: 230px;
           border-radius: 48% 52% 46% 54%;
-          filter: drop-shadow(0 34px 70px rgba(99, 55, 217, 0.28));
+          filter: drop-shadow(0 34px 70px rgba(var(--app-primary-rgb, 53, 6, 62), 0.24));
         }
 
         :global(.new-blob.one) {
-          background: radial-gradient(circle at 28% 25%, #fff 0 18%, #d8bcff 30%, #8d63ff 58%, #6c3ef0 100%);
+          background: radial-gradient(circle at 28% 25%, #fff 0 18%, #f1d1df 30%, #9d4f78 58%, var(--app-primary, #35063e) 100%);
           transform: rotate(-18deg);
         }
 
@@ -813,7 +813,7 @@ export function EntrepriseHome({ utilisateurNom, stats, loadingStats, erreurStat
           width: 210px;
           height: 200px;
           opacity: 0.78;
-          background: linear-gradient(145deg, rgba(255,255,255,0.9), rgba(139,88,255,0.45), rgba(94,50,224,0.84));
+          background: linear-gradient(145deg, rgba(255,255,255,0.9), rgba(216,106,141,0.42), rgba(var(--app-primary-rgb, 53, 6, 62), 0.84));
           transform: rotate(28deg);
         }
 
@@ -830,7 +830,7 @@ export function EntrepriseHome({ utilisateurNom, stats, loadingStats, erreurStat
           border-radius: 50%;
           background: #fff;
           color: #130b3f;
-          box-shadow: 0 24px 54px rgba(72, 38, 177, 0.2);
+          box-shadow: 0 24px 54px rgba(var(--app-primary-rgb, 53, 6, 62), 0.18);
         }
 
         :global(.new-score b) {
@@ -865,7 +865,7 @@ export function EntrepriseHome({ utilisateurNom, stats, loadingStats, erreurStat
 
         :global(.new-float svg) {
           grid-row: span 2;
-          color: #6d25ff;
+          color: var(--app-primary, #35063e);
         }
 
         :global(.new-float b) {
@@ -897,8 +897,8 @@ export function EntrepriseHome({ utilisateurNom, stats, loadingStats, erreurStat
           min-height: 330px;
           padding: 24px;
           color: #fff;
-          background: linear-gradient(145deg, #1b0e4f, #10072f);
-          box-shadow: 0 24px 54px rgba(16, 8, 54, 0.22);
+          background: linear-gradient(145deg, var(--app-primary-deep, #24042b), #130716);
+          box-shadow: 0 24px 54px rgba(var(--app-primary-rgb, 53, 6, 62), 0.22);
         }
 
         :global(.new-impact h2) {
@@ -923,9 +923,9 @@ export function EntrepriseHome({ utilisateurNom, stats, loadingStats, erreurStat
           background: rgba(255,255,255,0.1);
         }
 
-        :global(.impact-icon.pink) { color: #ff87ce; }
-        :global(.impact-icon.amber) { color: #ffd05d; }
-        :global(.impact-icon.violet) { color: #b78cff; }
+        :global(.impact-icon.pink) { color: #f08ab6; }
+        :global(.impact-icon.amber) { color: #f4c95d; }
+        :global(.impact-icon.violet) { color: #d9a3c6; }
 
         :global(.new-impact b) {
           font-size: 0.84rem;
@@ -944,7 +944,7 @@ export function EntrepriseHome({ utilisateurNom, stats, loadingStats, erreurStat
           display: block;
           height: 100%;
           border-radius: inherit;
-          background: linear-gradient(90deg, #7c4dff, #b55cff);
+          background: linear-gradient(90deg, #d86a8d, #f4c95d);
         }
 
         :global(.new-impact small) {
@@ -987,7 +987,7 @@ export function EntrepriseHome({ utilisateurNom, stats, loadingStats, erreurStat
         }
 
         :global(.new-card-head a) {
-          color: #5b22e6;
+          color: var(--app-primary, #35063e);
           text-decoration: none;
           font-size: 0.76rem;
           font-weight: 900;
@@ -1021,7 +1021,7 @@ export function EntrepriseHome({ utilisateurNom, stats, loadingStats, erreurStat
           border-radius: 50%;
           color: #fff;
           font-weight: 950;
-          background: linear-gradient(135deg, #191044, #7a63d8);
+          background: linear-gradient(135deg, var(--app-primary-deep, #24042b), #d86a8d);
         }
 
         :global(.new-photo.tone-1) { background: linear-gradient(135deg, #202136, #b58a73); }
@@ -1066,8 +1066,8 @@ export function EntrepriseHome({ utilisateurNom, stats, loadingStats, erreurStat
         :global(.new-candidate-list em) {
           padding: 5px 8px;
           border-radius: 999px;
-          color: #6731e8;
-          background: #f0e9ff;
+          color: var(--app-primary, #35063e);
+          background: rgba(var(--app-primary-rgb, 53, 6, 62), 0.08);
           font-size: 0.62rem;
           font-style: normal;
           font-weight: 850;
@@ -1109,7 +1109,7 @@ export function EntrepriseHome({ utilisateurNom, stats, loadingStats, erreurStat
         }
 
         :global(.new-activity time) {
-          color: #5b22e6;
+          color: var(--app-primary, #35063e);
           font-size: 0.72rem;
         }
 
@@ -1156,7 +1156,7 @@ export function EntrepriseHome({ utilisateurNom, stats, loadingStats, erreurStat
           display: grid;
           place-items: center;
           border-radius: 50%;
-          color: #6d25ff;
+          color: var(--app-primary, #35063e);
           background: #fff;
           box-shadow: 0 0 0 8px #f8f4ff, 0 14px 26px rgba(61, 35, 120, 0.12);
         }
@@ -1187,7 +1187,7 @@ export function EntrepriseHome({ utilisateurNom, stats, loadingStats, erreurStat
           overflow: hidden;
           padding: 28px 28px 0;
           color: #fff;
-          background: linear-gradient(135deg, #5438ef, #bd66f1);
+          background: linear-gradient(135deg, var(--app-primary, #35063e), #d86a8d);
         }
 
         :global(.new-cta h2) {
@@ -1209,7 +1209,7 @@ export function EntrepriseHome({ utilisateurNom, stats, loadingStats, erreurStat
           gap: 8px;
           padding: 12px 18px;
           border-radius: 12px;
-          color: #5b22e6;
+          color: var(--app-primary, #35063e);
           background: #fff;
           text-decoration: none;
           font-size: 0.78rem;
@@ -1345,10 +1345,10 @@ export function EntrepriseHome({ utilisateurNom, stats, loadingStats, erreurStat
         .glass-panel {
           position: absolute;
           inset: 18px 34px 34px 78px;
-          border: 2px solid rgba(121, 72, 255, 0.16);
-          background: linear-gradient(135deg, rgba(255,255,255,0.65), rgba(147,104,255,0.14));
+          border: 2px solid rgba(var(--app-primary-rgb, 53, 6, 62), 0.16);
+          background: linear-gradient(135deg, rgba(255,255,255,0.65), rgba(216,106,141,0.14));
           clip-path: polygon(0 20%, 62% 0, 100% 16%, 100% 100%, 0 100%);
-          box-shadow: inset 0 0 40px rgba(111,44,255,0.09);
+          box-shadow: inset 0 0 40px rgba(var(--app-primary-rgb, 53, 6, 62), 0.09);
         }
 
         .base-ring {
@@ -1358,16 +1358,16 @@ export function EntrepriseHome({ utilisateurNom, stats, loadingStats, erreurStat
           bottom: 22px;
           height: 70px;
           border-radius: 50%;
-          border: 1px solid rgba(111, 44, 255, 0.22);
-          background: radial-gradient(circle, rgba(111,44,255,0.2), rgba(255,255,255,0.1) 64%, transparent 68%);
-          filter: drop-shadow(0 28px 35px rgba(111,44,255,0.16));
+          border: 1px solid rgba(var(--app-primary-rgb, 53, 6, 62), 0.22);
+          background: radial-gradient(circle, rgba(var(--app-primary-rgb, 53, 6, 62), 0.18), rgba(255,255,255,0.1) 64%, transparent 68%);
+          filter: drop-shadow(0 28px 35px rgba(var(--app-primary-rgb, 53, 6, 62), 0.16));
         }
 
         .person {
           position: absolute;
           border-radius: 999px 999px 38px 38px;
-          background: linear-gradient(145deg, #f3eaff 0%, #7c3cff 45%, #3e0f91 100%);
-          box-shadow: inset 12px 12px 22px rgba(255,255,255,0.45), 0 24px 42px rgba(88, 40, 207, 0.3);
+          background: linear-gradient(145deg, #f8e3ec 0%, #d86a8d 45%, var(--app-primary, #35063e) 100%);
+          box-shadow: inset 12px 12px 22px rgba(255,255,255,0.45), 0 24px 42px rgba(var(--app-primary-rgb, 53, 6, 62), 0.28);
         }
 
         .person::before {
@@ -1443,8 +1443,8 @@ export function EntrepriseHome({ utilisateurNom, stats, loadingStats, erreurStat
         :global(.quick-card:first-child) {
           color: #fff;
           border-color: transparent;
-          background: linear-gradient(135deg, #6d25ff 0%, #5f19f4 48%, #3b0fcf 100%);
-          box-shadow: 0 14px 30px rgba(84, 28, 226, 0.32);
+          background: linear-gradient(135deg, var(--app-primary, #35063e) 0%, #8f3d67 52%, #d86a8d 100%);
+          box-shadow: 0 14px 30px rgba(var(--app-primary-rgb, 53, 6, 62), 0.28);
         }
 
         :global(.quick-card:hover) {
@@ -1453,7 +1453,7 @@ export function EntrepriseHome({ utilisateurNom, stats, loadingStats, erreurStat
         }
 
         :global(.quick-card:first-child:hover) {
-          box-shadow: 0 18px 36px rgba(84, 28, 226, 0.38);
+          box-shadow: 0 18px 36px rgba(var(--app-primary-rgb, 53, 6, 62), 0.34);
         }
 
         .quick-icon,
@@ -1533,7 +1533,7 @@ export function EntrepriseHome({ utilisateurNom, stats, loadingStats, erreurStat
           width: 250px;
           height: 250px;
           border-radius: 50%;
-          background: radial-gradient(circle, rgba(111,44,255,0.25), transparent 64%);
+          background: radial-gradient(circle, rgba(216,106,141,0.22), transparent 64%);
           pointer-events: none;
         }
 
@@ -1726,8 +1726,8 @@ export function EntrepriseHome({ utilisateurNom, stats, loadingStats, erreurStat
           background:
             radial-gradient(circle at 34% 35%, rgba(255,255,255,0.72), transparent 13%),
             radial-gradient(circle at 58% 44%, rgba(255,255,255,0.5), transparent 16%),
-            linear-gradient(145deg, #d1b5ff, #5f20ff 65%, #32107d);
-          box-shadow: 0 16px 30px rgba(111,44,255,0.34);
+            linear-gradient(145deg, #f4d0df, #d86a8d 65%, var(--app-primary, #35063e));
+          box-shadow: 0 16px 30px rgba(var(--app-primary-rgb, 53, 6, 62), 0.3);
           opacity: 0.95;
         }
 
