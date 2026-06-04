@@ -413,7 +413,7 @@ function DashboardPage() {
                   <PlusIcon />
                 </span>
                 <span>
-                  <strong>Publier une offre</strong>
+                  <strong>Creer une offre</strong>
                   <small>Créer une nouvelle offre d&apos;emploi</small>
                 </span>
               </Link>
@@ -512,7 +512,7 @@ function DashboardPage() {
                   <span className="offers-empty-icon" aria-hidden="true">◯</span>
                   <h3>Aucune offre active pour le moment</h3>
                   <p>Publiez une nouvelle offre pour lancer votre prochain cycle de recrutement.</p>
-                  <Link href="/entreprise/offres">Publier une offre</Link>
+                  <Link href="/entreprise/offres">Creer une offre</Link>
                 </div>
               )}
             </div>
@@ -848,10 +848,10 @@ function DashboardPage() {
         }
 
         .quick-action.primary {
-          color: #fff;
-          border-color: #35063e;
-          background: #35063e;
-          box-shadow: 0 14px 26px rgba(53, 6, 62, 0.2);
+          color: #ffffff;
+          border-color: transparent;
+          background: #4a154b;
+          box-shadow: 0 8px 18px rgba(74, 21, 75, 0.14);
         }
 
         .action-icon {

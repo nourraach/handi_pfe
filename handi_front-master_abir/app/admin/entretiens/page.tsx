@@ -51,25 +51,25 @@ type EntretiensAdminPayload = {
 
 const ITEMS_PER_PAGE = 25;
 const statusOptions: Array<{ value: "" | EntretienStatut; label: string }> = [
-  { value: "", label: "All statuses" },
-  { value: "planifie", label: "Scheduled" },
-  { value: "confirme", label: "Confirmed" },
-  { value: "reporte", label: "Rescheduled" },
-  { value: "termine", label: "Completed" },
-  { value: "annule", label: "Cancelled" },
+  { value: "", label: "Tous les statuts" },
+  { value: "planifie", label: "Planifie" },
+  { value: "confirme", label: "Confirme" },
+  { value: "reporte", label: "Reprogramme" },
+  { value: "termine", label: "Termine" },
+  { value: "annule", label: "Annule" },
 ];
 const typeOptions: Array<{ value: "" | EntretienType; label: string }> = [
-  { value: "", label: "All types" },
-  { value: "visio", label: "Video" },
-  { value: "presentiel", label: "In person" },
-  { value: "telephonique", label: "Phone" },
+  { value: "", label: "Tous les types" },
+  { value: "visio", label: "Visio" },
+  { value: "presentiel", label: "Presentiel" },
+  { value: "telephonique", label: "Telephone" },
 ];
 
 const interviewBoardStyles = `
   .interviews-board {
     width: 100%;
     color: #171142;
-    font-family: "Manrope", "IBM Plex Sans", "Inter", system-ui, sans-serif;
+    font-family: Inter, sans-serif;
   }
 
   .interviews-board__panel {
@@ -512,12 +512,12 @@ export default function AdminEntretiensPage() {
       const data: EntretiensAdminPayload = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        throw new Error(data.message || "Unable to load interviews.");
+        throw new Error(data.message || "Impossible de charger les entretiens.");
       }
 
       setEntretiens(Array.isArray(data.donnees) ? data.donnees : []);
     } catch (cause) {
-      setErreur(cause instanceof Error ? cause.message : "Unable to load interviews.");
+      setErreur(cause instanceof Error ? cause.message : "Impossible de charger les entretiens.");
       setEntretiens([]);
     } finally {
       setLoading(false);
@@ -575,12 +575,12 @@ export default function AdminEntretiensPage() {
                 type="search"
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                placeholder="Search candidate, company, role..."
-                aria-label="Search interviews"
+                placeholder="Rechercher un candidat, une entreprise, une offre..."
+                aria-label="Rechercher des entretiens"
               />
             </label>
             <label className="interviews-board__select">
-              <select value={status} onChange={(event) => setStatus(event.target.value as "" | EntretienStatut)} aria-label="Filter by status">
+              <select value={status} onChange={(event) => setStatus(event.target.value as "" | EntretienStatut)} aria-label="Filtrer par statut">
                 {statusOptions.map((option) => (
                   <option key={option.value || "all"} value={option.value}>{option.label}</option>
                 ))}
@@ -588,7 +588,7 @@ export default function AdminEntretiensPage() {
               <ChevronDown aria-hidden="true" />
             </label>
             <label className="interviews-board__select">
-              <select value={type} onChange={(event) => setType(event.target.value as "" | EntretienType)} aria-label="Filter by type">
+              <select value={type} onChange={(event) => setType(event.target.value as "" | EntretienType)} aria-label="Filtrer par type">
                 {typeOptions.map((option) => (
                   <option key={option.value || "all"} value={option.value}>{option.label}</option>
                 ))}
@@ -596,10 +596,10 @@ export default function AdminEntretiensPage() {
               <ChevronDown aria-hidden="true" />
             </label>
             <label className="interviews-board__select">
-              <select value={period} onChange={(event) => setPeriod(event.target.value as "all" | "upcoming" | "past")} aria-label="Filter by period">
-                <option value="all">All dates</option>
-                <option value="upcoming">Upcoming</option>
-                <option value="past">Past / closed</option>
+              <select value={period} onChange={(event) => setPeriod(event.target.value as "all" | "upcoming" | "past")} aria-label="Filtrer par période">
+                <option value="all">Toutes les dates</option>
+                <option value="upcoming">À venir</option>
+                <option value="past">Passés / clôturés</option>
               </select>
               <ChevronDown aria-hidden="true" />
             </label>

@@ -1,13 +1,11 @@
 "use client";
 
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ChevronDown,
   Download,
   Eye,
-  FileText,
-  Grid3X3,
   Sparkles,
 } from "lucide-react";
 
@@ -183,11 +181,11 @@ function createDefaultState(): CvFormState {
     linkedin: "linkedin.com/in/mohamed-djeddi",
     github: "github.com/mohamed-djeddi",
     summary:
-      "Passionate UX/UI Designer with 4+ years of experience creating accessible, user-centered digital products. I love solving problems with empathy and creating meaningful experiences.",
-    objective: "I am looking for a full-time position.",
-    skills: "UI Design\nUX Research\nFigma\nPrototyping\nAccessibility\nUser Testing",
-    languages: "French - Native\nEnglish - Native",
-    certifications: "Google UX Design Professional Certificate - 2023\nAccessibility Fundamentals - 2022",
+      "Designer UX/UI passionné avec plus de 4 ans d'expérience dans la création de produits numériques accessibles et centrés sur l'utilisateur. J'aime résoudre des problèmes avec empathie et concevoir des expériences utiles.",
+    objective: "Je recherche un poste à temps plein.",
+    skills: "Design UI\nRecherche UX\nFigma\nPrototypage\nAccessibilité\nTests utilisateurs",
+    languages: "Français - Langue maternelle\nAnglais - Courant",
+    certifications: "Certificat professionnel Google UX Design - 2023\nFondamentaux de l'accessibilité - 2022",
     template: "sidebar",
     colorThemeId: "handitalents",
     experiences: [
@@ -197,7 +195,7 @@ function createDefaultState(): CvFormState {
         company: "Webelite Agency",
         period: "2021 - Present",
         details:
-          "Designed and prototyped accessible web and mobile interfaces, collaborated with developers, and tested improvements with users.",
+          "Conception et prototypage d'interfaces web et mobiles accessibles, collaboration avec les développeurs et tests d'amélioration auprès des utilisateurs.",
       },
       {
         id: createId("exp"),
@@ -205,7 +203,7 @@ function createDefaultState(): CvFormState {
         company: "Digital House",
         period: "2019 - 2021",
         details:
-          "Supported design systems, prepared wireframes, and contributed to research and usability sessions.",
+          "Contribution aux systèmes de design, préparation de maquettes et participation aux sessions de recherche et d'utilisabilité.",
       },
     ],
     education: [
@@ -581,7 +579,7 @@ function buildCvHtml(cv: CvFormState, theme: CvTheme) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>${escapeHtml(cv.fullName || "CV")}</title>
     <style>
-      html, body { margin:0; padding:0; overflow:hidden; background:#e2e8f0; font-family: Inter, "Segoe UI", sans-serif; color:#1f1839; }
+      html, body { margin:0; padding:0; overflow:hidden; background:#e2e8f0; font-family: Inter, sans-serif; color:#1f1839; }
       .page { width:210mm; min-height:297mm; margin:24px auto; background:#fff; box-shadow:0 20px 40px rgba(15,23,42,0.12); }
       * { box-sizing:border-box; }
       @media print {
@@ -961,6 +959,10 @@ export default function CandidateCvPage() {
   const activeTourStep =
     CV_BUILDER_TOUR_STEPS.find((step) => step.stepId === activeStep) ?? CV_BUILDER_TOUR_STEPS[0];
   const tourStepIndex = Math.max(0, CV_STEPS.findIndex((step) => step.id === activeStep));
+  const previewFrameHeightPx = Math.max(900, previewFrameHeight);
+  const previewFrameStyle = {
+    "--preview-frame-height": `${previewFrameHeightPx}px`,
+  } as CSSProperties;
 
   const updateExperienceField = (id: string, key: keyof CvExperience, value: string) => {
     setCv((current) => ({
@@ -1169,11 +1171,11 @@ export default function CandidateCvPage() {
   }, []);
 
   if (!hydrated) {
-    return <div className="p-6 text-sm text-slate-600">Loading CV builder...</div>;
+    return <div className="p-6 text-sm text-slate-600">Chargement de l&apos;espace CV...</div>;
   }
 
   return (
-    <main className="cvb" aria-label="CV Builder Workspace">
+    <main className="cvb" aria-label="Espace CV">
       <div className="cvb__frame">
         {message ? (
           <div className="cvb__toast" role="status" aria-live="polite">
@@ -1184,8 +1186,7 @@ export default function CandidateCvPage() {
         <section className="cvb__content" data-saved={isSaved ? "true" : "false"}>
             <header className="cvb__header">
               <div>
-                <h1>CV Builder</h1>
-                <p>Créez un CV professionnel qui met en valeur vos compétences.</p>
+                <h1>CV</h1>
               </div>
 
               <div className="cvb__header-actions">
@@ -1508,17 +1509,24 @@ export default function CandidateCvPage() {
                   </div>
                 </div>
 
-                <div className={`cvb__preview-box ${previewMode === "mobile" ? "is-mobile" : ""}`}>
-                  <div className="cvb__preview-paper">
-                    <iframe
-                      ref={previewFrameRef}
-                      title="Live CV preview"
-                      srcDoc={previewHtml}
-                      className="cvb__preview-iframe"
-                      onLoad={syncPreviewFrameHeight}
-                      scrolling="no"
-                      style={{ height: `${previewFrameHeight}px` }}
-                    />
+                <div
+                  className={`cvb__preview-box ${previewMode === "mobile" ? "is-mobile" : ""}`}
+                  style={previewFrameStyle}
+                >
+                  <div className="cvb__preview-viewport" aria-label="Miniature du CV">
+                    <div className="cvb__preview-stage">
+                      <div className="cvb__preview-paper">
+                        <iframe
+                          ref={previewFrameRef}
+                          title="Live CV preview"
+                          srcDoc={previewHtml}
+                          className="cvb__preview-iframe"
+                          onLoad={syncPreviewFrameHeight}
+                          scrolling="no"
+                          style={{ height: `${previewFrameHeightPx}px` }}
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -1570,7 +1578,7 @@ export default function CandidateCvPage() {
       </div>
 
       {tourOpen && tourRect ? (
-        <div className="cvb__tour-overlay" role="dialog" aria-modal="true" aria-label="Guide CV Builder">
+        <div className="cvb__tour-overlay" role="dialog" aria-modal="true" aria-label="Guide CV">
           <div
             className="cvb__tour-spotlight"
             style={{
@@ -1607,7 +1615,7 @@ export default function CandidateCvPage() {
           min-height: 100vh;
           background: #fbf9ff;
           color: #1f1839;
-          font-family: Inter, Poppins, "Segoe UI", sans-serif;
+          font-family: Inter, sans-serif;
           padding: 18px;
         }
 
@@ -1681,22 +1689,35 @@ export default function CandidateCvPage() {
         }
 
         .cvb__action--ghost {
-          background: var(--app-primary);
-          border-color: var(--app-primary);
-          color: #fff;
-          box-shadow: 0 14px 28px -16px rgba(var(--app-primary-rgb), 0.85);
+          background: #ffffff;
+          border-color: #e5ddf0;
+          color: #2a1d3d;
+          box-shadow: none;
         }
 
         .cvb__action--primary {
-          background: var(--app-primary);
-          color: #fff;
-          box-shadow: 0 14px 28px -16px rgba(var(--app-primary-rgb), 0.85);
+          background: #4a154b;
+          border-color: transparent;
+          color: #ffffff;
+          box-shadow: 0 8px 18px rgba(74, 21, 75, 0.14);
         }
 
         .cvb__action--ghost:hover,
         .cvb__action--primary:hover {
-          background: var(--app-primary-hover);
-          border-color: var(--app-primary-hover);
+          border-color: transparent;
+        }
+
+        .cvb__action--ghost:hover {
+          background: #f8f5fc;
+          border-color: #e5ddf0;
+        }
+
+        .cvb__action--primary:hover {
+          background: #5b1a5e;
+        }
+
+        .cvb__action--primary:active {
+          background: #3a103a;
         }
 
         .cvb__dot {
@@ -1732,22 +1753,35 @@ export default function CandidateCvPage() {
         }
 
         .cvb__ghost {
-          border-color: var(--app-primary);
-          background: var(--app-primary);
-          color: #fff;
-          box-shadow: 0 14px 28px -16px rgba(var(--app-primary-rgb), 0.85);
+          border-color: #e5ddf0;
+          background: #ffffff;
+          color: #2a1d3d;
+          box-shadow: none;
         }
 
         .cvb__primary {
-          background: var(--app-primary);
-          color: #fff;
-          box-shadow: 0 14px 28px -16px rgba(var(--app-primary-rgb), 0.85);
+          background: #4a154b;
+          border-color: transparent;
+          color: #ffffff;
+          box-shadow: 0 8px 18px rgba(74, 21, 75, 0.14);
         }
 
         .cvb__ghost:hover,
         .cvb__primary:hover {
-          background: var(--app-primary-hover);
-          border-color: var(--app-primary-hover);
+          border-color: transparent;
+        }
+
+        .cvb__ghost:hover {
+          background: #f8f5fc;
+          border-color: #e5ddf0;
+        }
+
+        .cvb__primary:hover {
+          background: #5b1a5e;
+        }
+
+        .cvb__primary:active {
+          background: #3a103a;
         }
 
         .cvb__stepper {
@@ -1804,17 +1838,18 @@ export default function CandidateCvPage() {
 
         .cvb__main-grid {
           display: grid;
-          grid-template-columns: minmax(0, 1fr) 360px;
-          gap: 16px;
+          grid-template-columns: minmax(0, 1fr) minmax(420px, 460px);
+          gap: 20px;
           align-items: start;
         }
 
         .cvb__form-card,
         .cvb__preview {
           background: #fff;
-          border: 1px solid #ece3f8;
-          border-radius: 20px;
-          padding: 16px;
+          border: 1px solid #ebe6f2;
+          border-radius: 14px;
+          padding: 20px;
+          box-shadow: 0 10px 28px rgba(31, 24, 57, 0.05);
         }
 
         .cvb__form-head {
@@ -1826,11 +1861,9 @@ export default function CandidateCvPage() {
         }
 
         .cvb__guide-inline {
-          border: 1px solid #e9defc;
-          background: #f8f3ff;
-          border-radius: 12px;
-          padding: 10px 12px;
-          margin-bottom: 12px;
+          border-bottom: 1px solid #f0edf5;
+          padding: 0 0 14px;
+          margin-bottom: 16px;
           display: grid;
           gap: 4px;
         }
@@ -1848,8 +1881,8 @@ export default function CandidateCvPage() {
         .cvb__form-icon {
           width: 42px;
           height: 42px;
-          border-radius: 12px;
-          background: #f3ebff;
+          border-radius: 0;
+          background: transparent;
           color: #6d2a95;
           display: grid;
           place-items: center;
@@ -1871,10 +1904,10 @@ export default function CandidateCvPage() {
         }
 
         .cvb__step-chip {
-          background: #f4edff;
+          background: transparent;
           color: #6d2a95;
-          border-radius: 999px;
-          padding: 6px 10px;
+          border-radius: 0;
+          padding: 0;
           font-size: 0.76rem;
           font-weight: 700;
           white-space: nowrap;
@@ -1888,16 +1921,22 @@ export default function CandidateCvPage() {
 
         .cvb__item-stack {
           display: grid;
-          gap: 12px;
+          gap: 0;
         }
 
         .cvb__item-card {
-          border: 1px solid #ece3f8;
-          border-radius: 14px;
-          padding: 12px;
-          background: #fcfaff;
+          border: 0;
+          border-bottom: 1px solid #f0edf5;
+          border-radius: 0;
+          padding: 0 0 16px;
+          margin-bottom: 16px;
+          background: transparent;
           display: grid;
-          gap: 10px;
+          gap: 12px;
+        }
+
+        .cvb__item-card:last-child {
+          margin-bottom: 0;
         }
 
         .cvb__item-card-head {
@@ -1934,10 +1973,11 @@ export default function CandidateCvPage() {
         }
 
         .cvb__review-grid > div {
-          border: 1px solid #ebe2f8;
-          background: #fff;
-          border-radius: 12px;
-          padding: 10px;
+          border: 0;
+          border-bottom: 1px solid #f0edf5;
+          background: transparent;
+          border-radius: 0;
+          padding: 0 0 10px;
           display: grid;
           gap: 4px;
         }
@@ -1955,10 +1995,11 @@ export default function CandidateCvPage() {
 
         .cvb__tip {
           margin-top: 14px;
-          border: 1px solid #e9ddfb;
-          background: #f7f2ff;
-          border-radius: 14px;
-          padding: 12px;
+          border: 0;
+          border-top: 1px solid #f0edf5;
+          background: transparent;
+          border-radius: 0;
+          padding: 12px 0 0;
         }
 
         .cvb__tip strong {
@@ -2028,23 +2069,49 @@ export default function CandidateCvPage() {
         }
 
         .cvb__preview-box {
-          background: #f7f5fb;
-          border: 1px solid #e6ddf4;
-          border-radius: 16px;
-          padding: 14px;
-          height: min(78vh, 980px);
+          --preview-paper-width: 794px;
+          --preview-scale: 0.52;
+          background: #f8f7fa;
+          border: 0;
+          border-radius: 10px;
+          padding: 18px;
+          overflow: hidden;
+          display: flex;
+          justify-content: center;
+          align-items: flex-start;
+        }
+
+        .cvb__preview-box.is-mobile {
+          --preview-scale: 0.45;
+        }
+
+        .cvb__preview-viewport {
+          width: min(100%, calc(var(--preview-paper-width) * var(--preview-scale)));
+          height: min(640px, max(380px, calc(var(--preview-frame-height) * var(--preview-scale))));
           overflow: auto;
-          display: grid;
-          place-items: start center;
+          overscroll-behavior: contain;
+          scrollbar-gutter: stable;
+        }
+
+        .cvb__preview-stage {
+          position: relative;
+          width: calc(var(--preview-paper-width) * var(--preview-scale));
+          height: calc(var(--preview-frame-height) * var(--preview-scale));
         }
 
         .cvb__preview-paper {
-          width: min(100%, 780px);
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: var(--preview-paper-width);
+          height: var(--preview-frame-height);
           background: #fff;
           border: 1px solid #ece8f6;
           border-radius: 8px;
-          box-shadow: 0 12px 28px rgba(26, 17, 48, 0.12);
+          box-shadow: 0 18px 42px rgba(26, 17, 48, 0.16), 0 4px 10px rgba(26, 17, 48, 0.1);
           overflow: hidden;
+          transform: scale(var(--preview-scale));
+          transform-origin: top left;
         }
 
         .cvb__preview-iframe {
@@ -2053,10 +2120,6 @@ export default function CandidateCvPage() {
           border: 0;
           background: #fff;
           display: block;
-        }
-
-        .cvb__preview-box.is-mobile {
-          place-items: start center;
         }
 
         .cvb__preview-note {
@@ -2326,10 +2389,19 @@ export default function CandidateCvPage() {
 
           .cvb__preview {
             position: static;
+            order: 2;
+          }
+
+          .cvb__form-card {
+            order: 1;
           }
 
           .cvb__preview-box {
-            height: min(70vh, 760px);
+            --preview-scale: 0.52;
+          }
+
+          .cvb__preview-box.is-mobile {
+            --preview-scale: 0.44;
           }
         }
 
@@ -2362,6 +2434,19 @@ export default function CandidateCvPage() {
 
           .cvb__review-grid {
             grid-template-columns: 1fr;
+          }
+
+          .cvb__preview-box {
+            --preview-scale: 0.44;
+            padding: 14px 10px;
+          }
+
+          .cvb__preview-box.is-mobile {
+            --preview-scale: 0.4;
+          }
+
+          .cvb__preview-viewport {
+            height: min(540px, max(340px, calc(var(--preview-frame-height) * var(--preview-scale))));
           }
 
           .cvb__form-head {

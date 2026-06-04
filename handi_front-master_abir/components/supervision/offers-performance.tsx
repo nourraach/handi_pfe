@@ -10,11 +10,11 @@ export function OffersPerformanceView() {
   const offers = useSupervisionQuery<OfferPerformance[]>("/offers");
 
   if (offers.loading) {
-    return <LoadingState title="Loading offers performance" description="Fetching company offers, view counts, and hiring outcomes." />;
+    return <LoadingState title="Chargement des performances des offres" description="Recuperation des offres, des vues et des resultats de recrutement." />;
   }
 
   if (offers.error || !offers.data) {
-    return <EmptyState title="Offers unavailable" description={offers.error || "No offers could be loaded for supervision."} />;
+    return <EmptyState title="Offres indisponibles" description={offers.error || "Aucune offre n'a pu etre chargee pour la supervision."} />;
   }
 
   return (
@@ -23,13 +23,13 @@ export function OffersPerformanceView() {
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Company</th>
-              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Offer</th>
+              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Entreprise</th>
+              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Offre</th>
               <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Region</th>
-              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Views</th>
-              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Applications</th>
-              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Shortlisted</th>
-              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Hired</th>
+              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Vues</th>
+              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Candidatures</th>
+              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Preselection</th>
+              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Acceptes</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200 bg-white">

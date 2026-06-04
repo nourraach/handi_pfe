@@ -1,0 +1,1308 @@
+% =========================================================
+% HandiTalents - Sprint 4
+% Style academique premium - version Overleaf ready
+% =========================================================
+\documentclass[12pt,a4paper]{report}
+
+% --- Encodage & langue ---
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[french]{babel}
+\addto\captionsfrench{\renewcommand{\tablename}{Tableau}}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{csquotes}
+
+% --- Mise en page ---
+\usepackage[a4paper, top=2.5cm, bottom=2.5cm, left=2.7cm, right=2.4cm, headheight=15pt]{geometry}
+\usepackage{setspace}
+\onehalfspacing
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt}
+\setlength{\textfloatsep}{14pt}
+\setlength{\floatsep}{12pt}
+\setlength{\intextsep}{12pt}
+
+% --- Graphiques & tableaux ---
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{multirow}
+\usepackage[table]{xcolor}
+\usepackage{colortbl}
+\usepackage{caption}
+\usepackage{enumitem}
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta,shapes.geometric,fit,shadows.blur,calc}
+\usepackage[most]{tcolorbox}
+\usepackage{placeins}
+\usepackage{mdframed}
+\usepackage{booktabs}
+
+% --- Liens ---
+\usepackage{hyperref}
+\hypersetup{
+  colorlinks=true,
+  linkcolor={rgb:red,26;green,86;blue,155},
+  urlcolor={rgb:red,41;green,128;blue,185},
+  citecolor={rgb:red,26;green,86;blue,155},
+  pdftitle={Sprint 4 - HandiTalents},
+  pdfauthor={HandiTalents}
+}
+
+% =========================================================
+% COULEURS
+% =========================================================
+\definecolor{mainblue}{RGB}{26,86,155}
+\definecolor{darkblue}{RGB}{15,55,100}
+\definecolor{accentblue}{RGB}{41,128,185}
+\definecolor{lightblue}{RGB}{213,232,247}
+\definecolor{softblue}{RGB}{235,244,252}
+\definecolor{rowgray}{RGB}{247,249,252}
+\definecolor{lightgray}{RGB}{238,241,246}
+\definecolor{midgray}{RGB}{120,130,145}
+\definecolor{darkgray}{RGB}{50,60,70}
+\definecolor{successgreen}{RGB}{34,153,84}
+\definecolor{lightgreen}{RGB}{212,239,223}
+\definecolor{warningorange}{RGB}{211,84,0}
+\definecolor{lightorange}{RGB}{250,229,211}
+\definecolor{dangerred}{RGB}{169,50,38}
+\definecolor{lightred}{RGB}{246,212,209}
+\definecolor{mypurple}{RGB}{108,52,131}
+\definecolor{lightpurple}{RGB}{232,218,239}
+\definecolor{chapterbg}{RGB}{15,55,100}
+\definecolor{noir}{RGB}{0,0,0}
+
+% =========================================================
+% TITRES - titlesec
+% =========================================================
+\usepackage{titlesec}
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{3}
+
+\titleformat{\chapter}[display]
+{\normalfont}
+{}
+{0pt}
+{
+    \centering
+    \Huge\bfseries\color{mainblue}
+}
+[
+\vspace{0.4cm}
+{\color{mainblue}\rule{\textwidth}{1.2pt}}
+]
+\titlespacing*{\chapter}{0pt}{-10pt}{18pt}
+
+\titleformat{\section}
+  {\Large\bfseries\color{darkblue}}
+  {\textcolor{mainblue}{\thesection}}{0.8em}{}
+  [\vspace{2pt}{\color{mainblue!60}\hrule height 0.7pt}\vspace{2pt}]
+\titlespacing*{\section}{0pt}{20pt}{8pt}
+
+\titleformat{\subsection}
+  {\large\bfseries\color{darkblue}}
+  {\textcolor{accentblue}{\thesubsection}}{0.8em}{}
+\titlespacing*{\subsection}{0pt}{14pt}{6pt}
+
+\titleformat{\subsubsection}
+  {\normalsize\bfseries\color{accentblue}}
+  {\textcolor{accentblue}{\thesubsubsection}}{0.7em}{}
+\titlespacing*{\subsubsection}{0pt}{10pt}{4pt}
+
+% =========================================================
+% EN-TETES ET PIEDS DE PAGE
+% =========================================================
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\headrule}{\color{mainblue}\hrule height 0.4pt width\headwidth}
+\renewcommand{\footrulewidth}{0pt}
+
+\fancyhead[L]{\small\color{darkblue}\textit{Sprint 4 : Shortlisting Intelligent, Accessibilité et Expérience Candidat}}
+\fancyhead[R]{\small\color{midgray}\textit{HandiTalents}}
+\fancyfoot[C]{\small\color{midgray}\thepage}
+
+\fancypagestyle{plain}{%
+  \fancyhf{}
+  \renewcommand{\headrulewidth}{0pt}
+  \fancyfoot[C]{\small\color{midgray}\thepage}
+}
+
+% =========================================================
+% LEGENDES
+% =========================================================
+\captionsetup{
+  font=small,
+  labelfont={bf, color=mainblue},
+  textfont={it, color=darkgray},
+  justification=centering,
+  skip=8pt
+}
+
+% =========================================================
+% LISTES
+% =========================================================
+\setlist[itemize,1]{label={\color{mainblue}\textbullet}, leftmargin=1.6em, itemsep=3pt, topsep=3pt}
+\setlist[itemize,2]{label={\color{accentblue}\small\textbullet}, leftmargin=1.4em, itemsep=2pt, topsep=2pt}
+\setlist[enumerate,1]{leftmargin=1.9em, itemsep=3pt, topsep=3pt}
+
+% =========================================================
+% BOITES TCOLORBOX
+% =========================================================
+\newtcolorbox{infobox}[1][]{
+  enhanced, breakable,
+  colback=softblue, colframe=mainblue,
+  coltitle=white, fonttitle=\bfseries\small,
+  title=#1, boxrule=0.7pt, arc=3pt,
+  left=7pt, right=7pt, top=6pt, bottom=6pt
+}
+
+% =========================================================
+% IMAGES ENCADREES - conserve pour compatibilite Sprint 2
+% =========================================================
+\newcommand{\framedimage}[2]{%
+  \begin{mdframed}[
+    linecolor=mainblue!35,
+    linewidth=0.6pt,
+    roundcorner=4pt,
+    backgroundcolor=white,
+    innertopmargin=5pt,
+    innerbottommargin=5pt,
+    innerleftmargin=5pt,
+    innerrightmargin=5pt,
+    shadowsize=2pt,
+    shadow=true,
+    shadowcolor=black!10
+  ]
+    \centering
+    \includegraphics[width=#1]{#2}
+  \end{mdframed}
+}
+
+\newcommand{\bigscreen}[4]{%
+  \begin{figure}[H]
+    \centering
+    \framedimage{#1}{#2}
+    \caption{#3}
+    \label{#4}
+  \end{figure}
+  \FloatBarrier
+}
+
+% =========================================================
+% TYPES DE COLONNES
+% =========================================================
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{C}[1]{>{\centering\arraybackslash}p{#1}}
+
+% =========================================================
+% MACROS TABLEAUX
+% =========================================================
+\newcommand{\tblhead}[1]{\cellcolor{darkblue}\color{white}\bfseries #1}
+\newcommand{\tblleft}[1]{\bfseries\color{darkblue} #1}
+\color{black}
+
+\AtBeginDocument{
+    \color{black}
+}
+
+% =========================================================
+% STYLES TIKZ
+% =========================================================
+\tikzset{
+  actor/.style={draw=mainblue, fill=softblue, rounded corners=3pt, very thick, align=center, minimum width=2.8cm, minimum height=0.75cm, font=\small\bfseries},
+  usecase/.style={draw=accentblue, fill=white, ellipse, very thick, align=center, minimum width=3.7cm, minimum height=0.9cm, font=\small},
+  packagebox/.style={draw=mainblue!45, fill=softblue!60, rounded corners=5pt, thick},
+  entity/.style={draw=darkblue, fill=white, rounded corners=2pt, thick, align=left, font=\scriptsize, minimum width=3.2cm},
+  service/.style={draw=mainblue, fill=softblue, rounded corners=5pt, thick, align=center, minimum width=3.2cm, minimum height=1cm, font=\small\bfseries},
+  datastore/.style={draw=successgreen!70!black, fill=lightgreen, cylinder, shape border rotate=90, aspect=0.28, thick, align=center, minimum height=1cm, minimum width=1.7cm, font=\small\bfseries},
+  arrow/.style={-{Latex[length=2.4mm]}, thick, color=darkblue},
+  seq/.style={-{Latex[length=2.1mm]}, thick, color=darkblue},
+  note/.style={draw=warningorange, fill=lightorange, rounded corners=3pt, align=center, font=\scriptsize, inner sep=4pt}
+}
+
+\begin{document}
+
+\chapter{Sprint 4 : Shortlisting Intelligent, Accessibilité et Expérience Candidat}
+
+\section{Introduction}
+
+Ce quatrième sprint marque une étape importante dans l'évolution de la plateforme \textbf{HandiTalents}. Après la mise en place des fonctionnalités principales de gestion des candidatures, des évaluations et des entretiens, ce sprint apporte une dimension plus intelligente, plus inclusive et plus centrée sur l'aide à la décision.
+
+Le module le plus important de ce sprint est le \textbf{système intelligent de shortlisting}. Il permet d'analyser automatiquement des CV au format PDF ou DOCX, de les comparer à une offre d'emploi et de retourner un score d'adéquation de 0 à 100. Contrairement à une recherche classique par mots-clés, ce système utilise une approche sémantique capable de comprendre le sens des compétences, des expériences et des parcours candidats.
+
+Autour de ce socle IA, le sprint introduit également un \textbf{chatbot d'assistance}, un \textbf{assistant de conformité}, un \textbf{panneau d'accessibilité}, des fonctionnalités vocales, un parcours candidat guidé, un module de bien-être, une préparation à l'entretien et une internationalisation en trois langues.
+
+\begin{infobox}[Vision du sprint]
+Le Sprint 4 transforme HandiTalents en une plateforme plus intelligente, plus accessible et plus humaine. Le shortlisting intelligent constitue le coeur technique de ce sprint : il réduit le temps d'analyse des candidatures, améliore l'objectivité du recrutement et rend les décisions plus transparentes grâce aux scores, aux compétences détectées et aux raisons d'élimination.
+\end{infobox}
+
+\section{Les Objectifs du sprint}
+
+Les objectifs retenus pour ce sprint sont les suivants :
+
+\begin{itemize}
+  \item Mettre en place un \textbf{shortlisting intelligent} permettant de classer automatiquement les CV selon leur adéquation avec une offre.
+  \item Développer un moteur de scoring basé sur la similarité sémantique, l'expérience professionnelle et la compatibilité avec les besoins d'aménagement.
+  \item Fournir aux recruteurs une décision expliquée : score, catégorie, compétences matchées et raisons d'élimination éventuelles.
+  \item Intégrer un \textbf{chatbot d'assistance} capable de guider les candidats et les entreprises dans leurs actions courantes.
+  \item Ajouter un \textbf{assistant de conformité} afin d'aider à détecter les incohérences, les risques ou les éléments manquants dans certaines opérations.
+  \item Renforcer l'accessibilité par la lecture vocale, les commandes vocales, la navigation clavier et un panneau de personnalisation.
+  \item Adapter automatiquement l'espace candidat dès l'inscription grâce à des profils d'accessibilité prédéfinis, tout en laissant l'utilisateur modifier ses réglages à tout moment.
+  \item Proposer un \textbf{parcours candidat assisté} : onboarding, préparation à l'entretien et module bien-être.
+  \item Internationaliser l'interface en français, anglais et arabe.
+  \item Améliorer l'expérience globale en rendant l'interface plus inclusive, plus claire et plus adaptable.
+\end{itemize}
+
+\section{Backlog du sprint}
+
+Le backlog de ce sprint regroupe les user stories liées aux cas d'utilisation \textbf{UC-12}, \textbf{UC-13}, \textbf{UC-17}, \textbf{UC-18} ainsi qu'à la partie intelligente du \textbf{UC-5}. Les priorités ont été définies selon l'impact utilisateur, la valeur métier et la contribution à l'inclusion.
+
+\renewcommand{\arraystretch}{1.25}
+\begin{longtable}{|L{2.45cm}|L{1.45cm}|L{4.45cm}|L{4.95cm}|C{0.9cm}|}
+\hline
+\tblhead{Thème} & \tblhead{US ID} & \tblhead{User Story} & \tblhead{Definition of Done} & \tblhead{Est. (j)} \\
+\hline
+\endfirsthead
+
+\hline
+\tblhead{Thème} & \tblhead{US ID} & \tblhead{User Story} & \tblhead{Definition of Done} & \tblhead{Est. (j)} \\
+\hline
+\endhead
+
+\multirow{3}{2.45cm}{\tblleft{Intelligence Artificielle}}
+& US-05A
+& En tant qu'entreprise, je veux obtenir un classement intelligent des candidatures afin d'identifier rapidement les profils les plus pertinents.
+& Les CV sont analysés, comparés à l'offre et classés selon un score d'adéquation de 0 à 100, avec catégorie, recommandation et raisons explicites.
+& 6 \\
+\cline{2-5}
+& US-12
+& En tant qu'utilisateur, je veux dialoguer avec un chatbot afin d'être guidé dans l'utilisation de la plateforme.
+& Le chatbot répond aux questions courantes, tient compte du contexte de page et prend en charge plusieurs langues.
+& 3 \\
+\cline{2-5}
+& US-12B
+& En tant qu'administrateur, je veux disposer d'un assistant de conformité afin de suivre les anomalies et les points sensibles.
+& Les rapports et alertes de conformité sont consultables, filtrables et exploitables dans l'interface de supervision.
+& 2.5 \\
+\hline
+
+\multirow{4}{2.45cm}{\tblleft{Accessibilité avancée}}
+& US-13A
+& En tant que candidat, je veux écouter les contenus importants afin d'utiliser la plateforme même en cas de difficulté de lecture.
+& La lecture vocale est disponible sur les contenus clés et peut être activée ou interrompue par l'utilisateur.
+& 2 \\
+\cline{2-5}
+& US-13B
+& En tant que candidat, je veux utiliser des commandes vocales simples afin de naviguer plus facilement.
+& Les commandes vocales permettent d'ouvrir les pages principales du parcours candidat.
+& 2.5 \\
+\cline{2-5}
+& US-13C
+& En tant qu'utilisateur, je veux personnaliser l'affichage afin d'adapter la plateforme à mes besoins.
+& Le panneau d'accessibilité propose contraste, taille de police, police lisible, curseur, animation et aides visuelles.
+& 3 \\
+\cline{2-5}
+& US-13D
+& En tant que candidat, je veux que mon espace soit adapté automatiquement selon mes besoins d'accessibilité indiqués à l'inscription.
+& Le formulaire propose un confort d'utilisation souhaité et applique un preset adapté : visuel, non-voyant, mobilité, cognitif/psychique ou auditif.
+& 2 \\
+\hline
+
+\multirow{3}{2.45cm}{\tblleft{Expérience candidat}}
+& US-17A
+& En tant que candidat, je veux être guidé pendant mon inscription afin de comprendre les étapes à suivre.
+& Un onboarding progressif présente les actions principales et oriente le candidat vers son espace personnel.
+& 2 \\
+\cline{2-5}
+& US-17B
+& En tant que candidat, je veux préparer mon entretien afin d'améliorer ma confiance et ma performance.
+& La page de préparation propose des conseils, des questions probables et des éléments personnalisés liés à l'entretien.
+& 3 \\
+\cline{2-5}
+& US-17C
+& En tant que candidat, je veux accéder à un module bien-être afin de réduire mon stress avant un entretien.
+& Le module bien-être est accessible depuis les notifications et depuis le parcours entretien.
+& 2 \\
+\hline
+
+\multirow{1}{2.45cm}{\tblleft{Internationalisation}}
+& US-18
+& En tant qu'utilisateur, je veux changer la langue de l'interface afin d'utiliser HandiTalents en FR, EN ou AR.
+& Le changement de langue met à jour les libellés principaux et conserve une expérience cohérente dans les trois langues.
+& 2.5 \\
+\hline
+
+\caption{Backlog du Sprint 4}
+\label{tab:backlog-sprint4}\\
+\end{longtable}
+\renewcommand{\arraystretch}{1}
+
+\section{Focus métier : système intelligent de shortlisting}
+
+Le shortlisting intelligent constitue le module stratégique du Sprint 4. Dans un contexte de recrutement inclusif, les recruteurs peuvent recevoir un volume important de candidatures, avec des profils parfois atypiques, des parcours non linéaires ou des formulations différentes pour désigner des compétences proches. Une approche traditionnelle par mots-clés risque donc d'écarter des candidats pertinents simplement parce que leur CV n'utilise pas exactement le même vocabulaire que l'offre.
+
+Le système mis en place répond à cette limite en utilisant une approche de \textbf{similarité sémantique}. L'objectif n'est pas seulement de compter des mots identiques, mais de comprendre si le sens global du CV correspond aux exigences de l'offre.
+
+\renewcommand{\arraystretch}{1.25}
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{|L{3.9cm}|Y|Y|}
+\hline
+\tblhead{Limite des approches classiques} & \tblhead{Impact sur le recrutement} & \tblhead{Réponse apportée par le shortlisting IA} \\
+\hline
+\tblleft{Correspondance exacte uniquement} & Un candidat peut être rejeté si son CV mentionne une technologie proche mais non identique. & Le modèle sémantique rapproche les concepts voisins, par exemple React, Next.js et développement frontend. \\
+\hline
+\tblleft{Insensibilité aux synonymes} & Les compétences exprimées différemment sont mal détectées. & SBERT compare le sens des phrases et non seulement les chaînes de caractères. \\
+\hline
+\tblleft{Parcours atypiques invisibles} & Les candidats RQTH ou en reconversion peuvent être défavorisés indirectement. & Le scoring prend en compte les compétences, l'expérience et les besoins d'aménagement avec une logique plus inclusive. \\
+\hline
+\tblleft{Absence de pondération} & Les décisions peuvent devenir arbitraires ou difficiles à justifier. & Le score final est pondéré et explicable : sémantique, expérience et compatibilité handicap. \\
+\hline
+\end{tabularx}
+\caption{Limites du recrutement classique et réponse du shortlisting intelligent}
+\label{tab:limites-shortlisting}
+\end{table}
+\renewcommand{\arraystretch}{1}
+
+\begin{infobox}[Apport principal]
+Le shortlisting intelligent apporte trois bénéfices majeurs : un gain de temps pour l'entreprise, une meilleure objectivité dans le tri des candidatures et une transparence accrue grâce aux explications fournies pour chaque décision.
+\end{infobox}
+
+\section{Conception}
+
+\subsection{Diagramme de cas d'utilisation}
+
+Le diagramme suivant présente les interactions principales entre les acteurs et les fonctionnalités réalisées pendant le sprint. Il met en évidence la place centrale du candidat, tout en montrant les interactions de l'entreprise avec le shortlisting intelligent et celles de l'administrateur avec la conformité.
+
+\begin{figure}[H]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[node distance=1.25cm and 1.45cm]
+  \node[actor] (candidate) {Candidat};
+  \node[actor, below=2.4cm of candidate] (company) {Entreprise};
+  \node[actor, below=2.4cm of company] (admin) {Administrateur};
+
+  \node[packagebox, right=1.6cm of company, minimum width=11.9cm, minimum height=8.3cm, label={[text=darkblue,font=\bfseries]above:Système HandiTalents - Sprint 4}] (system) {};
+
+  \node[usecase, right=2.3cm of candidate] (chatbot) {UC-12\\Chatbot d'assistance};
+  \node[usecase, below=0.75cm of chatbot] (access) {UC-13\\Accessibilité avancée};
+  \node[usecase, below=0.75cm of access] (journey) {UC-17\\Parcours candidat assisté};
+  \node[usecase, below=0.75cm of journey] (i18n) {UC-18\\Internationalisation};
+
+  \node[usecase, right=2.4cm of chatbot] (shortlist) {UC-5A\\Shortlisting intelligent};
+  \node[usecase, below=0.75cm of shortlist] (tts) {Lecture vocale\\et commandes vocales};
+  \node[usecase, below=0.75cm of tts] (prep) {Préparation entretien\\et bien-être};
+  \node[usecase, below=0.75cm of prep] (compliance) {Assistant\\de conformité};
+
+  \draw[arrow] (candidate.east) -- (chatbot.west);
+  \draw[arrow] (candidate.east) -- (access.west);
+  \draw[arrow] (candidate.east) -- (journey.west);
+  \draw[arrow] (candidate.east) -- (i18n.west);
+  \draw[arrow] (candidate.east) -- (prep.west);
+
+  \draw[arrow] (company.east) -- (shortlist.west);
+  \draw[arrow] (company.east) -- (chatbot.west);
+  \draw[arrow] (company.east) -- (i18n.west);
+
+  \draw[arrow] (admin.east) -- (compliance.west);
+  \draw[arrow] (admin.east) -- (i18n.west);
+
+  \draw[arrow, dashed] (access.east) -- (tts.west);
+  \draw[arrow, dashed] (journey.east) -- (prep.west);
+  \draw[arrow, dashed] (chatbot.east) -- (shortlist.west);
+\end{tikzpicture}
+}
+\caption{Diagramme de cas d'utilisation du Sprint 4}
+\label{fig:uc-sprint4}
+\end{figure}
+\FloatBarrier
+
+\subsection{Description textuelle des cas d'utilisation}
+
+\subsubsection{UC-12 - Chatbot d'assistance}
+
+\renewcommand{\arraystretch}{1.25}
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{|L{3.2cm}|Y|}
+\hline
+\tblhead{Elément} & \tblhead{Description} \\
+\hline
+\tblleft{Nom} & Chatbot d'assistance multilingue \\
+\hline
+\tblleft{Acteurs} & Candidat, Entreprise \\
+\hline
+\tblleft{Objectif} & Permettre à l'utilisateur de poser des questions et d'obtenir une aide contextualisée selon sa page courante et son profil. \\
+\hline
+\tblleft{Préconditions} & L'utilisateur est connecté à la plateforme et accède à une page contenant l'assistant. \\
+\hline
+\tblleft{Scénario nominal} &
+\begin{enumerate}
+  \item L'utilisateur ouvre le chatbot.
+  \item Il saisit une question en français, anglais ou arabe.
+  \item Le système détecte la langue et ajoute le contexte de navigation.
+  \item Le service d'IA génère une réponse claire et adaptée.
+  \item L'utilisateur reçoit une réponse exploitable sans quitter sa page.
+\end{enumerate} \\
+\hline
+\tblleft{Postconditions} & La conversation est enrichie et l'utilisateur peut poursuivre son action avec une meilleure compréhension. \\
+\hline
+\end{tabularx}
+\caption{Description textuelle du cas d'utilisation UC-12}
+\label{tab:uc12-chatbot}
+\end{table}
+\renewcommand{\arraystretch}{1}
+
+\subsubsection{UC-13 - Accessibilité avancée}
+
+\renewcommand{\arraystretch}{1.25}
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{|L{3.2cm}|Y|}
+\hline
+\tblhead{Elément} & \tblhead{Description} \\
+\hline
+\tblleft{Nom} & Accessibilité avancée \\
+\hline
+\tblleft{Acteurs} & Tous les utilisateurs, principalement les candidats \\
+\hline
+\tblleft{Objectif} & Offrir une interface adaptable aux besoins visuels, moteurs, cognitifs, auditifs et linguistiques des utilisateurs, avec une première configuration automatique dès l'inscription. \\
+\hline
+\tblleft{Préconditions} & L'utilisateur accède à la plateforme depuis un navigateur compatible. \\
+\hline
+\tblleft{Scénario nominal} &
+\begin{enumerate}
+  \item Le candidat indique son besoin d'accessibilité préféré pendant l'inscription.
+  \item Le système recommande un preset adapté : visuel, non-voyant, mobilité, cognitif/psychique ou auditif.
+  \item Après création du compte, l'espace candidat applique automatiquement le preset choisi.
+  \item L'utilisateur peut ensuite ouvrir le panneau d'accessibilité et modifier librement chaque réglage.
+\end{enumerate} \\
+\hline
+\tblleft{Postconditions} & Les préférences sont appliquées dans l'interface et restent modifiables via le panneau d'accessibilité. \\
+\hline
+\end{tabularx}
+\caption{Description textuelle du cas d'utilisation UC-13}
+\label{tab:uc13-accessibilite}
+\end{table}
+\renewcommand{\arraystretch}{1}
+
+\subsubsection{UC-17 - Parcours candidat assisté}
+
+\renewcommand{\arraystretch}{1.25}
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{|L{3.2cm}|Y|}
+\hline
+\tblhead{Elément} & \tblhead{Description} \\
+\hline
+\tblleft{Nom} & Parcours candidat assisté \\
+\hline
+\tblleft{Acteur} & Candidat \\
+\hline
+\tblleft{Objectif} & Accompagner le candidat depuis son inscription jusqu'à la préparation de ses entretiens. \\
+\hline
+\tblleft{Scénario nominal} &
+\begin{enumerate}
+  \item Le candidat découvre les étapes de son espace via l'onboarding.
+  \item Il complète progressivement son profil et son CV.
+  \item Lorsqu'un entretien est planifié, il accède à la préparation.
+  \item Il consulte les conseils, les questions probables et le module bien-être.
+\end{enumerate} \\
+\hline
+\tblleft{Postconditions} & Le candidat dispose d'un parcours guidé, rassurant et orienté vers la réussite de son entretien. \\
+\hline
+\end{tabularx}
+\caption{Description textuelle du cas d'utilisation UC-17}
+\label{tab:uc17-parcours}
+\end{table}
+\renewcommand{\arraystretch}{1}
+
+\subsubsection{UC-18 - Internationalisation}
+
+\renewcommand{\arraystretch}{1.25}
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{|L{3.2cm}|Y|}
+\hline
+\tblhead{Elément} & \tblhead{Description} \\
+\hline
+\tblleft{Nom} & Internationalisation de l'interface \\
+\hline
+\tblleft{Acteurs} & Tous les utilisateurs \\
+\hline
+\tblleft{Objectif} & Permettre l'utilisation de la plateforme en français, anglais et arabe. \\
+\hline
+\tblleft{Scénario nominal} &
+\begin{enumerate}
+  \item L'utilisateur ouvre le sélecteur de langue.
+  \item Il choisit FR, EN ou AR.
+  \item Les libellés principaux sont mis à jour.
+  \item L'utilisateur poursuit son parcours dans la langue choisie.
+\end{enumerate} \\
+\hline
+\tblleft{Postconditions} & L'interface est présentée dans la langue sélectionnée. \\
+\hline
+\end{tabularx}
+\caption{Description textuelle du cas d'utilisation UC-18}
+\label{tab:uc18-i18n}
+\end{table}
+\renewcommand{\arraystretch}{1}
+
+\subsection{Diagramme de classes}
+
+Le diagramme de classes ci-dessous présente les principales entités manipulées pendant ce sprint. Il complète les entités déjà présentes dans les sprints précédents par des objets liés à l'intelligence artificielle, à l'accessibilité, à l'assistance et à l'internationalisation.
+
+\begin{figure}[H]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[node distance=0.9cm and 1.05cm]
+  \node[entity] (user) {\textbf{Utilisateur}\\\hline
+  id\\nom\\email\\role\\languePreferee};
+
+  \node[entity, below left=1.25cm and 0.25cm of user] (candidate) {\textbf{Candidat}\\\hline
+  profil\\competences\\localisation\\besoinsAccessibilite};
+
+  \node[entity, below right=1.25cm and 0.25cm of user] (company) {\textbf{Entreprise}\\\hline
+  raisonSociale\\secteur\\adresse\\offresPubliees};
+
+  \node[entity, below=1.25cm of candidate] (cv) {\textbf{CVDocument}\\\hline
+  fichier\\texteExtrait\\experiences\\competencesDetectees};
+
+  \node[entity, below=1.25cm of company] (job) {\textbf{OffreEmploi}\\\hline
+  titre\\description\\competencesRequises\\experienceMin};
+
+  \node[entity, below=1.25cm of cv] (application) {\textbf{Candidature}\\\hline
+  statut\\dateDepot\\scoreEvaluation\\commentaire};
+
+  \node[entity, below=1.25cm of job] (shortlist) {\textbf{ShortlistResult}\\\hline
+  scoreSemantique\\scoreCompetences\\scoreExperience\\recommandation};
+
+  \node[entity, right=1.7cm of job] (chat) {\textbf{ChatbotSession}\\\hline
+  langueDetectee\\contextePage\\historique\\reponseIA};
+
+  \node[entity, above=1.25cm of chat] (access) {\textbf{AccessibilityPreference}\\\hline
+  contraste\\taillePolice\\lectureVocale\\commandeVocale};
+
+  \node[entity, below=1.25cm of chat] (prep) {\textbf{InterviewPreparation}\\\hline
+  questionsProbables\\conseils\\pointsForts\\niveauStress};
+
+  \node[entity, right=1.6cm of chat] (compliance) {\textbf{ComplianceReport}\\\hline
+  typeAlerte\\niveauRisque\\description\\statutTraitement};
+
+  \node[entity, right=1.6cm of access] (i18n) {\textbf{TranslationResource}\\\hline
+  cle\\fr\\en\\ar\\direction};
+
+  \draw[arrow] (candidate) -- (user);
+  \draw[arrow] (company) -- (user);
+  \draw[arrow] (candidate) -- (cv);
+  \draw[arrow] (company) -- (job);
+  \draw[arrow] (cv) -- (application);
+  \draw[arrow] (job) -- (application);
+  \draw[arrow] (application) -- (shortlist);
+  \draw[arrow] (job) -- (shortlist);
+  \draw[arrow] (user) -- (chat);
+  \draw[arrow] (user) -- (access);
+  \draw[arrow] (candidate) -- (prep);
+  \draw[arrow] (chat) -- (compliance);
+  \draw[arrow] (user) -- (i18n);
+\end{tikzpicture}
+}
+\caption{Diagramme de classes du Sprint 4}
+\label{fig:classes-sprint4}
+\end{figure}
+\FloatBarrier
+
+\subsection{Diagrammes de séquences}
+
+\subsubsection{Séquence 1 - Shortlisting intelligent}
+
+\begin{figure}[H]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[node distance=0.95cm]
+  \node[actor] (entreprise) {Entreprise};
+  \node[service, right=0.95cm of entreprise] (front) {Interface\\ShortlistPanel};
+  \node[service, right=0.95cm of front] (api) {Route API\\Next.js};
+  \node[service, right=0.95cm of api] (parser) {Parser\\CV};
+  \node[service, right=0.95cm of parser] (rules) {Règles\\métier};
+  \node[service, right=0.95cm of rules] (sbert) {SBERT\\384 dim.};
+  \node[service, right=0.95cm of sbert] (scorer) {Scorer\\pondéré};
+
+  \foreach \n in {entreprise,front,api,parser,rules,sbert,scorer} {
+    \draw[dashed, color=midgray] (\n.south) -- ++(0,-7.3);
+  }
+
+  \draw[seq] ($(entreprise.south)+(0,-0.5)$) -- node[above,font=\scriptsize]{Upload CV + offre} ($(front.south)+(0,-0.5)$);
+  \draw[seq] ($(front.south)+(0,-1.25)$) -- node[above,font=\scriptsize]{POST \texttt{/shortlister}} ($(api.south)+(0,-1.25)$);
+  \draw[seq] ($(api.south)+(0,-2.0)$) -- node[above,font=\scriptsize]{PDF/DOCX} ($(parser.south)+(0,-2.0)$);
+  \draw[seq] ($(parser.south)+(0,-2.75)$) -- node[above,font=\scriptsize]{Texte, compétences, expérience} ($(rules.south)+(0,-2.75)$);
+  \draw[seq] ($(rules.south)+(0,-3.5)$) -- node[above,font=\scriptsize]{Eligibilité métier} ($(sbert.south)+(0,-3.5)$);
+  \draw[seq] ($(sbert.south)+(0,-4.25)$) -- node[above,font=\scriptsize]{Similarité cosinus} ($(scorer.south)+(0,-4.25)$);
+  \draw[seq] ($(scorer.south)+(0,-5.0)$) -- node[above,font=\scriptsize]{Score 0-100 + label} ($(api.south)+(0,-5.0)$);
+  \draw[seq] ($(api.south)+(0,-5.75)$) -- node[above,font=\scriptsize]{JSON catégorisé} ($(front.south)+(0,-5.75)$);
+  \draw[seq] ($(front.south)+(0,-6.5)$) -- node[above,font=\scriptsize]{Shortlist expliquée} ($(entreprise.south)+(0,-6.5)$);
+\end{tikzpicture}
+}
+\caption{Diagramme de séquence détaillé du shortlisting intelligent}
+\label{fig:seq-shortlisting}
+\end{figure}
+\FloatBarrier
+
+\subsubsection{Séquence 2 - Chatbot d'assistance}
+
+\begin{figure}[H]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[node distance=1.35cm]
+  \node[actor] (user) {Utilisateur};
+  \node[service, right=1.45cm of user] (widget) {Widget\\Chatbot};
+  \node[service, right=1.45cm of widget] (route) {Route API\\Chatbot};
+  \node[service, right=1.45cm of route] (llm) {Moteur IA\\Ollama};
+  \node[service, right=1.45cm of llm] (i18n) {Contexte\\langue/page};
+
+  \foreach \n in {user,widget,route,llm,i18n} {
+    \draw[dashed, color=midgray] (\n.south) -- ++(0,-5.5);
+  }
+
+  \draw[seq] ($(user.south)+(0,-0.5)$) -- node[above,font=\scriptsize]{Question utilisateur} ($(widget.south)+(0,-0.5)$);
+  \draw[seq] ($(widget.south)+(0,-1.25)$) -- node[above,font=\scriptsize]{Message + historique} ($(route.south)+(0,-1.25)$);
+  \draw[seq] ($(route.south)+(0,-2.0)$) -- node[above,font=\scriptsize]{Détection langue et page} ($(i18n.south)+(0,-2.0)$);
+  \draw[seq] ($(route.south)+(0,-2.75)$) -- node[above,font=\scriptsize]{Prompt contextualisé} ($(llm.south)+(0,-2.75)$);
+  \draw[seq] ($(llm.south)+(0,-3.5)$) -- node[above,font=\scriptsize]{Réponse générée} ($(route.south)+(0,-3.5)$);
+  \draw[seq] ($(route.south)+(0,-4.25)$) -- node[above,font=\scriptsize]{Réponse traduite/adaptée} ($(widget.south)+(0,-4.25)$);
+  \draw[seq] ($(widget.south)+(0,-5.0)$) -- node[above,font=\scriptsize]{Affichage conversation} ($(user.south)+(0,-5.0)$);
+\end{tikzpicture}
+}
+\caption{Diagramme de séquence du chatbot d'assistance}
+\label{fig:seq-chatbot}
+\end{figure}
+\FloatBarrier
+
+\subsubsection{Séquence 3 - Accessibilité vocale}
+
+\begin{figure}[H]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[node distance=1.4cm]
+  \node[actor] (candidate) {Candidat};
+  \node[service, right=1.5cm of candidate] (panel) {Panneau\\accessibilité};
+  \node[service, right=1.5cm of panel] (browser) {API navigateur\\TTS/Speech};
+  \node[service, right=1.5cm of browser] (ui) {Interface\\HandiTalents};
+  \node[service, right=1.5cm of ui] (router) {Navigation\\candidat};
+
+  \foreach \n in {candidate,panel,browser,ui,router} {
+    \draw[dashed, color=midgray] (\n.south) -- ++(0,-5.5);
+  }
+
+  \draw[seq] ($(candidate.south)+(0,-0.5)$) -- node[above,font=\scriptsize]{Active lecture/voix} ($(panel.south)+(0,-0.5)$);
+  \draw[seq] ($(panel.south)+(0,-1.25)$) -- node[above,font=\scriptsize]{Paramètres accessibilité} ($(ui.south)+(0,-1.25)$);
+  \draw[seq] ($(panel.south)+(0,-2.0)$) -- node[above,font=\scriptsize]{Synthèse ou reconnaissance} ($(browser.south)+(0,-2.0)$);
+  \draw[seq] ($(browser.south)+(0,-2.75)$) -- node[above,font=\scriptsize]{Texte lu / commande détectée} ($(panel.south)+(0,-2.75)$);
+  \draw[seq] ($(panel.south)+(0,-3.5)$) -- node[above,font=\scriptsize]{Action demandée} ($(router.south)+(0,-3.5)$);
+  \draw[seq] ($(router.south)+(0,-4.25)$) -- node[above,font=\scriptsize]{Page cible} ($(ui.south)+(0,-4.25)$);
+  \draw[seq] ($(ui.south)+(0,-5.0)$) -- node[above,font=\scriptsize]{Interface adaptée} ($(candidate.south)+(0,-5.0)$);
+\end{tikzpicture}
+}
+\caption{Diagramme de séquence de l'accessibilité vocale}
+\label{fig:seq-accessibilite}
+\end{figure}
+\FloatBarrier
+
+\section{Réalisation}
+
+\subsection{Les Microservices mis en place}
+
+Le Sprint 4 s'appuie sur l'architecture existante de HandiTalents en ajoutant des services et modules spécialisés. L'intelligence artificielle est isolée dans un service dédié, tandis que les fonctionnalités d'accessibilité et d'internationalisation sont fortement intégrées au frontend afin de garantir une réaction immédiate côté utilisateur.
+
+\begin{figure}[H]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[node distance=1.2cm and 1.2cm]
+  \node[service, fill=lightblue] (front) {Frontend\\Next.js};
+  \node[service, right=1.3cm of front] (api) {Routes API\\Next.js};
+  \node[service, right=1.3cm of api] (ia) {Service IA\\FastAPI};
+
+  \node[service, below=1.2cm of front] (access) {Module\\Accessibilité};
+  \node[service, below=1.2cm of api] (chatbot) {Chatbot\\Ollama};
+  \node[service, below=1.2cm of ia] (supervision) {Assistant\\Conformité};
+
+  \node[service, below=1.2cm of access] (candidate) {Espace\\Candidat};
+  \node[service, below=1.2cm of chatbot] (interview) {Service\\Entretiens};
+  \node[service, below=1.2cm of supervision] (notif) {Service\\Notifications};
+
+  \node[datastore, right=1.35cm of interview] (db) {PostgreSQL};
+  \node[service, left=1.35cm of candidate] (i18n) {Ressources\\FR/EN/AR};
+
+  \draw[arrow] (front) -- (api);
+  \draw[arrow] (api) -- (ia);
+  \draw[arrow] (front) -- (access);
+  \draw[arrow] (api) -- (chatbot);
+  \draw[arrow] (ia) -- (supervision);
+  \draw[arrow] (front) -- (candidate);
+  \draw[arrow] (candidate) -- (interview);
+  \draw[arrow] (interview) -- (notif);
+  \draw[arrow] (interview) -- (db);
+  \draw[arrow] (notif) -- (db);
+  \draw[arrow] (supervision) -- (db);
+  \draw[arrow] (i18n) -- (front);
+  \draw[arrow] (access) -- (candidate);
+
+  \node[note, above=0.35cm of ia] (noteia) {Analyse CV\\scoring sémantique\\recommandation};
+  \draw[arrow, dashed] (noteia) -- (ia);
+\end{tikzpicture}
+}
+\caption{Architecture technique du Sprint 4}
+\label{fig:archi-sprint4}
+\end{figure}
+\FloatBarrier
+
+\subsection{Les modules réalisés}
+
+\subsubsection{Module 1 - Système intelligent de shortlisting}
+
+Le système intelligent de shortlisting est le module central du Sprint 4. Il a été conçu comme un outil d'aide à la décision pour les entreprises : le recruteur dépose un ou plusieurs CV, renseigne l'offre d'emploi, puis le système analyse automatiquement les candidatures et retourne une shortlist triée par score décroissant.
+
+Ce module répond à un besoin métier essentiel : \textbf{réduire le temps de tri}, \textbf{améliorer l'objectivité} et \textbf{éviter les biais indirects} liés aux parcours atypiques ou au vocabulaire utilisé par les candidats en situation de handicap.
+
+\begin{infobox}[Principe du shortlisting]
+Le système analyse des CV PDF/DOCX, extrait les informations importantes, compare chaque profil à l'offre avec un modèle sémantique multilingue, applique des règles métier, puis retourne un score de 0 à 100 accompagné d'une catégorie et d'une explication.
+\end{infobox}
+
+\paragraph{Architecture du module IA}
+
+Le module IA est indépendant du frontend. Il expose une API REST en \textbf{FastAPI} et communique avec l'application Next.js via des requêtes HTTP. Cette séparation permet de maintenir le moteur d'intelligence artificielle comme un service autonome, testable et évolutif.
+
+\renewcommand{\arraystretch}{1.25}
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{|L{4.1cm}|Y|}
+\hline
+\tblhead{Fichier / composant} & \tblhead{Rôle dans le système de shortlisting} \\
+\hline
+\tblleft{\texttt{api/main.py}} & API FastAPI exposant les endpoints \texttt{/analyser-cv} et \texttt{/shortlister}. \\
+\hline
+\tblleft{\texttt{parser/cv\_parser.py}} & Lecture des CV PDF/DOCX, extraction du texte, des compétences, de l'expérience, de la région et des langues. \\
+\hline
+\tblleft{\texttt{engine/embedder.py}} & Chargement du modèle SBERT et calcul de la similarité cosinus entre le CV et l'offre. \\
+\hline
+\tblleft{\texttt{engine/rules.py}} & Application des règles métier : expérience minimum, région, diplôme requis et éligibilité. \\
+\hline
+\tblleft{\texttt{engine/scorer.py}} & Calcul du score final pondéré et génération de la recommandation. \\
+\hline
+\tblleft{\texttt{engine/matcher.py}} & Orchestration complète du pipeline : extraction, règles, similarité, score et label. \\
+\hline
+\tblleft{\texttt{config.py}} & Définition des poids de scoring : sémantique, expérience et compatibilité handicap. \\
+\hline
+\end{tabularx}
+\caption{Structure technique du module IA de shortlisting}
+\label{tab:structure-shortlisting}
+\end{table}
+\renewcommand{\arraystretch}{1}
+
+\paragraph{Pipeline de traitement}
+
+Le pipeline de shortlisting suit une chaîne de traitement précise. Chaque étape transforme progressivement les fichiers candidats en une décision exploitable par le recruteur.
+
+\begin{enumerate}
+  \item Réception du CV au format PDF ou DOCX et du texte de l'offre via l'API REST.
+  \item Extraction du texte brut avec les parseurs adaptés au format du document.
+  \item Analyse structurée : nom, email, compétences, années d'expérience, région et langues.
+  \item Application des règles métier : expérience minimum, diplôme requis, région ou contrainte éliminatoire.
+  \item Vectorisation du CV et de l'offre avec SBERT en vecteurs de 384 dimensions.
+  \item Calcul de la similarité cosinus entre le vecteur du CV et celui de l'offre.
+  \item Calcul du score final pondéré.
+  \item Retour d'une réponse JSON contenant score, label, compétences matchées et raisons d'élimination.
+\end{enumerate}
+
+\begin{figure}[H]
+\centering
+\resizebox{0.95\textwidth}{!}{%
+\begin{tikzpicture}[node distance=1.2cm]
+  \node[service] (upload) {CV et offre};
+  \node[service, right=1.1cm of upload] (extract) {Extraction\\texte};
+  \node[service, right=1.1cm of extract] (semantic) {Matching\\sémantique};
+  \node[service, right=1.1cm of semantic] (rules) {Règles\\métier};
+  \node[service, right=1.1cm of rules] (rank) {Classement\\shortlist};
+
+  \draw[arrow] (upload) -- (extract);
+  \draw[arrow] (extract) -- (semantic);
+  \draw[arrow] (semantic) -- (rules);
+  \draw[arrow] (rules) -- (rank);
+\end{tikzpicture}
+}
+\caption{Workflow du shortlisting intelligent}
+\label{fig:workflow-shortlisting}
+\end{figure}
+
+\paragraph{Modèle sémantique SBERT}
+
+Le système utilise \textbf{SBERT} (\textit{Sentence-BERT}), une variante de BERT optimisée pour comparer le sens de phrases ou de documents. Le modèle utilisé est \texttt{paraphrase-multilingual-MiniLM-L12-v2}, qui supporte le français, l'anglais et l'arabe. Ce choix est cohérent avec l'objectif d'internationalisation de la plateforme.
+
+Cette approche permet par exemple de considérer comme proches des expressions telles que \enquote{Next.js}, \enquote{React} et \enquote{développement frontend}, même si les mots ne sont pas strictement identiques.
+
+\paragraph{Formule de scoring}
+
+Le score final est calculé selon une pondération claire :
+
+\begin{center}
+\Large
+\textbf{Score final = 0.70 $\times$ score sémantique + 0.20 $\times$ expérience + 0.10 $\times$ compatibilité handicap}
+\end{center}
+
+Cette formule donne la priorité à l'adéquation sémantique entre le CV et l'offre, tout en conservant une prise en compte de l'expérience et des besoins d'aménagement. Elle permet d'obtenir un score lisible de 0 à 100.
+
+\renewcommand{\arraystretch}{1.25}
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{|L{4cm}|Y|}
+\hline
+\tblhead{Fonctionnalité} & \tblhead{Réalisation} \\
+\hline
+\tblleft{Analyse CV} & Extraction du texte et identification des compétences, expériences et éléments structurants du profil. \\
+\hline
+\tblleft{Matching offre/CV} & Calcul d'un score basé sur la proximité sémantique et les critères exigés par l'offre. \\
+\hline
+\tblleft{Classement} & Production d'une liste ordonnée avec candidats prioritaires, candidats admissibles, hors seuil et éliminés. \\
+\hline
+\tblleft{Recommandation} & Ajout d'une décision lisible permettant à l'entreprise d'agir rapidement. \\
+\hline
+\end{tabularx}
+\caption{Réalisation du module de shortlisting intelligent}
+\label{tab:realisation-shortlisting}
+\end{table}
+\renewcommand{\arraystretch}{1}
+
+\paragraph{Endpoints FastAPI}
+
+\renewcommand{\arraystretch}{1.25}
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{|L{3.2cm}|Y|Y|}
+\hline
+\tblhead{Endpoint} & \tblhead{Rôle} & \tblhead{Paramètres principaux} \\
+\hline
+\tblleft{\texttt{GET /}} & Vérifier que le service IA est opérationnel. & Aucun paramètre. \\
+\hline
+\tblleft{\texttt{POST /analyser-cv}} & Analyser un seul CV contre une offre et retourner le score détaillé. & \texttt{cv}, \texttt{texte\_offre}, \texttt{experience\_min}, \texttt{offre\_fichier}. \\
+\hline
+\tblleft{\texttt{POST /shortlister}} & Analyser plusieurs CV et retourner une shortlist triée par score décroissant. & \texttt{cvs}, \texttt{texte\_offre}, \texttt{seuil\_min}, \texttt{experience\_min}. \\
+\hline
+\end{tabularx}
+\caption{Endpoints du service IA de shortlisting}
+\label{tab:endpoints-shortlisting}
+\end{table}
+\renewcommand{\arraystretch}{1}
+
+\paragraph{Catégorisation des résultats}
+
+La réponse JSON est organisée selon trois catégories afin de rendre la décision plus lisible dans l'interface recruteur.
+
+\renewcommand{\arraystretch}{1.25}
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{|L{3cm}|Y|Y|}
+\hline
+\tblhead{Catégorie} & \tblhead{Condition} & \tblhead{Affichage interface} \\
+\hline
+\tblleft{\texttt{shortlist}} & Score supérieur ou égal au seuil minimum et candidat éligible. & Candidat retenu, affiché en vert ou bleu selon le niveau de priorité. \\
+\hline
+\tblleft{\texttt{hors\_seuil}} & Score inférieur au seuil minimum mais sans règle éliminatoire. & Candidat à examiner manuellement, affiché en orange. \\
+\hline
+\tblleft{\texttt{elimines}} & Règle métier non respectée : expérience insuffisante, critère obligatoire manquant ou incompatibilité forte. & Candidat éliminé, affiché en rouge avec raison explicite. \\
+\hline
+\end{tabularx}
+\caption{Catégories retournées par le shortlisting}
+\label{tab:categories-shortlisting}
+\end{table}
+\renewcommand{\arraystretch}{1}
+
+\paragraph{Données d'entraînement et amélioration du modèle}
+
+Le modèle a été adapté au contexte HandiTalents avec un dataset orienté recrutement inclusif. Ce dataset couvre plusieurs domaines professionnels et intègre des profils RQTH afin que le modèle apprenne à mieux traiter les parcours variés.
+
+\renewcommand{\arraystretch}{1.25}
+\begin{table}[H]
+\centering
+\begin{tabularx}{0.92\textwidth}{|L{4.6cm}|Y|}
+\hline
+\tblhead{Indicateur} & \tblhead{Valeur} \\
+\hline
+\tblleft{Paires d'entraînement} & 287 paires CV + offre + décision humaine. \\
+\hline
+\tblleft{CV uniques} & 58 profils tunisiens, synthétiques et réels. \\
+\hline
+\tblleft{Offres couvertes} & 27 offres réparties sur 16 domaines professionnels. \\
+\hline
+\tblleft{Labels positifs} & 105 paires retenues. \\
+\hline
+\tblleft{Labels négatifs} & 182 paires refusées. \\
+\hline
+\tblleft{Entraînement} & 20 epochs, batch size 8, GPU T4 Google Colab. \\
+\hline
+\tblleft{Résultat} & Amélioration moyenne de +15.3\% après entraînement. \\
+\hline
+\end{tabularx}
+\caption{Dataset et entraînement du modèle de shortlisting}
+\label{tab:dataset-shortlisting}
+\end{table}
+\renewcommand{\arraystretch}{1}
+
+\paragraph{Résultat de validation en production}
+
+Un test de production a été réalisé le \textbf{10 mai 2026} sur une offre d'\textbf{Analyste Cybersécurité SOC} avec un seuil minimum de 70 et une expérience minimum de 2 ans. Le système a analysé quatre CV et a correctement identifié le candidat qualifié.
+
+\renewcommand{\arraystretch}{1.25}
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{|L{3.2cm}|Y|L{2.3cm}|L{2.6cm}|}
+\hline
+\tblhead{Candidat} & \tblhead{Profil} & \tblhead{Score} & \tblhead{Décision} \\
+\hline
+\tblleft{Wael Chaker} & Ingénieur cybersécurité, CEH, Splunk, pentest, ISO 27001, 4 ans d'expérience. & 96.4/100 & Shortlist prioritaire \\
+\hline
+\tblleft{Farouk Mathlouthi} & Acheteur industriel, SAP, expérience hors domaine cybersécurité. & 32.7/100 & Hors shortlist \\
+\hline
+\tblleft{Olfa Kaabi} & Conseillère bancaire, KYC/AML, profil éloigné de l'offre SOC. & 32.9/100 & Hors shortlist \\
+\hline
+\tblleft{Abir Annabi} & Étudiante IT avec 1.7 an d'expérience. & Eliminée & Règle métier : expérience $<$ 2 ans \\
+\hline
+\end{tabularx}
+\caption{Résultat du test de production du shortlisting}
+\label{tab:production-shortlisting}
+\end{table}
+\renewcommand{\arraystretch}{1}
+
+Ce test confirme la capacité du système à distinguer un candidat fortement aligné avec l'offre d'autres profils non pertinents ou insuffisamment éligibles. Le score de \textbf{96.4/100} obtenu par Wael Chaker s'explique par la présence de compétences directement liées à l'offre : Splunk SIEM, pentest web, OWASP, Burp Suite, ISO 27001, Python, Bash et notions de sécurité cloud.
+
+\paragraph{Feedback loop}
+
+Le système intègre également une logique d'amélioration continue. Lorsque le recruteur valide ou rejette une suggestion, cette décision devient une donnée utile pour améliorer le modèle.
+
+\begin{figure}[H]
+\centering
+\resizebox{0.95\textwidth}{!}{%
+\begin{tikzpicture}[node distance=1.05cm]
+  \node[service] (result) {Résultat\\shortlist};
+  \node[service, right=1cm of result] (human) {Validation\\recruteur};
+  \node[service, right=1cm of human] (feedback) {Feedback\\enregistré};
+  \node[service, right=1cm of feedback] (labels) {Dataset\\mis à jour};
+  \node[service, right=1cm of labels] (train) {Réentraînement\\modèle};
+
+  \draw[arrow] (result) -- (human);
+  \draw[arrow] (human) -- (feedback);
+  \draw[arrow] (feedback) -- (labels);
+  \draw[arrow] (labels) -- (train);
+  \draw[arrow, dashed] (train.south) .. controls +(0,-1.1) and +(0,-1.1) .. node[below,font=\scriptsize]{modèle plus précis} (result.south);
+\end{tikzpicture}
+}
+\caption{Cycle de feedback du shortlisting intelligent}
+\label{fig:feedback-shortlisting}
+\end{figure}
+
+Ce mécanisme permet au système de progresser avec les données réelles de la plateforme. Plus les recruteurs interagissent avec les suggestions, plus le modèle peut apprendre les décisions pertinentes dans le contexte HandiTalents.
+
+\subsubsection{Module 2 - Chatbot et assistant de conformité}
+
+Le chatbot a été conçu comme un assistant transversal. Il accompagne l'utilisateur dans sa navigation, répond aux questions courantes et adapte ses réponses selon la langue détectée et la page consultée. L'assistant de conformité complète ce dispositif côté supervision en facilitant la lecture des alertes et des rapports.
+
+\begin{itemize}
+  \item Détection automatique de la langue de la question.
+  \item Prise en compte du contexte de navigation.
+  \item Génération de réponses courtes, utiles et adaptées au rôle de l'utilisateur.
+  \item Assistance aux actions courantes : profil, candidature, CV, entretien, accessibilité.
+  \item Consultation des alertes et rapports de conformité.
+\end{itemize}
+
+\renewcommand{\arraystretch}{1.25}
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{|L{3.8cm}|Y|L{3cm}|}
+\hline
+\tblhead{Composant} & \tblhead{Rôle} & \tblhead{Statut} \\
+\hline
+\tblleft{Chatbot utilisateur} & Répondre aux questions et guider l'utilisateur dans les pages principales. & Implémenté \\
+\hline
+\tblleft{Détection linguistique} & Identifier FR, EN ou AR afin d'adapter la réponse. & Implémenté \\
+\hline
+\tblleft{Contexte de page} & Enrichir le prompt avec l'URL, le titre de page et l'historique. & Implémenté \\
+\hline
+\tblleft{Assistant conformité} & Centraliser les alertes, risques et rapports de conformité. & Implémenté \\
+\hline
+\end{tabularx}
+\caption{Réalisation du chatbot et de l'assistant de conformité}
+\label{tab:realisation-chatbot-conformite}
+\end{table}
+\renewcommand{\arraystretch}{1}
+
+\subsubsection{Module 3 - Accessibilité avancée}
+
+L'accessibilité représente l'un des axes majeurs du sprint. Le panneau d'accessibilité donne à l'utilisateur la possibilité d'adapter l'interface selon ses besoins : lecture vocale, contraste, taille de police, police plus lisible, espacement, curseur, réduction des animations et assistance à la navigation.
+
+Une amélioration importante a été ajoutée à ce module : \textbf{l'adaptation automatique de l'espace candidat dès l'inscription}. Le formulaire ne se limite plus à collecter le type de handicap à des fins administratives ; il propose également un champ séparé appelé \enquote{confort d'utilisation souhaité}. Ce champ permet au candidat de choisir le type d'expérience qui lui convient le mieux, sans rendre cette préférence obligatoire et sans l'empêcher de modifier ses paramètres plus tard.
+
+\begin{infobox}[Principe de respect du choix utilisateur]
+Le système ne force pas définitivement un réglage selon le handicap déclaré. Il recommande et applique un preset initial, puis laisse le panneau d'accessibilité indépendant afin que le candidat puisse ajuster l'interface selon son confort réel.
+\end{infobox}
+
+\begin{figure}[H]
+\centering
+\resizebox{0.95\textwidth}{!}{%
+\begin{tikzpicture}[node distance=1.05cm]
+  \node[service] (signup) {Inscription\\candidat};
+  \node[service, right=1cm of signup] (need) {Besoin\\d'accessibilité};
+  \node[service, right=1cm of need] (preset) {Preset\\automatique};
+  \node[service, right=1cm of preset] (workspace) {Espace candidat\\adapté};
+  \node[service, right=1cm of workspace] (panel) {Panneau\\modifiable};
+
+  \draw[arrow] (signup) -- (need);
+  \draw[arrow] (need) -- (preset);
+  \draw[arrow] (preset) -- (workspace);
+  \draw[arrow] (workspace) -- (panel);
+\end{tikzpicture}
+}
+\caption{Application automatique des préférences d'accessibilité après inscription}
+\label{fig:accessibilite-inscription-preset}
+\end{figure}
+
+\renewcommand{\arraystretch}{1.25}
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{|L{3.4cm}|Y|Y|}
+\hline
+\tblhead{Besoin choisi} & \tblhead{Preset appliqué} & \tblhead{Réglages activés} \\
+\hline
+\tblleft{Difficulté visuelle} & Mode malvoyance & Contraste élevé, police lisible, texte agrandi, hauteur de ligne augmentée, focus renforcé et lecture vocale recommandée. \\
+\hline
+\tblleft{Non-voyant} & Mode non-voyant & Navigation clavier, navigation vocale, contraste élevé, masquage des images, arrêt des animations et lecture vocale recommandée. \\
+\hline
+\tblleft{Mobilité} & Mode mobilité & Navigation clavier, gros curseur, clavier virtuel, commandes vocales, surlignage du focus et réduction des animations. \\
+\hline
+\tblleft{Cognitif ou psychique} & Mode cognitif & Interface plus calme, police lisible, espacement des lettres, contenu mis en évidence, réduction du bruit visuel et animations limitées. \\
+\hline
+\tblleft{Auditif} & Mode auditif & Repères visuels renforcés, focus plus visible, liens soulignés et sons coupés pour éviter une dépendance aux alertes audio. \\
+\hline
+\end{tabularx}
+\caption{Presets d'accessibilité appliqués depuis l'inscription candidat}
+\label{tab:presets-accessibilite-inscription}
+\end{table}
+\renewcommand{\arraystretch}{1}
+
+\renewcommand{\arraystretch}{1.25}
+\begin{longtable}{|L{4cm}|Y|L{2.5cm}|}
+\hline
+\tblhead{Fonction} & \tblhead{Description} & \tblhead{Statut} \\
+\hline
+\endfirsthead
+\hline
+\tblhead{Fonction} & \tblhead{Description} & \tblhead{Statut} \\
+\hline
+\endhead
+
+\tblleft{Lecture vocale TTS} & Lecture des offres, textes importants et contenus d'aide via synthèse vocale. & Implémenté \\
+\hline
+\tblleft{Commandes vocales} & Navigation vers les pages principales du candidat par commandes simples. & Implémenté \\
+\hline
+\tblleft{Contraste et couleurs} & Modes de contraste élevé, contraste faible, monochrome et couleurs personnalisées. & Implémenté \\
+\hline
+\tblleft{Lisibilité} & Taille de police, police adaptée, hauteur de ligne, espacement des lettres et texte renforcé. & Implémenté \\
+\hline
+\tblleft{Aides visuelles} & Curseur agrandi, ligne de lecture, masque de lecture et surlignage du focus. & Implémenté \\
+\hline
+\tblleft{Réduction cognitive} & Masquage des images, réduction des animations et simplification de certains éléments visuels. & Implémenté \\
+\hline
+\tblleft{Presets depuis l'inscription} & Application automatique d'un mode d'accessibilité selon le confort d'utilisation choisi par le candidat. & Implémenté \\
+\hline
+\tblleft{Réglages indépendants} & Le panneau reste disponible après inscription afin de modifier, désactiver ou compléter les paramètres appliqués. & Implémenté \\
+\hline
+\caption{Fonctionnalités d'accessibilité avancée}
+\label{tab:accessibilite-avancee}\\
+\end{longtable}
+\renewcommand{\arraystretch}{1}
+
+\subsubsection{Module 4 - Expérience candidat}
+
+Le parcours candidat assisté vise à rendre la plateforme plus rassurante et plus claire. Il accompagne le candidat pendant les étapes importantes : inscription, complétion du profil, préparation à l'entretien et gestion du stress.
+
+\begin{enumerate}[label=\textbf{\Alph*.},font=\bfseries]
+  \item \textbf{Onboarding guidé} : présentation progressive des premières actions à effectuer dans l'espace candidat.
+  \item \textbf{Préparation entretien} : conseils, questions probables et recommandations personnalisées.
+  \item \textbf{Module bien-être} : espace de préparation mentale avant entretien, avec conseils de respiration et messages rassurants.
+  \item \textbf{Notifications orientées action} : redirection du candidat vers la préparation ou le module bien-être lorsqu'un entretien approche.
+\end{enumerate}
+
+\begin{figure}[H]
+\centering
+\resizebox{0.96\textwidth}{!}{%
+\begin{tikzpicture}[node distance=1.15cm]
+  \node[service] (signup) {Inscription};
+  \node[service, right=1.05cm of signup] (onboarding) {Onboarding\\guidé};
+  \node[service, right=1.05cm of onboarding] (profile) {Profil et CV\\complétés};
+  \node[service, right=1.05cm of profile] (interview) {Entretien\\planifié};
+  \node[service, right=1.05cm of interview] (prep) {Préparation\\et bien-être};
+
+  \draw[arrow] (signup) -- (onboarding);
+  \draw[arrow] (onboarding) -- (profile);
+  \draw[arrow] (profile) -- (interview);
+  \draw[arrow] (interview) -- (prep);
+\end{tikzpicture}
+}
+\caption{Parcours candidat assisté}
+\label{fig:parcours-candidat}
+\end{figure}
+
+\subsubsection{Module 5 - Internationalisation}
+
+L'internationalisation permet d'élargir l'accès à HandiTalents à plusieurs profils linguistiques. La plateforme prend en charge le français, l'anglais et l'arabe à travers un sélecteur de langue et des ressources de traduction.
+
+\renewcommand{\arraystretch}{1.25}
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{|L{3.5cm}|Y|}
+\hline
+\tblhead{Langue} & \tblhead{Réalisation} \\
+\hline
+\tblleft{Français} & Langue principale de la plateforme, utilisée pour la majorité des parcours candidats et entreprises. \\
+\hline
+\tblleft{Anglais} & Traduction des libellés clés pour rendre la plateforme accessible à un public international. \\
+\hline
+\tblleft{Arabe} & Ajout des ressources arabes pour renforcer l'inclusion linguistique et faciliter l'usage régional. \\
+\hline
+\tblleft{Sélecteur de langue} & Changement de langue disponible depuis l'interface avec mise à jour immédiate des libellés principaux. \\
+\hline
+\end{tabularx}
+\caption{Internationalisation FR/EN/AR}
+\label{tab:i18n}
+\end{table}
+\renewcommand{\arraystretch}{1}
+
+\section{Tests}
+
+\subsection{Tests spécifiques au shortlisting intelligent}
+
+Étant donné l'importance du module de shortlisting dans ce sprint, une attention particulière a été accordée à sa validation technique et métier. Les tests ont porté sur la précision du classement, la cohérence des règles métier, le temps de réponse et la qualité des explications retournées.
+
+\renewcommand{\arraystretch}{1.25}
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{|L{4cm}|L{3cm}|Y|}
+\hline
+\tblhead{Métrique} & \tblhead{Valeur observée} & \tblhead{Interprétation} \\
+\hline
+\tblleft{Précision test production} & 100\% (4/4) & Le système a correctement retenu le seul candidat qualifié et exclu les trois profils non adaptés. \\
+\hline
+\tblleft{Meilleur score candidat} & 96.4/100 & Score obtenu par Wael Chaker pour l'offre Analyste Cybersécurité SOC. \\
+\hline
+\tblleft{Amélioration post-entraînement} & +15.3\% & Le modèle entraîné sur les données HandiTalents est plus performant que le modèle générique. \\
+\hline
+\tblleft{Temps d'analyse par CV} & $<$ 2 secondes & Le traitement reste compatible avec un usage recruteur interactif. \\
+\hline
+\tblleft{Temps shortlisting 4 CV} & $<$ 8 secondes & Le traitement groupé reste rapide pour une première sélection. \\
+\hline
+\tblleft{Couverture dataset} & 16 domaines & Le modèle couvre des domaines variés : IT, data, cybersécurité, finance, logistique, banque, UX, HSE, tourisme, etc. \\
+\hline
+\end{tabularx}
+\caption{Métriques de validation du shortlisting intelligent}
+\label{tab:metriques-shortlisting}
+\end{table}
+\renewcommand{\arraystretch}{1}
+
+\begin{infobox}[Validation métier]
+Le test du 10 mai 2026 confirme que le shortlisting ne se limite pas à produire un score : il classe les candidats, justifie les décisions et applique correctement les règles éliminatoires comme l'expérience minimum.
+\end{infobox}
+
+\subsection{Tests fonctionnels}
+
+Les tests fonctionnels ont permis de vérifier que les modules livrés répondent aux objectifs du sprint et que les parcours restent utilisables par les différents acteurs.
+
+\renewcommand{\arraystretch}{1.25}
+\begin{longtable}{|L{3.2cm}|Y|L{2.1cm}|L{2.2cm}|}
+\hline
+\tblhead{Module} & \tblhead{Scénario testé} & \tblhead{Résultat} & \tblhead{Statut} \\
+\hline
+\endfirsthead
+\hline
+\tblhead{Module} & \tblhead{Scénario testé} & \tblhead{Résultat} & \tblhead{Statut} \\
+\hline
+\endhead
+
+\tblleft{Shortlisting IA} & L'entreprise lance l'analyse de plusieurs CV pour une offre donnée. & Classement généré & Validé \\
+\hline
+\tblleft{Chatbot} & L'utilisateur pose une question en français puis en anglais. & Réponse adaptée & Validé \\
+\hline
+\tblleft{Chatbot AR} & L'utilisateur saisit une question en arabe. & Langue reconnue & Validé \\
+\hline
+\tblleft{TTS} & Le candidat active la lecture vocale d'un contenu. & Texte lu correctement & Validé \\
+\hline
+\tblleft{Commandes vocales} & Le candidat demande l'ouverture des pages CV, offres ou entretiens. & Navigation exécutée & Validé \\
+\hline
+\tblleft{Panneau accessibilité} & L'utilisateur modifie contraste, police, curseur et animations. & Interface adaptée & Validé \\
+\hline
+\tblleft{Preset accessibilité inscription} & Le candidat choisit un confort d'utilisation lors de l'inscription, puis accède à son espace. & Preset appliqué automatiquement & Validé \\
+\hline
+\tblleft{Onboarding} & Un nouveau candidat consulte son parcours de démarrage. & Guide affiché & Validé \\
+\hline
+\tblleft{Préparation entretien} & Le candidat ouvre la page de préparation depuis son entretien. & Conseils affichés & Validé \\
+\hline
+\tblleft{Bien-être} & Le candidat accède au module bien-être avant entretien. & Module disponible & Validé \\
+\hline
+\tblleft{Internationalisation} & L'utilisateur bascule entre FR, EN et AR. & Libellés mis à jour & Validé \\
+\hline
+\caption{Tests fonctionnels du Sprint 4}
+\label{tab:tests-fonctionnels-sprint4}\\
+\end{longtable}
+\renewcommand{\arraystretch}{1}
+
+\subsection{Tests d'intégration}
+
+Les tests d'intégration ont été réalisés afin de vérifier la communication entre le frontend, les routes API, le service IA, le chatbot, les services de notification et les ressources d'internationalisation.
+
+\renewcommand{\arraystretch}{1.25}
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{|L{4cm}|Y|L{2.3cm}|}
+\hline
+\tblhead{Flux testé} & \tblhead{Vérification} & \tblhead{Statut} \\
+\hline
+\tblleft{Frontend vers service IA} & Envoi des CV et de l'offre vers l'API de shortlisting, puis récupération du classement. & Validé \\
+\hline
+\tblleft{Route chatbot vers moteur IA} & Transmission du message, du contexte et de la langue vers le moteur de génération. & Validé \\
+\hline
+\tblleft{Accessibilité côté interface} & Application immédiate des préférences sur les composants visibles. & Validé \\
+\hline
+\tblleft{Inscription vers accessibilité} & Le choix du confort d'utilisation est sauvegardé localement puis transmis au provider d'accessibilité pour appliquer le mode correspondant. & Validé \\
+\hline
+\tblleft{Notifications vers préparation} & Redirection vers la préparation entretien ou le module bien-être depuis une notification. & Validé \\
+\hline
+\tblleft{Internationalisation} & Chargement des ressources de traduction et persistance de la langue choisie. & Validé \\
+\hline
+\tblleft{Conformité et supervision} & Affichage des rapports, alertes et informations de suivi dans les vues de supervision. & Validé \\
+\hline
+\end{tabularx}
+\caption{Tests d'intégration du Sprint 4}
+\label{tab:tests-integration-sprint4}
+\end{table}
+\renewcommand{\arraystretch}{1}
+
+\subsection{Synthèse des tests}
+
+\begin{infobox}[Bilan de validation]
+Les tests réalisés confirment que les fonctionnalités du Sprint 4 améliorent l'efficacité du recrutement, la qualité de l'accompagnement candidat et l'accessibilité générale de la plateforme. Les modules d'IA, d'assistance, d'accessibilité et d'internationalisation fonctionnent de manière cohérente avec l'architecture existante. La validation du preset d'inscription confirme également que l'accessibilité n'est plus seulement un réglage manuel : elle devient une expérience préparée dès l'entrée du candidat dans la plateforme.
+\end{infobox}
+
+\section{Conclusion}
+
+Le Sprint 4 a permis de faire évoluer HandiTalents vers une plateforme plus intelligente, plus inclusive et plus centrée sur l'expérience candidat. Son apport le plus important est le \textbf{système intelligent de shortlisting}, qui transforme le tri des candidatures en un processus plus rapide, plus objectif et plus explicable.
+
+Grâce à l'utilisation de SBERT, à la pondération du score et à l'intégration des règles métier, le système ne se contente pas de comparer des mots-clés : il comprend le sens des profils, identifie les compétences pertinentes et classe les candidats selon leur adéquation réelle avec l'offre. Le test de production du 10 mai 2026, avec une précision de 100\% sur quatre CV et un score de 96.4/100 pour le candidat qualifié, confirme la valeur pratique du module.
+
+Les autres fonctionnalités du sprint renforcent cette avancée : le chatbot guide les utilisateurs, l'assistant de conformité améliore le suivi, le panneau d'accessibilité rend la plateforme plus inclusive, l'internationalisation ouvre l'interface à plusieurs langues et le parcours candidat assisté améliore la préparation aux entretiens. L'adaptation automatique de l'espace candidat dès l'inscription renforce particulièrement la dimension inclusive, car l'utilisateur arrive dans un environnement déjà préparé selon son confort d'usage.
+
+Ainsi, ce sprint ajoute une couche d'innovation concrète à HandiTalents. Il ne s'agit pas uniquement d'améliorer l'interface, mais de créer un véritable outil d'aide au recrutement inclusif, capable d'apprendre progressivement grâce au feedback des recruteurs.
+
+\end{document}

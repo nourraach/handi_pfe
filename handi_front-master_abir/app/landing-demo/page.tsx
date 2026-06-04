@@ -62,8 +62,8 @@ const features: Feature[] = [
     ),
   },
   {
-    title: "Inclusive Workspace",
-    text: "Built with accessibility in mind, our platform ensures everyone can navigate, apply, and succeed regardless of their abilities.",
+    title: "Espace inclusif",
+    text: "Pensée pour l'accessibilité, notre plateforme permet à chacun de naviguer, postuler et réussir dans de bonnes conditions.",
     icon: (
       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -71,8 +71,8 @@ const features: Feature[] = [
     ),
   },
   {
-    title: "Verified Employers",
-    text: "All companies on our platform are verified and committed to creating inclusive work environments for diverse talent.",
+    title: "Employeurs vérifiés",
+    text: "Toutes les entreprises présentes sur la plateforme sont vérifiées et engagées dans des environnements de travail inclusifs.",
     icon: (
       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
@@ -80,8 +80,8 @@ const features: Feature[] = [
     ),
   },
   {
-    title: "Career Support",
-    text: "Get access to career coaching, interview preparation, and ongoing support to help you succeed in your new role.",
+    title: "Accompagnement carrière",
+    text: "Accédez à un accompagnement professionnel, à la préparation aux entretiens et à un suivi continu pour réussir votre prise de poste.",
     icon: (
       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
@@ -106,19 +106,19 @@ export default function LandingDemo() {
       <main className="max-w-[1280px] mx-auto px-6 py-8">
         {/* Hero Section Demo */}
         <HeroSection
-          badge="🚀 Inclusive Hiring Platform"
-          title="Connect Talent with"
-          highlightText="Opportunity"
-          description="HandiTalents bridges the gap between talented individuals with disabilities and forward-thinking employers. Build diverse teams and unlock potential."
+          badge="🚀 Plateforme de recrutement inclusif"
+          title="Reliez les talents"
+          highlightText="aux opportunités"
+          description="HandiTalents rapproche les talents en situation de handicap et les employeurs engagés. Construisez des équipes plus diverses et révélez leur potentiel."
           primaryCta={{
-            label: "Get Started Free",
+            label: "Commencer gratuitement",
             href: "/inscription",
           }}
           secondaryCta={{
-            label: "Learn More",
+            label: "En savoir plus",
             href: "#features",
           }}
-          trustBadges={["500+ Companies", "10,000+ Candidates", "ISO Certified"]}
+          trustBadges={["500+ entreprises", "10 000+ candidats", "Certification ISO"]}
           heroImage="/branding/hero-reference.png"
           floatingCards={floatingCards}
         />
@@ -126,18 +126,18 @@ export default function LandingDemo() {
         <section className="min-h-screen flex items-center justify-center mt-16">
           <div className="text-center">
             <h1 className="text-hero font-heading font-bold text-purple-900 mb-6">
-              Hero Section Demo
+              Démonstration de la section héro
             </h1>
             <p className="text-xl text-text-muted max-w-2xl mx-auto mb-8">
-              The hero section above demonstrates the rounded container with gradient background,
-              floating cards with glassmorphism effect, and responsive layout.
+              La section ci-dessus montre un conteneur arrondi avec fond en dégradé,
+              des cartes flottantes avec effet glassmorphism et une mise en page responsive.
             </p>
             <div className="flex gap-4 justify-center">
               <a
                 href="#features"
                 className="px-6 py-3 bg-purple-700 text-white rounded-lg hover:bg-purple-800 transition-colors"
               >
-                View Features
+                Voir les fonctionnalités
               </a>
               <a
                 href="#section2"

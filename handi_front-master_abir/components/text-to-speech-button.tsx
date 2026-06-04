@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useAccessibility } from "@/components/accessibility-provider";
 
 type SpeechState = "stopped" | "reading" | "paused";
 
@@ -43,6 +44,7 @@ function getStateLabel(state: SpeechState, lang: "fr-FR" | "en-US" | "ar-SA") {
 }
 
 export function TextToSpeechButton({ text, lang, className }: TextToSpeechButtonProps) {
+  const { settings } = useAccessibility();
   const [speechState, setSpeechState] = useState<SpeechState>("stopped");
   const [error, setError] = useState<string | null>(null);
   const [voiceRate, setVoiceRate] = useState<0.85 | 1 | 1.15>(1);
@@ -197,7 +199,23 @@ export function TextToSpeechButton({ text, lang, className }: TextToSpeechButton
   }, []);
 
   return (
-    <div className={className} style={{ display: "grid", gap: "10px" }}>
+    <div
+      className={className}
+      data-tts-recommended={settings.textToSpeechPreferred ? "true" : "false"}
+      style={{
+        display: "grid",
+        gap: "10px",
+        padding: settings.textToSpeechPreferred ? "12px" : undefined,
+        borderRadius: settings.textToSpeechPreferred ? "14px" : undefined,
+        border: settings.textToSpeechPreferred ? "1px solid rgba(95, 42, 200, 0.22)" : undefined,
+        background: settings.textToSpeechPreferred ? "rgba(95, 42, 200, 0.06)" : undefined,
+      }}
+    >
+      {settings.textToSpeechPreferred ? (
+        <p style={{ margin: 0, color: "#3b246b", fontWeight: 800 }}>
+          Lecture vocale recommandee pour votre confort.
+        </p>
+      ) : null}
       <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
         <button
           type="button"

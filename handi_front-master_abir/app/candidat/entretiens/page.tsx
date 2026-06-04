@@ -295,12 +295,12 @@ export default function MesEntretiensPage() {
       const data: EntretiensPayload = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || "Unable to load your interviews.");
+        throw new Error(data.message || "Impossible de charger vos entretiens.");
       }
 
       setEntretiens(Array.isArray(data.donnees) ? data.donnees : []);
     } catch (error: unknown) {
-      setErreur(error instanceof Error ? error.message : "Unable to load your interviews.");
+      setErreur(error instanceof Error ? error.message : "Impossible de charger vos entretiens.");
     } finally {
       setLoading(false);
     }
@@ -391,13 +391,13 @@ export default function MesEntretiensPage() {
       const data: { message?: string } = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        throw new Error(data.message || "Unable to confirm the interview.");
+        throw new Error(data.message || "Impossible de confirmer l'entretien.");
       }
 
       setInfo(data.message || "Entretien confirmé avec succès.");
       await charger();
     } catch (error: unknown) {
-      setErreur(error instanceof Error ? error.message : "Unable to confirm the interview.");
+      setErreur(error instanceof Error ? error.message : "Impossible de confirmer l'entretien.");
     } finally {
       setEntretienEnAction(null);
     }
@@ -423,7 +423,6 @@ export default function MesEntretiensPage() {
         <div className="candidate-interviews-hero-copy">
           <p className="candidate-interviews-kicker">Entretiens planifiés</p>
           <h1>Entretiens planifiés</h1>
-          <p>Retrouvez tous vos entretiens à venir et préparez-vous sereinement.</p>
         </div>
 
         <div className="candidate-interviews-hero-actions">
@@ -445,7 +444,7 @@ export default function MesEntretiensPage() {
           <div className="loading-state">
             <div className="spinner" aria-hidden="true" />
             <strong>Chargement de vos entretiens</strong>
-            <p>Nous récupérons votre planning d'entretiens.</p>
+            <p>Nous récupérons votre planning d&apos;entretiens.</p>
           </div>
         </Card>
       ) : entretiens.length === 0 ? (
@@ -510,7 +509,7 @@ export default function MesEntretiensPage() {
                         className="candidate-interviews-secondary"
                       >
                         <CalendarRange size={18} />
-                        Préparer l'entretien
+                        Préparer l&apos;entretien
                       </ButtonLink>
                     </div>
 
@@ -522,7 +521,7 @@ export default function MesEntretiensPage() {
                         disabled={entretienEnAction === selectedInterview.entretien.id}
                         className="candidate-interviews-confirm"
                       >
-                        Confirmer l'entretien
+                        Confirmer l&apos;entretien
                       </Button>
                     ) : null}
                   </div>
@@ -931,20 +930,24 @@ export default function MesEntretiensPage() {
         }
 
         .candidate-interviews-primary {
-          background: linear-gradient(135deg, #6a2de0, #4322af);
-          color: #fff;
+          background: #4a154b;
+          color: #ffffff;
           border: 1px solid transparent;
-          box-shadow: 0 14px 34px rgba(94, 43, 213, 0.24);
+          box-shadow: 0 8px 18px rgba(74, 21, 75, 0.14);
         }
 
         .candidate-interviews-primary:hover {
-          background: linear-gradient(135deg, #732ff0, #4a25ba);
+          background: #5b1a5e;
+        }
+
+        .candidate-interviews-primary:active {
+          background: #3a103a;
         }
 
         .candidate-interviews-secondary {
-          border: 1px solid rgba(94, 43, 213, 0.16);
-          background: rgba(255, 255, 255, 0.86);
-          color: #20163f;
+          border: 1px solid #e5ddf0;
+          background: #ffffff;
+          color: #2a1d3d;
         }
 
         .candidate-interviews-confirm {

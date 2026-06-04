@@ -1,3 +1,5 @@
+const typography = require('./typography.config.cjs');
+
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
@@ -60,11 +62,8 @@ module.exports = {
         'mid': '0 24px 60px rgba(53, 6, 62, 0.15)',
         'strong': '0 34px 90px rgba(36, 4, 43, 0.24)',
       },
-      // Custom font families
-      fontFamily: {
-        heading: ['var(--font-outfit)', '"Segoe UI"', 'sans-serif'],
-        body: ['var(--font-plus-jakarta-sans)', '"Segoe UI"', 'sans-serif'],
-      },
+      // Unified product typography
+      fontFamily: typography.fontFamily,
       // Spacing scale
       spacing: {
         'xs': '8px',
@@ -75,15 +74,7 @@ module.exports = {
         '2xl': '48px',
         '3xl': '58px',
       },
-      // Responsive typography using clamp()
-      fontSize: {
-        'hero': 'clamp(1.95rem, 4.2vw, 3.45rem)',
-        'h2': 'clamp(1.55rem, 2.8vw, 2.35rem)',
-        'h3': 'clamp(1.28rem, 2.25vw, 1.75rem)',
-        'body': '0.95rem',
-        'small': '0.84rem',
-        'tiny': '0.68rem',
-      },
+      fontSize: typography.fontSize,
       // Animations
       animation: {
         'fadeIn': 'fadeIn 0.3s ease-in-out',

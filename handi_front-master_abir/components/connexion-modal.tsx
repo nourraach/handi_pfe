@@ -49,7 +49,7 @@ function ConnexionDialog({ onClose }: { onClose: () => void }) {
             <span>Connexion securisee</span>
           </p>
           <h1 id="connexion-modal-title">Connectez-vous</h1>
-          <p>Accedez a votre espace en gardant le reste de la page en arriere-plan.</p>
+          <p>Connectez-vous pour acceder a votre espace.</p>
         </div>
       </header>
 

@@ -10,11 +10,11 @@ export function SupervisionPipeline() {
   const pipeline = useSupervisionQuery<PipelineResponse>("/pipeline");
 
   if (pipeline.loading) {
-    return <LoadingState title="Loading pipeline supervision" description="Preparing company-by-company recruitment flow visibility." />;
+    return <LoadingState title="Chargement du pipeline de supervision" description="Preparation de la visibilite du recrutement entreprise par entreprise." />;
   }
 
   if (pipeline.error || !pipeline.data) {
-    return <EmptyState title="Pipeline unavailable" description={pipeline.error || "No pipeline data is available."} />;
+    return <EmptyState title="Pipeline indisponible" description={pipeline.error || "Aucune donnee de pipeline n'est disponible."} />;
   }
 
   return (
@@ -23,14 +23,14 @@ export function SupervisionPipeline() {
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Company</th>
+              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Entreprise</th>
               <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Region</th>
-              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Offers</th>
-              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Applications</th>
-              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Shortlisted</th>
-              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Interviews</th>
-              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Hired</th>
-              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Rejected</th>
+              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Offres</th>
+              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Candidatures</th>
+              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Preselection</th>
+              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Entretiens</th>
+              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Acceptes</th>
+              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Refuses</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200 bg-white">

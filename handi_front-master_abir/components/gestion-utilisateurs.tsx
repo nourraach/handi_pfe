@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { type FormEvent, useCallback, useEffect, useState } from "react";
 import { construireUrlApi } from "@/lib/config";
 import { TUNISIAN_GOVERNORATES, TUNISIAN_GOVERNORATE_OPTIONS } from "@/lib/tunisia-governorates";
@@ -42,17 +43,17 @@ const STATUS_STYLES: Record<string, string> = {
 
 const ROLE_LABELS: Record<string, string> = {
   admin: "Admin",
-  entreprise: "Company",
-  candidat: "Candidate",
-  inspecteur: "Inspector",
+  entreprise: "Entreprise",
+  candidat: "Candidat",
+  inspecteur: "Inspecteur",
   aneti: "ANETI",
 };
 
 const STATUS_LABELS: Record<string, string> = {
-  actif: "Active",
-  inactif: "Inactive",
-  en_attente: "Pending",
-  suspendu: "Suspended",
+  actif: "Actif",
+  inactif: "Inactif",
+  en_attente: "En attente",
+  suspendu: "Suspendu",
 };
 
 export function GestionUtilisateurs() {
@@ -101,10 +102,10 @@ export function GestionUtilisateurs() {
         setTotalUtilisateurs(data.donnees.pagination?.total || data.donnees.total || 0);
         setErreur(null);
       } else {
-        setErreur("Unable to load users.");
+        setErreur("Impossible de charger les utilisateurs.");
       }
     } catch {
-      setErreur("Connection error.");
+      setErreur("Erreur de connexion.");
     } finally {
       setChargement(false);
     }
@@ -153,15 +154,15 @@ export function GestionUtilisateurs() {
       const resultat = await response.json();
 
       if (response.ok) {
-        setMessage(resultat.message || "User created successfully.");
+        setMessage(resultat.message || "Utilisateur cree avec succes.");
         setErreur(null);
         setModeCreation(false);
         void chargerUtilisateurs();
       } else {
-        setErreur(resultat.message || "Unable to create the user.");
+        setErreur(resultat.message || "Impossible de creer l'utilisateur.");
       }
     } catch {
-      setErreur("Connection error.");
+      setErreur("Erreur de connexion.");
     }
   };
 
@@ -180,21 +181,21 @@ export function GestionUtilisateurs() {
       const resultat = await response.json();
 
       if (response.ok) {
-        setMessage(resultat.message || "User updated successfully.");
+        setMessage(resultat.message || "Utilisateur mis a jour avec succes.");
         setErreur(null);
         setModeEdition(false);
         setUtilisateurSelectionne(null);
         void chargerUtilisateurs();
       } else {
-        setErreur(resultat.message || "Unable to update the user.");
+        setErreur(resultat.message || "Impossible de mettre a jour l'utilisateur.");
       }
     } catch {
-      setErreur("Connection error.");
+      setErreur("Erreur de connexion.");
     }
   };
 
   const supprimerUtilisateur = async (id: string) => {
-    if (!confirm("Are you sure you want to archive this user?")) {
+    if (!confirm("Voulez-vous vraiment archiver cet utilisateur ?")) {
       return;
     }
 
@@ -211,13 +212,13 @@ export function GestionUtilisateurs() {
       const resultat = await response.json();
 
       if (response.ok) {
-        setMessage("User archived successfully.");
+        setMessage("Utilisateur archive avec succes.");
         void chargerUtilisateurs();
       } else {
-        setErreur(resultat.message || "Unable to archive the user.");
+        setErreur(resultat.message || "Impossible d'archiver l'utilisateur.");
       }
     } catch {
-      setErreur("Connection error.");
+      setErreur("Erreur de connexion.");
     }
   };
 
@@ -236,18 +237,18 @@ export function GestionUtilisateurs() {
       const resultat = await response.json();
 
       if (response.ok) {
-        setMessage(`Status changed to "${getStatusLabel(nouveauStatut)}".`);
+        setMessage(`Statut mis a jour : ${getStatusLabel(nouveauStatut)}.`);
         void chargerUtilisateurs();
       } else {
-        setErreur(resultat.message || "Unable to change the status.");
+        setErreur(resultat.message || "Impossible de modifier le statut.");
       }
     } catch {
-      setErreur("Connection error.");
+      setErreur("Erreur de connexion.");
     }
   };
 
   const resetMotDePasse = async (id: string) => {
-    if (!confirm("Are you sure you want to reset the password?")) {
+    if (!confirm("Voulez-vous vraiment reinitialiser le mot de passe ?")) {
       return;
     }
 
@@ -264,12 +265,12 @@ export function GestionUtilisateurs() {
       const resultat = await response.json();
 
       if (response.ok) {
-        setMessage(`Password reset. New password: ${resultat.donnees.nouveauMotDePasse}`);
+        setMessage(`Mot de passe reinitialise. Nouveau mot de passe : ${resultat.donnees.nouveauMotDePasse}`);
       } else {
-        setErreur(resultat.message || "Unable to reset the password.");
+        setErreur(resultat.message || "Impossible de reinitialiser le mot de passe.");
       }
     } catch {
-      setErreur("Connection error.");
+      setErreur("Erreur de connexion.");
     }
   };
 
@@ -292,17 +293,17 @@ export function GestionUtilisateurs() {
         const url = window.URL.createObjectURL(blob);
         const anchor = document.createElement("a");
         anchor.href = url;
-        anchor.download = `users_${new Date().toISOString().split("T")[0]}.csv`;
+        anchor.download = `utilisateurs_${new Date().toISOString().split("T")[0]}.csv`;
         document.body.appendChild(anchor);
         anchor.click();
         window.URL.revokeObjectURL(url);
         document.body.removeChild(anchor);
-        setMessage("Export completed successfully.");
+        setMessage("Export termine avec succes.");
       } else {
-        setErreur("Unable to export users.");
+        setErreur("Impossible d'exporter les utilisateurs.");
       }
     } catch {
-      setErreur("Connection error.");
+      setErreur("Erreur de connexion.");
     }
   };
 
@@ -343,7 +344,7 @@ export function GestionUtilisateurs() {
       <div className="admin-users-toolbar-shell rounded-2xl border border-slate-200 bg-white/95 p-4 shadow-sm">
         <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
           <div className="min-w-0">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">User governance</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Gestion des utilisateurs</p>
           </div>
 
           <div className="flex flex-wrap gap-2">
@@ -351,13 +352,13 @@ export function GestionUtilisateurs() {
               onClick={() => setModeCreation(true)}
               className="inline-flex h-10 items-center rounded-full bg-purple-950 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-purple-900"
             >
-              New
+              Nouvel utilisateur
             </button>
             <button
               onClick={exporterUtilisateurs}
               className="inline-flex h-10 items-center rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-purple-200 hover:text-purple-950"
             >
-              Export
+              Exporter
             </button>
             {filtresActifs ? (
               <button
@@ -368,7 +369,7 @@ export function GestionUtilisateurs() {
                 }}
                 className="inline-flex h-10 items-center rounded-full border border-slate-200 bg-slate-50 px-4 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:bg-white"
               >
-                Reset filters
+                Reinitialiser les filtres
               </button>
             ) : null}
           </div>
@@ -376,66 +377,66 @@ export function GestionUtilisateurs() {
 
         <div className="admin-users-toolbar-shell__filters mt-4 grid gap-3 xl:grid-cols-[minmax(0,1.7fr)_repeat(2,minmax(140px,1fr))]">
           <div className="admin-users-toolbar-shell__filter rounded-2xl border border-slate-200 bg-slate-50/80 p-3">
-            <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Search</label>
+            <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Recherche</label>
             <input
               type="text"
               value={recherche}
               onChange={(event) => setRecherche(event.target.value)}
-              placeholder="Name, email, role..."
+              placeholder="Nom, e-mail, role..."
               className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-800 outline-none transition focus:border-purple-300 focus:ring-4 focus:ring-purple-100"
             />
           </div>
 
           <div className="admin-users-toolbar-shell__filter rounded-2xl border border-slate-200 bg-slate-50/80 p-3">
-            <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Role</label>
+            <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Rôle</label>
             <select
               value={filtres.role}
               onChange={(event) => setFiltres((prev) => ({ ...prev, role: event.target.value }))}
               className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-800 outline-none transition focus:border-purple-300 focus:ring-4 focus:ring-purple-100"
             >
-              <option value="">All roles</option>
-              <option value="candidat">Candidate</option>
-              <option value="entreprise">Company</option>
+              <option value="">Tous les roles</option>
+              <option value="candidat">Candidat</option>
+              <option value="entreprise">Entreprise</option>
               <option value="admin">Admin</option>
-              <option value="inspecteur">Inspector</option>
+              <option value="inspecteur">Inspecteur</option>
               <option value="aneti">ANETI</option>
             </select>
           </div>
 
           <div className="admin-users-toolbar-shell__filter rounded-2xl border border-slate-200 bg-slate-50/80 p-3">
-            <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Status</label>
+            <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Statut</label>
             <select
               value={filtres.statut}
               onChange={(event) => setFiltres((prev) => ({ ...prev, statut: event.target.value }))}
               className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-800 outline-none transition focus:border-purple-300 focus:ring-4 focus:ring-purple-100"
             >
-              <option value="">All statuses</option>
-              <option value="actif">Active</option>
-              <option value="inactif">Inactive</option>
-              <option value="en_attente">Pending</option>
-              <option value="suspendu">Suspended</option>
+              <option value="">Tous les statuts</option>
+              <option value="actif">Actif</option>
+              <option value="inactif">Inactif</option>
+              <option value="en_attente">En attente</option>
+              <option value="suspendu">Suspendu</option>
             </select>
           </div>
         </div>
 
         <div className="admin-users-toolbar-shell__stats mt-4 flex flex-wrap items-center gap-2">
           <span className="inline-flex items-center rounded-full bg-purple-950 px-3 py-1 text-xs font-semibold text-white">
-            Visible {usersVisibleCount}
+            Visibles {usersVisibleCount}
           </span>
           <span className="inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-600">
-            Loaded {usersLoadedCount}
+            Charges {usersLoadedCount}
           </span>
           <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
-            Active {usersActiveCount}
+            Actifs {usersActiveCount}
           </span>
           <span className="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
-            Pending {usersPendingCount}
+            En attente {usersPendingCount}
           </span>
           <span className="inline-flex items-center rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-xs font-semibold text-rose-700">
-            Suspended {usersSuspendedCount}
+            Suspendus {usersSuspendedCount}
           </span>
           <span className="ml-auto text-xs font-medium text-slate-500">
-            Total in system: {totalDisplayCount}
+            Total dans la plateforme : {totalDisplayCount}
           </span>
         </div>
       </div>
@@ -445,7 +446,7 @@ export function GestionUtilisateurs() {
         {chargement ? (
           <div className="admin-users-loading p-8 text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-2 text-gray-600">Loading...</p>
+            <p className="mt-2 text-gray-600">Chargement...</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -453,16 +454,16 @@ export function GestionUtilisateurs() {
               <thead className="admin-users-table-head bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    User
+                    Utilisateur
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Role
+                    Rôle
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
+                    Statut
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Created on
+                    Cree le
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Actions
@@ -474,7 +475,12 @@ export function GestionUtilisateurs() {
                   <tr key={utilisateur.id_utilisateur} className="admin-users-table-row hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
-                        <div className="text-sm font-medium text-gray-900">{utilisateur.nom}</div>
+                        <Link
+                          href={`/admin/utilisateurs/${utilisateur.id_utilisateur}`}
+                          className="text-sm font-medium text-[#4a154b] transition hover:text-[#5f1b60] hover:underline"
+                        >
+                          {utilisateur.nom}
+                        </Link>
                         <div className="text-sm text-gray-500">{utilisateur.email}</div>
                       </div>
                     </td>
@@ -489,45 +495,47 @@ export function GestionUtilisateurs() {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(utilisateur.created_at).toLocaleDateString("en-US")}
+                      {new Date(utilisateur.created_at).toLocaleDateString("fr-FR")}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <div className="flex flex-wrap gap-2">
                       <button
                         onClick={() => {
                           setUtilisateurSelectionne(utilisateur);
                           setModeEdition(true);
                         }}
-                        className="text-blue-600 hover:text-blue-900"
+                        className="inline-flex min-h-8 items-center rounded-md border border-[#d8caef] bg-[#f7f1ff] px-3 text-xs font-semibold text-[#4a154b] transition hover:border-[#bfa7e8] hover:bg-[#f0e6ff]"
                       >
-                        Edit
+                        Modifier
                       </button>
                       <button
                         onClick={() => resetMotDePasse(utilisateur.id_utilisateur)}
-                        className="text-yellow-600 hover:text-yellow-900"
+                        className="inline-flex min-h-8 items-center rounded-md border border-emerald-300 bg-emerald-50 px-3 text-xs font-semibold text-emerald-800 transition hover:border-emerald-400 hover:bg-emerald-100"
                       >
-                        Reset password
+                        Reinitialiser le mot de passe
                       </button>
                       {utilisateur.statut === "actif" ? (
                         <button
                           onClick={() => changerStatut(utilisateur.id_utilisateur, "suspendu")}
-                          className="text-orange-600 hover:text-orange-900"
+                          className="inline-flex min-h-8 items-center rounded-md border border-red-300 bg-red-50 px-3 text-xs font-semibold text-red-800 transition hover:border-red-400 hover:bg-red-100"
                         >
-                          Suspend
+                          Suspendre
                         </button>
                       ) : (
                         <button
                           onClick={() => changerStatut(utilisateur.id_utilisateur, "actif")}
-                          className="text-green-600 hover:text-green-900"
+                          className="inline-flex min-h-8 items-center rounded-md border border-emerald-300 bg-emerald-50 px-3 text-xs font-semibold text-emerald-800 transition hover:border-emerald-400 hover:bg-emerald-100"
                         >
-                          Activate
+                          Activer
                         </button>
                       )}
                       <button
                         onClick={() => supprimerUtilisateur(utilisateur.id_utilisateur)}
-                        className="text-red-600 hover:text-red-900"
+                        className="inline-flex min-h-8 items-center rounded-md border border-orange-300 bg-orange-50 px-3 text-xs font-semibold text-orange-800 transition hover:border-orange-400 hover:bg-orange-100"
                       >
-                        Archive
+                        Archiver
                       </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -539,7 +547,7 @@ export function GestionUtilisateurs() {
         {!recherche && totalPages > 1 && (
           <div className="admin-users-pagination px-6 py-4 border-t border-gray-200 flex items-center justify-between">
             <div className="text-sm text-gray-700">
-              Page {page} of {totalPages} ({totalUtilisateurs} users total)
+              Page {page} sur {totalPages} ({totalUtilisateurs} utilisateurs au total)
             </div>
             <div className="flex space-x-2">
               <button
@@ -547,14 +555,14 @@ export function GestionUtilisateurs() {
                 disabled={page === 1}
                 className="px-3 py-1 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Previous
+                Precedent
               </button>
               <button
                 onClick={() => setPage(Math.min(totalPages, page + 1))}
                 disabled={page === totalPages}
                 className="px-3 py-1 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Next
+                Suivant
               </button>
             </div>
           </div>
@@ -572,7 +580,7 @@ export function GestionUtilisateurs() {
             }
 
             if (!utilisateurSelectionne) {
-              setErreur("No user is currently selected for editing.");
+              setErreur("Aucun utilisateur n'est actuellement selectionne pour la modification.");
               return;
             }
 
@@ -650,10 +658,10 @@ function ModalUtilisateur({ utilisateur, modeCreation, onSave, onCancel }: Modal
             </div>
             <div>
               <h3 id="admin-user-modal-title" className="text-[24px] font-semibold leading-[1.15] text-[#17113f]">
-                {modeCreation ? "Create user" : "Edit user"}
+                {modeCreation ? "Creer un utilisateur" : "Modifier l'utilisateur"}
               </h3>
               <p className="mt-1 text-[16px] text-[#6b6488]">
-                {modeCreation ? "Add a new user to the platform" : "Update user information on the platform"}
+                {modeCreation ? "Ajouter un nouvel utilisateur a la plateforme" : "Mettre a jour les informations de l'utilisateur"}
               </p>
             </div>
           </div>
@@ -661,7 +669,7 @@ function ModalUtilisateur({ utilisateur, modeCreation, onSave, onCancel }: Modal
             type="button"
             onClick={onCancel}
             className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[#666083] transition hover:bg-[#f4efff]"
-            aria-label="Close user form"
+            aria-label="Fermer le formulaire utilisateur"
           >
             <X className="h-5 w-5" />
           </button>
@@ -673,7 +681,7 @@ function ModalUtilisateur({ utilisateur, modeCreation, onSave, onCancel }: Modal
           <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 py-4">
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <label className="block text-[15px] font-semibold text-[#1e173e]">Name</label>
+                <label className="block text-[15px] font-semibold text-[#1e173e]">Nom</label>
                 <div className="relative">
                   <User className="pointer-events-none absolute left-3.5 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-[#5f587f]" />
                   <input
@@ -681,14 +689,14 @@ function ModalUtilisateur({ utilisateur, modeCreation, onSave, onCancel }: Modal
                     value={formData.nom}
                     onChange={(event) => setFormData((prev) => ({ ...prev, nom: event.target.value }))}
                     className={inputClass}
-                    placeholder="e.g. Asma Bouazizi"
+                    placeholder="Ex. Asma Bouazizi"
                     required
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <label className="block text-[15px] font-semibold text-[#1e173e]">Email</label>
+                <label className="block text-[15px] font-semibold text-[#1e173e]">E-mail</label>
                 <div className="relative">
                   <Mail className="pointer-events-none absolute left-3.5 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-[#5f587f]" />
                   <input
@@ -696,7 +704,7 @@ function ModalUtilisateur({ utilisateur, modeCreation, onSave, onCancel }: Modal
                     value={formData.email}
                     onChange={(event) => setFormData((prev) => ({ ...prev, email: event.target.value }))}
                     className={inputClass}
-                    placeholder="e.g. asma@handitalents.tn"
+                    placeholder="Ex. asma@handitalents.tn"
                     required
                   />
                 </div>
@@ -705,7 +713,7 @@ function ModalUtilisateur({ utilisateur, modeCreation, onSave, onCancel }: Modal
 
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <label className="block text-[15px] font-semibold text-[#1e173e]">Role</label>
+                <label className="block text-[15px] font-semibold text-[#1e173e]">Rôle</label>
                 <div className="relative">
                   <UserRoundCog className="pointer-events-none absolute left-3.5 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-[#6b35e6]" />
                   <select
@@ -725,10 +733,10 @@ function ModalUtilisateur({ utilisateur, modeCreation, onSave, onCancel }: Modal
                     }}
                     className={selectClass}
                   >
-                    <option value="candidat">Candidate</option>
-                    <option value="entreprise">Company</option>
+                    <option value="candidat">Candidat</option>
+                    <option value="entreprise">Entreprise</option>
                     <option value="admin">Admin</option>
-                    <option value="inspecteur">Inspector</option>
+                    <option value="inspecteur">Inspecteur</option>
                     <option value="aneti">ANETI</option>
                   </select>
                   <ChevronDown className="pointer-events-none absolute right-3.5 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-[#5f587f]" />
@@ -782,7 +790,7 @@ function ModalUtilisateur({ utilisateur, modeCreation, onSave, onCancel }: Modal
                         className={selectClass}
                         required={roleInterne}
                       >
-                        <option value="">Selectionnez une delegation</option>
+                      <option value="">Selectionnez une delegation</option>
                         {delegationOptions.map((delegation) => (
                           <option key={delegation} value={delegation}>
                             {delegation}
@@ -791,14 +799,14 @@ function ModalUtilisateur({ utilisateur, modeCreation, onSave, onCancel }: Modal
                       </select>
                       <ChevronDown className="pointer-events-none absolute right-3.5 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-[#5f587f]" />
                     </div>
-                    <p className="text-xs text-slate-500">La delegation est obligatoire pour les comptes Inspecteur.</p>
+                    <p className="text-xs text-slate-500">La delegation est obligatoire pour les comptes inspecteur.</p>
                   </div>
                 ) : null}
               </div>
             ) : (
               <>
                 <div className="space-y-2">
-                  <label className="block text-[15px] font-semibold text-[#1e173e]">Phone (optional)</label>
+                  <label className="block text-[15px] font-semibold text-[#1e173e]">Telephone (optionnel)</label>
                   <div className="relative">
                     <Phone className="pointer-events-none absolute left-3.5 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-[#5f587f]" />
                     <input
@@ -812,7 +820,7 @@ function ModalUtilisateur({ utilisateur, modeCreation, onSave, onCancel }: Modal
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-[15px] font-semibold text-[#1e173e]">Address (optional)</label>
+                  <label className="block text-[15px] font-semibold text-[#1e173e]">Adresse (optionnelle)</label>
                   <div className="relative">
                     <MapPin className="pointer-events-none absolute left-3.5 top-3.5 h-4.5 w-4.5 text-[#5f587f]" />
                     <textarea
@@ -820,7 +828,7 @@ function ModalUtilisateur({ utilisateur, modeCreation, onSave, onCancel }: Modal
                       onChange={(event) => setFormData((prev) => ({ ...prev, addresse: event.target.value }))}
                       rows={2}
                       className="w-full rounded-xl border border-[#ddd7ef] bg-white py-2.5 pl-10 pr-4 text-[14px] text-[#1f173f] outline-none transition placeholder:text-[#7b7397] focus:border-[#7c3aed] focus:ring-4 focus:ring-[#7c3aed1f]"
-                      placeholder="Enter address..."
+                      placeholder="Saisir l'adresse..."
                     />
                   </div>
                 </div>
@@ -834,14 +842,14 @@ function ModalUtilisateur({ utilisateur, modeCreation, onSave, onCancel }: Modal
               onClick={onCancel}
               className="inline-flex h-11 items-center justify-center rounded-2xl border border-[#ddd7ef] bg-white px-6 text-[16px] font-semibold text-[#342b58] transition hover:bg-[#f8f5ff]"
             >
-              Cancel
+              Annuler
             </button>
             <button
               type="submit"
               className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-[#3d0456] bg-[#3f005b] px-6 text-[16px] font-semibold text-white shadow-[0_12px_24px_rgba(63,0,91,0.22)] transition hover:bg-[#320049]"
             >
               <UserPlus className="h-4 w-4" />
-              {modeCreation ? "Create user" : "Save changes"}
+              {modeCreation ? "Creer l'utilisateur" : "Enregistrer les modifications"}
             </button>
           </div>
         </form>

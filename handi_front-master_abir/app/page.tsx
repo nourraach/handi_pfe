@@ -104,7 +104,7 @@ const progressAvatars = [
   "ht-avatar-photo-4",
 ] as const;
 
-const landingContent: Record<Locale, LandingContent> = {
+const landingContent = {
   fr: {
     topbarPill: "Recrutement inclusif",
     brandAriaLabel: "Accueil HandiTalents",
@@ -269,49 +269,49 @@ const landingContent: Record<Locale, LandingContent> = {
     },
   },
   en: {
-    topbarPill: "Inclusive hiring",
-    brandAriaLabel: "HandiTalents home",
+    topbarPill: "Recrutement inclusif",
+    brandAriaLabel: "Accueil HandiTalents",
     navItems: [
-      { label: "Home", href: "#hero" },
-      { label: "Platform", href: "#platform" },
-      { label: "Journey", href: "#journey" },
-      { label: "Community", href: "#community" },
+      { label: "Accueil", href: "#hero" },
+      { label: "Plateforme", href: "#platform" },
+      { label: "Parcours", href: "#journey" },
+      { label: "Communauté", href: "#community" },
     ],
     actions: {
-      settings: "Settings",
-      accessibility: "Accessibility",
-      accessibilityHint: "Accessibility settings",
-      login: "Log in",
-      createAccount: "Create account",
-      employer: "I'm an employer",
-      talkToTeam: "Talk to our team",
+      settings: "Paramètres",
+      accessibility: "Accessibilité",
+      accessibilityHint: "Paramètres d'accessibilité",
+      login: "Connexion",
+      createAccount: "Créer un compte",
+      employer: "Je suis un employeur",
+      talkToTeam: "Parler à notre équipe",
     },
     hero: {
-      eyebrow: "Tunisia's first inclusive hiring platform",
-      title: "Find the job you deserve, in a place",
-      highlight: "that values you",
+      eyebrow: "La première plateforme tunisienne de recrutement inclusif",
+      title: "Trouvez l'emploi que vous méritez, dans un lieu",
+      highlight: "qui vous valorise",
       description:
-        "HandiTalents connects talented people with disabilities to inclusive employers because everyone deserves meaningful, dignified work.",
-      notes: ["In partnership with ANETI", "Law No. 41 of 2010 compliant"],
-      imageAlt: "Inclusive team meeting with a wheelchair user in a modern workplace",
-      matchEyebrow: "Top match for you",
+        "HandiTalents relie les talents en situation de handicap aux employeurs inclusifs, parce que chacun mérite un travail digne et porteur de sens.",
+      notes: ["En partenariat avec l'ANETI", "Conforme à la loi n°41 de 2010"],
+      imageAlt: "Réunion d'équipe inclusive avec une utilisatrice de fauteuil roulant dans un espace de travail moderne",
+      matchEyebrow: "Meilleure opportunité pour vous",
       matchRole: "UI/UX Designer",
       matchCompany: "TechWave",
-      matchScore: "94% match",
-      progressEyebrow: "Hiring progress",
-      progressTitle: "Interview scheduled",
+      matchScore: "Compatibilité à 94 %",
+      progressEyebrow: "Avancement du recrutement",
+      progressTitle: "Entretien programmé",
       progressPercent: "75%",
       stats: [
-        { value: "250+", label: "Inclusive employers", tone: "lavender" },
-        { value: "1000+", label: "Jobs available", tone: "violet" },
-        { value: "2000+", label: "Talents empowered", tone: "pink" },
+        { value: "250+", label: "Employeurs inclusifs", tone: "lavender" },
+        { value: "1000+", label: "Offres disponibles", tone: "violet" },
+        { value: "2000+", label: "Talents accompagnés", tone: "pink" },
       ],
     },
     platform: {
-      kicker: "Built for candidates, employers, and support teams",
-      title: "Everything you need in one inclusive platform",
+      kicker: "Pensé pour les candidats, les employeurs et les équipes d'accompagnement",
+      title: "Tout ce dont vous avez besoin dans une seule plateforme inclusive",
       description:
-        "Recreate the ease of a premium SaaS experience while keeping the mission clear: better jobs, more accessible hiring, and stronger outcomes for people with disabilities.",
+        "Retrouvez la fluidité d'une expérience SaaS premium tout en gardant l'objectif clair : de meilleurs emplois, un recrutement plus accessible et de meilleurs résultats pour les personnes en situation de handicap.",
     },
     features: [
       {
@@ -594,7 +594,7 @@ const landingContent: Record<Locale, LandingContent> = {
       location: "تونس، تونس",
     },
   },
-};
+} satisfies Record<string, LandingContent>;
 
 function LandingIcon({ icon }: { icon: LandingIconName }) {
   switch (icon) {

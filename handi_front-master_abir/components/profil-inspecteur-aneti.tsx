@@ -7,9 +7,10 @@ import { UtilisateurConnecte } from "@/types/api";
 
 interface ProfilInspecteurAnetiProps {
   utilisateur: UtilisateurConnecte;
+  lectureSeule?: boolean;
 }
 
-export function ProfilInspecteurAneti({ utilisateur }: ProfilInspecteurAnetiProps) {
+export function ProfilInspecteurAneti({ utilisateur, lectureSeule = false }: ProfilInspecteurAnetiProps) {
   const { t } = useI18n();
   const roleLabel = t(`common.roles.${utilisateur.role}`);
   const regionLabel = utilisateur.region || t("profile.candidate.notProvided");
@@ -23,11 +24,13 @@ export function ProfilInspecteurAneti({ utilisateur }: ProfilInspecteurAnetiProp
             <h2 className="page-title page-title-sm">{utilisateur.nom}</h2>
             <p className="page-description">{utilisateur.email}</p>
           </div>
-          <div className="profile-surface-actions">
-            <ButtonLink href="/supervision" size="sm">
-              {t("navbar.openSupervision")}
-            </ButtonLink>
-          </div>
+          {!lectureSeule ? (
+            <div className="profile-surface-actions">
+              <ButtonLink href="/supervision" size="sm">
+                {t("navbar.openSupervision")}
+              </ButtonLink>
+            </div>
+          ) : null}
         </div>
 
         <div className="details-grid">

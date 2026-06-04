@@ -2,6 +2,7 @@
 
 import { useState, type ReactNode } from "react";
 import { Navbar } from "@/components/navbar";
+import { PageShell } from "@/components/page-shell";
 import { UtilisateurConnecte } from "@/types/api";
 
 export function AppShell({ utilisateur, children }: { utilisateur: UtilisateurConnecte; children: ReactNode }) {
@@ -27,7 +28,11 @@ export function AppShell({ utilisateur, children }: { utilisateur: UtilisateurCo
           setCandidateSidebarCollapsedState((current) => !current);
         }}
       />
-      <main className={`app-main ${roleClassName}-main`}>{children}</main>
+      <main className={`app-main ${roleClassName}-main`}>
+        <PageShell>
+          <div className={`app-workspace-page ${roleClassName}-workspace`}>{children}</div>
+        </PageShell>
+      </main>
     </div>
   );
 }

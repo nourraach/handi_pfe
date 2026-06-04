@@ -26,16 +26,16 @@ This document describes the design system configuration for the HandiTalents pre
 ## Typography
 
 ### Font Families
-- **Headings**: Outfit (via `font-heading` class)
-- **Body**: Plus Jakarta Sans (via `font-body` class)
+- **Headings**: Inter
+- **Body**: Inter
 
-### Font Sizes (Responsive with clamp())
-- `text-hero`: clamp(2.15rem, 4.8vw, 4rem)
-- `text-h2`: clamp(1.8rem, 3.2vw, 2.8rem)
-- `text-h3`: clamp(1.5rem, 2.6vw, 2rem)
-- `text-body`: 1rem
-- `text-small`: 0.9rem
-- `text-tiny`: 0.74rem
+### Font Sizes
+- `text-hero`: 36px
+- `text-h2`: 22px
+- `text-h3`: 16px
+- `text-body`: 14px
+- `text-small`: 13px
+- `text-tiny`: 13px
 
 ## Border Radius Scale
 - `rounded-xl`: 52px (Hero containers)
@@ -70,7 +70,7 @@ This document describes the design system configuration for the HandiTalents pre
 ### Body Text
 ```tsx
 <p className="font-body text-body text-text-muted">
-  This is body text using Plus Jakarta Sans
+  This is body text using Inter
 </p>
 ```
 
@@ -100,8 +100,8 @@ This design system configuration validates the following requirements:
 - **1.1**: Purple color palette (#3b1d72, #4e2b91, #6f45be, #8657d6, #d8c5ff)
 - **1.2**: Border-radius scale (52px, 30px, 22px, 16px)
 - **1.3**: Shadow scale (soft, mid, strong)
-- **1.4**: Font families (Outfit for headings, Plus Jakarta Sans for body)
-- **13.2**: Responsive typography using clamp() functions
+- **1.4**: Font families (Inter for headings and body)
+- **13.2**: Unified SaaS typography scale
 - **16.1**: Spacing scale (8px, 12px, 16px, 24px, 34px, 48px, 58px)
 - **16.2**: Consistent border-radius values
 - **16.3**: Shadow values from defined scale

@@ -14,6 +14,7 @@ type AccessibilitySettings = {
   activeQuickMode: AccessibilityMode | null;
   fontScale: number;
   lineHeight: number;
+  textToSpeechPreferred: boolean;
   readingLine: boolean;
   readingMask: boolean;
   keyboardMoveMode: boolean;
@@ -43,7 +44,7 @@ type AccessibilitySettings = {
   backgroundColor: string;
 };
 
-type AccessibilityMode = "epilepsySafe" | "visuallyImpaired" | "cognitive" | "adhdFriendly" | "blindness";
+export type AccessibilityMode = "epilepsySafe" | "visuallyImpaired" | "cognitive" | "adhdFriendly" | "blindness" | "mobility" | "hearing";
 type ToggleSettingKey = Exclude<
   keyof AccessibilitySettings,
   "fontScale" | "lineHeight" | "titleColor" | "textColor" | "backgroundColor"
@@ -54,7 +55,7 @@ type AccessibilityContextValue = {
   setFontScale: (value: number) => void;
   setLineHeight: (value: number) => void;
   toggleSetting: (key: ToggleSettingKey) => void;
-  applyMode: (mode: AccessibilityMode) => void;
+  applyMode: (mode: AccessibilityMode, options?: { force?: boolean }) => void;
   setColorSetting: (key: "titleColor" | "textColor" | "backgroundColor", value: string) => void;
   resetSettings: () => void;
 };
@@ -65,6 +66,7 @@ const defaultSettings: AccessibilitySettings = {
   activeQuickMode: null,
   fontScale: 1,
   lineHeight: 1.6,
+  textToSpeechPreferred: false,
   readingLine: false,
   readingMask: false,
   keyboardMoveMode: false,
@@ -123,6 +125,7 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
     body.style.setProperty("--accessibility-font-scale", String(settings.fontScale));
     body.style.setProperty("--accessibility-line-height", String(settings.lineHeight));
 
+    body.dataset.textToSpeechPreferred = String(settings.textToSpeechPreferred);
     body.dataset.readingLine = String(settings.readingLine);
     body.dataset.readingMask = String(settings.readingMask);
     body.dataset.keyboardMoveMode = String(settings.keyboardMoveMode);
@@ -225,9 +228,9 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
 
           return { ...current, activeQuickMode: null, [key]: nextValue };
         }),
-      applyMode: (mode) =>
+      applyMode: (mode, options) =>
         setSettings((current) => {
-          if (current.activeQuickMode === mode) {
+          if (current.activeQuickMode === mode && !options?.force) {
             return { ...defaultSettings };
           }
 
@@ -236,6 +239,7 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
             activeQuickMode: mode,
             fontScale: 1,
             lineHeight: 1.6,
+            textToSpeechPreferred: false,
             lightContrast: false,
             highContrast: false,
             monochrome: false,
@@ -276,6 +280,7 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
           if (mode === "visuallyImpaired") {
             return {
               ...base,
+              textToSpeechPreferred: true,
               readableFont: true,
               highContrast: true,
               underlineLinks: true,
@@ -295,6 +300,30 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
               lowSaturation: true,
               highSaturation: false,
               cognitiveReading: true,
+              stopAnimations: true,
+            };
+          }
+
+          if (mode === "mobility") {
+            return {
+              ...base,
+              keyboardMoveMode: true,
+              virtualKeyboard: true,
+              voiceNavigation: true,
+              largeCursor: true,
+              highlightFocus: true,
+              highlightHover: true,
+              stopAnimations: true,
+            };
+          }
+
+          if (mode === "hearing") {
+            return {
+              ...base,
+              highlightContent: true,
+              highlightFocus: true,
+              underlineLinks: true,
+              muteSounds: true,
             };
           }
 
@@ -312,6 +341,7 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
 
           return {
             ...base,
+            textToSpeechPreferred: true,
             readableFont: true,
             highContrast: true,
             monochrome: true,

@@ -7,10 +7,10 @@ import { SupervisionShell } from "@/components/supervision/supervision-shell";
 import { downloadSupervisionExport } from "@/lib/supervision";
 
 const datasets = [
-  { key: "statistics", title: "Statistics", description: "Export company-level pipeline metrics and KPI-ready supervision totals." },
-  { key: "offers", title: "Offers", description: "Export company names, offers, views, shortlisted counts, and hired counts." },
-  { key: "reports", title: "Compliance reports", description: "Export report status, review dates, and recommendations." },
-  { key: "candidates", title: "Visible candidates", description: "Export privacy-safe candidate references and their allowed supervision stage." },
+  { key: "statistics", title: "Statistiques", description: "Exporter les indicateurs du pipeline par entreprise et les totaux de supervision." },
+  { key: "offers", title: "Offres", description: "Exporter les entreprises, les offres, les vues, les prelections et les embauches." },
+  { key: "reports", title: "Rapports de conformite", description: "Exporter le statut des rapports, les dates de revue et les recommandations." },
+  { key: "candidates", title: "Candidats visibles", description: "Exporter des references candidates conformes aux regles de confidentialite et leur etape visible." },
 ];
 
 export function SupervisionExportPanel() {
@@ -25,9 +25,9 @@ export function SupervisionExportPanel() {
 
     try {
       await downloadSupervisionExport(dataset, format);
-      setMessage(`${dataset} export generated in ${format.toUpperCase()} format.`);
+      setMessage(`Export ${dataset} genere au format ${format.toUpperCase()}.`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to generate the export.");
+      setError(err instanceof Error ? err.message : "Impossible de generer l'export.");
     } finally {
       setBusyKey(null);
     }
@@ -35,9 +35,9 @@ export function SupervisionExportPanel() {
 
   return (
     <SupervisionShell
-      badge="Statistics Export"
-      title="Generate institutional exports for supervision, compliance, and inclusive hiring reporting."
-      description="Exports respect territorial restrictions for inspectors and privacy constraints for candidate visibility."
+      badge="Exports de supervision"
+      title="Generez les exports institutionnels pour la supervision, la conformite et le recrutement inclusif."
+      description="Les exports respectent les restrictions territoriales des inspecteurs et la confidentialite des candidatures."
     >
       {message ? <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-emerald-800">{message}</div> : null}
       {error ? <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-rose-800">{error}</div> : null}
@@ -51,10 +51,10 @@ export function SupervisionExportPanel() {
             </div>
             <div className="flex flex-wrap gap-3">
               <Button onClick={() => void download(dataset.key, "csv")} disabled={busyKey !== null}>
-                {busyKey === `${dataset.key}:csv` ? "Generating CSV..." : "Export CSV"}
+                {busyKey === `${dataset.key}:csv` ? "Generation du CSV..." : "Exporter en CSV"}
               </Button>
               <Button variant="secondary" onClick={() => void download(dataset.key, "excel")} disabled={busyKey !== null}>
-                {busyKey === `${dataset.key}:excel` ? "Generating Excel..." : "Export Excel"}
+                {busyKey === `${dataset.key}:excel` ? "Generation du fichier Excel..." : "Exporter en Excel"}
               </Button>
             </div>
           </Card>

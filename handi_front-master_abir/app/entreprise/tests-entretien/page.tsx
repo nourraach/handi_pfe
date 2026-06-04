@@ -7,6 +7,8 @@ import { construireUrlApi } from "@/lib/config";
 
 type Question = { id?: string; texte: string; type: "texte" | "choix"; options: string[] };
 type Test = { id: string; titre: string; id_offre: string; created_at?: string };
+type OffreItem = { id_offre?: string; id?: string; titre: string };
+type ResultatTest = { id: string; score?: number | null; id_candidat?: string; created_at?: string };
 
 function Page() {
   const [offres, setOffres] = useState<{ id_offre: string; titre: string }[]>([]);
@@ -14,7 +16,7 @@ function Page() {
   const [titre, setTitre] = useState("");
   const [offre, setOffre] = useState("");
   const [questions, setQuestions] = useState<Question[]>([{ texte: "", type: "texte", options: [] }]);
-  const [resultats, setResultats] = useState<any[]>([]);
+  const [resultats, setResultats] = useState<ResultatTest[]>([]);
   const [selectedTest, setSelectedTest] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [erreur, setErreur] = useState<string | null>(null);
@@ -27,9 +29,9 @@ function Page() {
   const chargerOffres = async () => {
     try {
       const res = await authenticatedFetch(construireUrlApi("/api/entreprise/offres"));
-      const data = await res.json();
+      const data: { donnees?: { offres?: OffreItem[] } } = await res.json();
       if (res.ok && data.donnees?.offres) {
-        setOffres(data.donnees.offres.map((offreItem: any) => ({ id_offre: offreItem.id_offre ?? offreItem.id, titre: offreItem.titre })));
+        setOffres(data.donnees.offres.map((offreItem) => ({ id_offre: offreItem.id_offre ?? offreItem.id ?? "", titre: offreItem.titre })));
       }
     } catch {}
   };
@@ -37,10 +39,10 @@ function Page() {
   const chargerTests = async () => {
     try {
       const res = await authenticatedFetch(construireUrlApi("/api/tests-entretien/entreprise"));
-      const data = await res.json();
+      const data: { donnees?: Test[] } = await res.json();
       if (res.ok) setTests(data.donnees || []);
-    } catch (e: any) {
-      setErreur(e.message);
+    } catch (cause: unknown) {
+      setErreur(cause instanceof Error ? cause.message : "Impossible de charger les tests.");
     }
   };
 
@@ -87,16 +89,16 @@ function Page() {
           questions,
         }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Unable to create the test.");
+      const data: { message?: string } = await res.json();
+      if (!res.ok) throw new Error(data.message || "Impossible de créer le test.");
 
-      setMessage("Interview test created.");
+      setMessage("Test d'entretien créé.");
       setTitre("");
       setOffre("");
       setQuestions([{ texte: "", type: "texte", options: [] }]);
       void chargerTests();
-    } catch (e: any) {
-      setErreur(e.message);
+    } catch (cause: unknown) {
+      setErreur(cause instanceof Error ? cause.message : "Impossible de créer le test.");
     }
   };
 
@@ -104,28 +106,28 @@ function Page() {
     try {
       setSelectedTest(id);
       const res = await authenticatedFetch(construireUrlApi(`/api/tests-entretien/entreprise/${id}/resultats`));
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Unable to load results.");
+      const data: { donnees?: ResultatTest[]; message?: string } = await res.json();
+      if (!res.ok) throw new Error(data.message || "Impossible de charger les résultats.");
       setResultats(data.donnees || []);
-    } catch (e: any) {
-      setErreur(e.message);
+    } catch (cause: unknown) {
+      setErreur(cause instanceof Error ? cause.message : "Impossible de charger les résultats.");
     }
   };
 
   return (
     <div className="p-6 space-y-6">
-      <h1 className="text-3xl font-bold">Interview tests</h1>
+      <h1 className="text-3xl font-bold">Tests d&apos;entretien</h1>
       {message && <div className="text-green-700 text-sm">{message}</div>}
       {erreur && <div className="text-red-700 text-sm">{erreur}</div>}
 
       <div className="bg-white rounded shadow p-4 space-y-4">
-        <h2 className="text-xl font-semibold">Create a test</h2>
+        <h2 className="text-xl font-semibold">Créer un test</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
-            <label className="text-sm text-gray-700">Role</label>
+            <label className="text-sm text-gray-700">Offre</label>
             <select value={offre} onChange={(event) => setOffre(event.target.value)} className="w-full border rounded px-3 py-2">
-              <option value="">Select a role</option>
+              <option value="">Sélectionner une offre</option>
               {offres.map((offreItem) => (
                 <option key={offreItem.id_offre} value={offreItem.id_offre}>
                   {offreItem.titre}
@@ -135,7 +137,7 @@ function Page() {
           </div>
 
           <div>
-            <label className="text-sm text-gray-700">Title</label>
+            <label className="text-sm text-gray-700">Titre</label>
             <input value={titre} onChange={(event) => setTitre(event.target.value)} className="w-full border rounded px-3 py-2" />
           </div>
         </div>
@@ -154,8 +156,8 @@ function Page() {
                 onChange={(event) => changerQuestion(index, { type: event.target.value as Question["type"], options: [] })}
                 className="border rounded px-3 py-2"
               >
-                <option value="texte">Text response</option>
-                <option value="choix">Multiple choice</option>
+                <option value="texte">Réponse libre</option>
+                <option value="choix">Choix multiple</option>
               </select>
 
               {question.type === "choix" && (
@@ -171,7 +173,7 @@ function Page() {
                   ))}
 
                   <button onClick={() => ajouterOption(index)} className="text-sm text-blue-600">
-                    + Add option
+                    + Ajouter une option
                   </button>
                 </div>
               )}
@@ -179,26 +181,26 @@ function Page() {
           ))}
 
           <button onClick={ajouterQuestion} className="text-sm text-blue-600">
-            + Add question
+            + Ajouter une question
           </button>
         </div>
 
         <button onClick={creerTest} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-          Save test
+          Enregistrer le test
         </button>
       </div>
 
       <div className="bg-white rounded shadow p-4 space-y-4">
-        <h2 className="text-xl font-semibold">Existing tests</h2>
+        <h2 className="text-xl font-semibold">Tests existants</h2>
         <div className="divide-y">
           {tests.map((test) => (
             <div key={test.id} className="py-2 flex items-center justify-between">
               <div>
                 <div className="font-medium">{test.titre}</div>
-                <div className="text-gray-500 text-sm">Role: {test.id_offre}</div>
+                <div className="text-gray-500 text-sm">Offre : {test.id_offre}</div>
               </div>
               <button onClick={() => chargerResultats(test.id)} className="text-sm text-blue-600">
-                View results
+                Voir les résultats
               </button>
             </div>
           ))}
@@ -206,15 +208,15 @@ function Page() {
 
         {selectedTest && (
           <div>
-            <h3 className="font-semibold mt-2 mb-1">Results</h3>
+            <h3 className="font-semibold mt-2 mb-1">Résultats</h3>
             <div className="text-sm text-gray-600 mb-2">Test {selectedTest}</div>
             <div className="space-y-2">
-              {resultats.length === 0 && <div className="text-gray-500 text-sm">No results yet.</div>}
+              {resultats.length === 0 && <div className="text-gray-500 text-sm">Aucun résultat pour le moment.</div>}
               {resultats.map((resultat) => (
                 <div key={resultat.id} className="border rounded p-2 text-sm">
-                  <div>Score: {resultat.score ?? "n/a"}</div>
-                  <div>Candidate: {resultat.id_candidat}</div>
-                  <div>Date: {resultat.created_at ? new Date(resultat.created_at).toLocaleString("en-US") : ""}</div>
+                  <div>Score : {resultat.score ?? "n/d"}</div>
+                  <div>Candidat : {resultat.id_candidat}</div>
+                  <div>Date : {resultat.created_at ? new Date(resultat.created_at).toLocaleString("fr-FR") : ""}</div>
                 </div>
               ))}
             </div>

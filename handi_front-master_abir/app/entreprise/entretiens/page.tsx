@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { LoadingState } from "@/components/ui/layout";
 import { authenticatedFetch } from "@/lib/auth-utils";
 import { construireUrlApi } from "@/lib/config";
+import { CalendarDays, CheckCircle2, Clock, ExternalLink, MapPin, Phone, RotateCw, UserPlus, Video, XCircle } from "lucide-react";
 import {
   construireLienGoogleCalendar,
   extraireDureeMinutes,
@@ -78,12 +79,6 @@ type CandidateuresPlanifiablesPayload = {
   donnees?: CandidateurePlanifiable[];
 };
 
-type TimelineGroups = {
-  today: EntretienEntreprise[];
-  tomorrow: EntretienEntreprise[];
-  upcoming: EntretienEntreprise[];
-};
-
 function versDateTimeLocal(dateString?: string) {
   if (!dateString) {
     return "";
@@ -101,22 +96,8 @@ function dayKey(date: Date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 }
 
-function startOfDay(date: Date) {
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
-}
-
-function addDays(date: Date, days: number) {
-  const copy = new Date(date);
-  copy.setDate(copy.getDate() + days);
-  return copy;
-}
-
-function sameDay(a: Date, b: Date) {
-  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
-}
-
 function initials(name?: string) {
-  const text = (name || "Candidate").trim();
+  const text = (name || "Candidat").trim();
   const parts = text.split(/\s+/).filter(Boolean);
   if (parts.length === 0) return "CA";
   if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
@@ -137,6 +118,27 @@ function statusClass(statut: EntretienEntreprise["entretien"]["statut"]) {
     default:
       return "status-cancelled";
   }
+}
+
+function getInterviewLocation(item: EntretienEntreprise) {
+  if (item.entretien.type === "visio") {
+    return item.entretien.lieu_visio || "Lien visio a renseigner";
+  }
+
+  if (item.entretien.type === "presentiel") {
+    return item.entretien.lieu || "Lieu a renseigner";
+  }
+
+  return item.entretien.contact_entreprise || item.candidat?.telephone || "Contact telephonique a renseigner";
+}
+
+function canJoinCall(item: EntretienEntreprise | null) {
+  return Boolean(item?.entretien.type === "visio" && item.entretien.lieu_visio);
+}
+
+function isFutureInterview(item: EntretienEntreprise, now = new Date()) {
+  const date = new Date(item.entretien.date_heure);
+  return !Number.isNaN(date.getTime()) && date.getTime() >= now.getTime() && item.entretien.statut !== "annule";
 }
 
 const formulaireVide: EntretienFormulaire = {
@@ -194,12 +196,12 @@ export default function EntretiensEntreprisePage() {
       const data: EntretiensEntreprisePayload = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        throw new Error(data.message || "Unable to load interviews.");
+        throw new Error(data.message || "Impossible de charger les entretiens.");
       }
 
       setEntretiens(Array.isArray(data.donnees) ? data.donnees : []);
     } catch (error: unknown) {
-      setErreur(error instanceof Error ? error.message : "Unable to load interviews.");
+      setErreur(error instanceof Error ? error.message : "Impossible de charger les entretiens.");
     } finally {
       setLoading(false);
     }
@@ -211,7 +213,7 @@ export default function EntretiensEntreprisePage() {
       const data: CandidateuresPlanifiablesPayload = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        throw new Error(data.message || "Unable to load candidates for interviews.");
+        throw new Error(data.message || "Impossible de charger les candidatures pour les entretiens.");
       }
 
       const candidatures = Array.isArray(data.donnees) ? data.donnees : [];
@@ -219,7 +221,7 @@ export default function EntretiensEntreprisePage() {
         candidatures.filter((item) => item.candidature?.statut === "pending" || item.candidature?.statut === "shortlisted"),
       );
     } catch (error: unknown) {
-      setErreur(error instanceof Error ? error.message : "Unable to load candidates for interviews.");
+      setErreur(error instanceof Error ? error.message : "Impossible de charger les candidatures pour les entretiens.");
     }
   };
 
@@ -263,26 +265,12 @@ export default function EntretiensEntreprisePage() {
     return map;
   }, [entretiensFiltres]);
 
-  const timeline = useMemo<TimelineGroups>(() => {
-    const groups: TimelineGroups = { today: [], tomorrow: [], upcoming: [] };
-    const today = startOfDay(new Date());
-    const tomorrow = addDays(today, 1);
+  const prochainesEntretiens = useMemo(
+    () => entretiensFiltres.filter((item) => isFutureInterview(item)).slice(0, 8),
+    [entretiensFiltres],
+  );
 
-    for (const item of entretiensFiltres) {
-      const date = new Date(item.entretien.date_heure);
-      if (Number.isNaN(date.getTime())) continue;
-
-      if (sameDay(date, today)) {
-        groups.today.push(item);
-      } else if (sameDay(date, tomorrow)) {
-        groups.tomorrow.push(item);
-      } else {
-        groups.upcoming.push(item);
-      }
-    }
-
-    return groups;
-  }, [entretiensFiltres]);
+  const prochainEntretien = useMemo(() => prochainesEntretiens[0] || entretiensFiltres[0] || null, [entretiensFiltres, prochainesEntretiens]);
 
   useEffect(() => {
     if (entretiensFiltres.length === 0) {
@@ -298,19 +286,30 @@ export default function EntretiensEntreprisePage() {
       return;
     }
 
-    const first = entretiensFiltres[0];
+    const first = prochainEntretien || entretiensFiltres[0];
     setEntretienSelectionneId(first.entretien.id);
-    const date = new Date(first.entretien.date_heure);
-    if (!Number.isNaN(date.getTime())) {
-      setSelectedDay(dayKey(date));
-      setCalendarMonth(new Date(date.getFullYear(), date.getMonth(), 1));
+    const firstDate = new Date(first.entretien.date_heure);
+    if (!Number.isNaN(firstDate.getTime())) {
+      setSelectedDay(dayKey(firstDate));
+      setCalendarMonth(new Date(firstDate.getFullYear(), firstDate.getMonth(), 1));
     }
-  }, [entretiensFiltres, entretienSelectionneId]);
+  }, [entretiensFiltres, entretienSelectionneId, prochainEntretien]);
 
   const entretienSelectionne = useMemo(
     () => entretiensFiltres.find((item) => item.entretien.id === entretienSelectionneId) || null,
     [entretiensFiltres, entretienSelectionneId],
   );
+
+  const entretiensJourSelectionne = useMemo(
+    () => entretiensParJour.get(selectedDay) || [],
+    [entretiensParJour, selectedDay],
+  );
+
+  const selectedDayDate = useMemo(() => {
+    const [year, month, day] = selectedDay.split("-").map((value) => Number.parseInt(value, 10));
+    const date = new Date(year, (month || 1) - 1, day || 1);
+    return Number.isNaN(date.getTime()) ? new Date() : date;
+  }, [selectedDay]);
 
   const ouvrirEdition = (item: EntretienEntreprise) => {
     setEntretienEnEdition(item.entretien.id);
@@ -355,19 +354,19 @@ export default function EntretiensEntreprisePage() {
       setInfo(null);
 
       if (!formulairePlanification.id_candidature) {
-        throw new Error("Select an application before scheduling an interview.");
+        throw new Error("Selectionnez une candidature avant de planifier un entretien.");
       }
 
       if (!formulairePlanification.date_heure) {
-        throw new Error("The interview date and time are required.");
+        throw new Error("La date et l'heure de l'entretien sont requises.");
       }
 
       if (formulairePlanification.type === "visio" && !formulairePlanification.lieu_visio.trim()) {
-        throw new Error("A video link is required for a video interview.");
+        throw new Error("Un lien de visioconference est requis pour un entretien en visio.");
       }
 
       if (formulairePlanification.type === "presentiel" && !formulairePlanification.lieu.trim()) {
-        throw new Error("A location is required for an in-person interview.");
+        throw new Error("Un lieu est requis pour un entretien en presentiel.");
       }
 
       const response = await authenticatedFetch(construireUrlApi("/api/entretiens/planifier"), {
@@ -381,14 +380,14 @@ export default function EntretiensEntreprisePage() {
       const data: { message?: string } = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        throw new Error(data.message || "Unable to schedule the interview.");
+        throw new Error(data.message || "Impossible de planifier l'entretien.");
       }
 
-      setInfo(data.message || "Interview scheduled successfully.");
+      setInfo(data.message || "Entretien planifie avec succes.");
       fermerPlanification();
       await Promise.all([charger(), chargerCandidateuresPlanifiables()]);
     } catch (error: unknown) {
-      setErreur(error instanceof Error ? error.message : "Unable to schedule the interview.");
+      setErreur(error instanceof Error ? error.message : "Impossible de planifier l'entretien.");
     } finally {
       setEntretienEnAction(null);
     }
@@ -407,15 +406,15 @@ export default function EntretiensEntreprisePage() {
       setInfo(null);
 
       if (!formulaire.date_heure) {
-        throw new Error("The interview date and time are required.");
+        throw new Error("La date et l'heure de l'entretien sont requises.");
       }
 
       if (formulaire.type === "visio" && !formulaire.lieu_visio.trim()) {
-        throw new Error("A video link is required.");
+        throw new Error("Un lien de visioconference est requis.");
       }
 
       if (formulaire.type === "presentiel" && !formulaire.lieu.trim()) {
-        throw new Error("A location is required.");
+        throw new Error("Un lieu est requis.");
       }
 
       const response = await authenticatedFetch(construireUrlApi(`/api/entretiens/${id}`), {
@@ -426,14 +425,14 @@ export default function EntretiensEntreprisePage() {
       const data: { message?: string } = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        throw new Error(data.message || "Unable to update the interview.");
+        throw new Error(data.message || "Impossible de mettre a jour l'entretien.");
       }
 
-      setInfo(data.message || "Interview updated successfully.");
+      setInfo(data.message || "Entretien mis a jour avec succes.");
       fermerEdition();
       await Promise.all([charger(), chargerCandidateuresPlanifiables()]);
     } catch (error: unknown) {
-      setErreur(error instanceof Error ? error.message : "Unable to update the interview.");
+      setErreur(error instanceof Error ? error.message : "Impossible de mettre a jour l'entretien.");
     } finally {
       setEntretienEnAction(null);
     }
@@ -455,24 +454,61 @@ export default function EntretiensEntreprisePage() {
       const data: { message?: string } = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        throw new Error(data.message || "Unable to complete this action.");
+        throw new Error(data.message || "Impossible de terminer cette action.");
       }
 
-      setInfo(data.message || "Action completed successfully.");
+      setInfo(data.message || "Action terminée avec succès.");
       fermerEdition();
       await Promise.all([charger(), chargerCandidateuresPlanifiables()]);
     } catch (error: unknown) {
-      setErreur(error instanceof Error ? error.message : "Unable to complete this action.");
+      setErreur(error instanceof Error ? error.message : "Impossible de terminer cette action.");
     } finally {
       setEntretienEnAction(null);
     }
+  };
+
+  const renderInterviewCard = (item: EntretienEntreprise, variant: "agenda" | "timeline" = "agenda") => {
+    const date = formaterDateEntretien(item.entretien.date_heure);
+    const statut = getEntretienStatutConfig(item.entretien.statut);
+    const selected = entretienSelectionneId === item.entretien.id;
+    const duration = item.entretien.duree_prevue || "60 min";
+    const TypeIcon =
+      item.entretien.type === "visio" ? Video : item.entretien.type === "presentiel" ? MapPin : Phone;
+
+    return (
+      <button
+        key={item.entretien.id}
+        type="button"
+        className={`interview-card interview-card-${variant} ${selected ? "interview-card-active" : ""}`}
+        onClick={() => {
+          setEntretienSelectionneId(item.entretien.id);
+          if (date.raw) {
+            setSelectedDay(dayKey(date.raw));
+          }
+        }}
+      >
+        <span className="avatar">{initials(item.candidat?.nom)}</span>
+        <span className="interview-card-main">
+          <strong>{item.candidat?.nom || "Candidat"}</strong>
+          <small>{item.offre?.titre || "Poste"}</small>
+          <em>
+            <Clock size={13} />
+            {date.time} · {duration}
+          </em>
+        </span>
+        <span className="interview-card-meta" data-time={`${date.time} · ${duration}`}>
+          <span className={`status-pill ${statusClass(item.entretien.statut)}`}>{statut.label}</span>
+          <small><TypeIcon size={13} /> {getEntretienTypeLabel(item.entretien.type)}</small>
+        </span>
+      </button>
+    );
   };
 
   const calendarCells = useMemo(() => {
     const year = calendarMonth.getFullYear();
     const month = calendarMonth.getMonth();
     const firstDay = new Date(year, month, 1);
-    const startWeekday = firstDay.getDay();
+    const startWeekday = (firstDay.getDay() + 6) % 7;
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     const daysInPrevMonth = new Date(year, month, 0).getDate();
 
@@ -499,76 +535,19 @@ export default function EntretiensEntreprisePage() {
     return cells;
   }, [calendarMonth]);
 
-  const selectedDateText = useMemo(() => {
-    const [year, month, day] = selectedDay.split("-").map((value) => Number.parseInt(value, 10));
-    const selected = new Date(year, (month || 1) - 1, day || 1);
-    if (Number.isNaN(selected.getTime())) return "";
-    return selected.toLocaleDateString("en-US", { weekday: "long", day: "numeric", month: "long" });
-  }, [selectedDay]);
-
-  const renderTimelineSection = (title: string, subtitle: string, items: EntretienEntreprise[]) => (
-    <section className="timeline-group">
-      <header>
-        <h4>{title}</h4>
-        <span>{subtitle}</span>
-      </header>
-      {items.length === 0 ? (
-        <div className="timeline-empty">
-          <p>Aucun entretien programme sur ce creneau</p>
-          <small>Vous pouvez planifier un entretien depuis les candidatures shortlist.</small>
-        </div>
-      ) : (
-        <div className="timeline-list">
-          {items.map((item) => {
-            const date = formaterDateEntretien(item.entretien.date_heure);
-            const statut = getEntretienStatutConfig(item.entretien.statut);
-            return (
-              <button
-                key={item.entretien.id}
-                type="button"
-                className={`timeline-item ${entretienSelectionneId === item.entretien.id ? "timeline-item-active" : ""}`}
-                onClick={() => {
-                  setEntretienSelectionneId(item.entretien.id);
-                  if (date.raw) {
-                    setSelectedDay(dayKey(date.raw));
-                    setCalendarMonth(new Date(date.raw.getFullYear(), date.raw.getMonth(), 1));
-                  }
-                }}
-              >
-                <div className="timeline-time">
-                  <strong>{date.time}</strong>
-                </div>
-                <span className="avatar">{initials(item.candidat?.nom)}</span>
-                <div className="timeline-copy">
-                  <strong>{item.candidat?.nom || "Candidate"}</strong>
-                  <small>{item.offre?.titre || "Role"}</small>
-                  <small>
-                    {getEntretienTypeLabel(item.entretien.type)} interview - {item.entretien.duree_prevue || "60 min"}
-                  </small>
-                </div>
-                <span className={`status-pill ${statusClass(item.entretien.statut)}`}>{statut.label}</span>
-              </button>
-            );
-          })}
-        </div>
-      )}
-    </section>
-  );
-
   return (
     <div className="app-page interviews-dashboard" aria-live="polite">
       <div className="interviews-header">
         <div>
-          <p className="section-eyebrow">INTERVIEWS</p>
-          <h1>Track, reschedule, and manage interviews</h1>
-          <p>This page is now connected to the company&apos;s live interview API.</p>
+          <p className="section-eyebrow">ENTRETIENS</p>
+          <h1>Entretiens a venir avec les candidats</h1>
         </div>
         <div className="interviews-header-actions">
           <Button onClick={ouvrirPlanification} disabled={candidaturesPlanifiables.length === 0}>
-            Schedule interview
+            <UserPlus size={16} /> Planifier un entretien
           </Button>
           <ButtonLink href="/entreprise/candidatures" variant="secondary">
-            View applications
+            Voir les candidatures
           </ButtonLink>
         </div>
       </div>
@@ -580,21 +559,21 @@ export default function EntretiensEntreprisePage() {
         <Card tone="accent" padding="lg">
           <div className="form-section">
             <div>
-              <strong className="form-section-title">Invite a candidate to an interview</strong>
+              <strong className="form-section-title">Inviter un candidat a un entretien</strong>
               <p className="texte-secondaire form-section-subtitle">
-                Select an application, set meeting details, and publish the interview in both workspaces.
+                Selectionnez une candidature, renseignez les details et publiez l'entretien dans les deux espaces.
               </p>
             </div>
 
             {candidaturesPlanifiables.length === 0 ? (
               <div className="message message-neutre">
-                No applications are ready for interviews. Shortlist candidates first from Applications.
+                Aucune candidature n'est prete pour un entretien. Faites d'abord avancer les candidatures en preselection.
               </div>
             ) : (
               <>
                 <div className="form-grid">
                   <div className="groupe-champ">
-                    <label htmlFor="candidature-planification">Application</label>
+                    <label htmlFor="candidature-planification">Candidature</label>
                     <select
                       id="candidature-planification"
                       className="champ-select"
@@ -603,18 +582,18 @@ export default function EntretiensEntreprisePage() {
                         setFormulairePlanification((courant) => ({ ...courant, id_candidature: event.target.value }))
                       }
                     >
-                      <option value="">Select an application</option>
+                      <option value="">Selectionner une candidature</option>
                       {candidaturesPlanifiables.map((item) => (
                         <option key={item.candidature.id} value={item.candidature.id}>
-                          {(item.candidat?.nom || "Candidate").trim()} - {item.offre?.titre || "Role"} (
-                          {item.candidature.statut === "shortlisted" ? "shortlisted" : "new application"})
+                          {(item.candidat?.nom || "Candidat").trim()} - {item.offre?.titre || "Offre"} (
+                          {item.candidature.statut === "shortlisted" ? "preselection" : "nouvelle candidature"})
                         </option>
                       ))}
                     </select>
                   </div>
 
                   <div className="groupe-champ">
-                    <label htmlFor="date-planification">Date and time</label>
+                    <label htmlFor="date-planification">Date et heure</label>
                     <input
                       id="date-planification"
                       className="champ"
@@ -639,14 +618,14 @@ export default function EntretiensEntreprisePage() {
                         }))
                       }
                     >
-                      <option value="visio">Video</option>
-                      <option value="presentiel">In person</option>
-                      <option value="telephonique">Phone</option>
+                      <option value="visio">Visio</option>
+                      <option value="presentiel">Presentiel</option>
+                      <option value="telephonique">Telephone</option>
                     </select>
                   </div>
 
                   <div className="groupe-champ">
-                    <label htmlFor="duree-planification">Planned duration</label>
+                    <label htmlFor="duree-planification">Duree prevue</label>
                     <input
                       id="duree-planification"
                       className="champ"
@@ -660,7 +639,7 @@ export default function EntretiensEntreprisePage() {
 
                 {formulairePlanification.type === "visio" ? (
                   <div className="groupe-champ">
-                    <label htmlFor="visio-planification">Video meeting link</label>
+                    <label htmlFor="visio-planification">Lien de visioconference</label>
                     <input
                       id="visio-planification"
                       className="champ"
@@ -675,7 +654,7 @@ export default function EntretiensEntreprisePage() {
 
                 {formulairePlanification.type === "presentiel" ? (
                   <div className="groupe-champ">
-                    <label htmlFor="lieu-planification">Location</label>
+                    <label htmlFor="lieu-planification">Lieu</label>
                     <input
                       id="lieu-planification"
                       className="champ"
@@ -706,9 +685,9 @@ export default function EntretiensEntreprisePage() {
                 onClick={planifierEntretien}
                 disabled={entretienEnAction === "creation" || candidaturesPlanifiables.length === 0 || !planificationValide}
               >
-                Create interview
+                Planifier un entretien
               </Button>
-              <Button variant="ghost" onClick={fermerPlanification} aria-label="Close">
+              <Button variant="ghost" onClick={fermerPlanification} aria-label="Fermer">
                 ✕
               </Button>
             </div>
@@ -733,12 +712,103 @@ export default function EntretiensEntreprisePage() {
             <h3>Aucun entretien programme pour le moment</h3>
             <p>Lancez votre premier entretien pour garder le pipeline candidat actif.</p>
             <Button onClick={ouvrirPlanification} disabled={candidaturesPlanifiables.length === 0}>
-              Schedule interview
+              Planifier un entretien
             </Button>
           </div>
         </Card>
       ) : (
-        <div className="main-grid">
+        <div className="interviews-workspace-layout">
+          {prochainEntretien ? (
+            (() => {
+              const date = formaterDateEntretien(prochainEntretien.entretien.date_heure);
+              const statut = getEntretienStatutConfig(prochainEntretien.entretien.statut);
+              const actionEnCours = entretienEnAction === prochainEntretien.entretien.id;
+
+              return (
+                <section className="next-interview-hero">
+                  <div className="hero-date">
+                    <span>{date.raw?.toLocaleDateString("en-US", { weekday: "short" }) || "-"}</span>
+                    <strong>{date.raw?.toLocaleDateString("en-US", { day: "2-digit" }) || "--"}</strong>
+                    <small>{date.time}</small>
+                  </div>
+                  <div className="hero-main">
+                    <span className={`status-pill ${statusClass(prochainEntretien.entretien.statut)}`}>{statut.label}</span>
+                    <h2>{prochainEntretien.candidat?.nom || "Candidat"}</h2>
+                    <p>{prochainEntretien.offre?.titre || "Poste"} - Entretien {getEntretienTypeLabel(prochainEntretien.entretien.type)}</p>
+                    <div className="hero-meta">
+                      <span><Clock size={14} /> {prochainEntretien.entretien.duree_prevue || "60 min"}</span>
+                      <span><MapPin size={14} /> {getInterviewLocation(prochainEntretien)}</span>
+                    </div>
+                  </div>
+                  <div className="hero-actions">
+                    <Button
+                      className="join-action"
+                      onClick={() => {
+                        if (canJoinCall(prochainEntretien)) {
+                          window.open(prochainEntretien.entretien.lieu_visio || "", "_blank", "noopener,noreferrer");
+                        }
+                      }}
+                      disabled={!canJoinCall(prochainEntretien)}
+                    >
+                      <Video size={16} /> Rejoindre l&apos;entretien
+                    </Button>
+                    <Button variant="secondary" onClick={() => ouvrirEdition(prochainEntretien)} disabled={actionEnCours}>
+                      <RotateCw size={15} /> Reprogrammer
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      className="cancel-soft"
+                      onClick={() => {
+                        if (confirm("Confirmer l'annulation de cet entretien ?")) {
+                          void lancerAction(prochainEntretien.entretien.id, "annuler");
+                        }
+                      }}
+                      disabled={actionEnCours}
+                    >
+                      <XCircle size={15} /> Annuler
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      onClick={() => lancerAction(prochainEntretien.entretien.id, "terminer")}
+                      disabled={actionEnCours}
+                    >
+                      <CheckCircle2 size={15} /> Terminer
+                    </Button>
+                  </div>
+                </section>
+              );
+            })()
+          ) : null}
+
+          <section className="interview-controls" aria-label="Filtres des entretiens">
+            <div>
+              <strong>{entretiensFiltres.length}</strong>
+              <span>entretien(s) affiché(s)</span>
+            </div>
+            <label>
+              <span>Type</span>
+              <select className="champ-select" value={filtreType} onChange={(event) => setFiltreType(event.target.value)}>
+                <option value="">Tous les entretiens</option>
+                <option value="visio">Visio</option>
+                <option value="presentiel">Présentiel</option>
+                <option value="telephonique">Téléphone</option>
+              </select>
+            </label>
+            <label>
+              <span>Statut</span>
+              <select className="champ-select" value={filtreStatut} onChange={(event) => setFiltreStatut(event.target.value)}>
+                <option value="">Tous les statuts</option>
+                <option value="planifie">Planifié</option>
+                <option value="confirme">Confirmé</option>
+                <option value="reporte">Reprogrammé</option>
+                <option value="annule">Annulé</option>
+                <option value="termine">Terminé</option>
+              </select>
+            </label>
+          </section>
+
+          <div className="main-grid">
+          {false ? (
           <section className="calendar-panel">
             <div className="calendar-header">
               <h3>{calendarMonth.toLocaleDateString("en-US", { month: "long", year: "numeric" })}</h3>
@@ -772,6 +842,8 @@ export default function EntretiensEntreprisePage() {
                       const first = entretiensParJour.get(cell.key)?.[0];
                       if (first) {
                         setEntretienSelectionneId(first.entretien.id);
+                      } else {
+                        setEntretienSelectionneId(null);
                       }
                     }}
                   >
@@ -783,37 +855,101 @@ export default function EntretiensEntreprisePage() {
             </div>
 
             <div className="calendar-filters">
-              <strong>Filters</strong>
+              <strong>Filtres</strong>
               <select className="champ-select" value={filtreType} onChange={(event) => setFiltreType(event.target.value)}>
-                <option value="">All interviews</option>
-                <option value="visio">Video</option>
-                <option value="presentiel">In person</option>
-                <option value="telephonique">Phone</option>
+                <option value="">Tous les entretiens</option>
+                <option value="visio">Visio</option>
+                <option value="presentiel">Presentiel</option>
+                <option value="telephonique">Telephone</option>
               </select>
               <select className="champ-select" value={filtreStatut} onChange={(event) => setFiltreStatut(event.target.value)}>
-                <option value="">All statuses</option>
-                <option value="planifie">Scheduled</option>
-                <option value="confirme">Confirmed</option>
-                <option value="reporte">Rescheduled</option>
-                <option value="annule">Cancelled</option>
-                <option value="termine">Completed</option>
+                <option value="">Tous les statuts</option>
+                <option value="planifie">Planifie</option>
+                <option value="confirme">Confirme</option>
+                <option value="reporte">Reprogramme</option>
+                <option value="annule">Annule</option>
+                <option value="termine">Termine</option>
               </select>
             </div>
           </section>
 
+          ) : null}
+
           <section className="timeline-panel">
-            {renderTimelineSection("Today", selectedDateText || "", timeline.today)}
-            {renderTimelineSection(
-              "Tomorrow",
-              addDays(new Date(), 1).toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" }),
-              timeline.tomorrow,
-            )}
-            {renderTimelineSection("Upcoming", "Next interviews", timeline.upcoming)}
+            <header className="compact-calendar-header">
+              <button
+                type="button"
+                onClick={() => setCalendarMonth((month) => new Date(month.getFullYear(), month.getMonth() - 1, 1))}
+                aria-label="Mois precedent"
+              >
+                {"<"}
+              </button>
+              <h3>{calendarMonth.toLocaleDateString("fr-FR", { month: "long", year: "numeric" })}</h3>
+              <button
+                type="button"
+                onClick={() => setCalendarMonth((month) => new Date(month.getFullYear(), month.getMonth() + 1, 1))}
+                aria-label="Mois suivant"
+              >
+                {">"}
+              </button>
+            </header>
+
+            <div className="compact-weekdays">
+              {"Lun Mar Mer Jeu Ven Sam Dim".split(" ").map((day) => <span key={day}>{day}</span>)}
+            </div>
+
+            <div className="compact-calendar-grid">
+              {calendarCells.map((cell) => {
+                const count = interviewCountParJour.get(cell.key) || 0;
+                const selected = selectedDay === cell.key;
+                return (
+                  <button
+                    key={cell.key}
+                    type="button"
+                    className={`compact-day ${cell.currentMonth ? "" : "compact-day-muted"} ${selected ? "compact-day-selected" : ""}`}
+                    onClick={() => {
+                      setSelectedDay(cell.key);
+                      const first = entretiensParJour.get(cell.key)?.[0];
+                      if (first) {
+                        setEntretienSelectionneId(first.entretien.id);
+                      }
+                    }}
+                    aria-label={`${cell.dayNumber} ${count} interview(s)`}
+                  >
+                    <span>{cell.dayNumber}</span>
+                    {count > 0 ? (
+                      <em aria-hidden="true">
+                        {Array.from({ length: Math.min(count, 3) }).map((_, index) => <i key={index} />)}
+                        {count > 3 ? <b>{count}</b> : null}
+                      </em>
+                    ) : null}
+                  </button>
+                );
+              })}
+            </div>
+
+            <section className="selected-day-panel">
+              <header>
+                <div>
+                  <p className="panel-eyebrow">Selected day</p>
+                  <h3>{selectedDayDate.toLocaleDateString("en-US", { weekday: "long", day: "numeric", month: "long" })}</h3>
+                </div>
+                {entretiensJourSelectionne.length > 0 ? <span>{entretiensJourSelectionne.length} interview(s)</span> : null}
+              </header>
+              {entretiensJourSelectionne.length === 0 ? (
+                <p className="selected-day-empty">No interviews scheduled for this day.</p>
+              ) : (
+                <div className="selected-day-list">
+                  {entretiensJourSelectionne.map((item) => renderInterviewCard(item, "agenda"))}
+                </div>
+              )}
+            </section>
           </section>
 
           <section className="details-panel">
             <div className="details-head">
-              <h3>Interview details</h3>
+              <p className="panel-eyebrow">Recruiter workspace</p>
+              <h3>Interview brief</h3>
             </div>
 
             {entretienSelectionne ? (
@@ -836,25 +972,37 @@ export default function EntretiensEntreprisePage() {
 
                 return (
                   <>
-                    <div className="details-identity">
-                      <span className="avatar">{initials(entretienSelectionne.candidat?.nom)}</span>
+                    <div className="details-identity candidate-profile-card">
+                      <span className="avatar large">{initials(entretienSelectionne.candidat?.nom)}</span>
                       <div>
                         <strong>{entretienSelectionne.candidat?.nom || "Candidate"}</strong>
                         <small>{entretienSelectionne.offre?.titre || "Role"}</small>
                       </div>
                       <span className={`status-pill ${statusClass(entretienSelectionne.entretien.statut)}`}>{statut.label}</span>
+                      <div className="candidate-contact">
+                        <span>{entretienSelectionne.candidat?.email || "Email non renseigne"}</span>
+                        <span><Phone size={13} /> {entretienSelectionne.candidat?.telephone || "Telephone non renseigne"}</span>
+                      </div>
                     </div>
 
-                    <div className="details-list">
-                      <p><strong>Date:</strong> {date.date}</p>
-                      <p><strong>Time:</strong> {date.time}</p>
-                      <p><strong>Type:</strong> {getEntretienTypeLabel(entretienSelectionne.entretien.type)} interview</p>
-                      <p><strong>Duration:</strong> {entretienSelectionne.entretien.duree_prevue || "60 min"}</p>
-                      <p><strong>Video link:</strong> {entretienSelectionne.entretien.lieu_visio || "-"}</p>
-                      <p><strong>Email:</strong> {entretienSelectionne.candidat?.email || "-"}</p>
-                      <p><strong>Phone:</strong> {entretienSelectionne.candidat?.telephone || "-"}</p>
-                      <p><strong>Notes:</strong> {entretienSelectionne.entretien.notes || "No notes"}</p>
-                    </div>
+                    <article className="candidate-interview-card">
+                      <p>
+                        Interview with <strong>{entretienSelectionne.candidat?.nom || "Candidate"}</strong> for{" "}
+                        <strong>{entretienSelectionne.offre?.titre || "Role"}</strong>.
+                      </p>
+                      <div className="interview-brief-chips">
+                        <span><CalendarDays size={14} /> {date.shortDate}</span>
+                        <span><Clock size={14} /> {date.time}</span>
+                        <span><Video size={14} /> {getEntretienTypeLabel(entretienSelectionne.entretien.type)}</span>
+                        <span><MapPin size={14} /> {getInterviewLocation(entretienSelectionne)}</span>
+                      </div>
+                      {entretienSelectionne.entretien.notes ? (
+                        <blockquote>{entretienSelectionne.entretien.notes}</blockquote>
+                      ) : null}
+                      <a className="calendar-utility-link" href={googleCalendarLink} target="_blank" rel="noopener noreferrer">
+                        <ExternalLink size={14} /> Add to calendar
+                      </a>
+                    </article>
 
                     <div className="details-actions">
                       <Button
@@ -865,13 +1013,21 @@ export default function EntretiensEntreprisePage() {
                         }}
                         disabled={entretienSelectionne.entretien.type !== "visio" || !entretienSelectionne.entretien.lieu_visio}
                       >
-                        Join call
+                        <Video size={16} /> Join Interview
                       </Button>
                       <Button variant="secondary" onClick={() => ouvrirEdition(entretienSelectionne)} disabled={actionEnCours}>
-                        Reschedule
+                        <RotateCw size={15} /> Reschedule
                       </Button>
                       <Button
-                        variant="danger"
+                        variant="secondary"
+                        onClick={() => lancerAction(entretienSelectionne.entretien.id, "terminer")}
+                        disabled={actionEnCours}
+                      >
+                        <CheckCircle2 size={15} /> Mark Complete
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        className="cancel-soft"
                         onClick={() => {
                           if (confirm("Confirmer l'annulation de cet entretien ?")) {
                             void lancerAction(entretienSelectionne.entretien.id, "annuler");
@@ -879,20 +1035,7 @@ export default function EntretiensEntreprisePage() {
                         }}
                         disabled={actionEnCours}
                       >
-                        Cancel
-                      </Button>
-                    </div>
-
-                    <div className="details-extra-actions">
-                      <a className="ui-button ui-button-ghost" href={googleCalendarLink} target="_blank" rel="noopener noreferrer">
-                        Add to calendar
-                      </a>
-                      <Button
-                        variant="ghost"
-                        onClick={() => lancerAction(entretienSelectionne.entretien.id, "terminer")}
-                        disabled={actionEnCours}
-                      >
-                        Mark completed
+                        <XCircle size={15} /> Cancel
                       </Button>
                     </div>
 
@@ -1010,10 +1153,11 @@ export default function EntretiensEntreprisePage() {
               })()
             ) : (
               <div className="empty-side">
-                <p>Selectionnez un entretien dans la timeline pour afficher tous les details.</p>
+                <p>Select a candidate interview to open the scheduling workspace.</p>
               </div>
             )}
           </section>
+        </div>
         </div>
       )}
 
@@ -1368,6 +1512,631 @@ export default function EntretiensEntreprisePage() {
           outline: none;
           box-shadow: var(--ring-focus, 0 0 0 3px #d8caf6);
         }
+        .interviews-workspace-layout {
+          display: grid;
+          gap: 12px;
+        }
+        .next-interview-hero {
+          display: grid;
+          grid-template-columns: auto minmax(0, 1fr) auto;
+          gap: 14px;
+          align-items: center;
+          padding: 14px;
+          border: 1px solid rgba(95, 42, 200, 0.16);
+          border-radius: 20px;
+          background:
+            radial-gradient(circle at 92% 10%, rgba(216, 106, 141, 0.16), transparent 28%),
+            linear-gradient(135deg, #ffffff, #faf7ff);
+          box-shadow: 0 14px 34px rgba(31, 18, 49, 0.08);
+        }
+        .hero-date {
+          width: 86px;
+          min-height: 96px;
+          border-radius: 18px;
+          background: #2a1040;
+          color: #fff;
+          display: grid;
+          place-items: center;
+          padding: 10px;
+          text-align: center;
+        }
+        .hero-date span,
+        .hero-date small {
+          color: rgba(255, 255, 255, 0.78);
+          font-size: 0.75rem;
+          font-weight: 800;
+        }
+        .hero-date strong {
+          font-size: 2rem;
+          line-height: 1;
+        }
+        .hero-main h2 {
+          margin: 8px 0 4px;
+          color: #1d1430;
+          font-size: 1.55rem;
+          line-height: 1.1;
+        }
+        .hero-main p {
+          margin: 0;
+          color: #625773;
+          font-weight: 700;
+        }
+        .hero-meta {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          margin-top: 10px;
+        }
+        .hero-meta span,
+        .candidate-contact span,
+        .details-list p,
+        .interview-card-main em {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+        }
+        .hero-meta span {
+          max-width: 420px;
+          padding: 7px 10px;
+          border-radius: 999px;
+          background: rgba(95, 42, 200, 0.07);
+          color: #4f4266;
+          font-size: 0.8rem;
+          font-weight: 750;
+        }
+        .hero-actions {
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: flex-end;
+          gap: 8px;
+          max-width: 360px;
+        }
+        .interview-controls {
+          min-height: 46px;
+          display: grid;
+          grid-template-columns: minmax(140px, 1fr) 190px 190px;
+          align-items: end;
+          gap: 10px;
+          padding: 9px 12px;
+          border: 1px solid #ece4f9;
+          border-radius: 16px;
+          background: rgba(255, 255, 255, 0.86);
+        }
+        .interview-controls > div {
+          display: flex;
+          align-items: baseline;
+          gap: 7px;
+          color: #6f6786;
+          font-size: 0.82rem;
+        }
+        .interview-controls strong {
+          color: #2a1843;
+          font-size: 1rem;
+        }
+        .interview-controls label {
+          display: grid;
+          gap: 3px;
+        }
+        .interview-controls label span {
+          color: #7b7390;
+          font-size: 0.68rem;
+          font-weight: 800;
+        }
+        .interview-controls :global(.champ-select),
+        .calendar-filters :global(.champ-select) {
+          min-height: 36px;
+          border-radius: 11px;
+          font-size: 0.82rem;
+        }
+        .main-grid {
+          grid-template-columns: minmax(0, 1.25fr) minmax(330px, 0.75fr);
+        }
+        .calendar-panel {
+          display: none;
+        }
+        .timeline-panel,
+        .details-panel {
+          min-height: 0;
+          border-radius: 18px;
+          padding: 13px;
+        }
+        .timeline-panel {
+          display: grid;
+          gap: 10px;
+          align-content: start;
+        }
+        .panel-head {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          padding: 2px 2px 4px;
+        }
+        .panel-head h3,
+        .details-head h3 {
+          margin: 0;
+          color: #2a1843;
+          font-size: 1rem;
+        }
+        .panel-eyebrow {
+          margin: 0 0 3px;
+          color: #7c55b6;
+          font-size: 0.68rem;
+          font-weight: 900;
+          letter-spacing: 0.06em;
+          text-transform: uppercase;
+        }
+        .week-agenda {
+          display: grid;
+          gap: 7px;
+          margin-bottom: 4px;
+        }
+        .agenda-day {
+          display: grid;
+          grid-template-columns: 82px minmax(0, 1fr);
+          gap: 8px;
+          align-items: start;
+          padding: 8px;
+          border: 1px solid #f0e9fb;
+          border-radius: 14px;
+          background: #fff;
+        }
+        .agenda-day-label {
+          display: grid;
+          gap: 2px;
+        }
+        .agenda-day-label strong {
+          color: #2a1843;
+          font-size: 0.8rem;
+        }
+        .agenda-day-label span,
+        .agenda-empty {
+          color: #8a839e;
+          font-size: 0.72rem;
+        }
+        .agenda-day-list {
+          display: grid;
+          gap: 6px;
+        }
+        .agenda-empty {
+          margin: 0;
+          padding: 7px 9px;
+          border-radius: 10px;
+          background: #faf8fe;
+        }
+        .timeline-group {
+          display: grid;
+          gap: 8px;
+        }
+        .timeline-group header {
+          margin-bottom: 0;
+          padding: 0 2px;
+        }
+        .timeline-list {
+          display: grid;
+          gap: 8px;
+        }
+        .interview-card {
+          width: 100%;
+          display: grid;
+          grid-template-columns: auto minmax(0, 1fr) auto;
+          align-items: center;
+          gap: 10px;
+          padding: 10px;
+          border: 1px solid #ece4f9;
+          border-radius: 14px;
+          background: linear-gradient(180deg, #fff, #fdfbff);
+          text-align: left;
+          cursor: pointer;
+          transition: border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
+        }
+        .interview-card:hover,
+        .interview-card-active {
+          transform: translateY(-1px);
+          border-color: #cdb8f0;
+          box-shadow: 0 10px 24px rgba(31, 18, 49, 0.08);
+        }
+        .interview-card-main {
+          min-width: 0;
+          display: grid;
+          gap: 2px;
+        }
+        .interview-card-main strong {
+          overflow: hidden;
+          color: #241735;
+          font-size: 0.9rem;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+        .interview-card-main small,
+        .interview-card-main em,
+        .interview-card-meta small {
+          color: #746d86;
+          font-size: 0.74rem;
+          font-style: normal;
+        }
+        .interview-card-meta {
+          display: grid;
+          justify-items: end;
+          gap: 5px;
+        }
+        .candidate-profile-card {
+          padding: 12px;
+          border: 1px solid rgba(95, 42, 200, 0.1);
+          border-radius: 16px;
+          background: linear-gradient(135deg, rgba(95, 42, 200, 0.07), rgba(255, 255, 255, 0.96));
+        }
+        .avatar.large {
+          width: 48px;
+          height: 48px;
+          font-size: 0.86rem;
+        }
+        .candidate-contact {
+          grid-column: 1 / -1;
+          display: grid;
+          gap: 6px;
+          color: #625773;
+          font-size: 0.78rem;
+        }
+        .details-list {
+          grid-template-columns: 1fr;
+          padding: 12px;
+          border: 1px solid #ece4f9;
+          border-radius: 15px;
+          background: #fff;
+        }
+        .details-list p {
+          justify-content: flex-start;
+          gap: 8px;
+          padding: 5px 0;
+        }
+        .details-list p strong {
+          min-width: 68px;
+          color: #2a1843;
+        }
+        .details-list .notes-row {
+          display: block;
+          margin-top: 4px;
+          padding-top: 10px;
+          border-top: 1px solid #efe8fb;
+          line-height: 1.45;
+        }
+        .candidate-interview-card {
+          display: grid;
+          gap: 10px;
+          margin-bottom: 10px;
+          padding: 12px;
+          border: 1px solid #ece4f9;
+          border-radius: 16px;
+          background: #fff;
+        }
+        .candidate-interview-card p {
+          margin: 0;
+          color: #4a3d67;
+          font-size: 0.9rem;
+          line-height: 1.45;
+        }
+        .candidate-interview-card strong {
+          color: #241735;
+        }
+        .interview-brief-chips {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 7px;
+        }
+        .interview-brief-chips span {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          min-height: 28px;
+          padding: 5px 9px;
+          border-radius: 999px;
+          background: rgba(95, 42, 200, 0.07);
+          color: #4f4266;
+          font-size: 0.76rem;
+          font-weight: 750;
+        }
+        .candidate-interview-card blockquote {
+          margin: 0;
+          padding-left: 10px;
+          border-left: 3px solid #d86a8d;
+          color: #625773;
+          font-size: 0.84rem;
+          line-height: 1.45;
+        }
+        .details-actions {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+        .details-actions :global(.ui-button),
+        .details-extra-actions :global(.ui-button),
+        .hero-actions :global(.ui-button),
+        .interviews-header-actions :global(.ui-button) {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 7px;
+        }
+        .cancel-soft {
+          color: #9f4a57 !important;
+          border-color: #ead1d8 !important;
+          background: #fff7f8 !important;
+        }
+        .next-interview-hero,
+        .interview-controls {
+          display: none;
+        }
+        .main-grid {
+          grid-template-columns: minmax(0, 7fr) minmax(300px, 3fr);
+          gap: 12px;
+          align-items: start;
+        }
+        .timeline-panel,
+        .details-panel {
+          background: #fff;
+          border: 1px solid #ede7f8;
+          border-radius: 16px;
+          box-shadow: 0 10px 24px rgba(31, 18, 49, 0.05);
+        }
+        .timeline-panel {
+          padding: 12px;
+        }
+        .details-panel {
+          padding: 14px;
+        }
+        .compact-calendar-header {
+          display: grid;
+          grid-template-columns: 36px minmax(0, 1fr) 36px;
+          align-items: center;
+          gap: 8px;
+          margin-bottom: 10px;
+        }
+        .compact-calendar-header h3 {
+          margin: 0;
+          text-align: center;
+          color: #201135;
+          font-size: 1rem;
+          font-weight: 850;
+        }
+        .compact-calendar-header button {
+          width: 36px;
+          height: 34px;
+          border: 1px solid #e5daf7;
+          border-radius: 10px;
+          background: #fff;
+          color: var(--app-primary);
+          font-weight: 900;
+          cursor: pointer;
+        }
+        .compact-weekdays,
+        .compact-calendar-grid {
+          display: grid;
+          grid-template-columns: repeat(7, minmax(0, 1fr));
+          gap: 5px;
+        }
+        .compact-weekdays {
+          margin-bottom: 6px;
+        }
+        .compact-weekdays span {
+          color: #756b88;
+          font-size: 0.68rem;
+          font-weight: 850;
+          text-align: center;
+        }
+        .compact-day {
+          min-height: 54px;
+          display: grid;
+          align-content: center;
+          justify-items: center;
+          gap: 4px;
+          padding: 6px 3px;
+          border: 1px solid #f0e9fb;
+          border-radius: 10px;
+          background: #fff;
+          color: #241735;
+          cursor: pointer;
+        }
+        .compact-day:hover {
+          border-color: rgba(var(--app-primary-rgb), 0.22);
+          background: rgba(var(--app-primary-rgb), 0.04);
+        }
+        .compact-day span {
+          font-size: 0.78rem;
+          font-weight: 850;
+        }
+        .compact-day-muted {
+          color: #b8afc8;
+          background: #fcfbfd;
+        }
+        .compact-day-selected {
+          border-color: var(--app-primary);
+          background: var(--app-primary);
+          color: #fff;
+          box-shadow: 0 8px 18px rgba(var(--app-primary-rgb), 0.24);
+        }
+        .compact-day em {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 3px;
+          min-height: 10px;
+          font-style: normal;
+        }
+        .compact-day i {
+          width: 5px;
+          height: 5px;
+          border-radius: 50%;
+          background: var(--app-primary);
+        }
+        .compact-day-selected i {
+          background: #fff;
+        }
+        .compact-day b {
+          min-width: 16px;
+          height: 16px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 999px;
+          background: #ede9fe;
+          color: #4c1d95;
+          font-size: 0.62rem;
+          font-style: normal;
+        }
+        .selected-day-panel {
+          margin-top: 12px;
+          padding-top: 12px;
+          border-top: 1px solid #f0e9fb;
+        }
+        .selected-day-panel > header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 10px;
+          margin-bottom: 8px;
+        }
+        .selected-day-panel h3 {
+          margin: 0;
+          color: #201135;
+          font-size: 0.98rem;
+        }
+        .selected-day-panel header > span {
+          padding: 5px 9px;
+          border-radius: 999px;
+          background: #ede9fe;
+          color: #4c1d95;
+          font-size: 0.72rem;
+          font-weight: 850;
+          white-space: nowrap;
+        }
+        .selected-day-list {
+          display: grid;
+          gap: 7px;
+        }
+        .selected-day-list .interview-card {
+          min-height: 82px;
+          display: grid;
+          grid-template-columns: 38px minmax(0, 1fr) auto;
+          grid-template-areas: "avatar main meta";
+          align-items: center;
+          gap: 10px;
+          padding: 10px 12px;
+          text-align: left;
+          border-radius: 14px;
+        }
+        .selected-day-list .interview-card .avatar {
+          grid-area: avatar;
+          width: 36px;
+          height: 36px;
+          align-self: start;
+          margin-top: 2px;
+        }
+        .selected-day-list .interview-card-main {
+          grid-area: main;
+          min-width: 0;
+          display: grid;
+          gap: 3px;
+        }
+        .selected-day-list .interview-card-main strong {
+          display: block;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+        .selected-day-list .interview-card-main strong {
+          color: #201135;
+          font-size: 0.88rem;
+          line-height: 1.2;
+        }
+        .selected-day-list .interview-card-main small {
+          color: #6f6484;
+          font-size: 0.72rem;
+        }
+        .selected-day-list .interview-card-main em {
+          margin-top: 3px;
+          color: #2b2138;
+          font-size: 0.76rem;
+          font-weight: 850;
+        }
+        .selected-day-list .interview-card-meta {
+          grid-area: meta;
+          display: grid;
+          align-items: center;
+          justify-items: end;
+          gap: 7px;
+          min-width: 0;
+          align-self: center;
+        }
+        .selected-day-list .interview-card-meta .status-pill {
+          padding: 5px 9px;
+          font-size: 0.68rem;
+        }
+        .selected-day-list .interview-card-meta small {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          color: #5b5168;
+          font-size: 0.72rem;
+          white-space: nowrap;
+        }
+        .selected-day-empty {
+          margin: 0;
+          padding: 10px 12px;
+          border: 1px dashed #d8c7f4;
+          border-radius: 12px;
+          color: #756b88;
+          font-size: 0.82rem;
+          text-align: center;
+        }
+        .interview-card {
+          min-height: 62px;
+          padding: 8px 10px;
+          border-radius: 12px;
+        }
+        .interview-card-main strong {
+          font-size: 0.86rem;
+        }
+        .interview-card-main small,
+        .interview-card-main em,
+        .interview-card-meta small {
+          font-size: 0.7rem;
+        }
+        .details-head {
+          margin-bottom: 10px;
+        }
+        .candidate-profile-card {
+          margin-bottom: 10px;
+        }
+        .candidate-interview-card {
+          padding: 10px;
+        }
+        .details-actions {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 7px;
+        }
+        .details-actions :global(.ui-button) {
+          min-height: 36px;
+          padding-inline: 10px;
+          border-radius: 10px;
+          font-size: 0.8rem;
+        }
+        .details-actions :global(.ui-button:first-child) {
+          grid-column: 1 / -1;
+          background: #5b21b6;
+          border-color: #5b21b6;
+        }
+        .calendar-utility-link {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          width: fit-content;
+          color: #5b21b6;
+          font-size: 0.78rem;
+          font-weight: 800;
+          text-decoration: none;
+        }
         @keyframes fadeIn {
           from {
             opacity: 0;
@@ -1378,7 +2147,7 @@ export default function EntretiensEntreprisePage() {
             transform: translateY(0);
           }
         }
-        @media (max-width: 1400px) {
+        @media (max-width: 980px) {
           .main-grid {
             grid-template-columns: 1fr;
           }

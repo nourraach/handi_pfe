@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { type FormEvent, type HTMLAttributes, type ReactNode, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { useAccessibility, type AccessibilityMode } from "@/components/accessibility-provider";
 import { construireUrlApi } from "@/lib/config";
 import styles from "./formulaire-inscription-candidat.module.css";
 
@@ -29,6 +30,30 @@ const communicationOptions = [
   { value: "Téléphone", label: "Téléphone" },
   { value: "SMS", label: "SMS" },
 ];
+
+const accessibilityProfileOptions = [
+  { value: "", label: "Je configurerai plus tard" },
+  { value: "visual", label: "Difficulte visuelle : contraste, texte agrandi, lecture vocale" },
+  { value: "blindness", label: "Non-voyant : clavier, navigation vocale, lecture vocale" },
+  { value: "mobility", label: "Mobilite : clavier, gros curseur, commandes vocales" },
+  { value: "cognitive", label: "Cognitif ou psychique : interface simplifiee et calme" },
+  { value: "hearing", label: "Auditif : alertes visuelles et interface sans dependance sonore" },
+];
+
+const accessibilityProfileModeMap: Record<string, AccessibilityMode | null> = {
+  visual: "visuallyImpaired",
+  blindness: "blindness",
+  mobility: "mobility",
+  cognitive: "cognitive",
+  hearing: "hearing",
+};
+
+const handicapToAccessibilityProfile: Record<string, string> = {
+  "Handicap visuel": "visual",
+  "Handicap physique": "mobility",
+  "Handicap mental ou psychique": "cognitive",
+  "Handicap auditif": "hearing",
+};
 
 const AGE_MINIMUM = 18;
 const AGE_DEFAULT = String(AGE_MINIMUM);
@@ -105,6 +130,7 @@ const initialState = {
   description: "",
   secteur: "",
   preference_communication: "",
+  accessibility_profile: "",
   age: AGE_DEFAULT,
 };
 
@@ -148,6 +174,7 @@ const fieldLabels: Record<FieldName, string> = {
   description: "Présentation",
   secteur: "Secteur visé",
   preference_communication: "Préférence de communication",
+  accessibility_profile: "Besoin d'accessibilite",
 };
 
 const fieldIdByName: Record<FieldName, string> = {
@@ -168,6 +195,7 @@ const fieldIdByName: Record<FieldName, string> = {
   description: "description",
   secteur: "secteur-vise",
   preference_communication: "preference-communication",
+  accessibility_profile: "accessibility-profile",
 };
 
 function formatDateInput(date: Date) {
@@ -229,6 +257,7 @@ function getOptionLabel(options: Array<{ value: string; label: string }>, value:
 
 export function FormulaireInscriptionCandidat() {
   const router = useRouter();
+  const { applyMode } = useAccessibility();
   const [formulaire, setFormulaire] = useState(initialState);
   const [confirmationMotDePasse, setConfirmationMotDePasse] = useState("");
   const [message, setMessage] = useState<string | null>(null);
@@ -511,6 +540,11 @@ export function FormulaireInscriptionCandidat() {
 
     if (field === "type_handicap" && nextValue !== "Autre") {
       nextForm.preciser_handicap = "";
+
+      if (!nextForm.accessibility_profile && handicapToAccessibilityProfile[nextValue]) {
+        nextForm.accessibility_profile = handicapToAccessibilityProfile[nextValue];
+      }
+
       setTouchedFields((current) => {
         if (!current.preciser_handicap) {
           return current;
@@ -677,6 +711,20 @@ export function FormulaireInscriptionCandidat() {
         throw new Error(result.message ?? "Impossible de créer votre compte pour le moment.");
       }
 
+      const recommendedMode = accessibilityProfileModeMap[formulaire.accessibility_profile];
+      if (recommendedMode) {
+        applyMode(recommendedMode, { force: true });
+        localStorage.setItem(
+          "candidate_accessibility_profile_v1",
+          JSON.stringify({
+            profile: formulaire.accessibility_profile,
+            mode: recommendedMode,
+            source: "candidate-signup",
+            appliedAt: new Date().toISOString(),
+          }),
+        );
+      }
+
       setMessage(result.message ?? "Votre compte a bien été créé.");
       setFormulaire(initialState);
       setConfirmationMotDePasse("");
@@ -760,6 +808,7 @@ export function FormulaireInscriptionCandidat() {
   const progressValue = (activeStep / (steps.length - 1)) * 100;
   const profileSummary = `${formulaire.nom || "Votre nom"}, ${getOptionLabel(genreOptions, formulaire.genre, "non précisé")}`;
   const communicationSummary = getOptionLabel(communicationOptions, formulaire.preference_communication, "À définir");
+  const accessibilitySummary = getOptionLabel(accessibilityProfileOptions, formulaire.accessibility_profile, "Configuration manuelle");
 
   return (
     <main className={classes("app-theme", styles.signupPage)}>
@@ -1013,6 +1062,16 @@ export function FormulaireInscriptionCandidat() {
                   error={fieldErrors.type_handicap}
                   required
                 />
+                <SelectField
+                  name="accessibility-profile"
+                  label="Confort d'utilisation souhaite"
+                  value={formulaire.accessibility_profile}
+                  icon={<AccessibilityIcon />}
+                  onChange={(value) => updateField("accessibility_profile", value)}
+                  options={accessibilityProfileOptions}
+                  helpText="Optionnel : nous adapterons votre espace automatiquement, et vous pourrez modifier ces reglages a tout moment."
+                  span="wide"
+                />
                 {formulaire.type_handicap === "Autre" ? (
                   <InputField
                     name="preciser-handicap"
@@ -1118,6 +1177,7 @@ export function FormulaireInscriptionCandidat() {
                   <SummaryItem label="Contact" value={formulaire.email || "Votre email"} />
                   <SummaryItem label="Secteur" value={formulaire.secteur || "À définir"} />
                   <SummaryItem label="Communication" value={communicationSummary} />
+                  <SummaryItem label="Accessibilite" value={accessibilitySummary} />
                 </div>
               </div>
             ) : null}

@@ -9,6 +9,7 @@ import { UtilisateurConnecte } from "@/types/api";
 
 interface ProfilEntrepriseProps {
   utilisateur: UtilisateurConnecte;
+  lectureSeule?: boolean;
 }
 
 interface ProfilEntrepriseData {
@@ -56,7 +57,7 @@ const tailleValues = [
   "More than 1000 employees",
 ] as const;
 
-export function ProfilEntreprise({ utilisateur }: ProfilEntrepriseProps) {
+export function ProfilEntreprise({ utilisateur, lectureSeule = false }: ProfilEntrepriseProps) {
   const { t } = useI18n();
   const [profil, setProfil] = useState<ProfilEntrepriseData>({
     nom: utilisateur.nom || "",
@@ -201,11 +202,13 @@ export function ProfilEntreprise({ utilisateur }: ProfilEntrepriseProps) {
               {secteur} • {taille}
             </p>
           </div>
-          <div className="profile-surface-actions">
-            <Button variant="secondary" onClick={() => setModeEdition((courant) => !courant)}>
-              {modeEdition ? t("profile.candidate.exitEdit") : t("common.actions.edit")}
-            </Button>
-          </div>
+          {!lectureSeule ? (
+            <div className="profile-surface-actions">
+              <Button variant="secondary" onClick={() => setModeEdition((courant) => !courant)}>
+                {modeEdition ? t("profile.candidate.exitEdit") : t("common.actions.edit")}
+              </Button>
+            </div>
+          ) : null}
         </div>
 
         <div className="details-grid">
@@ -374,7 +377,7 @@ export function ProfilEntreprise({ utilisateur }: ProfilEntrepriseProps) {
         </div>
       </Card>
 
-      {modeEdition ? (
+      {modeEdition && !lectureSeule ? (
         <Card className="profile-surface">
           <div className="profile-surface-actions" style={{ justifyContent: "flex-end" }}>
             <Button variant="ghost" onClick={() => setModeEdition(false)}>

@@ -26,7 +26,7 @@
     radial-gradient(circle at 95% 12%, rgba(var(--app-accent-rgb), 0.16), transparent 22%),
     radial-gradient(circle at 90% 82%, rgba(var(--app-secondary-rgb), 0.78), transparent 18%),
     linear-gradient(180deg, #fcfbff 0%, var(--app-bg) 52%, #fbf7ff 100%);
-  font-family: var(--font-ibm-plex-sans), "Segoe UI Variable", "Segoe UI", sans-serif;
+  font-family: var(--app-body);
 }
 
 .ht-landing *,
@@ -40,7 +40,7 @@
 .ht-landing h3 {
   margin: 0;
   color: var(--ht-text);
-  font-family: var(--font-manrope), "Segoe UI Variable", sans-serif;
+  font-family: var(--app-heading);
   letter-spacing: -0.03em;
 }
 
@@ -618,7 +618,7 @@
 .ht-showcase-card h3,
 .ht-testimonial-card strong,
 .ht-footer-column h3 {
-  font-family: var(--font-manrope), "Segoe UI Variable", sans-serif;
+  font-family: var(--app-heading);
 }
 
 .ht-proof-copy strong {
@@ -655,7 +655,7 @@
 .ht-impact-item strong,
 .ht-mini-surface strong {
   display: block;
-  font-family: var(--font-manrope), "Segoe UI Variable", sans-serif;
+  font-family: var(--app-heading);
   letter-spacing: -0.04em;
 }
 
@@ -793,7 +793,7 @@
 .ht-dashboard-row strong {
   display: block;
   color: var(--ht-text);
-  font-family: var(--font-manrope), "Segoe UI Variable", sans-serif;
+  font-family: var(--app-heading);
 }
 
 .ht-float-card p,
@@ -1315,7 +1315,7 @@
 .ht-step-preview strong {
   display: block;
   margin-top: 6px;
-  font-family: var(--font-manrope), "Segoe UI Variable", sans-serif;
+  font-family: var(--app-heading);
   font-size: 1rem;
 }
 

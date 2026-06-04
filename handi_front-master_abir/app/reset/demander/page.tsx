@@ -29,14 +29,14 @@ export default function DemanderResetPage() {
       if (!res.ok) throw new Error(data.message || "Erreur");
       if (data.donnees?.lien_reset) {
         setTestLink(data.donnees.lien_reset);
-        setMessage("SMTP non configure: le lien ci-dessous est genere pour le test local.");
+        setMessage("SMTP non configuré : le lien ci-dessous est généré pour le test local.");
       } else if (data.donnees?.token) {
-        setMessage(`Token demo: ${data.donnees.token}`);
+        setMessage(`Jeton de démonstration : ${data.donnees.token}`);
       } else {
-        setMessage("If the account exists, a reset email or SMS has been sent.");
+        setMessage("Si le compte existe, un e-mail ou un SMS de réinitialisation a été envoyé.");
       }
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : "Unable to send reset link.";
+      const errorMessage = error instanceof Error ? error.message : "Impossible d'envoyer le lien de réinitialisation.";
       setErreur(errorMessage);
     } finally {
       setLoading(false);
@@ -51,8 +51,8 @@ export default function DemanderResetPage() {
 
   return (
     <main className={styles.page}>
-      <section className={styles.shell} aria-label="Password reset">
-        <aside className={styles.brandPanel} aria-label="HandiTalents branding">
+      <section className={styles.shell} aria-label="Réinitialisation du mot de passe">
+        <aside className={styles.brandPanel} aria-label="Identité HandiTalents">
           <span className={styles.bgOrbOne} aria-hidden="true" />
           <span className={styles.bgOrbTwo} aria-hidden="true" />
           <span className={styles.bgGrid} aria-hidden="true" />
@@ -67,42 +67,41 @@ export default function DemanderResetPage() {
             </div>
             <div>
               <strong className={styles.brandName}>HandiTalents</strong>
-              <p className={styles.brandSub}>Inclusive Hiring Platform</p>
+              <p className={styles.brandSub}>Plateforme de recrutement inclusif</p>
             </div>
           </header>
 
           <div className={styles.brandContent}>
             <p className={styles.badge}>
               <ShieldIcon />
-              Secure Account Recovery
+              Récupération sécurisée du compte
             </p>
-            <h1 className={styles.heroTitle}>Reset your password</h1>
+            <h1 className={styles.heroTitle}>Réinitialisez votre mot de passe</h1>
             <p className={styles.heroText}>
-              No worries, it happens. Enter your email and we&apos;ll send you a secure link to reset your password.
+              Cela arrive. Saisissez votre e-mail et nous vous enverrons un lien sécurisé pour réinitialiser votre mot de passe.
             </p>
           </div>
         </aside>
 
-        <section className={styles.formPanel} aria-label="Password reset form">
+        <section className={styles.formPanel} aria-label="Formulaire de réinitialisation du mot de passe">
           <div className={styles.formCard}>
             <div className={styles.topAction}>
               <Link href="/" className={styles.backButton}>
                 <ArrowLeftIcon />
-                Back to website
+                Retour au site
               </Link>
             </div>
 
             <div className={styles.formHeader}>
-              <h2>Reset your password</h2>
+              <h2>Réinitialisez votre mot de passe</h2>
               <p>
-                Enter the email address associated with your account and we&apos;ll send you a link to reset your
-                password.
+                Saisissez l&apos;adresse e-mail associée à votre compte et nous vous enverrons un lien pour réinitialiser votre mot de passe.
               </p>
             </div>
 
             <form onSubmit={onSubmit} className={styles.form} noValidate>
               <label htmlFor="email-reset" className={styles.fieldLabel}>
-                Email address
+                Adresse e-mail
               </label>
               <div className={styles.inputWrap}>
                 <span className={styles.inputIcon} aria-hidden="true">
@@ -112,7 +111,7 @@ export default function DemanderResetPage() {
                   id="email-reset"
                   type="email"
                   className={styles.input}
-                  placeholder="Enter your email address"
+                  placeholder="Saisissez votre adresse e-mail"
                   autoComplete="email"
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
@@ -125,9 +124,9 @@ export default function DemanderResetPage() {
                 type="submit"
                 className={styles.submitButton}
                 disabled={loading || !email.trim()}
-                aria-label="Send password reset link"
+                aria-label="Envoyer le lien de réinitialisation du mot de passe"
               >
-                {loading ? "Sending..." : "Send reset link"}
+                {loading ? "Envoi..." : "Envoyer le lien de réinitialisation"}
                 <SendIcon />
               </button>
 
@@ -140,7 +139,7 @@ export default function DemanderResetPage() {
               {testLink ? (
                 <p className={styles.feedbackInfo} role="status" aria-live="polite">
                   <a href={testLink} target="_blank" rel="noreferrer">
-                    Open reset link
+                    Ouvrir le lien de réinitialisation
                   </a>
                 </p>
               ) : null}
@@ -154,17 +153,17 @@ export default function DemanderResetPage() {
 
             <div className={styles.divider} aria-hidden="true">
               <span />
-              <em>or</em>
+              <em>ou</em>
               <span />
             </div>
 
             <Link href="/connexion" className={styles.signInLink}>
-              Back to sign in
+              Retour à la connexion
             </Link>
 
             <p className={styles.securityNote}>
               <ShieldIcon />
-              The reset link will expire in 15 minutes for your security.
+              Le lien de réinitialisation expirera dans 15 minutes pour votre sécurité.
             </p>
           </div>
         </section>

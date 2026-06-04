@@ -69,7 +69,7 @@ function NotificationsPage() {
       const data: NotificationsPayload = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || "Unable to load notifications.");
+        throw new Error(data.message || "Impossible de charger les notifications.");
       }
 
       const items = Array.isArray(data.donnees) ? data.donnees : [];
@@ -86,7 +86,7 @@ function NotificationsPage() {
         window.dispatchEvent(new CustomEvent("notifications-marked-read"));
       }
     } catch (error: unknown) {
-      setErreur(error instanceof Error ? error.message : "Unable to load notifications.");
+      setErreur(error instanceof Error ? error.message : "Impossible de charger les notifications.");
     } finally {
       setLoading(false);
     }
@@ -110,15 +110,15 @@ function NotificationsPage() {
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(data.message || "Unable to update notifications.");
+        throw new Error(data.message || "Impossible de mettre à jour les notifications.");
       }
 
       setNotifications((current) =>
         current.map((item) => (item.id === notificationId ? { ...item, lu } : item)),
       );
-      setInfo(lu ? "Notification marked as read." : "Notification marked as unread.");
+      setInfo(lu ? "Notification marquée comme lue." : "Notification marquée comme non lue.");
     } catch (error: unknown) {
-      setErreur(error instanceof Error ? error.message : "Unable to update notifications.");
+      setErreur(error instanceof Error ? error.message : "Impossible de mettre à jour les notifications.");
     }
   };
 
@@ -148,18 +148,18 @@ function NotificationsPage() {
       };
     }
 
-    return { href: destinationEntretiens, label: "Open related section" };
+    return { href: destinationEntretiens, label: "Ouvrir la section liée" };
   };
 
   return (
     <div className="app-page">
       <PageHeader
         badge="Notifications"
-        title="Your latest updates, already organized."
-        description="See platform alerts, interview news, and conversation activity in a single readable stream."
+        title="Vos dernières mises à jour, déjà organisées."
+        description="Consultez les alertes, les nouvelles d'entretien et l'activité des échanges dans un flux clair et lisible."
         actions={
           <>
-            <ButtonLink href={destinationEntretiens}>Open related section</ButtonLink>
+            <ButtonLink href={destinationEntretiens}>Ouvrir la section liée</ButtonLink>
           </>
         }
       />
@@ -171,27 +171,27 @@ function NotificationsPage() {
         <Card padding="lg">
           <div className="loading-state">
             <div className="spinner" aria-hidden="true" />
-            <strong>Loading notifications</strong>
-            <p>We are retrieving your latest events.</p>
+            <strong>Chargement des notifications</strong>
+            <p>Nous récupérons vos derniers événements.</p>
           </div>
         </Card>
       ) : notifications.length === 0 ? (
         <EmptyState
-          title="No notifications yet"
-          description="When an application changes or an interview is scheduled, you will see it here."
-          action={<ButtonLink href={destinationEntretiens}>Open related section</ButtonLink>}
+          title="Aucune notification pour le moment"
+          description="Lorsqu'une candidature évolue ou qu'un entretien est programmé, vous le verrez ici."
+          action={<ButtonLink href={destinationEntretiens}>Ouvrir la section liée</ButtonLink>}
         />
       ) : (
         <div className="list-stack">
           <Card tone="accent" padding="md">
             <div className="notification-meta">
               <div>
-                <strong>{notifications.length} notifications loaded</strong>
+                <strong>{notifications.length} notifications chargées</strong>
                 <p className="texte-secondaire" style={{ margin: "8px 0 0" }}>
-                  Notifications are automatically marked as read when you open this page. You can still mark any item as unread.
+                  Les notifications sont automatiquement marquées comme lues lorsque vous ouvrez cette page. Vous pouvez toujours en marquer une comme non lue.
                 </p>
               </div>
-              <span className="texte-secondaire">{nonLues} unread</span>
+              <span className="texte-secondaire">{nonLues} non lue(s)</span>
             </div>
           </Card>
 
@@ -203,7 +203,7 @@ function NotificationsPage() {
                 <div className="notification-meta">
                   <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
                     <span className={`status-pill ${notification.lu ? "message-neutre" : "message-info"}`}>
-                      {notification.lu ? "Read" : "Unread"}
+                      {notification.lu ? "Lue" : "Non lue"}
                     </span>
                     <strong>{notification.titre}</strong>
                   </div>

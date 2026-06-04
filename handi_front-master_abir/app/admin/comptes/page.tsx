@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Ban, Building2, Eye, Search, X } from "lucide-react";
+import { Ban, BarChart3, BriefcaseBusiness, Building2, CalendarDays, CheckCircle2, Eye, Globe2, Mail, MapPin, Phone, Search, ShieldCheck, Users, X } from "lucide-react";
 import { createPortal } from "react-dom";
 import { RouteProtegee } from "@/components/route-protegee";
 import { Button } from "@/components/ui/button";
@@ -670,6 +670,226 @@ const styles = `
     margin-top: 20px;
   }
 
+  .company-profile-view {
+    display: grid;
+    gap: 18px;
+  }
+
+  .company-profile-hero {
+    display: grid;
+    grid-template-columns: 112px minmax(0, 1fr);
+    align-items: center;
+    gap: 20px;
+    padding: 24px;
+    border: 1px solid rgba(74, 29, 89, 0.1);
+    border-radius: 24px;
+    background:
+      radial-gradient(circle at 92% 12%, rgba(216, 106, 141, 0.18), transparent 32%),
+      linear-gradient(135deg, rgba(74, 29, 89, 0.08), rgba(255, 255, 255, 0.94));
+  }
+
+  .company-profile-logo {
+    width: 96px;
+    height: 96px;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    border-radius: 24px;
+    background: linear-gradient(135deg, #4a1d59, #d86a8d);
+    color: #fff;
+    font-size: 1.8rem;
+    font-weight: 900;
+    box-shadow: 0 20px 40px rgba(74, 29, 89, 0.2);
+  }
+
+  .company-profile-logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .company-profile-hero h3 {
+    margin: 4px 0 12px;
+    color: #1f1431;
+    font-size: clamp(1.8rem, 4vw, 3rem);
+    line-height: 1.02;
+  }
+
+  .company-profile-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .company-profile-meta span,
+  .company-values span,
+  .company-contact-list span {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+  }
+
+  .company-profile-meta span {
+    padding: 8px 10px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.72);
+    color: #4f435f;
+    font-size: 0.84rem;
+    font-weight: 800;
+  }
+
+  .company-profile-meta svg,
+  .company-profile-kpis svg,
+  .company-values svg,
+  .company-contact-list svg {
+    color: #4a1d59;
+  }
+
+  .company-profile-kpis {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .company-profile-kpis article,
+  .company-profile-panel {
+    border: 1px solid rgba(74, 29, 89, 0.1);
+    border-radius: 18px;
+    background: linear-gradient(180deg, #fff, #fcfafd);
+    box-shadow: 0 14px 34px rgba(31, 18, 49, 0.05);
+  }
+
+  .company-profile-kpis article {
+    min-height: 104px;
+    display: grid;
+    align-content: center;
+    gap: 7px;
+    padding: 16px;
+  }
+
+  .company-profile-kpis span {
+    color: #756b84;
+    font-size: 0.78rem;
+    font-weight: 800;
+  }
+
+  .company-profile-kpis strong {
+    color: #1f1431;
+    font-size: 1.25rem;
+    line-height: 1.15;
+  }
+
+  .company-profile-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 0.82fr);
+    gap: 14px;
+  }
+
+  .company-profile-panel {
+    padding: 20px;
+  }
+
+  .company-profile-panel-wide {
+    grid-column: span 1;
+  }
+
+  .company-profile-panel h3 {
+    margin: 0 0 12px;
+    color: #1f1431;
+    font-size: 1.05rem;
+  }
+
+  .company-profile-panel p {
+    margin: 0;
+    color: #625773;
+    line-height: 1.58;
+  }
+
+  .company-values {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 18px;
+  }
+
+  .company-values span {
+    padding: 9px 11px;
+    border-radius: 999px;
+    background: rgba(74, 29, 89, 0.08);
+    color: #4a1d59;
+    font-size: 0.8rem;
+    font-weight: 800;
+  }
+
+  .company-team-card {
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr);
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+
+  .company-team-card > span {
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #4a1d59, #d86a8d);
+    color: #fff;
+    font-weight: 900;
+  }
+
+  .company-team-card strong,
+  .company-job-card strong {
+    display: block;
+    color: #1f1431;
+  }
+
+  .company-team-card small,
+  .company-job-card span,
+  .company-job-card small,
+  .company-contact-list span {
+    color: #6b607c;
+  }
+
+  .company-contact-list {
+    display: grid;
+    gap: 9px;
+    font-size: 0.88rem;
+  }
+
+  .company-job-card {
+    display: grid;
+    gap: 7px;
+    padding: 16px;
+    border-radius: 16px;
+    background: rgba(74, 29, 89, 0.06);
+  }
+
+  .company-admin-strip {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .company-admin-strip span {
+    display: grid;
+    gap: 5px;
+    padding: 12px;
+    border-radius: 14px;
+    background: #f8f5fb;
+    color: #786c88;
+    font-size: 0.78rem;
+    font-weight: 800;
+  }
+
+  .company-admin-strip b {
+    color: #1f1431;
+    font-size: 0.92rem;
+    overflow-wrap: anywhere;
+  }
+
   .companies-suspend-btn {
     min-height: 46px;
     border-radius: 18px;
@@ -709,8 +929,16 @@ const styles = `
     }
 
     .company-form-grid,
-    .company-detail-grid {
+    .company-detail-grid,
+    .company-profile-kpis,
+    .company-profile-grid,
+    .company-admin-strip {
       grid-template-columns: 1fr;
+    }
+
+    .company-profile-hero {
+      grid-template-columns: 1fr;
+      justify-items: start;
     }
 
     .companies-modal-card--view {
@@ -735,6 +963,27 @@ function formatDate(value?: string | null) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "-";
   return date.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+}
+
+function companyInitials(name?: string | null) {
+  const parts = (name || "Company").trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "CO";
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+}
+
+function resolveCompanyLogoUrl(path?: string | null) {
+  if (!path) return null;
+  if (/^https?:\/\//i.test(path)) return path;
+  return construireUrlApi(path.startsWith("/") ? path : `/${path}`);
+}
+
+function compactCompanyLocation(company: CompanyProfile) {
+  return [company.region, company.gouvernorat, company.delegation, company.addresse].filter(Boolean).join(", ") || "Localisation non renseignee";
+}
+
+function companySizeLabel(company: CompanyProfile) {
+  return company.taille_entreprise || (typeof company.nbr_employe === "number" ? `${company.nbr_employe} employes` : "Taille non renseignee");
 }
 
 function normalizeFilterDate(value: string, maxIsoDate: string) {
@@ -822,7 +1071,7 @@ function AdminCompaniesPage() {
       const data: EmployersPayload = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        throw new Error(data.message || "Unable to load companies.");
+        throw new Error(data.message || "Impossible de charger les entreprises.");
       }
 
       const pagination = data.donnees?.pagination;
@@ -833,7 +1082,7 @@ function AdminCompaniesPage() {
       setEmployers([]);
       setTotalPages(1);
       setTotalEmployers(0);
-      setError(cause instanceof Error ? cause.message : "Unable to load companies.");
+      setError(cause instanceof Error ? cause.message : "Impossible de charger les entreprises.");
     } finally {
       setLoading(false);
     }
@@ -844,7 +1093,7 @@ function AdminCompaniesPage() {
     const data: CompanyPayload = await response.json().catch(() => ({}));
 
     if (!response.ok) {
-      throw new Error(data.message || "Unable to load company profile.");
+      throw new Error(data.message || "Impossible de charger le profil de l'entreprise.");
     }
 
     const raw = data.donnees as CompanyProfile | { entreprise?: CompanyProfile } | undefined;
@@ -907,7 +1156,7 @@ function AdminCompaniesPage() {
       setSelectedId(employer.id_utilisateur);
       setSelectedCompany(await loadCompanyProfile(employer.id_utilisateur));
     } catch (cause) {
-      setViewError(cause instanceof Error ? cause.message : "Unable to load company profile.");
+      setViewError(cause instanceof Error ? cause.message : "Impossible de charger le profil de l'entreprise.");
     } finally {
       setModalLoading(false);
     }
@@ -953,13 +1202,13 @@ function AdminCompaniesPage() {
       const data: CompanyPayload = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        throw new Error(data.message || "Unable to save company.");
+        throw new Error(data.message || "Impossible d'enregistrer l'entreprise.");
       }
 
       await refreshAfterAction();
       closeModal();
     } catch (cause) {
-      setFormError(cause instanceof Error ? cause.message : "Unable to save company.");
+      setFormError(cause instanceof Error ? cause.message : "Impossible d'enregistrer l'entreprise.");
     } finally {
       setModalLoading(false);
     }
@@ -978,12 +1227,12 @@ function AdminCompaniesPage() {
       });
       const data: { message?: string } = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(data.message || "Unable to suspend company.");
+        throw new Error(data.message || "Impossible de suspendre l'entreprise.");
       }
 
       await refreshAfterAction();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Unable to suspend company.");
+      setError(cause instanceof Error ? cause.message : "Impossible de suspendre l'entreprise.");
     } finally {
       setActionInProgress(null);
     }
@@ -1055,22 +1304,22 @@ function AdminCompaniesPage() {
               </colgroup>
               <thead>
                 <tr>
-                  <th>Company</th>
+                  <th>Entreprise</th>
                   <th>Contact</th>
-                  <th>Status</th>
+                  <th>Statut</th>
                   <th>Region</th>
-                  <th>Created</th>
+                  <th>Creation</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={6}>Loading companies...</td>
+                    <td colSpan={6}>Chargement des entreprises...</td>
                   </tr>
                 ) : employersFiltres.length === 0 ? (
                   <tr>
-                    <td colSpan={6}>No companies match these filters.</td>
+                    <td colSpan={6}>Aucune entreprise ne correspond a ces filtres.</td>
                   </tr>
                 ) : (
                   employersFiltres.map((employer) => {
@@ -1085,7 +1334,7 @@ function AdminCompaniesPage() {
                               <Building2 />
                             </span>
                             <div>
-                              <strong className="company-name">{employer.nom_entreprise || employer.nom || "Company"}</strong>
+                              <strong className="company-name">{employer.nom_entreprise || employer.nom || "Entreprise"}</strong>
                               <span className="company-email">{employer.email}</span>
                             </div>
                           </div>
@@ -1143,7 +1392,7 @@ function AdminCompaniesPage() {
                 onClick={() => setPage((current) => Math.max(1, current - 1))}
                 disabled={page <= 1}
               >
-                Previous
+                Precedent
               </Button>
               <Button
                 variant="secondary"
@@ -1151,7 +1400,7 @@ function AdminCompaniesPage() {
                 onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
                 disabled={page >= totalPages}
               >
-                Next
+                Suivant
               </Button>
             </div>
           </footer>
@@ -1174,64 +1423,123 @@ function AdminCompaniesPage() {
               <div>
                 <div className="companies-modal-header">
                   <div>
-                    <p className="companies-kicker">Company profile</p>
-                    <h2 className="companies-modal-title">{selectedCompany?.nom_entreprise || selectedCompany?.nom || "Company"}</h2>
+                    <p className="companies-kicker">Profil entreprise</p>
+                    <h2 className="companies-modal-title">{selectedCompany?.nom_entreprise || selectedCompany?.nom || "Entreprise"}</h2>
                     <p className="companies-modal-email">{selectedCompany?.email || "-"}</p>
                   </div>
-                  <button className="companies-modal-close" type="button" onClick={closeModal} aria-label="Close">
+                  <button className="companies-modal-close" type="button" onClick={closeModal} aria-label="Fermer">
                     <X aria-hidden="true" />
                   </button>
                 </div>
-                {modalLoading ? <p>Loading profile...</p> : null}
+                {modalLoading ? <p>Chargement du profil...</p> : null}
                 {viewError ? <p className="message message-erreur">{viewError}</p> : null}
-                {!modalLoading && !viewError && selectedCompany ? (
-                  <>
-                    <div className="company-detail-grid">
-                      <div className="company-detail-box">
-                        <strong>Contact</strong>
-                        <p>{selectedCompany.nom} - {selectedCompany.telephone || "-"}</p>
-                      </div>
-                      <div className="company-detail-box">
-                        <strong>Legal</strong>
-                        <p>Patente: {selectedCompany.patente || "-"}</p>
-                        <p>RNE: {selectedCompany.rne || "-"}</p>
-                        <p>Siret: {selectedCompany.siret || "-"}</p>
-                      </div>
-                      <div className="company-detail-box">
-                        <strong>RH</strong>
-                        <p>{selectedCompany.contact_rh_nom || "-"}</p>
-                        <p>{selectedCompany.contact_rh_email || "-"}</p>
-                        <p>{selectedCompany.contact_rh_telephone || "-"}</p>
-                      </div>
-                      <div className="company-detail-box">
-                        <strong>Company info</strong>
-                        <p>{selectedCompany.description || "-"}</p>
-                      </div>
-                      <div className="company-detail-box">
-                        <strong>Access</strong>
-                        <p>Visible: {selectedCompany.profil_publique ? "Yes" : "No"}</p>
-                        <p>Created: {formatDate(selectedCompany.created_at || selectedCompanyCreatedAt)}</p>
-                      </div>
-                    </div>
+                {!modalLoading && !viewError && selectedCompany ? (() => {
+                  const companyName = selectedCompany.nom_entreprise || selectedCompany.nom || "Entreprise";
+                  const logoUrl = resolveCompanyLogoUrl(selectedCompany.logo_url);
+                  const location = compactCompanyLocation(selectedCompany);
+                  const activeStatus = selectedCompany.statut_validation || selectedCompany.statut || "en_attente";
+                  const website = selectedCompany.site_web || selectedCompany.url_site;
+                  const employeeCount = selectedCompany.nbr_employe ?? null;
+                  const disabledEmployees = selectedCompany.nbr_employe_handicape ?? null;
+                  const accessibilityRatio = employeeCount && disabledEmployees !== null
+                    ? Math.round((disabledEmployees / Math.max(employeeCount, 1)) * 100)
+                    : null;
 
-                  </>
-                ) : null}
+                  return (
+                    <div className="company-profile-view">
+                      <section className="company-profile-hero">
+                        <div className="company-profile-logo">
+                          {logoUrl ? <img src={logoUrl} alt={`Logo ${companyName}`} /> : <span>{companyInitials(companyName)}</span>}
+                        </div>
+                        <div>
+                          <p className="companies-kicker">Profil entreprise</p>
+                          <h3>{companyName}</h3>
+                          <div className="company-profile-meta">
+                            <span><Building2 size={15} /> {selectedCompany.secteur_activite || "Secteur non renseigne"}</span>
+                            <span><MapPin size={15} /> {location}</span>
+                            <span><Users size={15} /> {companySizeLabel(selectedCompany)}</span>
+                            <span><CheckCircle2 size={15} /> {STATUS_LABELS[activeStatus] || activeStatus}</span>
+                          </div>
+                        </div>
+                      </section>
+
+                      <section className="company-profile-kpis" aria-label="Statistiques entreprise">
+                        <article><BriefcaseBusiness size={18} /><span>Offres actives</span><strong>—</strong></article>
+                        <article><Users size={18} /><span>Employes</span><strong>{employeeCount ?? "—"}</strong></article>
+                        <article><ShieldCheck size={18} /><span>Inclusion</span><strong>{accessibilityRatio === null ? "—" : `${accessibilityRatio}%`}</strong></article>
+                        <article><CalendarDays size={18} /><span>Inscrite le</span><strong>{formatDate(selectedCompany.created_at || selectedCompanyCreatedAt)}</strong></article>
+                      </section>
+
+                      <section className="company-profile-grid">
+                        <article className="company-profile-panel company-profile-panel-wide">
+                          <h3>Vue d&apos;ensemble</h3>
+                          <p>{selectedCompany.description || "Cette entreprise n'a pas encore ajoute de presentation publique detaillee."}</p>
+                          <div className="company-values">
+                            <span><ShieldCheck size={16} /> Engagement accessibilite</span>
+                            <span><Users size={16} /> Diversite & inclusion</span>
+                            <span><BarChart3 size={16} /> Croissance responsable</span>
+                          </div>
+                        </article>
+
+                        <article className="company-profile-panel">
+                          <h3>Engagement handicap</h3>
+                          <p>{selectedCompany.politique_handicap || "Politique handicap a completer dans le profil entreprise."}</p>
+                        </article>
+
+                        <article className="company-profile-panel">
+                          <h3>Equipe recrutement</h3>
+                          <div className="company-team-card">
+                            <span>{companyInitials(selectedCompany.contact_rh_nom || selectedCompany.nom)}</span>
+                            <div>
+                              <strong>{selectedCompany.contact_rh_nom || selectedCompany.nom || "Contact RH"}</strong>
+                              <small>{selectedCompany.contact_rh_email || selectedCompany.email || "Email non renseigne"}</small>
+                            </div>
+                          </div>
+                          <div className="company-contact-list">
+                            <span><Mail size={15} /> {selectedCompany.contact_rh_email || selectedCompany.email || "-"}</span>
+                            <span><Phone size={15} /> {selectedCompany.contact_rh_telephone || selectedCompany.telephone || "-"}</span>
+                            <span><Globe2 size={15} /> {website || "Site web non renseigne"}</span>
+                          </div>
+                        </article>
+
+                        <article className="company-profile-panel">
+                          <h3>Postes ouverts</h3>
+                          <div className="company-job-card">
+                            <strong>{selectedCompany.secteur_activite || "Recrutement inclusif"}</strong>
+                            <span>{companyName}</span>
+                            <small>Les offres actives sont consultables dans l&apos;espace offres.</small>
+                          </div>
+                        </article>
+
+                        <article className="company-profile-panel company-profile-panel-wide">
+                          <h3>Informations administratives</h3>
+                          <div className="company-admin-strip">
+                            <span>Patente <b>{selectedCompany.patente || "-"}</b></span>
+                            <span>RNE <b>{selectedCompany.rne || "-"}</b></span>
+                            <span>SIRET <b>{selectedCompany.siret || "-"}</b></span>
+                            <span>Profil public <b>{selectedCompany.profil_publique ? "Oui" : "Non"}</b></span>
+                          </div>
+                        </article>
+                      </section>
+                    </div>
+                  );
+                })() : null}
               </div>
             ) : (
               <div>
                 <div className="companies-modal-header">
                   <div>
-                    <p className="companies-kicker">{modalMode === "create" ? "New company" : "Edit company"}</p>
-                    <h2 className="companies-modal-title">{modalMode === "create" ? "Create company account" : "Update company account"}</h2>
-                    <p className="texte-secondaire">Fill in the account and company details in one pass.</p>
+                    <p className="companies-kicker">{modalMode === "create" ? "Nouvelle entreprise" : "Modifier l'entreprise"}</p>
+                    <h2 className="companies-modal-title">{modalMode === "create" ? "Creer un compte entreprise" : "Mettre a jour le compte entreprise"}</h2>
+                    <p className="texte-secondaire">Renseignez les informations du compte et de l'entreprise dans un seul formulaire.</p>
                   </div>
-                  <button className="companies-modal-close" type="button" onClick={closeModal} aria-label="Close">
+                  <button className="companies-modal-close" type="button" onClick={closeModal} aria-label="Fermer">
                     <X aria-hidden="true" />
                   </button>
                 </div>
 
                 {modalLoading ? (
-                  <p>Loading...</p>
+                  <p>Chargement...</p>
                 ) : (
                   <form
                     className="company-form"
@@ -1244,7 +1552,7 @@ function AdminCompaniesPage() {
 
                     <div className="company-form-grid">
                       <div className="company-form-field">
-                        <label htmlFor="company-contact-name">Contact name</label>
+                        <label htmlFor="company-contact-name">Nom du contact</label>
                         <input id="company-contact-name" value={form.nom} onChange={(event) => setForm((current) => ({ ...current, nom: event.target.value }))} />
                       </div>
                       <div className="company-form-field">
@@ -1252,19 +1560,19 @@ function AdminCompaniesPage() {
                         <input id="company-email" type="email" value={form.email} onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))} />
                       </div>
                       <div className="company-form-field">
-                        <label htmlFor="company-phone">Phone</label>
+                        <label htmlFor="company-phone">Telephone</label>
                         <input id="company-phone" value={form.telephone} onChange={(event) => setForm((current) => ({ ...current, telephone: event.target.value }))} />
                       </div>
                       <div className="company-form-field">
-                        <label htmlFor="company-address">Address</label>
+                        <label htmlFor="company-address">Adresse</label>
                         <input id="company-address" value={form.addresse} onChange={(event) => setForm((current) => ({ ...current, addresse: event.target.value }))} />
                       </div>
                       <div className="company-form-field">
-                        <label htmlFor="company-name">Company name</label>
+                        <label htmlFor="company-name">Nom de l'entreprise</label>
                         <input id="company-name" value={form.nom_entreprise} onChange={(event) => setForm((current) => ({ ...current, nom_entreprise: event.target.value }))} />
                       </div>
                       <div className="company-form-field">
-                        <label htmlFor="company-date">Founding date</label>
+                        <label htmlFor="company-date">Date de creation</label>
                         <input id="company-date" type="date" value={form.date_fondation} onChange={(event) => setForm((current) => ({ ...current, date_fondation: event.target.value }))} />
                       </div>
                       <div className="company-form-field">
@@ -1276,11 +1584,11 @@ function AdminCompaniesPage() {
                         <input id="company-rne" value={form.rne} onChange={(event) => setForm((current) => ({ ...current, rne: event.target.value }))} />
                       </div>
                       <div className="company-form-field">
-                        <label htmlFor="company-sector">Sector</label>
+                        <label htmlFor="company-sector">Secteur</label>
                         <input id="company-sector" value={form.secteur_activite} onChange={(event) => setForm((current) => ({ ...current, secteur_activite: event.target.value }))} />
                       </div>
                       <div className="company-form-field">
-                        <label htmlFor="company-size">Company size</label>
+                        <label htmlFor="company-size">Taille de l'entreprise</label>
                         <input id="company-size" value={form.taille_entreprise} onChange={(event) => setForm((current) => ({ ...current, taille_entreprise: event.target.value }))} />
                       </div>
                       <div className="company-form-field">
@@ -1288,27 +1596,27 @@ function AdminCompaniesPage() {
                         <input id="company-siret" value={form.siret} onChange={(event) => setForm((current) => ({ ...current, siret: event.target.value }))} />
                       </div>
                       <div className="company-form-field">
-                        <label htmlFor="company-site">Website</label>
+                        <label htmlFor="company-site">Site web</label>
                         <input id="company-site" value={form.site_web} onChange={(event) => setForm((current) => ({ ...current, site_web: event.target.value }))} />
                       </div>
                       <div className="company-form-field">
-                        <label htmlFor="company-rh-name">RH contact</label>
+                        <label htmlFor="company-rh-name">Contact RH</label>
                         <input id="company-rh-name" value={form.contact_rh_nom} onChange={(event) => setForm((current) => ({ ...current, contact_rh_nom: event.target.value }))} />
                       </div>
                       <div className="company-form-field">
-                        <label htmlFor="company-rh-email">RH email</label>
+                        <label htmlFor="company-rh-email">Email RH</label>
                         <input id="company-rh-email" type="email" value={form.contact_rh_email} onChange={(event) => setForm((current) => ({ ...current, contact_rh_email: event.target.value }))} />
                       </div>
                       <div className="company-form-field">
-                        <label htmlFor="company-rh-phone">RH phone</label>
+                        <label htmlFor="company-rh-phone">Telephone RH</label>
                         <input id="company-rh-phone" value={form.contact_rh_telephone} onChange={(event) => setForm((current) => ({ ...current, contact_rh_telephone: event.target.value }))} />
                       </div>
                       <div className="company-form-field">
-                        <label htmlFor="company-employees">Employees</label>
+                        <label htmlFor="company-employees">Employes</label>
                         <input id="company-employees" type="number" min="0" value={form.nbr_employe} onChange={(event) => setForm((current) => ({ ...current, nbr_employe: event.target.value }))} />
                       </div>
                       <div className="company-form-field">
-                        <label htmlFor="company-employees-handicap">Employees with disability</label>
+                        <label htmlFor="company-employees-handicap">Employes en situation de handicap</label>
                         <input id="company-employees-handicap" type="number" min="0" value={form.nbr_employe_handicape} onChange={(event) => setForm((current) => ({ ...current, nbr_employe_handicape: event.target.value }))} />
                       </div>
                       <div className="company-form-field company-form-field--full">
@@ -1316,27 +1624,27 @@ function AdminCompaniesPage() {
                         <textarea id="company-description" rows={4} value={form.description} onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))} />
                       </div>
                       <div className="company-form-field company-form-field--full">
-                        <label htmlFor="company-policy">Disability policy</label>
+                        <label htmlFor="company-policy">Politique handicap</label>
                         <textarea id="company-policy" rows={4} value={form.politique_handicap} onChange={(event) => setForm((current) => ({ ...current, politique_handicap: event.target.value }))} />
                       </div>
                       <div className="company-form-field">
-                        <label htmlFor="company-public">Public profile</label>
+                        <label htmlFor="company-public">Profil public</label>
                         <select
                           id="company-public"
                           value={form.profil_publique ? "yes" : "no"}
                           onChange={(event) => setForm((current) => ({ ...current, profil_publique: event.target.value === "yes" }))}
                         >
-                          <option value="no">No</option>
-                          <option value="yes">Yes</option>
+                          <option value="no">Non</option>
+                          <option value="yes">Oui</option>
                         </select>
                       </div>
                     </div>
 
                     <div className="company-form-actions">
                       <Button variant="secondary" type="button" onClick={closeModal}>
-                        Cancel
+                        Annuler
                       </Button>
-                      <Button type="submit">{modalMode === "create" ? "Create company" : "Save changes"}</Button>
+                      <Button type="submit">{modalMode === "create" ? "Creer l'entreprise" : "Enregistrer les modifications"}</Button>
                     </div>
                   </form>
                 )}

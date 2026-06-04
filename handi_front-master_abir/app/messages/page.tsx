@@ -3,6 +3,7 @@
 import { useEffect, useEffectEvent, useMemo, useRef, useState, type ChangeEvent } from "react";
 import { AuthenticatedWorkspace } from "@/components/authenticated-workspace";
 import { useI18n } from "@/components/i18n-provider";
+import { Heading } from "@/components/ui/typography";
 import { useAuth } from "@/hooks/useAuth";
 import { authenticatedFetch, getAuthToken } from "@/lib/auth-utils";
 import { construireUrlApi } from "@/lib/config";
@@ -294,7 +295,8 @@ function MessagesPage() {
   const recordingTimerRef = useRef<number | null>(null);
   const sseRef = useRef<EventSource | null>(null);
 
-  const localeCode = locale === "ar" ? "ar-TN" : locale === "en" ? "en-US" : "fr-FR";
+  const activeLocale = String(locale);
+  const localeCode = activeLocale === "ar" ? "ar-TN" : activeLocale === "en" ? "en-US" : "fr-FR";
   const timeFormatter = useMemo(
     () =>
       new Intl.DateTimeFormat(localeCode, {
@@ -748,11 +750,11 @@ function MessagesPage() {
       <section className="msg-shell">
         <header className="msg-header">
           <div className="msg-header-copy">
-            <h1>{t("messages.badge")}</h1>
+            <Heading as="h1" variant="page">{t("messages.badge")}</Heading>
             <p>{t("messages.headerSubtitle")}</p>
           </div>
 
-          <label className="msg-top-search">
+          <label className="msg-top-search ht-search-control">
             <span aria-hidden="true">
               <SearchIcon />
             </span>
@@ -765,6 +767,10 @@ function MessagesPage() {
           </label>
 
           <div className="msg-header-actions">
+            <span className="msg-live-pill">
+              <i aria-hidden="true" />
+              {t("messages.activeNow")}
+            </span>
             <div className="msg-user-chip" aria-label={utilisateur?.nom || t("messages.messagingSpace")}>
               <span>{utilisateur?.nom?.slice(0, 2).toUpperCase() || "U"}</span>
             </div>
@@ -776,23 +782,16 @@ function MessagesPage() {
         <div className={`msg-grid ${hasActiveConversation ? "has-active" : "no-active"}`}>
           <aside className="msg-conversations">
             <div className="msg-panel-head">
-              <h2>{t("messages.conversationsTitle")}</h2>
+              <div>
+                <Heading as="h2" variant="card">{t("messages.conversationsTitle")}</Heading>
+                <span className="msg-panel-meta">
+                  {filteredConversations.length} conversation{filteredConversations.length > 1 ? "s" : ""}
+                </span>
+              </div>
               <button type="button" className="msg-icon-btn" aria-label={t("messages.filtersAction")}>
                 <FilterIcon />
               </button>
             </div>
-
-            <label className="msg-search-input">
-              <span aria-hidden="true">
-                <SearchIcon />
-              </span>
-              <input
-                value={threadSearch}
-                onChange={(event) => setThreadSearch(event.target.value)}
-                placeholder={t("messages.searchThreads")}
-                aria-label={t("messages.searchThreads")}
-              />
-            </label>
 
             <button type="button" className="msg-new-conversation" onClick={ouvrirComposeur}>
               <span aria-hidden="true">
@@ -822,7 +821,8 @@ function MessagesPage() {
                       }}
                     >
                       <div className="msg-thread-avatar">
-                        {(conversation.participant_names || "C").slice(0, 1).toUpperCase()}
+                        <span>{(conversation.participant_names || "C").slice(0, 1).toUpperCase()}</span>
+                        <i className="msg-presence-dot" aria-hidden="true" />
                       </div>
                       <div className="msg-thread-copy">
                         <div className="msg-thread-line">
@@ -858,7 +858,10 @@ function MessagesPage() {
                 >
                   <BackIcon />
                 </button>
-                <div className="msg-thread-avatar">{activeConversationInitial}</div>
+                <div className="msg-thread-avatar msg-chat-avatar">
+                  <span>{activeConversationInitial}</span>
+                  <i className="msg-presence-dot" aria-hidden="true" />
+                </div>
                 <div>
                   <h2>{activeConversationName}</h2>
                   <p>{hasActiveConversation ? t("messages.activeNow") : t("messages.workspaceDescription")}</p>
@@ -1106,29 +1109,79 @@ function MessagesPage() {
       </section>
 
       <style jsx>{`
+        :global(.app-shell:has(.msg-v4)) {
+          block-size: 100dvh;
+          min-block-size: 100dvh;
+          overflow: hidden;
+        }
+
+        :global(.app-workspace-page:has(.msg-v4)) {
+          display: flex;
+          flex-direction: column;
+          flex: 1 1 auto;
+          block-size: 100%;
+          min-block-size: 0;
+          overflow: hidden;
+        }
+
+        :global(.app-main:has(.msg-v4)) {
+          display: flex;
+          flex-direction: column;
+          block-size: 100%;
+          min-block-size: 0;
+          overflow: hidden;
+          padding: var(--shell-content-top) 0 0;
+        }
+
+        :global(.page-shell:has(.msg-v4)) {
+          flex: 1 1 auto;
+          block-size: 100%;
+          min-block-size: 0;
+          overflow: hidden;
+        }
+
+        :global(.app-shell-candidat .app-main:has(.msg-v4)),
+        :global(.app-shell-admin .app-main:has(.msg-v4)),
+        :global(.app-shell-entreprise .app-main:has(.msg-v4)) {
+          block-size: 100%;
+          min-block-size: 0;
+        }
+
         .msg-v4 {
           --bg: #f8f6fb;
           --surface: #ffffff;
-          --text: #20163f;
-          --muted: #6e6590;
-          --line: #e9e2f6;
-          --accent: #6d2a95;
-          --incoming: #f4f2f8;
-          background: var(--bg);
-          border-radius: 18px;
-          block-size: max(100%, calc(100dvh - 24px));
-          max-block-size: none;
-          min-block-size: calc(100dvh - 24px);
+          --surface-soft: #fbf9ff;
+          --surface-rail: #f4eff9;
+          --text: #221735;
+          --muted: #746a8d;
+          --line: #ebe4f4;
+          --line-soft: rgba(72, 29, 89, 0.09);
+          --accent: #4a1d59;
+          --accent-soft: #f3eaf7;
+          --incoming: #f3f0f7;
+          --online: #19b56b;
+          background: linear-gradient(180deg, #ffffff 0%, #faf8fd 100%);
+          border: 1px solid rgba(74, 29, 89, 0.08);
+          border-radius: 26px;
+          box-shadow: 0 22px 60px rgba(31, 24, 48, 0.08);
+          flex: 1 1 auto;
+          block-size: 100%;
+          min-block-size: 0;
           overflow: hidden;
-          font-family: Inter, Poppins, system-ui, -apple-system, sans-serif;
+          font-family: Inter, sans-serif;
         }
 
         .msg-shell {
-          display: grid;
-          grid-template-rows: auto minmax(0, 1fr);
-          gap: 10px;
+          display: flex;
+          flex-direction: column;
+          gap: 0;
           block-size: 100%;
-          padding: 6px;
+          min-block-size: 0;
+          padding: 0;
+          border: 0;
+          border-radius: inherit;
+          background: transparent;
+          box-shadow: none;
           overflow: hidden;
         }
 
@@ -1137,24 +1190,35 @@ function MessagesPage() {
           grid-template-columns: minmax(180px, 1fr) minmax(220px, 1.15fr) auto;
           align-items: center;
           gap: 14px;
-          border: 1px solid var(--line);
-          border-radius: 18px;
-          background: var(--surface);
-          padding: 14px 16px;
-          box-shadow: 0 8px 18px rgba(48, 23, 89, 0.05);
+          border: 0;
+          border-bottom: 1px solid var(--line-soft);
+          border-radius: 0;
+          background: rgba(255, 255, 255, 0.82);
+          backdrop-filter: none;
+          padding: 14px 18px;
+          box-shadow: none;
         }
 
         .msg-header-copy h1 {
           margin: 0;
-          font-size: 1.85rem;
+          font-size: 34px;
+          font-weight: 700;
           color: var(--text);
-          line-height: 1.15;
+          line-height: 1.1;
         }
 
         .msg-header-copy p {
           margin: 6px 0 0;
           color: var(--muted);
-          font-size: 0.94rem;
+          font-size: 0.88rem;
+        }
+
+        .msg-shell > :global(.message) {
+          flex: 0 0 auto;
+          margin: 8px 14px 0;
+          padding: 8px 10px;
+          border-radius: 12px;
+          font-size: 0.86rem;
         }
 
         .msg-top-search,
@@ -1163,11 +1227,12 @@ function MessagesPage() {
           grid-template-columns: auto minmax(0, 1fr);
           align-items: center;
           gap: 10px;
-          min-height: 46px;
-          border: 1px solid var(--line);
-          border-radius: 14px;
-          background: #fff;
-          padding: 0 12px;
+          min-height: 48px;
+          border: 1px solid rgba(74, 29, 89, 0.1);
+          border-radius: 999px;
+          background: var(--surface);
+          padding: 0 15px;
+          box-shadow: 0 10px 28px rgba(31, 24, 48, 0.04);
         }
 
         .msg-top-search span,
@@ -1210,16 +1275,47 @@ function MessagesPage() {
           gap: 10px;
         }
 
+        .msg-live-pill {
+          min-height: 34px;
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 0 12px;
+          border-radius: 999px;
+          background: #f0fbf5;
+          color: #087d49;
+          border: 1px solid rgba(25, 181, 107, 0.16);
+          font-size: 0.78rem;
+          font-weight: 700;
+          white-space: nowrap;
+        }
+
+        .msg-live-pill i {
+          inline-size: 8px;
+          block-size: 8px;
+          border-radius: 999px;
+          background: var(--online);
+          box-shadow: 0 0 0 4px rgba(25, 181, 107, 0.13);
+        }
+
         .msg-icon-btn {
-          inline-size: 40px;
-          block-size: 40px;
-          border: 1px solid rgba(91, 45, 145, 0.18);
-          border-radius: 12px;
-          background: rgba(45, 23, 77, 0.04);
-          color: #5b2d91;
+          inline-size: 42px;
+          block-size: 42px;
+          border: 1px solid rgba(74, 29, 89, 0.1);
+          border-radius: 15px;
+          background: var(--surface);
+          color: var(--accent);
           display: inline-grid;
           place-items: center;
           position: relative;
+          transition: transform 160ms ease, background 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+        }
+
+        .msg-icon-btn:hover:not(:disabled) {
+          transform: translateY(-1px);
+          background: var(--accent-soft);
+          border-color: rgba(74, 29, 89, 0.18);
+          box-shadow: 0 10px 20px rgba(31, 24, 48, 0.07);
         }
 
         .msg-icon-btn em {
@@ -1250,11 +1346,11 @@ function MessagesPage() {
         }
 
         .msg-user-chip {
-          inline-size: 40px;
-          block-size: 40px;
+          inline-size: 44px;
+          block-size: 44px;
           border-radius: 999px;
-          background: #efe9fb;
-          color: #4e326f;
+          background: linear-gradient(135deg, #f4eafa, #eadcf5);
+          color: var(--accent);
           display: inline-grid;
           place-items: center;
           overflow: hidden;
@@ -1270,8 +1366,9 @@ function MessagesPage() {
 
         .msg-grid {
           display: grid;
-          grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
-          gap: 14px;
+          grid-template-columns: minmax(280px, 320px) minmax(0, 1fr);
+          gap: 0;
+          flex: 1 1 auto;
           min-block-size: 0;
           block-size: 100%;
           overflow: hidden;
@@ -1279,18 +1376,21 @@ function MessagesPage() {
 
         .msg-conversations,
         .msg-chat {
-          border: 1px solid var(--line);
-          border-radius: 18px;
-          background: var(--surface);
-          box-shadow: 0 8px 18px rgba(48, 23, 89, 0.05);
+          border: 0;
+          border-radius: 0;
+          background: transparent;
+          box-shadow: none;
           min-block-size: 0;
+          block-size: 100%;
         }
 
         .msg-conversations {
           display: grid;
-          grid-template-rows: auto auto auto minmax(0, 1fr) auto;
-          gap: 10px;
-          padding: 14px;
+          grid-template-rows: auto auto minmax(0, 1fr) auto;
+          gap: 12px;
+          padding: 16px;
+          background: linear-gradient(180deg, #f9f6fd 0%, #f3eef8 100%);
+          border-right: 1px solid var(--line-soft);
           overflow: hidden;
         }
 
@@ -1301,17 +1401,29 @@ function MessagesPage() {
           gap: 10px;
         }
 
+        .msg-panel-head > div {
+          min-width: 0;
+          display: grid;
+          gap: 3px;
+        }
+
         .msg-panel-head h2 {
           margin: 0;
           font-size: 1.05rem;
           color: var(--text);
         }
 
+        .msg-panel-meta {
+          color: var(--muted);
+          font-size: 0.78rem;
+          font-weight: 600;
+        }
+
         .msg-new-conversation {
-          min-height: 42px;
-          border: 1px solid var(--app-primary);
-          border-radius: 12px;
-          background: var(--app-primary);
+          min-height: 44px;
+          border: 1px solid transparent;
+          border-radius: 15px;
+          background: linear-gradient(135deg, #4a1d59, #6d2a95);
           color: #fff;
           font-weight: 700;
           display: inline-flex;
@@ -1319,57 +1431,92 @@ function MessagesPage() {
           justify-content: center;
           gap: 8px;
           padding: 0 12px;
-          box-shadow: 0 14px 28px -16px rgba(var(--app-primary-rgb), 0.85);
+          box-shadow: 0 14px 30px -18px rgba(74, 29, 89, 0.95);
+          transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
         }
 
         .msg-new-conversation:hover {
-          background: var(--app-primary-hover);
-          border-color: var(--app-primary-hover);
+          transform: translateY(-1px);
+          background: linear-gradient(135deg, #552065, #7731a0);
+          border-color: transparent;
+          box-shadow: 0 16px 34px -18px rgba(74, 29, 89, 1);
         }
 
         .msg-thread-list {
-          display: grid;
-          gap: 8px;
-          align-content: start;
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
           min-block-size: 0;
           overflow: auto;
-          padding-right: 2px;
+          padding-right: 4px;
         }
 
         .msg-thread {
           inline-size: 100%;
           border: 1px solid transparent;
-          border-radius: 14px;
-          background: #fcfbff;
+          border-radius: 18px;
+          background: transparent;
           display: grid;
-          grid-template-columns: 38px minmax(0, 1fr) auto;
+          grid-template-columns: 42px minmax(0, 1fr) auto;
           align-items: center;
-          gap: 10px;
-          padding: 10px;
+          gap: 11px;
+          padding: 12px;
           text-align: left;
+          position: relative;
+          transition: transform 160ms ease, background 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
         }
 
         .msg-thread:hover {
-          background: #faf8ff;
-          border-color: #ddd2f0;
+          transform: translateY(-1px);
+          background: rgba(255, 255, 255, 0.78);
+          border-color: rgba(74, 29, 89, 0.1);
         }
 
         .msg-thread.is-active {
-          border-color: #d6c8ee;
-          background: #f6f1ff;
+          border-color: rgba(74, 29, 89, 0.13);
+          background: #ffffff;
+          box-shadow: 0 12px 26px rgba(31, 24, 48, 0.07);
+        }
+
+        .msg-thread.is-active::before {
+          content: "";
+          position: absolute;
+          inset-block: 16px;
+          inset-inline-start: 0;
+          inline-size: 3px;
+          border-radius: 999px;
+          background: var(--accent);
         }
 
         .msg-thread-avatar,
         .msg-bubble-avatar {
-          inline-size: 36px;
-          block-size: 36px;
+          inline-size: 40px;
+          block-size: 40px;
           border-radius: 50%;
-          background: #efe8fb;
-          color: #4e326f;
+          background: linear-gradient(135deg, #efe4f8, #d9c7ec);
+          color: var(--accent);
           display: inline-grid;
           place-items: center;
           font-size: 0.8rem;
           font-weight: 700;
+          position: relative;
+          box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.65);
+        }
+
+        .msg-thread-avatar span,
+        .msg-bubble-avatar span {
+          line-height: 1;
+        }
+
+        .msg-presence-dot {
+          position: absolute;
+          right: 1px;
+          bottom: 1px;
+          inline-size: 10px;
+          block-size: 10px;
+          border-radius: 999px;
+          background: var(--online);
+          border: 2px solid #ffffff;
         }
 
         .msg-thread-copy {
@@ -1385,7 +1532,8 @@ function MessagesPage() {
 
         .msg-thread-line strong {
           color: var(--text);
-          font-size: 0.92rem;
+          font-size: 0.93rem;
+          font-weight: 760;
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
@@ -1393,7 +1541,7 @@ function MessagesPage() {
 
         .msg-thread-line span,
         .msg-thread-copy p {
-          font-size: 0.79rem;
+          font-size: 0.78rem;
           color: var(--muted);
         }
 
@@ -1418,11 +1566,16 @@ function MessagesPage() {
         }
 
         .msg-empty-list {
-          border: 1px dashed #d7caec;
-          border-radius: 12px;
-          padding: 12px;
+          flex: 1 1 auto;
+          display: grid;
+          align-content: center;
+          justify-items: center;
+          border: 0;
+          border-radius: 14px;
+          padding: 18px 12px;
           color: var(--muted);
           text-align: center;
+          background: transparent;
         }
 
         .msg-empty-list strong {
@@ -1446,27 +1599,31 @@ function MessagesPage() {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          padding: 6px 2px 0;
+          padding: 8px 4px 0;
         }
 
         .msg-chat {
-          display: grid;
-          grid-template-rows: auto minmax(0, 1fr) auto;
-          gap: 10px;
-          padding: 14px;
+          display: flex;
+          flex-direction: column;
+          gap: 0;
+          padding: 0;
           overflow: hidden;
+          background: linear-gradient(180deg, #ffffff 0%, #fdfbff 100%);
         }
 
         .msg-chat-head {
-          min-height: 62px;
-          border: 1px solid var(--line);
-          border-radius: 14px;
-          padding: 10px 12px;
+          flex-shrink: 0;
+          min-height: 68px;
+          border: 0;
+          border-bottom: 1px solid var(--line-soft);
+          border-radius: 0;
+          padding: 12px 18px;
           display: flex;
           align-items: center;
           justify-content: space-between;
           gap: 14px;
-          background: #fff;
+          background: rgba(255, 255, 255, 0.9);
+          backdrop-filter: none;
         }
 
         .msg-chat-contact {
@@ -1479,7 +1636,8 @@ function MessagesPage() {
         .msg-chat-contact h2 {
           margin: 0;
           color: var(--text);
-          font-size: 1.02rem;
+          font-size: 1rem;
+          font-weight: 760;
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
@@ -1487,8 +1645,9 @@ function MessagesPage() {
 
         .msg-chat-contact p {
           margin: 2px 0 0;
-          color: #2f9f57;
+          color: #0b8f55;
           font-size: 0.8rem;
+          font-weight: 600;
         }
 
         .msg-chat-actions {
@@ -1508,41 +1667,61 @@ function MessagesPage() {
         }
 
         .msg-messages {
+          flex: 1 1 auto;
           min-block-size: 0;
-          overflow: auto;
-          border: 1px solid var(--line);
-          border-radius: 14px;
-          background: #fff;
-          padding: 16px;
-          display: grid;
-          align-content: start;
-          gap: 14px;
+          overflow-y: auto;
+          overflow-x: hidden;
+          border: 0;
+          border-radius: 0;
+          background: linear-gradient(180deg, #fff 0%, #fbf9ff 100%);
+          padding: 22px 24px 16px;
+          display: flex;
+          flex-direction: column;
+          justify-content: flex-start;
+          gap: 12px;
+        }
+
+        .msg-messages.is-empty {
+          justify-content: center;
         }
 
         .msg-empty-chat {
-          align-self: center;
-          justify-self: center;
+          margin: auto;
           text-align: center;
           max-width: 420px;
           display: grid;
-          gap: 8px;
+          justify-items: center;
+          gap: 12px;
+          background: transparent;
         }
 
         .msg-empty-chat strong {
           color: var(--text);
+          font-size: 1.05rem;
         }
 
         .msg-empty-chat p {
           margin: 0;
           color: var(--muted);
           line-height: 1.5;
+          max-width: 340px;
         }
 
         .msg-empty-visual {
-          inline-size: 120px;
-          block-size: 120px;
+          inline-size: 76px;
+          block-size: 76px;
           margin-inline: auto;
-          color: #7d57d6;
+          color: var(--accent);
+          display: grid;
+          place-items: center;
+          border-radius: 50%;
+          background: #f5ecfb;
+          box-shadow: inset 0 0 0 1px rgba(74, 29, 89, 0.08), 0 12px 28px rgba(31, 24, 48, 0.06);
+        }
+
+        .msg-empty-visual :global(svg) {
+          inline-size: 44px;
+          block-size: 44px;
         }
 
         .msg-bubble-row {
@@ -1557,9 +1736,10 @@ function MessagesPage() {
 
         .msg-bubble {
           max-inline-size: min(540px, 84%);
-          border-radius: 16px;
+          border-radius: 18px 18px 18px 7px;
           background: var(--incoming);
-          border: 1px solid #ece5f8;
+          border: 0;
+          box-shadow: 0 8px 18px rgba(31, 24, 48, 0.05);
           padding: 12px 14px;
         }
 
@@ -1567,6 +1747,14 @@ function MessagesPage() {
           background: linear-gradient(135deg, #6d2a95, #7e42be);
           color: #fff;
           border-color: transparent;
+          border-radius: 18px 18px 7px 18px;
+        }
+
+        .msg-bubble.is-mine :is(p, strong, a, small),
+        .msg-bubble.is-mine .msg-attachment-copy,
+        .msg-bubble.is-mine .msg-attachment-copy strong,
+        .msg-bubble.is-mine .msg-attachment-copy span {
+          color: #ffffff;
         }
 
         .msg-bubble p {
@@ -1642,8 +1830,12 @@ function MessagesPage() {
 
         .msg-composer-wrap {
           position: relative;
+          flex-shrink: 0;
           display: grid;
           gap: 8px;
+          padding: 12px 18px 18px;
+          border-top: 1px solid var(--line-soft);
+          background: rgba(255, 255, 255, 0.92);
         }
 
         .msg-hidden-file {
@@ -1660,8 +1852,8 @@ function MessagesPage() {
           grid-template-columns: 34px minmax(0, 1fr) auto;
           gap: 10px;
           align-items: center;
-          border: 1px solid #eadff8;
-          background: #fbf8ff;
+          border: 1px solid rgba(109, 42, 149, 0.08);
+          background: #fbf9ff;
           border-radius: 14px;
           padding: 8px 10px;
         }
@@ -1703,13 +1895,14 @@ function MessagesPage() {
         .msg-composer {
           display: grid;
           grid-template-columns: auto minmax(0, 1fr) auto auto auto;
-          min-height: 60px;
-          padding: 8px;
+          min-height: 62px;
+          padding: 8px 8px 8px 10px;
           gap: 8px;
           align-items: center;
-          border: 1px solid var(--line);
-          border-radius: 18px;
-          background: #fff;
+          border: 1px solid rgba(74, 29, 89, 0.11);
+          border-radius: 22px;
+          background: var(--surface);
+          box-shadow: 0 12px 34px rgba(31, 24, 48, 0.06);
         }
 
         .msg-composer-textarea {
@@ -1772,20 +1965,23 @@ function MessagesPage() {
         }
 
         .msg-send {
-          inline-size: 40px;
-          block-size: 40px;
+          inline-size: 44px;
+          block-size: 44px;
           border: 0;
-          border-radius: 12px;
-          background: linear-gradient(135deg, #2d174d, #5b2d91);
+          border-radius: 16px;
+          background: linear-gradient(135deg, #4a1d59, #8a45bf);
           color: #fff;
           display: inline-grid;
           place-items: center;
           align-self: center;
-          box-shadow: 0 10px 24px rgba(45, 23, 77, 0.18);
+          box-shadow: 0 12px 24px rgba(74, 29, 89, 0.22);
+          transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
         }
 
         .msg-send:hover {
-          background: linear-gradient(135deg, #35205a, #6937a3);
+          transform: translateY(-1px);
+          background: linear-gradient(135deg, #552065, #9650ca);
+          box-shadow: 0 14px 28px rgba(74, 29, 89, 0.26);
         }
 
         .messages-studio-modal-close,
@@ -1793,31 +1989,35 @@ function MessagesPage() {
           min-height: 40px;
           padding: 0 14px;
           border-radius: 12px;
-          border: 1px solid rgba(91, 45, 145, 0.18);
-          background: rgba(45, 23, 77, 0.04);
-          color: #2d174d;
+          border: 1px solid #e5ddf0;
+          background: #ffffff;
+          color: #2a1d3d;
           font-weight: 600;
         }
 
         .messages-studio-modal-close:hover,
         .messages-studio-ghost:hover {
-          background: rgba(91, 45, 145, 0.08);
-          border-color: rgba(91, 45, 145, 0.26);
+          background: #f8f5fc;
+          border-color: #e5ddf0;
         }
 
         .messages-studio-primary {
           min-height: 40px;
           padding: 0 16px;
           border-radius: 12px;
-          border: 1px solid rgba(91, 45, 145, 0.18);
-          background: linear-gradient(135deg, #2d174d, #5b2d91);
-          color: #fff;
+          border: 1px solid transparent;
+          background: #4a154b;
+          color: #ffffff;
           font-weight: 700;
-          box-shadow: 0 10px 24px rgba(45, 23, 77, 0.14);
+          box-shadow: 0 8px 18px rgba(74, 21, 75, 0.14);
         }
 
         .messages-studio-primary:hover {
-          background: linear-gradient(135deg, #35205a, #6937a3);
+          background: #5b1a5e;
+        }
+
+        .messages-studio-primary:active {
+          background: #3a103a;
         }
 
         .messages-studio-admin-chip {
@@ -1886,7 +2086,7 @@ function MessagesPage() {
         @media (max-width: 960px) {
           .msg-v4 {
             min-block-size: 0;
-            block-size: calc(100dvh - 18px);
+            block-size: 100%;
           }
 
           .msg-grid {
@@ -1908,7 +2108,7 @@ function MessagesPage() {
 
         @media (max-width: 640px) {
           .msg-v4 {
-            border-radius: 12px;
+            border-radius: 18px;
           }
 
           .msg-header {
@@ -1916,12 +2116,27 @@ function MessagesPage() {
           }
 
           .msg-header-copy h1 {
-            font-size: 1.45rem;
+            font-size: 28px;
           }
 
-          .msg-conversations,
-          .msg-chat {
-            padding: 12px;
+          .msg-header-copy p,
+          .msg-live-pill {
+            display: none;
+          }
+
+          .msg-grid {
+            min-inline-size: 0;
+          }
+
+          .msg-conversations {
+            padding: 10px;
+          }
+
+          .msg-chat-head,
+          .msg-messages,
+          .msg-composer-wrap {
+            padding-left: 12px;
+            padding-right: 12px;
           }
 
           .msg-bubble {

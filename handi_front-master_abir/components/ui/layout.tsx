@@ -105,7 +105,7 @@ export function AuthShell({
 }
 
 interface PageHeaderProps {
-  badge: string;
+  badge?: string;
   title: string;
   description: string;
   actions?: ReactNode;
@@ -117,7 +117,7 @@ export function PageHeader({ badge, title, description, actions, tone = "default
     return (
       <section className="page-header-card">
         <div className="page-header-copy">
-          <p className="badge">{badge}</p>
+          {badge ? <p className="badge">{badge}</p> : null}
           <h1 className="page-title page-title-sm">{title}</h1>
           <p className="page-description">{description}</p>
         </div>
@@ -129,7 +129,7 @@ export function PageHeader({ badge, title, description, actions, tone = "default
   return (
     <header className="page-header">
       <div className="page-header-copy">
-        <p className="badge">{badge}</p>
+        {badge ? <p className="badge">{badge}</p> : null}
         <h1 className="page-title page-title-sm">{title}</h1>
         <p className="page-description">{description}</p>
       </div>

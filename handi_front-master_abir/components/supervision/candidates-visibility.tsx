@@ -10,7 +10,7 @@ export function CandidatesVisibilityView() {
   const candidates = useSupervisionQuery<VisibleCandidate[]>("/candidates");
 
   if (candidates.loading) {
-    return <LoadingState title="Loading candidate supervision view" description="Preparing privacy-safe visibility over shortlisted and hired profiles." />;
+    return <LoadingState title="Chargement de la vue candidats" description="Preparation de la visibilite des profils en preselection et des profils recrutes." />;
   }
 
   if (candidates.error || !candidates.data) {

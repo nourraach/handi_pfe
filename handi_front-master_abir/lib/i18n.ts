@@ -1,4 +1,4 @@
-export const locales = ["fr", "en", "ar"] as const;
+export const locales = ["fr"] as const;
 
 export type Locale = (typeof locales)[number];
 
@@ -6,38 +6,24 @@ export const defaultLocale: Locale = "fr";
 
 export const localeDirection: Record<Locale, "ltr" | "rtl"> = {
   fr: "ltr",
-  en: "ltr",
-  ar: "rtl",
 };
 
 type TranslationValue = string | TranslationTree;
 type TranslationTree = { [key: string]: TranslationValue };
 
-export const translations: Record<Locale, TranslationTree> = {
+const translations = {
   fr: {
     common: {
-      brandTagline: "plateforme de recrutement inclusive",
-      language: "Langue",
-      languages: {
+      localeNames: {
         fr: "Français",
-        en: "English",
         ar: "العربية",
       },
       actions: {
-        open: "Ouvrir",
-        close: "Fermer",
-        search: "Rechercher",
-        continue: "Continuer",
-        signOut: "Se déconnecter",
-        signIn: "Se connecter",
-        getStarted: "Commencer",
-        back: "Retour",
-        refresh: "Actualiser",
-        save: "Enregistrer",
         cancel: "Annuler",
+        close: "Fermer",
+        continue: "Continuer",
+        save: "Enregistrer",
         edit: "Modifier",
-        add: "Ajouter",
-        upload: "Téléverser",
         delete: "Supprimer",
         send: "Envoyer",
         start: "Démarrer",
@@ -67,28 +53,28 @@ export const translations: Record<Locale, TranslationTree> = {
     },
     navbar: {
       workspace: "Espace",
-      messages: "Messages",
+      messages: "Messagerie",
       notifications: "Notifications",
       exploreJobs: "Explorer les offres",
       jobs: "Offres",
-      favorites: "Saved jobs",
+      favorites: "Offres enregistrées",
       applications: "Candidatures",
       interviews: "Entretiens",
-      cvBuilder: "Créateur de CV",
+      cvBuilder: "CV",
       social: "Social",
       assessments: "Évaluations",
-      insights: "Aperçus",
-      reportsRequests: "Rapports et demandes",
+      insights: "Analyse IA",
+      reportsRequests: "Rapports",
       applicants: "Candidats",
-      openRoles: "Postes ouverts",
+      openRoles: "Offres ouvertes",
       supervision: "Supervision",
       profile: "Profil",
       accounts: "Comptes",
       statistics: "Statistiques",
-      manageRoles: "Gérer les postes",
+      manageRoles: "Gérer les offres",
       openSupervision: "Ouvrir la supervision",
       openProfile: "Ouvrir le profil",
-      openMessages: "Ouvrir les messages",
+      openMessages: "Ouvrir la messagerie",
       menu: "Menu",
       expandSidebar: "Développer la barre latérale",
       collapseSidebar: "Réduire la barre latérale",
@@ -960,7 +946,7 @@ export const translations: Record<Locale, TranslationTree> = {
         accessibilityText:
           "A more accessible platform for profile verification, inclusive hiring, and legal follow-up.",
       },
-      backToLanding: "Return to landing page",
+      backToLanding: "Retour à la page d'accueil",
     },
     landing: {
       nav: {
@@ -1089,14 +1075,14 @@ export const translations: Record<Locale, TranslationTree> = {
             "Stay close to your CV, your messages, and your progress without losing your rhythm.",
         },
         quickLinks: {
-          jobsTitle: "Browse jobs",
-          jobsText: "Explore fresh opportunities matched to your profile.",
-          applicationsTitle: "Applications",
-          applicationsText: "Check where each application stands right now.",
-          cvTitle: "CV builder",
-          cvText: "Polish your story before recruiters open your profile.",
-          messagesTitle: "Messages",
-          messagesText: "Stay connected with companies and admins clearly.",
+          jobsTitle: "Voir les offres",
+          jobsText: "Explorez les opportunités correspondant à votre profil.",
+          applicationsTitle: "Candidatures",
+          applicationsText: "Suivez l'état de chaque candidature en temps réel.",
+          cvTitle: "CV",
+          cvText: "Mettez votre parcours en valeur avant l'ouverture de votre profil.",
+          messagesTitle: "Messagerie",
+          messagesText: "Restez en lien avec les entreprises et les administrateurs.",
         },
         popularCards: {
           designTitle: "Web design path",
@@ -1106,15 +1092,15 @@ export const translations: Record<Locale, TranslationTree> = {
           interviewTitle: "Interview studio",
           interviewText: "Prepare answers, check timing, and feel more ready.",
         },
-        loadStatsError: "Unable to load your statistics.",
-        shortlistedLabel: "Shortlisted",
-        acceptedLabel: "Accepted",
-        open: "Open",
+        loadStatsError: "Impossible de charger vos statistiques.",
+        shortlistedLabel: "Présélection",
+        acceptedLabel: "Acceptées",
+        open: "Ouvrir",
       },
       workspace: {
-        openSection: "Open section",
-        openNextStep: "Open next step",
-        oneSystemBadge: "One visual system",
+        openSection: "Ouvrir la section",
+        openNextStep: "Ouvrir la prochaine étape",
+        oneSystemBadge: "Un système visuel",
         oneSystemTitle: "The candidate homepage now sets the visual rhythm for the rest of the product.",
         oneSystemDescription:
           "You now move through the same surfaces, spacing, rounded cards, and visual hierarchy across the workspace instead of switching between disconnected interfaces.",
@@ -1144,24 +1130,24 @@ export const translations: Record<Locale, TranslationTree> = {
           },
         },
         admin: {
-          badge: "Admin workspace",
+          badge: "Espace administrateur",
           title: "Supervise accounts, assessments, and platform activity through one unified interface.",
           description:
             "The admin side now follows the same cards, spacing, visual hierarchy, and interaction style as the candidate homepage.",
           actions: {
-            accountsTitle: "Open accounts",
-            accountsText: "Review pending requests and keep access clean.",
-            usersTitle: "Manage users",
-            usersText: "Update roles, status, and account settings.",
-            statsTitle: "Review statistics",
-            statsText: "Track platform performance and workflow trends.",
+            accountsTitle: "Ouvrir les comptes",
+            accountsText: "Examinez les demandes en attente et gardez les accès maîtrisés.",
+            usersTitle: "Gérer les utilisateurs",
+            usersText: "Mettez à jour les rôles, les statuts et les paramètres de compte.",
+            statsTitle: "Voir les statistiques",
+            statsText: "Suivez la performance de la plateforme et les tendances des parcours.",
           },
           stats: {
-            pendingRequests: "Pending requests",
-            activeUsers: "Active users",
-            totalApplications: "Tracked applications",
-            complianceReports: "Compliance reports",
-            realDataHint: "Real data",
+            pendingRequests: "Demandes en attente",
+            activeUsers: "Utilisateurs actifs",
+            totalApplications: "Candidatures suivies",
+            complianceReports: "Rapports de conformité",
+            realDataHint: "Données réelles",
           },
         },
         inspecteur: {

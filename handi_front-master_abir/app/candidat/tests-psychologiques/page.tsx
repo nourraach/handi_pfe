@@ -205,7 +205,8 @@ function CandidateAssessmentsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [testsPage, setTestsPage] = useState(1);
 
-  const localeCode = locale === "ar" ? "ar-TN" : locale === "en" ? "en-US" : "fr-FR";
+  const activeLocale = String(locale);
+  const localeCode = activeLocale === "ar" ? "ar-TN" : activeLocale === "en" ? "en-US" : "fr-FR";
   const dateFormatter = useMemo(
     () =>
       new Intl.DateTimeFormat(localeCode, {
@@ -221,8 +222,8 @@ function CandidateAssessmentsPage() {
       { key: "all", label: "Tous" },
       { key: "pending", label: "A passer" },
       { key: "in_progress", label: "En cours" },
-      { key: "completed", label: "Completes" },
-      { key: "recommended", label: "Recommandes" },
+      { key: "completed", label: "Terminés" },
+      { key: "recommended", label: "Recommandés" },
     ],
     [],
   );
@@ -588,11 +589,11 @@ function CandidateAssessmentsPage() {
         }
 
         .tests-page__single-card {
-          background: #ffffff;
-          border: 1px solid rgba(109, 42, 149, 0.08);
-          border-radius: 22px;
-          padding: 16px;
-          box-shadow: 0 12px 32px rgba(80, 44, 133, 0.06);
+          background: transparent;
+          border: 0;
+          border-radius: 0;
+          padding: 0;
+          box-shadow: none;
           display: flex;
           flex-direction: column;
           gap: 14px;
@@ -1019,9 +1020,9 @@ function TestCard({
       <div className="test-card__status-column">
         {isCompleted ? (
           <>
-            <span className="test-card__status-badge is-completed">Complete</span>
+            <span className="test-card__status-badge is-completed">Terminé</span>
             <strong>{result?.score ?? 0}%</strong>
-            <small>{result?.dateLabel ? `Complete le ${result.dateLabel}` : "Complete"}</small>
+            <small>{result?.dateLabel ? `Terminé le ${result.dateLabel}` : "Terminé"}</small>
           </>
         ) : isBlockedByWindow ? (
           <>

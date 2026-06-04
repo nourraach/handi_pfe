@@ -209,10 +209,10 @@ const styles = `
   }
 
   .test-create-btn--primary {
-    border-color: #3d0456;
+    border-color: transparent;
     color: #ffffff;
-    background: #3f005b;
-    box-shadow: 0 12px 24px rgba(63, 0, 91, 0.24);
+    background: #4a154b;
+    box-shadow: 0 8px 18px rgba(74, 21, 75, 0.14);
   }
 
   .test-create-btn--soft {

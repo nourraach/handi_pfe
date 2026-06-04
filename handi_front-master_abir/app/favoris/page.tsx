@@ -361,13 +361,13 @@ function FavorisPage() {
       const offresData = await offresRes.json().catch(() => ({}));
 
       if (!favorisRes.ok) {
-        throw new Error(favorisData.message || "Unable to load favorites.");
+        throw new Error(favorisData.message || "Impossible de charger les offres enregistrees.");
       }
 
       setFavoris(Array.isArray(favorisData.donnees) ? favorisData.donnees : []);
       setOffres(Array.isArray(offresData.donnees?.offres) ? offresData.donnees.offres : []);
     } catch (error: unknown) {
-      setErreur(error instanceof Error ? error.message : "Unable to load favorites.");
+      setErreur(error instanceof Error ? error.message : "Impossible de charger les offres enregistrees.");
     } finally {
       setLoading(false);
     }
@@ -378,14 +378,14 @@ function FavorisPage() {
       const res = await authenticatedFetch(construireUrlApi(`/api/favoris/${idOffre}`), { method: "DELETE" });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.message || "Unable to remove this favorite.");
+        throw new Error(data.message || "Impossible de retirer cette offre des enregistrements.");
       }
       setFavoris((prev) => prev.filter((f) => f.id_offre !== idOffre));
       if (selectedOffre?.id_offre === idOffre) {
         setSelectedOffre(null);
       }
     } catch (error: unknown) {
-      setErreur(error instanceof Error ? error.message : "Unable to remove this favorite.");
+      setErreur(error instanceof Error ? error.message : "Impossible de retirer cette offre des enregistrements.");
     }
   };
 
@@ -401,10 +401,10 @@ function FavorisPage() {
         return {
           favori,
           offre,
-          title: favori.titre || offre?.titre || "Opportunity",
-          company: favori.nom_entreprise || offre?.nom_entreprise || "Company",
-          location: offre?.localisation || "Location not specified",
-          contract: offre?.type_poste ? offre.type_poste.toUpperCase() : "Contract not specified",
+          title: favori.titre || offre?.titre || "Offre",
+          company: favori.nom_entreprise || offre?.nom_entreprise || "Entreprise",
+          location: offre?.localisation || "Localisation non renseignée",
+          contract: offre?.type_poste ? offre.type_poste.toUpperCase() : "Contrat non renseigné",
         };
       }),
     [favoris, offresById],
@@ -424,7 +424,7 @@ function FavorisPage() {
   }, [favoriteCards, search]);
 
   if (loading) {
-    return <LoadingState title="Loading your favorites" description="Collecting saved opportunities from your workspace." />;
+    return <LoadingState title="Chargement de vos offres enregistrées" description="Récupération des offres sauvegardées dans votre espace." />;
   }
 
   return (
@@ -433,11 +433,8 @@ function FavorisPage() {
 
       <header className="favorites-hero">
         <div className="favorites-hero__content">
-          <p className="favorites-eyebrow">Saved roles</p>
-          <h1 className="favorites-title">Favorite jobs</h1>
-          <p className="favorites-subtitle">
-            Keep the jobs you like in one simple list, then come back when you are ready to apply.
-          </p>
+          <p className="favorites-eyebrow">Offres enregistrées</p>
+          <h1 className="favorites-title">Offres enregistrées</h1>
         </div>
       </header>
 
@@ -445,34 +442,34 @@ function FavorisPage() {
 
       {favoris.length === 0 ? (
         <EmptyState
-          title="No saved jobs yet"
-          description="Save an opportunity from the jobs page and it will appear here."
-          action={<ButtonLink href="/offres">Browse jobs</ButtonLink>}
+          title="Aucune offre enregistrée"
+          description="Enregistrez une offre depuis la page des offres et elle apparaîtra ici."
+          action={<ButtonLink href="/offres">Voir les offres</ButtonLink>}
         />
       ) : (
         <div className="favorites-layout">
           <div className="favorites-column">
             <div className="favorites-toolbar">
               <label className="favorites-search">
-                <span aria-hidden="true">Search</span>
+                <span aria-hidden="true">Rechercher</span>
                 <input
                   type="search"
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
-                  placeholder="Search favorite jobs"
-                  aria-label="Search favorite jobs"
+                  placeholder="Rechercher dans les offres enregistrées"
+                  aria-label="Rechercher dans les offres enregistrées"
                 />
               </label>
               <div className="favorites-count">
-                {filteredFavorites.length} of {favoris.length} saved
+                {filteredFavorites.length} sur {favoris.length} enregistrées
               </div>
             </div>
 
             {filteredFavorites.length === 0 ? (
               <EmptyState
-                title="No favorites match your search"
-                description="Try another job title, company, location, or contract type."
-                action={<Button variant="secondary" onClick={() => setSearch("")}>Clear search</Button>}
+                title="Aucune offre ne correspond à votre recherche"
+                description="Essayez un autre intitulé, une autre entreprise, une localisation ou un type de contrat."
+                action={<Button variant="secondary" onClick={() => setSearch("")}>Effacer la recherche</Button>}
               />
             ) : (
               <div className="favorites-list">
@@ -480,7 +477,7 @@ function FavorisPage() {
                   <article key={favori.id} className="favorite-card">
                     <div className="favorite-card__main">
                       <div className="favorite-card__topline">
-                        <span className="favorite-card__badge">Favorite</span>
+                        <span className="favorite-card__badge">Enregistrée</span>
                         <span className="favorite-card__date">{formatDate(favori.created_at)}</span>
                       </div>
 
@@ -496,11 +493,11 @@ function FavorisPage() {
 
                     <div className="favorite-card__actions">
                       <Button variant="secondary" onClick={() => setSelectedOffre(offre ?? null)} disabled={!offre}>
-                        View details
+                        Voir les détails
                       </Button>
-                      <ButtonLink href="/offres" variant="ghost">Open jobs</ButtonLink>
+                      <ButtonLink href="/offres" variant="ghost">Voir les offres</ButtonLink>
                       <Button variant="danger" onClick={() => retirer(favori.id_offre)}>
-                        Remove
+                        Supprimer
                       </Button>
                     </div>
                   </article>
@@ -526,32 +523,32 @@ function FavorisPage() {
             <div className="stack-lg">
               <div className="favorite-detail-head">
                 <div>
-                  <p className="badge" style={{ marginBottom: "12px" }}>Favorite job</p>
+                  <p className="badge" style={{ marginBottom: "12px" }}>Offre enregistrée</p>
                   <h2 style={{ margin: 0, fontSize: "1.45rem", fontFamily: "var(--app-heading)" }}>{selectedOffre.titre}</h2>
                   <p className="texte-secondaire" style={{ margin: "10px 0 0" }}>
-                    {selectedOffre.nom_entreprise || "Company"} - {selectedOffre.localisation}
+                    {selectedOffre.nom_entreprise || "Entreprise"} - {selectedOffre.localisation}
                   </p>
                 </div>
-                <Button variant="ghost" onClick={() => setSelectedOffre(null)} aria-label="Close">✕</Button>
+                <Button variant="ghost" onClick={() => setSelectedOffre(null)} aria-label="Fermer">✕</Button>
               </div>
 
               <Card tone="accent" padding="md">
                 <div className="details-grid">
                   <div className="detail-box">
-                    <strong>Contract</strong>
+                    <strong>Contrat</strong>
                     <p>{selectedOffre.type_poste.toUpperCase()}</p>
                   </div>
                   <div className="detail-box">
-                    <strong>Salary</strong>
+                    <strong>Salaire</strong>
                     <p>{formatSalaryRange(selectedOffre) || "Salaire non communiqué"}</p>
                   </div>
                   <div className="detail-box">
-                    <strong>Experience</strong>
-                    <p>{selectedOffre.experience_requise || "Not specified"}</p>
+                    <strong>Expérience</strong>
+                    <p>{selectedOffre.experience_requise || "Non renseignée"}</p>
                   </div>
                   <div className="detail-box">
-                    <strong>Education</strong>
-                    <p>{selectedOffre.niveau_etude || "Not specified"}</p>
+                    <strong>Formation</strong>
+                    <p>{selectedOffre.niveau_etude || "Non renseignée"}</p>
                   </div>
                 </div>
               </Card>
@@ -563,14 +560,14 @@ function FavorisPage() {
 
               {selectedOffre.competences_requises ? (
                 <div className="detail-box">
-                  <strong>Skills</strong>
+                  <strong>Compétences</strong>
                   <p>{selectedOffre.competences_requises}</p>
                 </div>
               ) : null}
 
               <div className="page-header-actions" style={{ justifyContent: "flex-end" }}>
-                <ButtonLink href="/offres" variant="secondary">Open jobs</ButtonLink>
-                <Button onClick={() => setSelectedOffre(null)}>Done</Button>
+                <ButtonLink href="/offres" variant="secondary">Voir les offres</ButtonLink>
+                <Button onClick={() => setSelectedOffre(null)}>Fermer</Button>
               </div>
             </div>
           </Card>

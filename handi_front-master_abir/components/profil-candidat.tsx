@@ -20,6 +20,7 @@ import { UtilisateurConnecte } from "@/types/api";
 
 interface ProfilCandidatProps {
   utilisateur: UtilisateurConnecte;
+  lectureSeule?: boolean;
 }
 
 interface ProfilCandidatData {
@@ -87,7 +88,7 @@ type SoftSkillsScoreState = {
   est_visible: boolean;
 } | null;
 
-export function ProfilCandidat({ utilisateur }: ProfilCandidatProps) {
+export function ProfilCandidat({ utilisateur, lectureSeule = false }: ProfilCandidatProps) {
   const { t } = useI18n();
   const [profil, setProfil] = useState<ProfilCandidatData>({
     nom: utilisateur.nom || "",
@@ -130,7 +131,9 @@ export function ProfilCandidat({ utilisateur }: ProfilCandidatProps) {
 
   useEffect(() => {
     void chargerProfil();
-    void chargerScoreSoftSkills();
+    if (!lectureSeule) {
+      void chargerScoreSoftSkills();
+    }
   }, []);
 
   useEffect(() => {
@@ -410,6 +413,7 @@ export function ProfilCandidat({ utilisateur }: ProfilCandidatProps) {
     .slice(0, 2)
     .map((part) => part[0]?.toUpperCase() || "")
     .join("");
+  const editionAutorisee = !lectureSeule && modeEdition;
 
   const completionPercent = Math.round(
     ([
@@ -455,23 +459,25 @@ export function ProfilCandidat({ utilisateur }: ProfilCandidatProps) {
           <p className="candidate-profile-kicker">{t("profile.candidate.kicker")}</p>
           <h2>{t("profile.candidate.title")}</h2>
         </div>
-        <div className="candidate-profile-actions">
-          <button
-            type="button"
-            className="candidate-profile-button candidate-profile-button-secondary"
-            onClick={() => setModeEdition((current) => !current)}
-          >
-            {modeEdition ? t("profile.candidate.exitEdit") : t("profile.candidate.edit")}
-          </button>
-          <button
-            type="button"
-            className="candidate-profile-button candidate-profile-button-primary"
-            onClick={sauvegarderProfil}
-            disabled={chargement}
-          >
-            {chargement ? t("profile.candidate.saving") : t("profile.candidate.saveProfile")}
-          </button>
-        </div>
+        {!lectureSeule ? (
+          <div className="candidate-profile-actions">
+            <button
+              type="button"
+              className="candidate-profile-button candidate-profile-button-secondary"
+              onClick={() => setModeEdition((current) => !current)}
+            >
+              {modeEdition ? t("profile.candidate.exitEdit") : t("profile.candidate.edit")}
+            </button>
+            <button
+              type="button"
+              className="candidate-profile-button candidate-profile-button-primary"
+              onClick={sauvegarderProfil}
+              disabled={chargement}
+            >
+              {chargement ? t("profile.candidate.saving") : t("profile.candidate.saveProfile")}
+            </button>
+          </div>
+        ) : null}
       </div>
 
       {message ? <div className="message message-info">{message}</div> : null}
@@ -505,14 +511,16 @@ export function ProfilCandidat({ utilisateur }: ProfilCandidatProps) {
                 {isVisibleFlag("telephone") ? <Eye size={12} /> : <EyeOff size={12} />}
               </span>
             </span>
-            <label className="candidate-profile-upload candidate-profile-upload-inline">
-              <span><Upload size={14} /> {t("profile.candidate.addPicture")}</span>
-              <input
-                type="file"
-                accept=".png,.jpg,.jpeg,.webp"
-                onChange={(event) => setPhotoFile(event.target.files?.[0] || null)}
-              />
-            </label>
+            {!lectureSeule ? (
+              <label className="candidate-profile-upload candidate-profile-upload-inline">
+                <span><Upload size={14} /> {t("profile.candidate.addPicture")}</span>
+                <input
+                  type="file"
+                  accept=".png,.jpg,.jpeg,.webp"
+                  onChange={(event) => setPhotoFile(event.target.files?.[0] || null)}
+                />
+              </label>
+            ) : null}
           </div>
         </div>
         <div className="candidate-profile-hero-stats">
@@ -546,7 +554,7 @@ export function ProfilCandidat({ utilisateur }: ProfilCandidatProps) {
       </motion.article>
 
       <div className="candidate-profile-grid">
-        <motion.article className="candidate-profile-card candidate-profile-section candidate-profile-general" whileHover={{ y: -2 }} transition={{ duration: 0.2 }}>
+        <motion.article className="candidate-profile-card candidate-profile-section candidate-profile-general">
           <div className="candidate-profile-card-head">
             <strong>{t("profile.candidate.generalInfo")}</strong>
           </div>
@@ -554,7 +562,7 @@ export function ProfilCandidat({ utilisateur }: ProfilCandidatProps) {
             {infoRows.map((row) => (
               <div key={row.key} className="candidate-profile-field candidate-profile-field-row">
                 <span className="candidate-profile-label">{row.label}</span>
-                {modeEdition ? (
+                {editionAutorisee ? (
                   <input
                     type="text"
                     value={profil[row.key] || ""}
@@ -569,7 +577,7 @@ export function ProfilCandidat({ utilisateur }: ProfilCandidatProps) {
           </div>
         </motion.article>
 
-        <motion.article className="candidate-profile-card candidate-profile-section candidate-profile-accessibility" whileHover={{ y: -2 }} transition={{ duration: 0.2 }}>
+        <motion.article className="candidate-profile-card candidate-profile-section candidate-profile-accessibility">
           <div className="candidate-profile-card-head">
             <strong>{t("profile.candidate.supportAccessibility")}</strong>
           </div>
@@ -582,34 +590,36 @@ export function ProfilCandidat({ utilisateur }: ProfilCandidatProps) {
               </span>
             </div>
 
-            <div className="candidate-profile-support-chip">
-              <FileText size={14} />
-              <span>
-                Score soft skills:{" "}
-                {softSkillsLoading
-                  ? "..."
-                  : softSkillsScore
-                    ? `${softSkillsScore.score}%`
-                    : "Aucun resultat"}
-              </span>
-              {softSkillsScore ? (
-                <button
-                  type="button"
-                  className="candidate-profile-button candidate-profile-button-secondary"
-                  onClick={() => void basculerVisibiliteScoreSoftSkills()}
-                >
-                  {softSkillsScore.est_visible ? (
-                    <>
-                      <EyeOff size={12} /> Masquer du profil
-                    </>
-                  ) : (
-                    <>
-                      <Eye size={12} /> Afficher sur profil
-                    </>
-                  )}
-                </button>
-              ) : null}
-            </div>
+            {!lectureSeule ? (
+              <div className="candidate-profile-support-chip">
+                <FileText size={14} />
+                <span>
+                  Score soft skills:{" "}
+                  {softSkillsLoading
+                    ? "..."
+                    : softSkillsScore
+                      ? `${softSkillsScore.score}%`
+                      : "Aucun resultat"}
+                </span>
+                {softSkillsScore ? (
+                  <button
+                    type="button"
+                    className="candidate-profile-button candidate-profile-button-secondary"
+                    onClick={() => void basculerVisibiliteScoreSoftSkills()}
+                  >
+                    {softSkillsScore.est_visible ? (
+                      <>
+                        <EyeOff size={12} /> Masquer du profil
+                      </>
+                    ) : (
+                      <>
+                        <Eye size={12} /> Afficher sur profil
+                      </>
+                    )}
+                  </button>
+                ) : null}
+              </div>
+            ) : null}
 
             <div className="candidate-profile-accessibility-grid">
               <div>
@@ -622,7 +632,7 @@ export function ProfilCandidat({ utilisateur }: ProfilCandidatProps) {
                         key={preference}
                         type="button"
                         className={`candidate-profile-chip ${active ? "candidate-profile-chip-active" : ""}`}
-                        onClick={() => modeEdition && togglePref(preference)}
+                        onClick={() => editionAutorisee && togglePref(preference)}
                       >
                         {t(`profile.candidate.preferences.${preference}`)}
                       </button>
@@ -640,7 +650,7 @@ export function ProfilCandidat({ utilisateur }: ProfilCandidatProps) {
                         type="checkbox"
                         checked={!!profil.visibilite[item.key]}
                         onChange={() => toggleVisibilite(item.key)}
-                        disabled={!modeEdition}
+                        disabled={!editionAutorisee}
                       />
                     </label>
                   ))}
@@ -650,30 +660,32 @@ export function ProfilCandidat({ utilisateur }: ProfilCandidatProps) {
           </div>
         </motion.article>
 
-        <motion.article className="candidate-profile-card candidate-profile-section candidate-profile-skills" whileHover={{ y: -2 }} transition={{ duration: 0.2 }}>
+        <motion.article className="candidate-profile-card candidate-profile-section candidate-profile-skills">
           <div className="candidate-profile-card-head">
             <strong>{t("profile.candidate.skillsExperience")}</strong>
           </div>
           <div className="candidate-profile-stack">
             <div>
               <span className="candidate-profile-label">{t("profile.candidate.skills")}</span>
-              <div className="candidate-profile-skill-entry">
-                <input
-                  type="text"
-                  value={nouvelleCompetence}
-                  onChange={(event) => setNouvelleCompetence(event.target.value)}
-                  placeholder={t("profile.candidate.addSkillPlaceholder")}
-                  disabled={!modeEdition}
-                />
-                <button type="button" className="candidate-profile-button candidate-profile-button-secondary" onClick={ajouterCompetence} disabled={!modeEdition}>
-                  {t("profile.candidate.addSkill")}
-                </button>
-              </div>
+              {!lectureSeule ? (
+                <div className="candidate-profile-skill-entry">
+                  <input
+                    type="text"
+                    value={nouvelleCompetence}
+                    onChange={(event) => setNouvelleCompetence(event.target.value)}
+                    placeholder={t("profile.candidate.addSkillPlaceholder")}
+                    disabled={!editionAutorisee}
+                  />
+                  <button type="button" className="candidate-profile-button candidate-profile-button-secondary" onClick={ajouterCompetence} disabled={!editionAutorisee}>
+                    {t("profile.candidate.addSkill")}
+                  </button>
+                </div>
+              ) : null}
               <div className="candidate-profile-chip-grid">
                 {profil.competences.map((competence) => (
                   <span key={competence} className="candidate-profile-chip candidate-profile-chip-soft">
                     {competence}
-                    {modeEdition ? (
+                    {editionAutorisee ? (
                       <button type="button" onClick={() => retirerCompetence(competence)} aria-label={`Remove ${competence}`}>
                         x
                       </button>
@@ -685,37 +697,39 @@ export function ProfilCandidat({ utilisateur }: ProfilCandidatProps) {
             <InfoField
               label={t("profile.candidate.education")}
               value={profil.formation}
-              edit={modeEdition}
+              edit={editionAutorisee}
               onChange={(value) => setProfil({ ...profil, formation: value })}
               textarea
             />
             <InfoField
               label={t("profile.candidate.experience")}
               value={profil.experience}
-              edit={modeEdition}
+              edit={editionAutorisee}
               onChange={(value) => setProfil({ ...profil, experience: value })}
               textarea
             />
           </div>
         </motion.article>
 
-        <motion.article className="candidate-profile-card candidate-profile-section candidate-profile-upload-block" whileHover={{ y: -2 }} transition={{ duration: 0.2 }}>
+        <motion.article className="candidate-profile-card candidate-profile-section candidate-profile-upload-block">
           <div className="candidate-profile-card-head">
             <strong>{t("profile.candidate.uploadSection")}</strong>
           </div>
-          <div className="candidate-profile-upload-inline-list">
-            <label className="candidate-profile-upload candidate-profile-upload-compact">
-              <span>{t("profile.candidate.documents.disabilityCard")}</span>
-              <input type="file" accept=".pdf,.png,.jpg,.jpeg" onChange={(event) => setCarteFile(event.target.files?.[0] || null)} />
-            </label>
-            <label className="candidate-profile-upload candidate-profile-upload-compact">
-              <span>{t("profile.candidate.documents.videoCv")}</span>
-              <input type="file" accept="video/*" onChange={(event) => setVideoFile(event.target.files?.[0] || null)} />
-            </label>
-            <button type="button" className="candidate-profile-button candidate-profile-button-primary candidate-profile-upload-submit" onClick={envoyerDocuments}>
-              {t("profile.candidate.uploadDocuments")}
-            </button>
-          </div>
+          {!lectureSeule ? (
+            <div className="candidate-profile-upload-inline-list">
+              <label className="candidate-profile-upload candidate-profile-upload-compact">
+                <span>{t("profile.candidate.documents.disabilityCard")}</span>
+                <input type="file" accept=".pdf,.png,.jpg,.jpeg" onChange={(event) => setCarteFile(event.target.files?.[0] || null)} />
+              </label>
+              <label className="candidate-profile-upload candidate-profile-upload-compact">
+                <span>{t("profile.candidate.documents.videoCv")}</span>
+                <input type="file" accept="video/*" onChange={(event) => setVideoFile(event.target.files?.[0] || null)} />
+              </label>
+              <button type="button" className="candidate-profile-button candidate-profile-button-primary candidate-profile-upload-submit" onClick={envoyerDocuments}>
+                {t("profile.candidate.uploadDocuments")}
+              </button>
+            </div>
+          ) : null}
 
           <div className="candidate-profile-documents">
             <div className="candidate-profile-doc-row">

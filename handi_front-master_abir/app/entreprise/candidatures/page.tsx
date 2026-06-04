@@ -5,9 +5,10 @@ import { useSearchParams } from "next/navigation";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { LoadingState } from "@/components/ui/layout";
+import { Heading, Stat, Text } from "@/components/ui/typography";
 import { authenticatedFetch } from "@/lib/auth-utils";
 import { construireUrlApi } from "@/lib/config";
-import { Eye, X } from "lucide-react";
+import { CalendarDays, CheckCircle2, Eye, FileText, Mail, Phone, ShieldCheck, X } from "lucide-react";
 
 type StatusCandidature = "pending" | "shortlisted" | "interview_scheduled" | "rejected" | "accepted";
 
@@ -125,18 +126,6 @@ type OffresCompanyPayload = {
     offres?: OffreApiItem[];
   } | OffreApiItem[];
 };
-
-function resolveBackendFileUrl(url?: string | null) {
-  if (!url) {
-    return null;
-  }
-
-  if (/^https?:\/\//i.test(url)) {
-    return url;
-  }
-
-  return construireUrlApi(url.startsWith("/") ? url : `/${url}`);
-}
 
 type StatistiquesItem = {
   statut?: string | null;
@@ -289,7 +278,7 @@ function normaliserOffres(payload: OffresCompanyPayload): OffreOption[] {
 function getStatusLabel(statut: StatusCandidature) {
   switch (statut) {
     case "shortlisted":
-      return { label: "Shortlisted", className: "message-neutre" };
+      return { label: "Preselection", className: "message-neutre" };
     case "interview_scheduled":
       return { label: "Interview scheduled", className: "message-info" };
     case "rejected":
@@ -317,36 +306,10 @@ function initials(name: string) {
   return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
 }
 
-function statusDotClass(status: StatusCandidature) {
-  switch (status) {
-    case "shortlisted":
-      return "dot-shortlisted";
-    case "interview_scheduled":
-      return "dot-interview";
-    case "accepted":
-      return "dot-accepted";
-    case "rejected":
-      return "dot-rejected";
-    case "pending":
-    default:
-      return "dot-pending";
-  }
-}
-
-function statusPillClass(status: StatusCandidature) {
-  switch (status) {
-    case "shortlisted":
-      return "pill-shortlisted";
-    case "interview_scheduled":
-      return "pill-interview";
-    case "accepted":
-      return "pill-accepted";
-    case "rejected":
-      return "pill-rejected";
-    case "pending":
-    default:
-      return "pill-pending";
-  }
+function shortText(value?: string | null, fallback = "Information non renseignee.") {
+  const trimmed = value?.trim();
+  if (!trimmed) return fallback;
+  return trimmed.length > 260 ? `${trimmed.slice(0, 257).trim()}...` : trimmed;
 }
 
 function creerStatistiquesVides(): StatistiquesCandidatures {
@@ -565,7 +528,7 @@ export default function CandidaturesCompanyPage() {
         const data: StatistiquesPayload = await response.json().catch(() => ({}));
 
         if (!response.ok) {
-          throw new Error(data.message || "Unable to load statistics.");
+          throw new Error(data.message || "Impossible de charger les statistiques.");
         }
 
         setStatistiques(normaliserStatistiques(data));
@@ -582,7 +545,7 @@ export default function CandidaturesCompanyPage() {
         const data: CandidatureRecuePayload = await response.json().catch(() => ({}));
 
         if (!response.ok) {
-          throw new Error(data.message || "Unable to load statistics.");
+          throw new Error(data.message || "Impossible de charger les statistiques.");
         }
 
         const lot = normaliserCandidatures(data);
@@ -598,7 +561,7 @@ export default function CandidaturesCompanyPage() {
       setStatistiques(calculerStatistiquesDepuisCandidatures(candidaturesToutesPages));
     } catch (error: unknown) {
       setStatistiques(creerStatistiquesVides());
-      setErreur((courant) => courant ?? (error instanceof Error ? error.message : "Unable to load statistics."));
+      setErreur((courant) => courant ?? (error instanceof Error ? error.message : "Impossible de charger les statistiques."));
     }
   };
 
@@ -613,7 +576,7 @@ export default function CandidaturesCompanyPage() {
       const data: CandidatureRecuePayload = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        throw new Error(data.message || "Unable to load applications.");
+        throw new Error(data.message || "Impossible de charger les candidatures.");
       }
 
       const candidaturesNormalisees = normaliserCandidatures(data);
@@ -627,7 +590,7 @@ export default function CandidaturesCompanyPage() {
       setCandidatures(candidaturesNormalisees.slice(0, PAGE_SIZE));
     } catch (error: unknown) {
       setHasNextPage(false);
-      setErreur(error instanceof Error ? error.message : "Unable to load applications.");
+      setErreur(error instanceof Error ? error.message : "Impossible de charger les candidatures.");
     } finally {
       setLoading(false);
     }
@@ -690,7 +653,7 @@ export default function CandidaturesCompanyPage() {
   }, [candidatures, offresAvailables]);
 
   const offreSelectionneeLabel =
-    offresPourFiltre.find((offre) => offre.id === offreSelectionnee)?.titre ?? "Selected role";
+    offresPourFiltre.find((offre) => offre.id === offreSelectionnee)?.titre ?? "Offre sélectionnée";
 
   const lancerActionCandidature = async (
     id: string,
@@ -711,14 +674,14 @@ export default function CandidaturesCompanyPage() {
       const data: { message?: string } = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        throw new Error(data.message || "This action could not be completed.");
+        throw new Error(data.message || "Cette action n'a pas pu être terminée.");
       }
 
       setInfo(data.message || successMessage);
       await Promise.all([chargerCandidatures(), chargerStatistiques()]);
       return true;
     } catch (error: unknown) {
-      setErreur(error instanceof Error ? error.message : "This action could not be completed.");
+      setErreur(error instanceof Error ? error.message : "Cette action n'a pas pu être terminée.");
       return false;
     } finally {
       setCandidatureEnAction(null);
@@ -759,7 +722,7 @@ export default function CandidaturesCompanyPage() {
     const succes = await lancerActionCandidature(
       candidatureEnRejection.id,
       `/api/candidatures/${candidatureEnRejection.id}/refuser`,
-      "Application rejected.",
+      "Candidature refusée.",
       { motif_refus: motif },
     );
 
@@ -772,7 +735,7 @@ export default function CandidaturesCompanyPage() {
     setCandidatureEnPlanification(candidature.id);
     setFormulaire({
       ...formulaireInitial,
-      notes: candidature.lettre_motivation ? `Application context: ${candidature.lettre_motivation}` : "",
+      notes: candidature.lettre_motivation ? `Contexte de la candidature : ${candidature.lettre_motivation}` : "",
     });
     setErreur(null);
     setInfo(null);
@@ -792,17 +755,17 @@ export default function CandidaturesCompanyPage() {
       const data: CandidatureDetailPayload = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        throw new Error(data.message || "Unable to load application details.");
+        throw new Error(data.message || "Impossible de charger les détails de la candidature.");
       }
 
       const candidature = normaliserCandidatureDetail(data);
       if (!candidature) {
-        throw new Error("Application details are unavailable.");
+        throw new Error("Les détails de la candidature sont indisponibles.");
       }
 
       setDetailsCandidature(candidature);
     } catch (error: unknown) {
-      setErreur(error instanceof Error ? error.message : "Unable to load application details.");
+      setErreur(error instanceof Error ? error.message : "Impossible de charger les détails de la candidature.");
     } finally {
       setCandidatureEnDetails(null);
     }
@@ -819,15 +782,15 @@ export default function CandidaturesCompanyPage() {
       setInfo(null);
 
       if (!formulaire.date_heure) {
-        throw new Error("The interview date and time are required.");
+        throw new Error("La date et l'heure de l'entretien sont obligatoires.");
       }
 
       if (formulaire.type === "visio" && !formulaire.lieu_visio.trim()) {
-        throw new Error("A video link is required for a video interview.");
+        throw new Error("Un lien visio est obligatoire pour un entretien en visio.");
       }
 
       if (formulaire.type === "presentiel" && !formulaire.lieu.trim()) {
-        throw new Error("A location is required for an in-person interview.");
+        throw new Error("Un lieu est obligatoire pour un entretien en présentiel.");
       }
 
       const response = await authenticatedFetch(construireUrlApi("/api/entretiens/planifier"), {
@@ -847,14 +810,14 @@ export default function CandidaturesCompanyPage() {
       const data: { message?: string } = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        throw new Error(data.message || "Unable to schedule the interview.");
+        throw new Error(data.message || "Impossible de planifier l'entretien.");
       }
 
-      setInfo(data.message || "Interview scheduled avec succes.");
+      setInfo(data.message || "Entretien planifié avec succès.");
       fermerPlanification();
       await Promise.all([chargerCandidatures(), chargerStatistiques()]);
     } catch (error: unknown) {
-      setErreur(error instanceof Error ? error.message : "Unable to schedule the interview.");
+      setErreur(error instanceof Error ? error.message : "Impossible de planifier l'entretien.");
     } finally {
       setCandidatureEnAction(null);
     }
@@ -865,64 +828,39 @@ export default function CandidaturesCompanyPage() {
     (formulaire.type !== "visio" || Boolean(formulaire.lieu_visio.trim())) &&
     (formulaire.type !== "presentiel" || Boolean(formulaire.lieu.trim()));
 
-  const pipelineColonnes: Array<{ key: StatusCandidature; label: string }> = [
-    { key: "pending", label: "Pending" },
-    { key: "shortlisted", label: "Shortlisted" },
-    { key: "interview_scheduled", label: "Interview" },
-    { key: "accepted", label: "Accepted" },
-  ];
-
-  const candidaturesParStatut = useMemo(() => {
-    const resultat: Record<StatusCandidature, CandidatureRecue[]> = {
-      pending: [],
-      shortlisted: [],
-      interview_scheduled: [],
-      accepted: [],
-      rejected: [],
-    };
-
-    for (const candidature of candidaturesFiltrees) {
-      resultat[candidature.statut].push(candidature);
-    }
-
-    return resultat;
-  }, [candidaturesFiltrees]);
-
   const candidatPlanification = useMemo(
     () => candidatures.find((item) => item.id === candidatureEnPlanification) ?? null,
     [candidatureEnPlanification, candidatures],
   );
-  const afficherPipeline = filtreStatus !== "interview_scheduled";
-
   return (
     <div className="app-page applicants-dashboard" aria-busy={loading} aria-live="polite">
       <div className="applicants-header">
         <div>
-          <h1>Gestion des candidatures</h1>
-          <p>Chaque candidature est analysee automatiquement par l&apos;IA a la postulation. Ensuite, vous validez, planifiez un entretien ou ajustez manuellement.</p>
-          <p className="applicants-header-meta">
-            Total: {statistiques.total} | En attente: {statistiques.pending} | Preselection: {statistiques.shortlisted}
-          </p>
+          <Heading as="h1" variant="page">Gestion des candidatures</Heading>
         </div>
         <div className="applicants-header-actions">
           <ButtonLink href="/entreprise/entretiens" variant="secondary">
-            Open interviews
+            Ouvrir les entretiens
           </ButtonLink>
-          <Button variant="secondary" onClick={() => void exporterCandidaturesCsv()} disabled={loading}>
-            Exporter
-          </Button>
           <Button
             onClick={() =>
-              setInfo("Use candidate cards or table actions to add hiring notes in details and interview scheduling.")
+              setInfo("Utilisez les profils candidats et la planification d'entretien pour ajouter des notes de recrutement.")
             }
           >
-            Add note
+            Ajouter une note
           </Button>
         </div>
       </div>
 
       {erreur ? <div className="message message-erreur" role="alert">{erreur}</div> : null}
       {info ? <div className="message message-info" aria-live="polite">{info}</div> : null}
+
+      <section className="recruitment-insights" aria-label="Resume du pipeline">
+        <Stat size="compact" value={statistiques.total} label="candidats" />
+        <Stat size="compact" value={statistiques.interview_scheduled} label="entretiens" />
+        <Stat size="compact" value={statistiques.accepted} label="acceptes" />
+        <Stat size="compact" value={statistiques.shortlisted} label="shortlistes" />
+      </section>
 
       <div className="dashboard-layout">
         <div className="dashboard-main">
@@ -935,112 +873,65 @@ export default function CandidaturesCompanyPage() {
             </Card>
           ) : (
             <>
-              {afficherPipeline ? (
-                <section className="pipeline-grid">
-                  {pipelineColonnes.map((colonne) => {
-                    const items = candidaturesParStatut[colonne.key] || [];
-                    return (
-                      <article key={colonne.key} className="pipeline-card">
-                        <header>
-                          <h4>{colonne.label}</h4>
-                          <span>{items.length}</span>
-                        </header>
-                        <div className="pipeline-items">
-                          {items.length === 0 ? (
-                            <div className="pipeline-empty">
-                              <p>Aucun candidat pour cette etape pour l&apos;instant.</p>
-                            </div>
-                          ) : (
-                            items.slice(0, 3).map((candidature) => (
-                              <button
-                                key={candidature.id}
-                                type="button"
-                                className="candidate-chip"
-                                onClick={() => void ouvrirDetailsCandidature(candidature.id)}
-                              >
-                                <span className="avatar">{initials(candidature.candidat.nom)}</span>
-                                <span className="candidate-copy">
-                                  <strong>{candidature.candidat.nom}</strong>
-                                  <small>{candidature.offre.titre}</small>
-                                  <small>Postule le {formaterDate(candidature.date_postulation)}</small>
-                                </span>
-                                <span className={`status-dot ${statusDotClass(candidature.statut)}`} />
-                              </button>
-                            ))
-                          )}
-                        </div>
-                        <footer>Voir tout ({items.length})</footer>
-                      </article>
-                    );
-                  })}
-                </section>
-              ) : null}
-
-              <section className="filters-card">
-                <div className="groupe-champ">
-                  <label htmlFor="filtre-offre-id">Role</label>
-                  <select
-                    id="filtre-offre-id"
-                    className="champ-select"
-                    value={offreSelectionnee}
-                    onChange={(event) => {
-                      setPage(1);
-                      setOffreSelectionnee(event.target.value);
-                    }}
-                  >
-                    <option value="">Tous les postes</option>
-                    {offresPourFiltre.map((offre) => (
-                      <option key={offre.id} value={offre.id}>
-                        {offre.titre}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="groupe-champ">
-                  <label htmlFor="filtre-statut">Status</label>
-                  <select
-                    id="filtre-statut"
-                    className="champ-select"
-                    value={filtreStatus}
-                    onChange={(event) => {
-                      setPage(1);
-                      setFiltreStatus(event.target.value);
-                    }}
-                  >
-                    <option value="">Tous les statuts</option>
-                    <option value="pending">En attente</option>
-                    <option value="shortlisted">Preselection</option>
-                    <option value="interview_scheduled">Entretien</option>
-                    <option value="accepted">Acceptee</option>
-                    <option value="rejected">Refusee</option>
-                  </select>
-                </div>
-
-                <div className="groupe-champ search-field">
-                  <label htmlFor="filtre-offre">Search</label>
-                  <input
-                    id="filtre-offre"
-                    className="champ"
-                    placeholder="Rechercher par nom, email ou competences..."
-                    value={filtreOffre}
-                    onChange={(event) => setFiltreOffre(event.target.value)}
-                  />
-                </div>
-
-                <div className="filter-action">
-                  <Button
-                    variant="secondary"
-                    onClick={() => {
-                      setFiltreOffre("");
-                      setFiltreStatus("");
-                      setOffreSelectionnee("");
-                      setPage(1);
-                    }}
-                  >
-                    Reinitialiser les filtres
-                  </Button>
-                </div>
+              <section className="admin-interviews-toolbar admin-applications-toolbar company-applications-toolbar">
+                <button type="button" className="toolbar-primary" onClick={() => void exporterCandidaturesCsv()} disabled={loading}>
+                  Exporter les candidatures
+                </button>
+                <input
+                  className="ht-control"
+                  id="filtre-offre"
+                  type="search"
+                  placeholder="Rechercher un candidat, une offre, un e-mail..."
+                  value={filtreOffre}
+                  onChange={(event) => setFiltreOffre(event.target.value)}
+                  aria-label="Rechercher des candidatures"
+                />
+                <select
+                  className="ht-filter-control"
+                  id="filtre-statut"
+                  value={filtreStatus}
+                  onChange={(event) => {
+                    setPage(1);
+                    setFiltreStatus(event.target.value);
+                  }}
+                  aria-label="Filtrer par statut de candidature"
+                >
+                  <option value="">Tous les statuts</option>
+                  <option value="pending">En attente</option>
+                  <option value="shortlisted">Présélection</option>
+                  <option value="interview_scheduled">Entretien</option>
+                  <option value="accepted">Acceptée</option>
+                  <option value="rejected">Refusée</option>
+                </select>
+                <select
+                  className="ht-filter-control"
+                  id="filtre-offre-id"
+                  value={offreSelectionnee}
+                  onChange={(event) => {
+                    setPage(1);
+                    setOffreSelectionnee(event.target.value);
+                  }}
+                  aria-label="Filtrer par offre"
+                >
+                  <option value="">Tous les postes</option>
+                  {offresPourFiltre.map((offre) => (
+                    <option key={offre.id} value={offre.id}>
+                      {offre.titre}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  className="toolbar-secondary"
+                  onClick={() => {
+                    setFiltreOffre("");
+                    setFiltreStatus("");
+                    setOffreSelectionnee("");
+                    setPage(1);
+                  }}
+                >
+                  Réinitialiser
+                </button>
               </section>
 
               {candidaturesFiltrees.length === 0 ? (
@@ -1058,138 +949,120 @@ export default function CandidaturesCompanyPage() {
                   </div>
                 </Card>
               ) : (
-                <section className="table-card">
-                  <div className="table-head">
-                    <h3>All applicants ({candidaturesFiltrees.length})</h3>
-                    <div className="sort-inline">
-                      <span>Sort by</span>
-                      <strong>Newest first</strong>
-                    </div>
-                  </div>
-                  <div className="table-wrap">
-                    <table>
-                      <thead>
-                        <tr>
-                          <th>Candidate</th>
-                          <th>Role</th>
-                          <th>Experience</th>
-                          <th>Applied date</th>
-                          <th>Status</th>
-                          <th>Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {candidaturesFiltrees.map((candidature) => {
-                          const badge = getStatusLabel(candidature.statut);
-                          const actionEnCours = candidatureEnAction === candidature.id;
-                          const detailsEnCours = candidatureEnDetails === candidature.id;
-                          return (
-                            <tr key={candidature.id}>
-                              <td data-label="Candidat">
-                                <div className="candidate-table">
-                                  <span className="avatar small">{initials(candidature.candidat.nom)}</span>
-                                  <div>
-                                    <strong title={candidature.candidat.nom}>{candidature.candidat.nom}</strong>
-                                    <small title={candidature.candidat.email || ""}>{candidature.candidat.email || "\u2014"}</small>
-                                  </div>
-                                </div>
-                              </td>
-                              <td data-label="Poste" title={candidature.offre.titre}>{candidature.offre.titre}</td>
-                              <td data-label="Experience">{candidature.candidat.experience || "\u2014"}</td>
-                              <td data-label="Date de candidature">{formaterDate(candidature.date_postulation)}</td>
-                              <td data-label="Statut">
-                                <span className={`status-pill ${statusPillClass(candidature.statut)}`}>{badge.label}</span>
-                                {candidature.statut === "rejected" && candidature.motif_refus ? (
-                                  <p className="rejection-inline" title={candidature.motif_refus}>
-                                    Motif: {candidature.motif_refus}
-                                  </p>
-                                ) : null}
-                              </td>
-                              <td data-label="Actions">
-                                <div className="table-actions">
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    className="applicant-action-btn action-neutral"
-                                    onClick={() => void ouvrirDetailsCandidature(candidature.id)}
-                                    disabled={detailsEnCours}
+                <section className="admin-interviews-table-wrap admin-applications-table-wrap company-applications-table-wrap">
+                  <table className="admin-interviews-table admin-applications-table company-applications-table">
+                    <thead>
+                      <tr>
+                        <th>Candidat</th>
+                        <th>Offre</th>
+                        <th>Statut</th>
+                        <th>Candidature envoyée</th>
+                        <th>Score</th>
+                        <th>Compétences</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {candidaturesFiltrees.map((candidature) => {
+                        const actionEnCours = candidatureEnAction === candidature.id;
+                        const detailsEnCours = candidatureEnDetails === candidature.id;
+                        const status = getStatusLabel(candidature.statut);
+                        const skills = candidature.candidat.competences?.filter(Boolean).slice(0, 3) ?? [];
+                        return (
+                          <tr key={candidature.id}>
+                            <td>
+                              <strong>{candidature.candidat.nom}</strong>
+                              <span>{candidature.candidat.email || candidature.candidat.telephone || "-"}</span>
+                            </td>
+                            <td>
+                              <strong>{candidature.offre.titre}</strong>
+                              <span>{candidature.candidat.experience || "Expérience non renseignée"}</span>
+                            </td>
+                            <td>
+                              <span className={`admin-interviews-status admin-applications-status admin-applications-status--${candidature.statut}`}>
+                                {status.label}
+                              </span>
+                            </td>
+                            <td>
+                              <strong>{formaterDate(candidature.date_postulation)}</strong>
+                              <span>{candidature.candidat.handicap ? "Accessibilité renseignée" : "Accessibilité non renseignée"}</span>
+                            </td>
+                            <td>{typeof candidature.score_test === "number" ? `${candidature.score_test}%` : "-"}</td>
+                            <td>
+                              <div className="table-skill-list">
+                                {skills.length > 0 ? skills.map((skill) => <span key={skill}>{skill}</span>) : <span>-</span>}
+                              </div>
+                            </td>
+                            <td>
+                              <div className="company-table-actions">
+                                <button
+                                  type="button"
+                                  onClick={() => void ouvrirDetailsCandidature(candidature.id)}
+                                  disabled={detailsEnCours}
+                                >
+                                  {detailsEnCours ? "..." : "Profil"}
+                                </button>
+                                {candidature.statut === "pending" ? (
+                                  <button
+                                    type="button"
+                                    className="action-primary"
+                                    onClick={() =>
+                                      lancerActionCandidature(
+                                        candidature.id,
+                                        `/api/candidatures/${candidature.id}/shortlist`,
+                                        "Candidate shortlisted.",
+                                      )
+                                    }
+                                    disabled={actionEnCours}
                                   >
-                                    {detailsEnCours ? "..." : "View profile"}
-                                  </Button>
-                                  {resolveBackendFileUrl(candidature.cv_url) ? (
-                                    <a
-                                      className="ui-button ui-button-sm applicant-action-btn action-neutral"
-                                      href={resolveBackendFileUrl(candidature.cv_url) || "#"}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                    >
-                                      View CV
-                                    </a>
-                                  ) : null}
-                                  {candidature.statut === "pending" ? (
-                                    <Button
-                                      size="sm"
-                                      className="applicant-action-btn action-primary"
-                                      onClick={() =>
-                                        lancerActionCandidature(
-                                          candidature.id,
-                                          `/api/candidatures/${candidature.id}/shortlist`,
-                                          "Candidate shortlisted.",
-                                        )
-                                      }
-                                      disabled={actionEnCours}
-                                    >
-                                      Shortlist manuel
-                                    </Button>
-                                  ) : null}
-                                  {candidature.statut === "shortlisted" ? (
-                                    <Button
-                                      size="sm"
-                                      variant="secondary"
-                                      className="applicant-action-btn action-secondary"
-                                      onClick={() => ouvrirPlanification(candidature)}
-                                      disabled={actionEnCours}
-                                    >
-                                      Interview
-                                    </Button>
-                                  ) : null}
-                                  {candidature.statut !== "accepted" && candidature.statut !== "rejected" ? (
-                                    <Button
-                                      size="sm"
-                                      variant="danger"
-                                      className="applicant-action-btn action-danger"
-                                      onClick={() => ouvrirRejection(candidature)}
-                                      disabled={actionEnCours}
-                                    >
-                                      Reject
-                                    </Button>
-                                  ) : null}
-                                </div>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
+                                    Shortlist
+                                  </button>
+                                ) : null}
+                                {candidature.statut === "shortlisted" ? (
+                                  <button
+                                    type="button"
+                                    className="action-secondary"
+                                    onClick={() => ouvrirPlanification(candidature)}
+                                    disabled={actionEnCours}
+                                  >
+                                    Interview
+                                  </button>
+                                ) : null}
+                                {candidature.statut !== "accepted" && candidature.statut !== "rejected" ? (
+                                  <button
+                                    type="button"
+                                    className="action-danger"
+                                    onClick={() => ouvrirRejection(candidature)}
+                                    disabled={actionEnCours}
+                                  >
+                                    Reject
+                                  </button>
+                                ) : null}
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
                 </section>
               )}
             </>
           )}
 
-          <section className="pager-row">
-            <p>
+          <footer className="admin-interviews-pagination company-applications-pagination">
+            <span>
               Page {page} - {candidaturesFiltrees.length} result(s)
-            </p>
+            </span>
             <div>
-              <Button variant="ghost" onClick={() => setPage((courant) => Math.max(1, courant - 1))} disabled={page === 1}>
-                Previous
-              </Button>
-              <Button variant="secondary" onClick={() => setPage((courant) => courant + 1)} disabled={!hasNextPage}>
-                Next
-              </Button>
+              <button type="button" onClick={() => setPage((courant) => Math.max(1, courant - 1))} disabled={page === 1}>
+                Precedent
+              </button>
+              <button type="button" onClick={() => setPage((courant) => courant + 1)} disabled={!hasNextPage}>
+                Suivant
+              </button>
             </div>
-          </section>
+          </footer>
 
           {candidatPlanification ? (
             <Card tone="accent" padding="lg">
@@ -1388,7 +1261,23 @@ export default function CandidaturesCompanyPage() {
         </div>
       ) : null}
 
-      {detailsCandidature ? (
+      {detailsCandidature ? (() => {
+        const status = getStatusLabel(detailsCandidature.candidature.statut);
+        const skills = detailsCandidature.candidat.competences?.filter(Boolean).slice(0, 10) ?? [];
+        const score = typeof detailsCandidature.candidature.score_test === "number"
+          ? detailsCandidature.candidature.score_test
+          : null;
+        const hasCv = Boolean(detailsCandidature.candidature.cv_url || detailsCandidature.candidat.cv_url);
+        const hasContact = Boolean(detailsCandidature.candidat.email || detailsCandidature.candidat.telephone);
+        const hasCompanyContact = Boolean(
+          detailsCandidature.entreprise.nom ||
+          detailsCandidature.entreprise.contact_rh_nom ||
+          detailsCandidature.entreprise.contact_rh_email ||
+          detailsCandidature.entreprise.contact_rh_telephone,
+        );
+        const aboutText = detailsCandidature.candidature.lettre_motivation || detailsCandidature.candidat.experience || null;
+
+        return (
         <div
           aria-labelledby="detail-candidature-title"
           aria-modal="true"
@@ -1398,119 +1287,135 @@ export default function CandidaturesCompanyPage() {
         >
           <Card
             padding="lg"
-            className="applicants-modal-card applicants-modal-card-lg"
+            className="applicants-modal-card applicants-modal-card-lg talent-profile-modal"
             onClick={(event) => event.stopPropagation()}
           >
-            <div className="stack-lg">
-              <div className="notification-meta">
-                <div>
-                  <p className="badge applicants-modal-eyebrow">
-                    Candidature detaillee
-                  </p>
-                  <h2 id="detail-candidature-title" className="applicants-modal-title">
-                    {detailsCandidature.candidat.nom} - {detailsCandidature.offre.titre}
-                  </h2>
-                  <p className="texte-secondaire applicants-modal-subtitle">
-                    Details charges depuis l&apos;endpoint de candidature.
-                  </p>
-                </div>
-                <Button variant="ghost" onClick={fermerDetailsCandidature}>
-                  Fermer
-                </Button>
-              </div>
+            <div className="talent-profile">
+              <button className="talent-profile-close" type="button" onClick={fermerDetailsCandidature} aria-label="Fermer">
+                <X size={18} aria-hidden="true" />
+              </button>
 
-              <div className="details-grid">
-                <div className="detail-box">
-                  <strong>Status</strong>
-                  <p>{getStatusLabel(detailsCandidature.candidature.statut).label}</p>
+              <aside className="talent-profile-left">
+                <div className="talent-profile-avatar" aria-hidden="true">{initials(detailsCandidature.candidat.nom)}</div>
+                <div className="talent-profile-heading">
+                  <p className="badge applicants-modal-eyebrow">Profil candidat</p>
+                  <h2 id="detail-candidature-title">{detailsCandidature.candidat.nom}</h2>
+                  <p>{detailsCandidature.offre.titre}</p>
                 </div>
-                <div className="detail-box">
-                  <strong>Application date</strong>
-                  <p>{formaterDate(detailsCandidature.candidature.date_postulation)}</p>
-                </div>
-                <div className="detail-box">
-                  <strong>Assessment score</strong>
-                  <p>
-                    {typeof detailsCandidature.candidature.score_test === "number"
-                      ? `${detailsCandidature.candidature.score_test}/100`
-                      : "Not available"}
-                  </p>
-                </div>
-                <div className="detail-box">
-                  <strong>CV</strong>
-                  <p>{detailsCandidature.candidature.cv_url || detailsCandidature.candidat.cv_url ? "Available" : "Not provided"}</p>
-                </div>
-              </div>
 
-              <div className="details-grid">
-                <div className="detail-box">
-                  <strong>Email</strong>
-                  <p>{detailsCandidature.candidat.email || "-"}</p>
+                <div className="talent-profile-facts">
+                  <span><CheckCircle2 size={14} /> {status.label}</span>
+                  <span><CalendarDays size={14} /> {formaterDate(detailsCandidature.candidature.date_postulation)}</span>
+                  {score !== null ? <span><CheckCircle2 size={14} /> Score test {score}/100</span> : null}
+                  <span><FileText size={14} /> CV {hasCv ? "disponible" : "non fourni"}</span>
                 </div>
-                <div className="detail-box">
-                  <strong>Phone</strong>
-                  <p>{detailsCandidature.candidat.telephone || "-"}</p>
-                </div>
-                <div className="detail-box">
-                  <strong>Experience</strong>
-                  <p>{detailsCandidature.candidat.experience || "-"}</p>
-                </div>
-                <div className="detail-box">
-                  <strong>Handicap</strong>
-                  <p>{detailsCandidature.candidat.handicap || "-"}</p>
-                </div>
-              </div>
 
-              <div className="detail-box">
-                <strong>Skills</strong>
-                <p>
-                  {detailsCandidature.candidat.competences?.length
-                    ? detailsCandidature.candidat.competences.join(", ")
-                    : "-"}
-                </p>
-              </div>
+                {skills.length > 0 ? (
+                  <section className="talent-profile-side-section">
+                    <h3>Competences</h3>
+                    <div className="talent-skill-cloud">
+                      {skills.map((skill) => <span key={skill}>{skill}</span>)}
+                    </div>
+                  </section>
+                ) : null}
 
-              {detailsCandidature.offre.description ? (
-                <div className="detail-box">
-                  <strong>Role description</strong>
-                  <p>{detailsCandidature.offre.description}</p>
-                </div>
-              ) : null}
+                {aboutText ? (
+                  <section className="talent-profile-side-section">
+                    <h3>A propos</h3>
+                    <p>{shortText(aboutText)}</p>
+                  </section>
+                ) : null}
 
-              {detailsCandidature.candidature.lettre_motivation ? (
-                <div className="detail-box">
-                  <strong>Motivation letter</strong>
-                  <p>{detailsCandidature.candidature.lettre_motivation}</p>
-                </div>
-              ) : null}
+                {hasContact ? (
+                  <section className="talent-profile-side-section">
+                    <h3>Contact</h3>
+                    <div className="talent-contact-list">
+                      {detailsCandidature.candidat.email ? <span><Mail size={15} /> {detailsCandidature.candidat.email}</span> : null}
+                      {detailsCandidature.candidat.telephone ? <span><Phone size={15} /> {detailsCandidature.candidat.telephone}</span> : null}
+                    </div>
+                  </section>
+                ) : null}
+              </aside>
 
-              {detailsCandidature.candidature.motif_refus ? (
-                <div className="detail-box">
-                  <strong>Reason for rejection</strong>
-                  <p>{detailsCandidature.candidature.motif_refus}</p>
-                </div>
-              ) : null}
+              <main className="talent-profile-content">
+                <nav className="talent-profile-tabs" aria-label="Sections du profil">
+                  <span className="is-active">Overview</span>
+                  {detailsCandidature.candidat.experience ? <span>Experience</span> : null}
+                  {hasCv ? <span>Documents</span> : null}
+                </nav>
 
-              <div className="details-grid">
-                <div className="detail-box">
-                  <strong>Company</strong>
-                  <p>{detailsCandidature.entreprise.nom}</p>
-                </div>
-                <div className="detail-box">
-                  <strong>HR contact</strong>
-                  <p>{detailsCandidature.entreprise.contact_rh_nom || "-"}</p>
-                </div>
-                <div className="detail-box">
-                  <strong>HR email</strong>
-                  <p>{detailsCandidature.entreprise.contact_rh_email || "-"}</p>
-                </div>
-                <div className="detail-box">
-                  <strong>HR phone</strong>
-                  <p>{detailsCandidature.entreprise.contact_rh_telephone || "-"}</p>
-                </div>
-              </div>
+                <section className="talent-summary-strip" aria-label="Resume de candidature">
+                  <span><b>Statut</b>{status.label}</span>
+                  <span><b>Candidature</b>{formaterDate(detailsCandidature.candidature.date_postulation)}</span>
+                  {score !== null ? <span><b>Score</b>{score}/100</span> : null}
+                  <span><b>CV</b>{hasCv ? "Disponible" : "Non fourni"}</span>
+                </section>
 
-              <div className="page-header-actions">
+                <section className="talent-profile-flow">
+                  {detailsCandidature.candidat.experience ? (
+                    <article className="talent-panel">
+                      <h3>Experience</h3>
+                      <div className="talent-timeline">
+                        <div>
+                          <span aria-hidden="true" />
+                          <div>
+                            <strong>Experience declaree</strong>
+                            <small>{detailsCandidature.candidat.nom}</small>
+                            <p>{detailsCandidature.candidat.experience}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </article>
+                  ) : null}
+
+                  {detailsCandidature.candidat.handicap ? (
+                    <article className="talent-panel talent-note-panel">
+                      <h3>Besoins d&apos;accessibilite</h3>
+                      <p><ShieldCheck size={15} /> {detailsCandidature.candidat.handicap}</p>
+                    </article>
+                  ) : null}
+
+                  {detailsCandidature.candidature.lettre_motivation ? (
+                    <article className="talent-panel talent-quote-panel">
+                      <h3>Lettre de motivation</h3>
+                      <blockquote>{shortText(detailsCandidature.candidature.lettre_motivation)}</blockquote>
+                    </article>
+                  ) : null}
+
+                  {detailsCandidature.offre.description ? (
+                    <article className="talent-panel">
+                      <h3>Description du role</h3>
+                      <p>{detailsCandidature.offre.description}</p>
+                    </article>
+                  ) : null}
+
+                  {hasCompanyContact ? (
+                    <article className="talent-panel talent-recruiter-card">
+                      <h3>Recruiter contact</h3>
+                      <div>
+                        <span className="talent-recruiter-avatar" aria-hidden="true">
+                          {initials(detailsCandidature.entreprise.contact_rh_nom || detailsCandidature.entreprise.nom || "RH")}
+                        </span>
+                        <div className="talent-contact-list">
+                          {detailsCandidature.entreprise.nom ? <strong>{detailsCandidature.entreprise.nom}</strong> : null}
+                          {detailsCandidature.entreprise.contact_rh_nom ? <span>{detailsCandidature.entreprise.contact_rh_nom}</span> : null}
+                          {detailsCandidature.entreprise.contact_rh_email ? <span><Mail size={15} /> {detailsCandidature.entreprise.contact_rh_email}</span> : null}
+                          {detailsCandidature.entreprise.contact_rh_telephone ? <span><Phone size={15} /> {detailsCandidature.entreprise.contact_rh_telephone}</span> : null}
+                        </div>
+                      </div>
+                    </article>
+                  ) : null}
+
+                  {detailsCandidature.candidature.motif_refus ? (
+                    <article className="talent-panel">
+                      <h3>Note de suivi</h3>
+                      <p>{detailsCandidature.candidature.motif_refus}</p>
+                    </article>
+                  ) : null}
+                </section>
+              </main>
+
+              <footer className="talent-profile-actions">
                 {detailsCandidature.candidature.cv_url || detailsCandidature.candidat.cv_url ? (
                   <Button
                     variant="secondary"
@@ -1526,28 +1431,15 @@ export default function CandidaturesCompanyPage() {
                   </Button>
                 ) : null}
 
-                {detailsCandidature.candidat.video_cv_url ? (
-                  <Button
-                    variant="secondary"
-                    onClick={() =>
-                      void openPreview({
-                        title: `Video CV - ${detailsCandidature.candidat.nom}`,
-                        path: detailsCandidature.candidat.video_cv_url || "",
-                        kindHint: "video",
-                      })
-                    }
-                  >
-                    <Eye size={16} /> Open Video CV
-                  </Button>
-                ) : null}
                 <Button variant="ghost" onClick={fermerDetailsCandidature}>
-                  Fermer le detail
+                  Fermer
                 </Button>
-              </div>
+              </footer>
             </div>
           </Card>
         </div>
-      ) : null}
+        );
+      })() : null}
 
       {preview.open ? (
         <div
@@ -1600,87 +1492,203 @@ export default function CandidaturesCompanyPage() {
 
       <style jsx>{`
         .applicants-dashboard {
-          background: var(--app-bg);
-          padding: 8px;
-          border-radius: 24px;
+          background: #faf9fc;
+          padding: 6px;
+          border-radius: 20px;
         }
         .applicants-header {
           display: flex;
           justify-content: space-between;
           gap: 16px;
           align-items: flex-start;
-          margin-bottom: 18px;
+          margin-bottom: 12px;
         }
         .applicants-header h1 {
           margin: 0;
           color: #1c1636;
-          font-size: 2rem;
-          font-weight: 800;
+          font-size: 1.85rem;
+          font-weight: 750;
         }
         .applicants-header p {
           margin: 6px 0 0;
           color: #6a6480;
-        }
-        .applicants-header-meta {
-          margin: 8px 0 0;
-          color: #6f6987;
-          font-size: 0.83rem;
-          line-height: 1.5;
         }
         .applicants-header-actions {
           display: flex;
           gap: 10px;
           flex-wrap: wrap;
         }
+        .recruitment-insights {
+          height: 42px;
+          max-height: 48px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          flex-wrap: nowrap;
+          margin-bottom: 10px;
+          padding: 8px 12px;
+          border: 1px solid rgba(var(--app-primary-rgb), 0.1);
+          border-radius: 14px;
+          background: rgba(255, 255, 255, 0.82);
+          color: #6d647d;
+          box-shadow: 0 10px 22px rgba(31, 18, 49, 0.04);
+          overflow-x: auto;
+        }
+        .recruitment-insights span {
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          font-size: 0.82rem;
+          line-height: 1;
+          white-space: nowrap;
+        }
+        .recruitment-insights span + span::before {
+          content: "";
+          width: 4px;
+          height: 4px;
+          margin-right: 3px;
+          border-radius: 50%;
+          background: rgba(var(--app-primary-rgb), 0.34);
+        }
+        .recruitment-insights b {
+          color: #211735;
+          font-weight: 850;
+        }
         .dashboard-layout {
           display: grid;
           grid-template-columns: minmax(0, 1fr);
-          gap: 16px;
+          gap: 10px;
         }
         .dashboard-main {
           display: grid;
-          gap: 14px;
+          gap: 10px;
         }
         .filters-card {
           background: #fff;
           border: 1px solid #efe8fb;
-          border-radius: 20px;
-          padding: 14px;
+          border-radius: 16px;
+          padding: 10px;
           display: grid;
-          gap: 12px;
+          gap: 10px;
           grid-template-columns: minmax(140px, 1fr) minmax(140px, 1fr) minmax(240px, 2fr) auto;
           align-items: end;
-          box-shadow: 0 10px 20px rgba(53, 6, 62, 0.05);
+          box-shadow: 0 8px 18px rgba(53, 6, 62, 0.04);
           transition: border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
         }
         .filters-card .groupe-champ {
           margin: 0;
         }
         .filters-card label {
-          font-size: 0.78rem;
+          font-size: 0.72rem;
           color: #6f6987;
-          margin-bottom: 6px;
+          margin-bottom: 4px;
+        }
+        .filters-card :global(.champ),
+        .filters-card :global(.champ-select) {
+          min-height: 38px;
+          border-radius: 12px;
+          font-size: 0.84rem;
         }
         .search-field .champ {
-          min-height: 44px;
+          min-height: 38px;
         }
         .filter-action {
           display: flex;
           align-items: flex-end;
           justify-content: flex-end;
         }
+        .company-applications-toolbar {
+          grid-template-columns: auto minmax(240px, 1fr) minmax(150px, 180px) minmax(170px, 240px) auto;
+        }
+        .company-applications-toolbar .toolbar-primary {
+          background: #4a154b;
+          color: #ffffff;
+          border: 1px solid transparent;
+          box-shadow: 0 10px 24px rgba(74, 21, 75, 0.16);
+        }
+        .company-applications-toolbar .toolbar-primary:hover:not(:disabled) {
+          background: #5b1a5e;
+        }
+        .company-applications-toolbar .toolbar-primary:active:not(:disabled) {
+          background: #3a103a;
+        }
+        .company-applications-toolbar .toolbar-secondary {
+          background: #ffffff;
+          color: #2a1d3d;
+          border: 1px solid #e5ddf0;
+        }
+        .company-applications-table-wrap {
+          max-height: 560px;
+        }
+        .company-applications-table {
+          min-width: 1120px;
+        }
+        .table-skill-list {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 5px;
+          min-width: 150px;
+        }
+        .table-skill-list span {
+          display: inline-flex !important;
+          width: fit-content;
+          margin-top: 0 !important;
+          padding: 4px 8px;
+          border-radius: 999px;
+          background: rgba(var(--app-primary-rgb), 0.07);
+          color: var(--app-primary) !important;
+          font-size: 0.7rem !important;
+          font-weight: 800;
+        }
+        .company-table-actions {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 6px;
+          min-width: 220px;
+        }
+        .company-table-actions button {
+          min-height: 30px;
+          border: 1px solid rgba(var(--app-primary-rgb), 0.12);
+          border-radius: 10px;
+          padding: 0 9px;
+          background: #f6f1ff;
+          color: var(--app-primary);
+          font-size: 0.72rem;
+          font-weight: 850;
+          cursor: pointer;
+        }
+        .company-table-actions button:disabled {
+          cursor: not-allowed;
+          opacity: 0.55;
+        }
+        .company-table-actions .action-primary {
+          background: #4a154b;
+          color: #ffffff;
+          border-color: transparent;
+        }
+        .company-table-actions .action-secondary {
+          background: #ffffff;
+          color: #2a1d3d;
+          border-color: #e5ddf0;
+        }
+        .company-table-actions .action-danger {
+          background: #fff5f5;
+          color: #dc2626;
+          border-color: #fecaca;
+        }
         .pipeline-grid {
           display: grid;
           grid-template-columns: repeat(4, minmax(0, 1fr));
-          gap: 12px;
+          gap: 10px;
+          min-height: min(72vh, 760px);
         }
         .pipeline-card {
           background: #fff;
-          border: 1px solid #efe8fb;
-          border-radius: 18px;
-          padding: 12px;
-          min-height: 220px;
-          box-shadow: 0 10px 20px rgba(53, 6, 62, 0.05);
+          border: 1px solid rgba(var(--app-primary-rgb), 0.09);
+          border-radius: 16px;
+          padding: 10px;
+          min-height: min(72vh, 760px);
+          box-shadow: 0 12px 28px rgba(31, 18, 49, 0.05);
           display: flex;
           flex-direction: column;
           transition: border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
@@ -1689,28 +1697,40 @@ export default function CandidaturesCompanyPage() {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          margin-bottom: 10px;
+          gap: 8px;
+          margin-bottom: 9px;
+        }
+        .pipeline-card header > div {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          min-width: 0;
         }
         .pipeline-card h4 {
           margin: 0;
           color: #2a1843;
-          font-size: 0.95rem;
+          font-size: 0.9rem;
         }
-        .pipeline-card header span {
-          width: 24px;
+        .pipeline-card header strong {
+          min-width: 24px;
           height: 24px;
+          padding: 0 8px;
           border-radius: 999px;
           background: #efe8fb;
           color: #5f2ac8;
-          display: grid;
-          place-items: center;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
           font-size: 0.75rem;
-          font-weight: 700;
+          font-weight: 800;
         }
         .pipeline-items {
           display: grid;
-          gap: 8px;
+          gap: 9px;
+          align-content: start;
           flex: 1;
+          overflow-y: auto;
+          padding-right: 2px;
         }
         .pipeline-empty {
           border: 1px dashed #e3d8f6;
@@ -1723,30 +1743,86 @@ export default function CandidaturesCompanyPage() {
           text-align: center;
           padding: 12px;
         }
-        .candidate-chip {
-          border: 1px solid #efe8fb;
-          background: #fcfbff;
-          border-radius: 12px;
-          padding: 8px;
+        .candidate-card {
           display: grid;
-          grid-template-columns: auto 1fr auto;
+          gap: 9px;
+          padding: 10px;
+          border: 1px solid rgba(var(--app-primary-rgb), 0.09);
+          border-radius: 14px;
+          background: linear-gradient(180deg, #fff, #fdfbff);
+          box-shadow: 0 10px 22px rgba(31, 18, 49, 0.04);
+          transition: border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
+        }
+        .candidate-card:hover {
+          transform: translateY(-1px);
+          border-color: rgba(var(--app-primary-rgb), 0.18);
+          box-shadow: 0 14px 28px rgba(31, 18, 49, 0.07);
+        }
+        .candidate-card-top {
+          display: grid;
+          grid-template-columns: auto minmax(0, 1fr) auto;
           gap: 8px;
-          align-items: center;
-          text-align: left;
-          cursor: pointer;
-          transition: border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease, background-color 150ms ease;
+          align-items: start;
         }
-        .candidate-copy {
-          display: grid;
-          gap: 2px;
+        .candidate-card-top strong {
+          display: block;
+          color: #241735;
+          font-size: 0.88rem;
+          line-height: 1.2;
         }
-        .candidate-copy strong {
-          color: #2a1843;
-          font-size: 0.83rem;
+        .candidate-card-top small {
+          display: block;
+          margin-top: 3px;
+          color: #746d86;
+          font-size: 0.74rem;
+          line-height: 1.25;
         }
-        .candidate-copy small {
-          color: #867f9e;
+        .candidate-card-top button {
+          min-height: 28px;
+          border: 1px solid rgba(var(--app-primary-rgb), 0.12);
+          border-radius: 999px;
+          padding: 0 9px;
+          background: rgba(var(--app-primary-rgb), 0.06);
+          color: var(--app-primary);
           font-size: 0.72rem;
+          font-weight: 850;
+          cursor: pointer;
+        }
+        .candidate-card-skills {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 5px;
+        }
+        .candidate-card-skills span,
+        .accessibility-badge {
+          display: inline-flex;
+          align-items: center;
+          min-height: 22px;
+          padding: 3px 8px;
+          border-radius: 999px;
+          background: rgba(var(--app-primary-rgb), 0.08);
+          color: var(--app-primary);
+          font-size: 0.68rem;
+          font-weight: 800;
+        }
+        .candidate-card-meta {
+          display: grid;
+          gap: 5px;
+          color: #746d86;
+          font-size: 0.72rem;
+        }
+        .candidate-card-meta span {
+          display: flex;
+          justify-content: space-between;
+          gap: 8px;
+        }
+        .candidate-card-meta b {
+          color: #241735;
+        }
+        .candidate-card-actions {
+          display: flex;
+          gap: 6px;
+          flex-wrap: wrap;
         }
         .pipeline-card footer {
           color: #6a55aa;
@@ -1791,288 +1867,33 @@ export default function CandidaturesCompanyPage() {
         .dot-rejected {
           background: #dc3545;
         }
-        .table-card {
-          background: #fff;
-          border: 1px solid #efe8fb;
-          border-radius: 20px;
-          padding: 16px;
-          box-shadow: 0 10px 20px rgba(53, 6, 62, 0.05);
-          transition: border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
-        }
-        .table-head {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 10px;
-        }
-        .table-head h3 {
-          margin: 0;
-          color: #2a1843;
-        }
-        .sort-inline {
-          display: flex;
-          gap: 8px;
-          color: #7d7894;
-          font-size: 0.85rem;
-        }
-        .sort-inline strong {
-          color: #2a1843;
-        }
-        .table-wrap {
-          overflow-x: auto;
-        }
-        table {
-          width: 100%;
-          border-collapse: collapse;
-          min-width: 820px;
-        }
-        th,
-        td {
-          text-align: left;
-          padding: 14px 10px;
-          border-bottom: 1px solid #f1ecfa;
-          font-size: 0.88rem;
-          vertical-align: top;
-        }
-        th {
-          color: #746d8f;
-          font-weight: 700;
-          font-size: 0.83rem;
-        }
-        td {
-          color: #281f3e;
-        }
-        tbody tr:hover {
-          background: #faf8ff;
-        }
-        .candidate-table {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-        }
-        .candidate-table strong {
-          display: block;
-          margin-bottom: 2px;
-          font-size: 0.88rem;
-        }
-        .candidate-table small {
-          color: #857f9b;
-        }
-        .status-pill {
-          border-radius: 999px;
-          padding: 7px 14px;
-          font-size: 0.8rem;
-          font-weight: 700;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          min-width: 116px;
-          white-space: nowrap;
-          line-height: 1.1;
-          border: 1px solid transparent;
-          animation: fade-in-status 200ms ease both;
-        }
-        .pill-pending {
-          color: #8a6a2b;
-          background: #f7f0de;
-          border-color: #eadfbe;
-        }
-        .pill-shortlisted {
-          color: #5c4588;
-          background: #f0ebfa;
-          border-color: #dfd4f5;
-        }
-        .pill-interview {
-          color: #3f5e97;
-          background: #ebf0f9;
-          border-color: #d8e2f4;
-        }
-        .pill-accepted {
-          color: #2f7d57;
-          background: #eaf7f0;
-          border-color: #d4ecde;
-        }
-        .pill-rejected {
-          color: #9c4a55;
-          background: #f9ecee;
-          border-color: #efd6da;
-        }
-        .rejection-inline {
-          margin: 6px 0 0;
-          max-width: 260px;
-          color: #8f4a56;
-          font-size: 0.76rem;
-          line-height: 1.35;
-        }
-        .table-actions {
-          display: grid;
-          grid-template-columns: repeat(2, minmax(120px, 1fr));
-          gap: 8px;
-          align-items: start;
-        }
         .applicant-action-btn {
           justify-content: center;
-          width: 100%;
-          min-height: 36px;
-          border-radius: 12px;
-          font-weight: 700;
+          min-height: 30px;
+          border-radius: 999px;
+          padding-inline: 10px;
+          font-size: 0.72rem;
+          font-weight: 800;
           box-shadow: none;
         }
-        .table-actions :global(.action-neutral) {
-          background: #f6f4fb;
-          color: #3a2b56;
-          border: 1px solid #ddd5ec;
+        .candidate-card-actions :global(.action-primary) {
+          background: #4a154b;
+          color: #ffffff;
+          border: 1px solid transparent;
         }
-        .table-actions :global(.action-primary) {
-          background: #3d0d53;
-          color: #fff;
-          border: 1px solid #3d0d53;
+        .candidate-card-actions :global(.action-secondary) {
+          background: #ffffff;
+          color: #2a1d3d;
+          border: 1px solid #e5ddf0;
         }
-        .table-actions :global(.action-secondary) {
-          background: #ece6f8;
-          color: #4a3672;
-          border: 1px solid #d7caee;
+        .candidate-card-actions :global(.action-danger) {
+          background: #fff5f5;
+          color: #dc2626;
+          border: 1px solid #fecaca;
         }
-        .table-actions :global(.action-danger) {
-          background: #f7eeef;
-          color: #9f4a57;
-          border: 1px solid #e8d1d5;
-        }
-        .table-actions :global(.ui-button:disabled),
-        .table-actions :global(.ui-button[aria-disabled="true"]) {
+        .candidate-card-actions :global(.ui-button:disabled),
+        .candidate-card-actions :global(.ui-button[aria-disabled="true"]) {
           opacity: 0.55;
-        }
-        @media (max-width: 940px) {
-          .table-actions {
-            grid-template-columns: 1fr;
-          }
-        }
-        .pager-row {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          background: #fff;
-          border: 1px solid #efe8fb;
-          border-radius: 16px;
-          padding: 10px 12px;
-        }
-        .pager-row p {
-          margin: 0;
-          color: #6f6987;
-          font-size: 0.85rem;
-        }
-        .pager-row div {
-          display: flex;
-          gap: 8px;
-        }
-        .dashboard-side {
-          display: grid;
-          gap: 12px;
-          align-content: start;
-        }
-        .side-card {
-          background: #fff;
-          border: 1px solid #efe8fb;
-          border-radius: 20px;
-          padding: 14px;
-          box-shadow: 0 10px 20px rgba(53, 6, 62, 0.05);
-          transition: border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
-        }
-        .side-card-head {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 10px;
-        }
-        .side-card-head h3 {
-          margin: 0;
-          color: #2a1843;
-          font-size: 1rem;
-        }
-        .activity-list {
-          display: grid;
-          gap: 10px;
-        }
-        .activity-item {
-          display: grid;
-          grid-template-columns: auto 1fr auto;
-          gap: 8px;
-          align-items: start;
-        }
-        .activity-item strong {
-          font-size: 0.84rem;
-          color: #2a1843;
-        }
-        .activity-item p {
-          margin: 3px 0 0;
-          font-size: 0.79rem;
-          color: #7d7894;
-        }
-        .activity-item small {
-          color: #9b95af;
-          font-size: 0.74rem;
-          white-space: nowrap;
-          padding-top: 2px;
-        }
-        .side-empty {
-          margin: 0;
-          color: #8f89a5;
-          font-size: 0.85rem;
-        }
-        .role-summary {
-          display: grid;
-          grid-template-columns: 92px 1fr;
-          gap: 10px;
-          align-items: center;
-        }
-        .summary-ring {
-          width: 92px;
-          height: 92px;
-          border-radius: 50%;
-          display: grid;
-          place-items: center;
-          position: relative;
-        }
-        .summary-ring::before {
-          content: "";
-          position: absolute;
-          inset: 13px;
-          background: #fff;
-          border-radius: 50%;
-        }
-        .summary-ring span {
-          position: relative;
-          z-index: 1;
-          color: #2a1843;
-          font-weight: 800;
-        }
-        .summary-list {
-          display: grid;
-          gap: 8px;
-        }
-        .summary-list p {
-          margin: 0;
-          display: flex;
-          justify-content: space-between;
-          gap: 8px;
-          font-size: 0.8rem;
-        }
-        .summary-list span {
-          color: #6f6987;
-        }
-        .summary-list strong {
-          color: #2a1843;
-        }
-        .tip-card {
-          background: #f7f3fe;
-        }
-        .tip-card h3 {
-          margin: 0;
-          color: #2a1843;
-        }
-        .tip-card p {
-          color: #6c6785;
-          margin: 8px 0 14px;
         }
         .empty-core {
           text-align: center;
@@ -2099,22 +1920,335 @@ export default function CandidaturesCompanyPage() {
         .applicants-modal-overlay {
           position: fixed;
           inset: 0;
-          z-index: 50;
-          display: grid;
-          place-items: center;
-          padding: 24px;
-          background: rgba(15, 23, 42, 0.52);
-          backdrop-filter: blur(6px);
+          z-index: 2140;
+          min-height: 100dvh;
+          display: flex;
+          align-items: flex-start;
+          justify-content: center;
+          padding: 16px;
+          overflow-y: auto;
+          background: rgba(15, 12, 24, 0.58);
+          backdrop-filter: blur(8px);
         }
 
         .applicants-modal-card {
           width: min(100%, 720px);
-          max-height: min(90vh, 860px);
+          max-height: calc(100dvh - 32px);
           overflow-y: auto;
         }
 
         .applicants-modal-card-lg {
           width: min(100%, 900px);
+        }
+
+        .talent-profile-modal {
+          width: min(940px, calc(100vw - 32px));
+          max-height: 85dvh;
+          padding: 0 !important;
+          border-radius: 18px;
+          overflow: hidden;
+          background: #fff;
+        }
+
+        .talent-profile {
+          position: relative;
+          display: grid;
+          grid-template-columns: 282px minmax(0, 1fr);
+          grid-template-rows: minmax(0, 1fr) auto;
+          min-height: 0;
+          max-height: 85dvh;
+          background: #fff;
+        }
+
+        .talent-profile-close {
+          position: absolute;
+          top: 12px;
+          right: 12px;
+          z-index: 3;
+          width: 34px;
+          height: 34px;
+          display: grid;
+          place-items: center;
+          border: 1px solid rgba(53, 6, 62, 0.12);
+          border-radius: 50%;
+          background: rgba(255, 255, 255, 0.92);
+          color: var(--app-primary);
+          box-shadow: 0 12px 28px rgba(31, 18, 49, 0.12);
+          cursor: pointer;
+        }
+
+        .talent-profile-left {
+          grid-row: 1 / span 2;
+          display: grid;
+          align-content: start;
+          gap: 14px;
+          padding: 22px 18px;
+          overflow-y: auto;
+          border-right: 1px solid rgba(var(--app-primary-rgb), 0.1);
+          background:
+            radial-gradient(circle at 72% 0%, rgba(216, 106, 141, 0.18), transparent 30%),
+            linear-gradient(180deg, rgba(var(--app-primary-rgb), 0.08), rgba(255, 255, 255, 0.98) 44%);
+        }
+
+        .talent-profile-avatar {
+          width: 74px;
+          height: 74px;
+          display: grid;
+          place-items: center;
+          border-radius: 50%;
+          background: linear-gradient(135deg, var(--app-primary), #d86a8d);
+          color: #fff;
+          font-size: 1.28rem;
+          font-weight: 900;
+          box-shadow: 0 18px 34px rgba(var(--app-primary-rgb), 0.18);
+        }
+
+        .talent-profile-heading h2 {
+          margin: 0;
+          color: #1d1430;
+          font-size: 1.42rem;
+          line-height: 1.1;
+        }
+
+        .talent-profile-heading > p:not(.badge) {
+          margin: 5px 0 0;
+          color: var(--app-primary);
+          font-size: 0.88rem;
+          font-weight: 800;
+        }
+
+        .talent-profile-facts,
+        .talent-contact-list {
+          display: grid;
+          gap: 7px;
+        }
+
+        .talent-profile-facts span,
+        .talent-contact-list span {
+          display: inline-flex;
+          align-items: center;
+          gap: 7px;
+          color: #4b415f;
+          font-size: 0.8rem;
+        }
+
+        .talent-profile-facts {
+          padding: 11px;
+          border-radius: 14px;
+          background: rgba(255, 255, 255, 0.78);
+          border: 1px solid rgba(var(--app-primary-rgb), 0.09);
+        }
+
+        .talent-profile-side-section {
+          display: grid;
+          gap: 8px;
+        }
+
+        .talent-profile-side-section h3,
+        .talent-panel h3 {
+          margin: 0;
+          color: #1d1430;
+          font-size: 0.9rem;
+        }
+
+        .talent-profile-side-section p,
+        .talent-panel p,
+        .talent-quote-panel blockquote {
+          margin: 0;
+          color: #625773;
+          font-size: 0.84rem;
+          line-height: 1.55;
+        }
+
+        .talent-skill-cloud {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 7px;
+        }
+
+        .talent-skill-cloud span {
+          padding: 6px 9px;
+          border-radius: 999px;
+          background: rgba(var(--app-primary-rgb), 0.08);
+          color: var(--app-primary);
+          font-size: 0.74rem;
+          font-weight: 800;
+        }
+
+        .talent-profile-content {
+          grid-column: 2;
+          min-width: 0;
+          padding: 18px 20px 12px;
+          overflow-y: auto;
+          background: #fff;
+        }
+
+        .talent-profile-tabs {
+          display: flex;
+          gap: 20px;
+          align-items: center;
+          padding: 0 42px 10px 0;
+          border-bottom: 1px solid rgba(var(--app-primary-rgb), 0.1);
+          color: #756b84;
+          font-size: 0.82rem;
+          font-weight: 850;
+        }
+
+        .talent-profile-tabs span {
+          position: relative;
+        }
+
+        .talent-profile-tabs .is-active {
+          color: var(--app-primary);
+        }
+
+        .talent-profile-tabs .is-active::after {
+          content: "";
+          position: absolute;
+          left: 0;
+          right: 0;
+          bottom: -11px;
+          height: 2px;
+          border-radius: 999px;
+          background: var(--app-primary);
+        }
+
+        .talent-summary-strip {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          margin: 14px 0;
+        }
+
+        .talent-summary-strip span {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 7px 10px;
+          border-radius: 999px;
+          background: rgba(var(--app-primary-rgb), 0.06);
+          color: #625773;
+          font-size: 0.78rem;
+        }
+
+        .talent-summary-strip b {
+          color: #1d1430;
+        }
+
+        .talent-profile-flow {
+          display: grid;
+          gap: 12px;
+        }
+
+        .talent-panel {
+          display: grid;
+          gap: 9px;
+          padding: 15px;
+          border: 1px solid rgba(var(--app-primary-rgb), 0.1);
+          border-radius: 15px;
+          background: linear-gradient(180deg, #fff, #fcfafd);
+          box-shadow: 0 14px 34px rgba(31, 18, 49, 0.05);
+        }
+
+        .talent-note-panel p {
+          display: inline-flex;
+          align-items: flex-start;
+          gap: 8px;
+        }
+
+        .talent-quote-panel blockquote {
+          padding-left: 14px;
+          border-left: 3px solid #d86a8d;
+          font-style: italic;
+        }
+
+        .talent-timeline > div {
+          position: relative;
+          display: grid;
+          grid-template-columns: 18px minmax(0, 1fr);
+          gap: 14px;
+        }
+
+        .talent-timeline > div::before {
+          content: "";
+          position: absolute;
+          left: 6px;
+          top: 18px;
+          bottom: -20px;
+          width: 1px;
+          background: rgba(var(--app-primary-rgb), 0.16);
+        }
+
+        .talent-timeline > div:last-child::before {
+          display: none;
+        }
+
+        .talent-timeline > div > span {
+          width: 13px;
+          height: 13px;
+          margin-top: 4px;
+          border-radius: 50%;
+          background: #d86a8d;
+          box-shadow: 0 0 0 5px rgba(216, 106, 141, 0.12);
+        }
+
+        .talent-timeline strong {
+          color: #1d1430;
+        }
+
+        .talent-timeline p,
+        .talent-timeline small,
+        .talent-timeline em {
+          display: block;
+          margin: 6px 0 0;
+        }
+
+        .talent-timeline small {
+          color: #7a6d8d;
+          font-size: 0.82rem;
+        }
+
+        .talent-timeline em {
+          font-style: normal;
+          font-size: 0.88rem;
+        }
+
+        .talent-recruiter-card > div {
+          display: grid;
+          grid-template-columns: 42px minmax(0, 1fr);
+          align-items: start;
+          gap: 10px;
+        }
+
+        .talent-recruiter-avatar {
+          width: 42px;
+          height: 42px;
+          display: grid;
+          place-items: center;
+          border-radius: 13px;
+          background: linear-gradient(135deg, var(--app-primary), #d86a8d);
+          color: #fff;
+          font-size: 0.78rem;
+          font-weight: 900;
+        }
+
+        .talent-contact-list strong {
+          color: #1d1430;
+          font-size: 0.9rem;
+        }
+
+        .talent-profile-actions {
+          grid-column: 2;
+          position: sticky;
+          bottom: 0;
+          display: flex;
+          justify-content: flex-end;
+          gap: 10px;
+          margin-top: 12px;
+          padding: 12px 18px;
+          border-top: 1px solid rgba(var(--app-primary-rgb), 0.1);
+          background: rgba(255, 255, 255, 0.94);
+          backdrop-filter: blur(10px);
         }
 
         .applicants-modal-header {
@@ -2143,36 +2277,21 @@ export default function CandidaturesCompanyPage() {
         }
 
         .filters-card:hover,
-        .pipeline-card:hover,
-        .table-card:hover,
-        .side-card:hover {
+        .pipeline-card:hover {
           transform: translateY(-1px);
           border-color: rgba(53, 6, 62, 0.2);
           box-shadow: var(--shadow-2);
         }
 
-        .candidate-chip:hover {
-          transform: translateY(-1px);
-          border-color: rgba(53, 6, 62, 0.2);
-          box-shadow: var(--shadow-1);
-          background: #ffffff;
-        }
-
-        .candidate-chip:focus-visible {
-          outline: none;
-          box-shadow: var(--ring-focus);
-        }
-
-        .table-actions :global(.ui-button:active),
+        .candidate-card-actions :global(.ui-button:active),
         .filter-action :global(.ui-button:active),
         .applicants-header-actions :global(.ui-button:active) {
           transform: scale(0.98);
         }
 
-        .table-actions :global(.ui-button:focus-visible),
+        .candidate-card-actions :global(.ui-button:focus-visible),
         .filter-action :global(.ui-button:focus-visible),
-        .applicants-header-actions :global(.ui-button:focus-visible),
-        .pager-row :global(.ui-button:focus-visible) {
+        .applicants-header-actions :global(.ui-button:focus-visible) {
           box-shadow: var(--ring-focus);
         }
 
@@ -2190,13 +2309,14 @@ export default function CandidaturesCompanyPage() {
           .dashboard-layout {
             grid-template-columns: 1fr;
           }
-          .dashboard-side {
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-          }
         }
         @media (max-width: 1100px) {
           .pipeline-grid {
             grid-template-columns: repeat(2, minmax(0, 1fr));
+            min-height: auto;
+          }
+          .pipeline-card {
+            min-height: 520px;
           }
           .filters-card {
             grid-template-columns: 1fr 1fr;
@@ -2208,8 +2328,9 @@ export default function CandidaturesCompanyPage() {
             grid-column: span 2;
             justify-content: flex-start;
           }
-          .dashboard-side {
-            grid-template-columns: 1fr;
+
+          .talent-profile {
+            grid-template-columns: 260px minmax(0, 1fr);
           }
         }
         @media (max-width: 720px) {
@@ -2220,60 +2341,13 @@ export default function CandidaturesCompanyPage() {
           .filters-card {
             grid-template-columns: 1fr;
           }
+          .pipeline-card {
+            min-height: 420px;
+          }
           .search-field,
           .filter-action {
             grid-column: auto;
           }
-          .pager-row {
-            flex-direction: column;
-            gap: 10px;
-            align-items: flex-start;
-          }
-
-          table,
-          thead,
-          tbody,
-          th,
-          td,
-          tr {
-            display: block;
-            min-width: 0;
-          }
-
-          thead {
-            position: absolute;
-            width: 1px;
-            height: 1px;
-            overflow: hidden;
-            clip: rect(0 0 0 0);
-          }
-
-          tbody tr {
-            border: 1px solid #efe8fb;
-            border-radius: 14px;
-            padding: 10px;
-            margin-bottom: 10px;
-            background: #fff;
-          }
-
-          td {
-            border: none;
-            padding: 8px 0;
-          }
-
-          td::before {
-            content: attr(data-label);
-            display: block;
-            margin-bottom: 4px;
-            color: #746d8f;
-            font-size: 0.75rem;
-            font-weight: 700;
-          }
-
-          .table-actions {
-            grid-template-columns: 1fr;
-          }
-
           .applicants-modal-overlay {
             align-items: end;
             padding: 0;
@@ -2288,6 +2362,36 @@ export default function CandidaturesCompanyPage() {
             border-bottom-right-radius: 0;
             border-top-left-radius: 20px;
             border-top-right-radius: 20px;
+          }
+
+          .talent-profile-modal {
+            width: 100%;
+            max-height: 92dvh;
+          }
+
+          .talent-profile {
+            grid-template-columns: 1fr;
+            grid-template-rows: auto minmax(0, 1fr) auto;
+            max-height: 92dvh;
+          }
+
+          .talent-profile-left {
+            grid-row: auto;
+            border-right: 0;
+            border-bottom: 1px solid rgba(var(--app-primary-rgb), 0.1);
+            max-height: 38dvh;
+          }
+
+          .talent-profile-content {
+            grid-column: 1;
+            padding: 16px;
+          }
+
+          .talent-profile-actions {
+            grid-column: 1;
+            flex-direction: column;
+            align-items: stretch;
+            padding: 14px 16px;
           }
         }
       `}</style>

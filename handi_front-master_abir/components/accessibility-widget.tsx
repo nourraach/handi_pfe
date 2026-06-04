@@ -46,7 +46,7 @@ function FeatureToggle({
   compact?: boolean;
   chip?: boolean;
   icon?: ReactNode;
-  tone?: "epilepsy" | "vision" | "dyslexia" | "adhd" | "blindness";
+  tone?: "epilepsy" | "vision" | "dyslexia" | "adhd" | "blindness" | "mobility" | "hearing";
 }) {
   if (chip) {
     return (
@@ -691,6 +691,14 @@ export function AccessibilityWidget() {
             tone="vision"
           />
           <FeatureToggle
+            label="Mobilite"
+            description="Active clavier, gros curseur et navigation vocale."
+            active={settings.activeQuickMode === "mobility"}
+            onClick={() => applyMode("mobility")}
+            icon="MO"
+            tone="mobility"
+          />
+          <FeatureToggle
             label="Dyslexie & Cognitif"
             description="Reduit le bruit visuel et facilite la lecture."
             active={settings.activeQuickMode === "cognitive"}
@@ -713,6 +721,14 @@ export function AccessibilityWidget() {
             onClick={() => applyMode("blindness")}
             icon="NV"
             tone="blindness"
+          />
+          <FeatureToggle
+            label="Auditif"
+            description="Renforce les reperes visuels et coupe les sons."
+            active={settings.activeQuickMode === "hearing"}
+            onClick={() => applyMode("hearing")}
+            icon="AU"
+            tone="hearing"
           />
         </div>
       </section>
@@ -1033,4 +1049,3 @@ export function AccessibilityWidget() {
 
   return createPortal(panel, document.body);
 }
-

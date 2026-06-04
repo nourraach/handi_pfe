@@ -30,12 +30,12 @@ function CandidateInterviewTestsPage() {
       const res = await authenticatedFetch(construireUrlApi("/api/tests-entretien/candidat"));
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.message || "Unable to load interview tests.");
+        throw new Error(data.message || "Impossible de charger les tests d'entretien.");
       }
       setTests(Array.isArray(data.donnees) ? data.donnees : []);
       setErreur(null);
     } catch (cause: unknown) {
-      setErreur(cause instanceof Error ? cause.message : "Unable to load interview tests.");
+      setErreur(cause instanceof Error ? cause.message : "Impossible de charger les tests d'entretien.");
     } finally {
       setLoading(false);
     }
@@ -46,14 +46,14 @@ function CandidateInterviewTestsPage() {
       const res = await authenticatedFetch(construireUrlApi(`/api/tests-entretien/candidat/${id}`));
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.message || "Unable to load this test.");
+        throw new Error(data.message || "Impossible de charger ce test.");
       }
       setTestActif(data.donnees);
       setReponses({});
       setMessage(null);
       setErreur(null);
     } catch (cause: unknown) {
-      setErreur(cause instanceof Error ? cause.message : "Unable to load this test.");
+      setErreur(cause instanceof Error ? cause.message : "Impossible de charger ce test.");
     }
   };
 
@@ -77,14 +77,14 @@ function CandidateInterviewTestsPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.message || "Unable to submit the test.");
+        throw new Error(data.message || "Impossible d'envoyer le test.");
       }
 
-      setMessage("Interview test submitted successfully.");
+      setMessage("Test d'entretien envoyé avec succès.");
       setTestActif(null);
       await chargerTests();
     } catch (cause: unknown) {
-      setErreur(cause instanceof Error ? cause.message : "Unable to submit the test.");
+      setErreur(cause instanceof Error ? cause.message : "Impossible d'envoyer le test.");
     } finally {
       setSubmitting(false);
     }
@@ -93,7 +93,7 @@ function CandidateInterviewTestsPage() {
   if (loading) {
     return (
       <main className="page-centree section-page app-theme">
-        <LoadingState title="Loading interview tests" description="Preparing the next exercises attached to your recruitment journey." />
+        <LoadingState title="Chargement des tests d'entretien" description="Préparation des prochains exercices liés à votre parcours de recrutement." />
       </main>
     );
   }
@@ -101,9 +101,9 @@ function CandidateInterviewTestsPage() {
   return (
     <div className="app-page">
       <PageHeader
-        badge="Interview tests"
-        title="Practice focus, clarity, and confidence before the interview."
-        description="Some companies add interview exercises to better understand your thinking, communication, or role-specific approach."
+        badge="Tests d'entretien"
+        title="Préparez votre entretien avec plus de clarté et de confiance."
+        description="Certaines entreprises ajoutent des exercices pour mieux comprendre votre raisonnement, votre communication ou votre approche du poste."
       />
 
       {message ? <div className="message message-info">{message}</div> : null}
@@ -114,27 +114,27 @@ function CandidateInterviewTestsPage() {
           <div className="stack-lg">
             <div className="candidate-section-title">
               <div>
-                <h2>Available exercises</h2>
-                <p>Select a test when you are ready to answer in a calm and focused setting.</p>
+                <h2>Exercices disponibles</h2>
+                <p>Sélectionnez un test quand vous êtes prêt à répondre dans un cadre calme et concentré.</p>
               </div>
             </div>
 
             {tests.length === 0 ? (
-              <EmptyState title="No interview tests right now" description="When a company assigns an exercise, it will appear here." />
+              <EmptyState title="Aucun test d'entretien pour le moment" description="Lorsqu'une entreprise vous attribuera un exercice, il apparaîtra ici." />
             ) : (
               <div className="list-stack">
                 {tests.map((test) => (
                   <Card key={test.id} padding="md" interactive>
                     <div className="stack-lg">
                       <div>
-                        <p className="badge">Exercise</p>
+                        <p className="badge">Exercice</p>
                         <strong style={{ display: "block", fontSize: "1.12rem" }}>{test.titre}</strong>
                         <p className="texte-secondaire" style={{ margin: "10px 0 0" }}>
-                          Opportunity reference: {test.id_offre}
+                          Référence de l&apos;offre : {test.id_offre}
                         </p>
                       </div>
                       <div className="page-header-actions">
-                        <Button onClick={() => void chargerTest(test.id)}>Start test</Button>
+                        <Button onClick={() => void chargerTest(test.id)}>Commencer le test</Button>
                       </div>
                     </div>
                   </Card>
@@ -150,9 +150,9 @@ function CandidateInterviewTestsPage() {
               <div className="candidate-section-title">
                 <div>
                   <h2>{testActif.titre}</h2>
-                  <p>Answer each question as clearly as possible. You can move at your own pace.</p>
+                  <p>Répondez à chaque question aussi clairement que possible. Vous pouvez avancer à votre rythme.</p>
                 </div>
-                <Button variant="ghost" onClick={() => setTestActif(null)} disabled={submitting} aria-label="Close">
+                <Button variant="ghost" onClick={() => setTestActif(null)} disabled={submitting} aria-label="Fermer">
                   ✕
                 </Button>
               </div>
@@ -200,17 +200,17 @@ function CandidateInterviewTestsPage() {
 
               <div className="page-header-actions" style={{ justifyContent: "flex-end" }}>
                 <Button variant="secondary" onClick={() => setTestActif(null)} disabled={submitting}>
-                  Cancel
+                  Annuler
                 </Button>
                 <Button onClick={() => void soumettre()} disabled={submitting}>
-                  {submitting ? "Submitting..." : "Submit answers"}
+                  {submitting ? "Envoi..." : "Envoyer les réponses"}
                 </Button>
               </div>
             </div>
           ) : (
             <EmptyState
-              title="Open a test to begin"
-              description="The selected exercise will appear here with a cleaner reading area and calmer answer flow."
+              title="Ouvrez un test pour commencer"
+              description="L'exercice sélectionné apparaîtra ici avec une zone de lecture claire et un parcours de réponse plus simple."
             />
           )}
         </Card>

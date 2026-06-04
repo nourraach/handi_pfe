@@ -6,6 +6,10 @@ import type { Locale } from "@/lib/i18n";
 export function LanguageSwitcher() {
   const { locale, locales, setLocale, t } = useI18n();
 
+  if (locales.length < 2) {
+    return null;
+  }
+
   return (
     <label className="language-switcher">
       <span className="language-switcher-label">{t("common.language")}</span>

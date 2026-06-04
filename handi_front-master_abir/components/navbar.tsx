@@ -320,7 +320,7 @@ export function Navbar({
           label: t("navbar.applications"),
           items: [
             { href: "/entreprise/candidatures", label: "All applicants" },
-            { href: "/entreprise/candidatures?status=shortlisted", label: "Shortlisted" },
+            { href: "/entreprise/candidatures?status=shortlisted", label: "Preselection" },
             { href: "/entreprise/entretiens", label: "Planifier les entretiens" },
             { href: "/entreprise/candidatures?status=interview_scheduled", label: "Interviews planifies" },
             { href: "/entreprise/candidatures?status=accepted", label: "Hired" },
@@ -389,24 +389,24 @@ export function Navbar({
       { id: "jobs", label: "Offres d'emploi", subtitle: "Recherche", icon: "applications", href: "/offres" },
       { id: "applications", label: "Candidatures", subtitle: "Suivi", icon: "applications", href: "/candidat/candidatures" },
       { id: "interviews", label: "Entretiens", subtitle: "Planning candidat", icon: "tests", href: "/candidat/entretiens" },
-      { id: "tests", label: "Tests & Évaluations", subtitle: "Progression", icon: "tests", href: "/candidat/tests-psychologiques" },
-      { id: "messages", label: "Messagerie", subtitle: "Inbox", icon: "messages", href: "/messages", badgeCount: messagesNonLus },
+      { id: "tests", label: "Tests et évaluations", subtitle: "Progression", icon: "tests", href: "/candidat/tests-psychologiques" },
+      { id: "messages", label: "Messagerie", subtitle: "Boîte de réception", icon: "messages", href: "/messages", badgeCount: messagesNonLus },
       { id: "favorites", label: t("navbar.favorites"), subtitle: "Offres enregistrees", icon: "favorites", href: "/favoris" },
-      { id: "cv", label: "CV Builder", subtitle: "Documents", icon: "cv", href: "/candidat/cv" },
+      { id: "cv", label: "CV", subtitle: "Documents", icon: "cv", href: "/candidat/cv" },
     ],
     [messagesNonLus, t],
   );
 
   const adminSidebarItems: CandidateSidebarItem[] = [
-    { id: "admin-dashboard", label: "Dashboard", subtitle: "Vue globale", icon: "dashboard", href: "/home" },
-    { id: "admin-pending-requests", label: "Pending Requests", subtitle: "Inscriptions", icon: "messages", href: "/admin/demandes-en-attente" },
-    { id: "admin-users", label: "Users", subtitle: "Gestion", icon: "messages", href: "/admin/utilisateurs" },
-    { id: "admin-employers", label: "Employers", subtitle: "Entreprises", icon: "skills", href: "/admin/comptes" },
-    { id: "admin-jobs", label: "Job Postings", subtitle: "Validation", icon: "cv", href: "/admin/offres-publication" },
-    { id: "admin-apps", label: "Applications", subtitle: "Statuts", icon: "applications", href: "/admin/applications" },
-    { id: "admin-interviews", label: "Interviews", subtitle: "Planning", icon: "tests", href: "/admin/entretiens" },
+    { id: "admin-dashboard", label: "Tableau de bord", subtitle: "Vue globale", icon: "dashboard", href: "/home" },
+    { id: "admin-pending-requests", label: "Demandes en attente", subtitle: "Inscriptions", icon: "messages", href: "/admin/demandes-en-attente" },
+    { id: "admin-users", label: "Utilisateurs", subtitle: "Gestion", icon: "messages", href: "/admin/utilisateurs" },
+    { id: "admin-employers", label: "Entreprises", subtitle: "Comptes", icon: "skills", href: "/admin/comptes" },
+    { id: "admin-jobs", label: "Offres", subtitle: "Validation", icon: "cv", href: "/admin/offres-publication" },
+    { id: "admin-apps", label: "Candidatures", subtitle: "Statuts", icon: "applications", href: "/admin/applications" },
+    { id: "admin-interviews", label: "Entretiens", subtitle: "Planning", icon: "tests", href: "/admin/entretiens" },
     { id: "admin-tests-psychologiques", label: "Tests psychologiques", subtitle: "Creation & gestion", icon: "tests", href: "/admin/tests-psychologiques" },
-    { id: "admin-reports", label: "Reports", subtitle: "Entreprises", icon: "achievements", href: "/admin/reports" },
+    { id: "admin-reports", label: "Rapports", subtitle: "Entreprises", icon: "achievements", href: "/admin/reports" },
   ];
 
   const entrepriseSidebarItems = useMemo<CandidateSidebarItem[]>(
@@ -414,10 +414,10 @@ export function Navbar({
       { id: "ent-home", label: "Accueil", subtitle: "Tableau de bord", icon: "dashboard", href: "/home" },
       { id: "ent-offers", label: "Offres d'emploi", subtitle: "Gestion des postes", icon: "cv", href: "/entreprise/offres" },
       { id: "ent-applications", label: "Candidatures", subtitle: "Suivi candidats", icon: "applications", href: "/entreprise/candidatures" },
-      { id: "ent-interviews", label: "Entretiens", subtitle: "Planning & suivi", icon: "tests", href: "/entreprise/entretiens" },
-      { id: "ent-shortlist", label: "IA Shortlisting", subtitle: "Preselection", icon: "tests", href: "/entreprise/shortlist" },
+      { id: "ent-interviews", label: "Entretiens", subtitle: "Planning et suivi", icon: "tests", href: "/entreprise/entretiens" },
+      { id: "ent-shortlist", label: "Présélection IA", subtitle: "Candidatures", icon: "tests", href: "/entreprise/shortlist" },
       { id: "ent-reports-requests", label: "Demandes de rapport", subtitle: "Conformite", icon: "achievements", href: "/entreprise/reports-requests" },
-      { id: "ent-messages", label: "Messagerie", subtitle: "Inbox", icon: "messages", href: "/messages", badgeCount: messagesNonLus },
+      { id: "ent-messages", label: "Messagerie", subtitle: "Boîte de réception", icon: "messages", href: "/messages", badgeCount: messagesNonLus },
     ],
     [messagesNonLus],
   );
@@ -1276,5 +1276,4 @@ return (
     </header>
   );
 }
-
 

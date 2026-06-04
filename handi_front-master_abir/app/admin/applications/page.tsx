@@ -76,20 +76,20 @@ type AdminApplication = {
 const ITEMS_PER_PAGE = 50;
 
 const statusLabels: Record<ApplicationStatus, string> = {
-  pending: "Pending",
-  shortlisted: "Shortlisted",
-  interview_scheduled: "Interview",
-  rejected: "Rejected",
-  accepted: "Accepted",
+  pending: "En attente",
+  shortlisted: "Preselection",
+  interview_scheduled: "Entretien",
+  rejected: "Refusee",
+  accepted: "Acceptee",
 };
 
 const statusOptions: Array<{ value: "" | ApplicationStatus; label: string }> = [
-  { value: "", label: "All statuses" },
-  { value: "pending", label: "Pending" },
-  { value: "shortlisted", label: "Shortlisted" },
-  { value: "interview_scheduled", label: "Interview" },
-  { value: "accepted", label: "Accepted" },
-  { value: "rejected", label: "Rejected" },
+  { value: "", label: "Tous les statuts" },
+  { value: "pending", label: "En attente" },
+  { value: "shortlisted", label: "Preselection" },
+  { value: "interview_scheduled", label: "Entretien" },
+  { value: "accepted", label: "Acceptee" },
+  { value: "rejected", label: "Refusee" },
 ];
 
 function normalizeStatus(value?: string | null): ApplicationStatus {
@@ -130,11 +130,11 @@ function normalizeApplication(item: AdminApplicationApiItem, index: number): Adm
     datePostulation: candidature.date_postulation ?? candidature.created_at ?? new Date().toISOString(),
     updatedAt: candidature.updated_at ?? item.updated_at ?? null,
     score: candidature.score_test ?? item.score_test ?? null,
-    candidateName: candidateUser?.nom ?? item.candidat?.nom ?? "Candidate",
+    candidateName: candidateUser?.nom ?? item.candidat?.nom ?? "Candidat",
     candidateEmail: candidateUser?.email ?? item.candidat?.email ?? "",
     candidatePhone: candidateUser?.telephone ?? item.candidat?.telephone ?? "",
-    companyName: company?.nom_entreprise ?? company?.nom ?? companyUser?.nom ?? "Company",
-    roleTitle: item.offre?.titre ?? "Role",
+    companyName: company?.nom_entreprise ?? company?.nom ?? companyUser?.nom ?? "Entreprise",
+    roleTitle: item.offre?.titre ?? "Offre",
     location: item.offre?.localisation ?? candidateUser?.addresse ?? "-",
     contractType: item.offre?.type_poste ? item.offre.type_poste.replace("_", " ") : "-",
     offerStatus: item.offre?.statut ?? "-",
@@ -158,14 +158,14 @@ export default function AdminApplicationsPage() {
       const data: AdminApplicationsPayload = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        throw new Error(data.message || "Unable to load applications.");
+        throw new Error(data.message || "Impossible de charger les candidatures.");
       }
 
       const items = Array.isArray(data.donnees) ? data.donnees : [];
       setApplications(items.map(normalizeApplication));
     } catch (cause) {
       setApplications([]);
-      setError(cause instanceof Error ? cause.message : "Unable to load applications.");
+      setError(cause instanceof Error ? cause.message : "Impossible de charger les candidatures.");
     } finally {
       setLoading(false);
     }
@@ -218,16 +218,16 @@ export default function AdminApplicationsPage() {
     }
 
     const headers = [
-      "Candidate",
+      "Candidat",
       "Email",
-      "Phone",
-      "Company",
-      "Role",
-      "Status",
-      "Applied",
-      "Updated",
+      "Téléphone",
+      "Entreprise",
+      "Offre",
+      "Statut",
+      "Candidature envoyée",
+      "Mis à jour",
       "Score",
-      "Offer status",
+      "Statut de l'offre",
     ];
 
     const rows = filteredApplications.map((item) => [
@@ -248,7 +248,7 @@ export default function AdminApplicationsPage() {
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
     anchor.href = url;
-    anchor.download = `applications_${new Date().toISOString().split("T")[0]}.csv`;
+    anchor.download = `candidatures_${new Date().toISOString().split("T")[0]}.csv`;
     anchor.click();
     URL.revokeObjectURL(url);
   };
@@ -274,16 +274,16 @@ export default function AdminApplicationsPage() {
               type="search"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search candidate, company, role..."
-              aria-label="Search applications"
+              placeholder="Rechercher un candidat, une entreprise, une offre..."
+              aria-label="Rechercher des candidatures"
             />
-            <select value={status} onChange={(event) => setStatus(event.target.value as "" | ApplicationStatus)} aria-label="Filter by application status">
+            <select value={status} onChange={(event) => setStatus(event.target.value as "" | ApplicationStatus)} aria-label="Filtrer par statut de candidature">
               {statusOptions.map((option) => (
                 <option key={option.value || "all"} value={option.value}>{option.label}</option>
               ))}
             </select>
-            <select value={company} onChange={(event) => setCompany(event.target.value)} aria-label="Filter by company">
-              <option value="">All companies</option>
+            <select value={company} onChange={(event) => setCompany(event.target.value)} aria-label="Filtrer par entreprise">
+              <option value="">Toutes les entreprises</option>
               {companyOptions.map((option) => (
                 <option key={option} value={option}>{option}</option>
               ))}
@@ -296,23 +296,23 @@ export default function AdminApplicationsPage() {
             <table className="admin-interviews-table admin-applications-table">
               <thead>
                 <tr>
-                  <th>Candidate</th>
-                  <th>Company</th>
-                  <th>Role</th>
-                  <th>Status</th>
-                  <th>Applied</th>
+                  <th>Candidat</th>
+                  <th>Entreprise</th>
+                  <th>Offre</th>
+                  <th>Statut</th>
+                  <th>Candidature envoyée</th>
                   <th>Score</th>
-                  <th>Offer</th>
+                  <th>Offre</th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={7}>Loading applications...</td>
+                    <td colSpan={7}>Chargement des candidatures...</td>
                   </tr>
                 ) : visibleApplications.length === 0 ? (
                   <tr>
-                    <td colSpan={7}>No applications match these filters.</td>
+                    <td colSpan={7}>Aucune candidature ne correspond à ces filtres.</td>
                   </tr>
                 ) : (
                   visibleApplications.map((item) => (
@@ -333,7 +333,7 @@ export default function AdminApplicationsPage() {
                       </td>
                       <td>
                         <strong>{formatDate(item.datePostulation)}</strong>
-                        <span>Updated {formatDate(item.updatedAt)}</span>
+                        <span>Mise a jour {formatDate(item.updatedAt)}</span>
                       </td>
                       <td>{typeof item.score === "number" ? `${item.score}%` : "-"}</td>
                       <td>
@@ -349,14 +349,14 @@ export default function AdminApplicationsPage() {
 
           <footer className="admin-interviews-pagination">
             <span>
-              Page {currentPage} / {totalPages} - {filteredApplications.length} application(s)
+              Page {currentPage} / {totalPages} - {filteredApplications.length} candidature(s)
             </span>
             <div>
               <button type="button" onClick={() => setPage((current) => Math.max(1, current - 1))} disabled={currentPage <= 1}>
-                Previous
+                Precedent
               </button>
               <button type="button" onClick={() => setPage((current) => Math.min(totalPages, current + 1))} disabled={currentPage >= totalPages}>
-                Next
+                Suivant
               </button>
             </div>
           </footer>

@@ -35,9 +35,9 @@ function ResetInner() {
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Something went wrong.");
-      setMessage("Your password has been reset. You can sign in now.");
-    } catch (e: any) {
-      setErreur(e.message);
+      setMessage("Votre mot de passe a été réinitialisé. Vous pouvez maintenant vous connecter.");
+    } catch (cause: unknown) {
+      setErreur(cause instanceof Error ? cause.message : "Une erreur est survenue.");
     } finally {
       setLoading(false);
     }
@@ -45,26 +45,26 @@ function ResetInner() {
 
   return (
     <AuthShell
-      badge="Password reset"
-      title="Choose a new password inside the same shared design system."
-      description="Reset your access without leaving the clean SaaS-style experience now used across the whole product."
+      badge="Réinitialisation du mot de passe"
+      title="Choisissez un nouveau mot de passe dans la même interface unifiée."
+      description="Réinitialisez votre accès sans quitter l'expérience claire et cohérente désormais utilisée sur toute la plateforme."
     >
       <div className="stack-lg">
         <div>
-          <h2 className="page-title page-title-sm">Create a new password</h2>
+          <h2 className="page-title page-title-sm">Créer un nouveau mot de passe</h2>
           <p className="page-description" style={{ margin: "12px 0 0" }}>
-            Paste your reset token and choose a strong password to finish the recovery flow.
+            Collez votre jeton de réinitialisation et choisissez un mot de passe robuste pour terminer la récupération.
           </p>
         </div>
 
         <div className="bloc-principal stack-lg">
           <div className="groupe-champ">
-            <label htmlFor="token">Reset token</label>
+            <label htmlFor="token">Jeton de réinitialisation</label>
             <input id="token" className="champ" value={token} onChange={(e) => setToken(e.target.value)} />
           </div>
 
           <div className="groupe-champ">
-            <label htmlFor="motdepasse">New password</label>
+            <label htmlFor="motdepasse">Nouveau mot de passe</label>
             <input
               id="motdepasse"
               type="password"
@@ -75,7 +75,7 @@ function ResetInner() {
           </div>
 
           <Button onClick={reset} disabled={loading || !token || !mdp} fullWidth>
-            {loading ? "Saving..." : "Reset password"}
+            {loading ? "Enregistrement..." : "Réinitialiser le mot de passe"}
           </Button>
 
           {message ? <div className="message message-info">{message}</div> : null}

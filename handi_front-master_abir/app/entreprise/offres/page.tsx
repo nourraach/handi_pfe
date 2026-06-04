@@ -5,8 +5,10 @@ import { useSearchParams } from "next/navigation";
 import { RouteProtegee } from "@/components/route-protegee";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { LoadingState } from "@/components/ui/layout";
+import { Heading, Stat, Text } from "@/components/ui/typography";
 import { authenticatedFetch, getUtilisateurConnecte, isAuthenticated, requireAuth } from "@/lib/auth-utils";
 import { construireUrlApi } from "@/lib/config";
+import { BriefcaseBusiness, Eye, MapPin, MoreHorizontal, PauseCircle, PlayCircle, Search, Sparkles, Trash2, Users } from "lucide-react";
 
 type OffreEntreprise = {
   id_offre: string;
@@ -18,9 +20,16 @@ type OffreEntreprise = {
   salaire_max?: string;
   statut: "active" | "inactive" | "pourvue" | "expiree";
   date_limite?: string;
+  competences_requises?: string;
+  experience_requise?: string;
+  niveau_etude?: string;
   created_at: string;
   candidatures_count: number;
   vues_count: number;
+};
+
+type OffreEntrepriseBrute = Partial<OffreEntreprise> & {
+  id?: string | number | null;
 };
 
 type OffreFormulaire = {
@@ -37,6 +46,32 @@ type OffreFormulaire = {
 };
 
 const PAGE_SIZE = 12;
+
+function normaliserOffresEntreprise(items: unknown): OffreEntreprise[] {
+  if (!Array.isArray(items)) {
+    return [];
+  }
+
+  return items.flatMap((item) => {
+    if (!item || typeof item !== "object") {
+      return [];
+    }
+
+    const offre = item as OffreEntrepriseBrute;
+    const identifiant = offre.id_offre ?? offre.id;
+
+    if (identifiant === undefined || identifiant === null || identifiant === "") {
+      return [];
+    }
+
+    return [
+      {
+        ...offre,
+        id_offre: String(identifiant),
+      } as OffreEntreprise,
+    ];
+  });
+}
 
 const experienceOptions = [
   "Aucune experience requise",
@@ -113,11 +148,62 @@ function contractIcon(typePoste?: string) {
   return "JOB";
 }
 
+function formatSalaryRange(offre: OffreEntreprise) {
+  const min = formatSalaryTnd(offre.salaire_min);
+  const max = formatSalaryTnd(offre.salaire_max);
+
+  if (min === "\u2014" && max === "\u2014") {
+    return "Salary not shared";
+  }
+
+  if (min !== "\u2014" && max !== "\u2014") {
+    return `${min} - ${max} TND`;
+  }
+
+  return `${min !== "\u2014" ? min : max} TND`;
+}
+
+function parseNonNegativeSalary(value?: string) {
+  if (!value?.trim()) {
+    return null;
+  }
+
+  const numericValue = Number(value);
+  if (!Number.isFinite(numericValue)) {
+    return null;
+  }
+
+  return Math.max(0, numericValue);
+}
+
+function workModeLabel(localisation?: string) {
+  const value = String(localisation || "").toLowerCase();
+  if (value.includes("remote") || value.includes("distance") || value.includes("distanciel")) return "Remote";
+  if (value.includes("hybride") || value.includes("hybrid")) return "Hybrid";
+  return "On-site";
+}
+
+function mapOffreToFormulaire(offre: OffreEntreprise): OffreFormulaire {
+  return {
+    titre: offre.titre || "",
+    description: offre.description || "",
+    localisation: offre.localisation || "",
+    type_poste: offre.type_poste || "CDI",
+    salaire_min: offre.salaire_min || "",
+    salaire_max: offre.salaire_max || "",
+    date_limite: offre.date_limite || "",
+    competences_requises: offre.competences_requises || "",
+    experience_requise: offre.experience_requise || "",
+    niveau_etude: offre.niveau_etude || "",
+  };
+}
+
 function MesOffresPage() {
   const searchParams = useSearchParams();
   const [offres, setOffres] = useState<OffreEntreprise[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [offreEnEdition, setOffreEnEdition] = useState<OffreEntreprise | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [erreur, setErreur] = useState<string | null>(null);
   const [filtreRecherche, setFiltreRecherche] = useState("");
@@ -127,7 +213,7 @@ function MesOffresPage() {
 
   useEffect(() => {
     if (!requireAuth("entreprise")) {
-      setErreur("Unauthorized access. Sign in with a company account.");
+      setErreur("Accès non autorisé. Connectez-vous avec un compte entreprise.");
       setLoading(false);
       return;
     }
@@ -156,7 +242,7 @@ function MesOffresPage() {
       setLoading(true);
 
       if (!isAuthenticated()) {
-        setErreur("Your session has expired. Please sign in again.");
+        setErreur("Votre session a expiré. Veuillez vous reconnecter.");
         return;
       }
 
@@ -165,19 +251,19 @@ function MesOffresPage() {
       if (response.ok) {
         const data = await response.json().catch(() => ({}));
         const items = data?.donnees?.offres || [];
-        setOffres(Array.isArray(items) ? items : []);
+        setOffres(normaliserOffresEntreprise(items));
         return;
       }
 
       if (response.status === 404) {
-        setErreur("The backend API is not available yet. Showing local test data.");
+        setErreur("L'API backend n'est pas encore disponible. Affichage des données locales de test.");
         const offresTest = JSON.parse(localStorage.getItem("offres_test") || "[]") as OffreEntreprise[];
         if (offresTest.length === 0) {
           const seedData: OffreEntreprise[] = [
             {
               id_offre: "1",
               titre: "Developpeur Full Stack",
-              description: "Develop web features and APIs in a collaborative product team.",
+              description: "Développer des fonctionnalités web et des API au sein d'une équipe produit collaborative.",
               localisation: "Tunis",
               type_poste: "CDI",
               salaire_min: "2200",
@@ -190,21 +276,21 @@ function MesOffresPage() {
             },
           ];
           localStorage.setItem("offres_test", JSON.stringify(seedData));
-          setOffres(seedData);
+          setOffres(normaliserOffresEntreprise(seedData));
         } else {
-          setOffres(offresTest);
+          setOffres(normaliserOffresEntreprise(offresTest));
         }
         return;
       }
 
-      const errorData = await response.json().catch(() => ({ message: "Unknown error." }));
-      setErreur(`Unable to load roles: ${errorData.message || "Unknown error."}`);
+      const errorData = await response.json().catch(() => ({ message: "Erreur inconnue." }));
+      setErreur(`Impossible de charger les offres : ${errorData.message || "Erreur inconnue."}`);
       setOffres([]);
     } catch (error: unknown) {
-      const fallback = error instanceof Error ? error.message : "Unknown error.";
-      setErreur(`The backend is unavailable. Offline mode is active. (${fallback})`);
+      const fallback = error instanceof Error ? error.message : "Erreur inconnue.";
+      setErreur(`Le backend est indisponible. Le mode hors ligne est activé. (${fallback})`);
       const offresTest = JSON.parse(localStorage.getItem("offres_test") || "[]") as OffreEntreprise[];
-      setOffres(offresTest);
+      setOffres(normaliserOffresEntreprise(offresTest));
     } finally {
       setLoading(false);
     }
@@ -213,14 +299,21 @@ function MesOffresPage() {
   const creerNouvelleOffre = async (nouvelleOffre: OffreFormulaire) => {
     try {
       setErreur(null);
+      const salaireMin = parseNonNegativeSalary(nouvelleOffre.salaire_min);
+      const salaireMax = parseNonNegativeSalary(nouvelleOffre.salaire_max);
+
+      if (salaireMin !== null && salaireMax !== null && salaireMax < salaireMin) {
+        setErreur("Le salaire maximum doit etre superieur ou egal au salaire minimum.");
+        return;
+      }
 
       if (nouvelleOffre.date_limite && nouvelleOffre.date_limite < getTodayDateInputValue()) {
-        setErreur("The application deadline cannot be in the past.");
+        setErreur("La date limite de candidature ne peut pas être dans le passé.");
         return;
       }
 
       if (!isAuthenticated()) {
-        setErreur("Your session has expired. Please sign in again.");
+        setErreur("Votre session a expiré. Veuillez vous reconnecter.");
         return;
       }
 
@@ -233,7 +326,12 @@ function MesOffresPage() {
           alternance: "alternance",
         }[String(nouvelleOffre.type_poste || "").toLowerCase()] || String(nouvelleOffre.type_poste || "").toLowerCase();
 
-      const payload = { ...nouvelleOffre, type_poste: typePosteNormalise };
+      const payload = {
+        ...nouvelleOffre,
+        type_poste: typePosteNormalise,
+        salaire_min: salaireMin === null ? "" : String(salaireMin),
+        salaire_max: salaireMax === null ? "" : String(salaireMax),
+      };
 
       const response = await authenticatedFetch(construireUrlApi("/api/entreprise/offres"), {
         method: "POST",
@@ -242,16 +340,101 @@ function MesOffresPage() {
 
       if (response.ok) {
         setShowCreateModal(false);
-        setMessage("Offer submitted for admin validation.");
+        setMessage("Offre envoyée pour validation administrateur.");
+        void chargerOffres();
+        return;
+      }
+
+      const errorData = await response.json().catch(() => ({ message: "Erreur inconnue." }));
+      setErreur(`Impossible de créer l'offre : ${errorData.message || "Erreur inconnue."}`);
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : "Erreur inconnue.";
+      setErreur(`Impossible de créer l'offre : ${detail}`);
+    }
+  };
+
+  const modifierOffre = async (id: string, offreMiseAJour: OffreFormulaire) => {
+    try {
+      setErreur(null);
+      const salaireMin = parseNonNegativeSalary(offreMiseAJour.salaire_min);
+      const salaireMax = parseNonNegativeSalary(offreMiseAJour.salaire_max);
+
+      if (salaireMin !== null && salaireMax !== null && salaireMax < salaireMin) {
+        setErreur("Le salaire maximum doit etre superieur ou egal au salaire minimum.");
+        return;
+      }
+
+      if (offreMiseAJour.date_limite && offreMiseAJour.date_limite < getTodayDateInputValue()) {
+        setErreur("La date limite de candidature ne peut pas être dans le passé.");
+        return;
+      }
+
+      if (!isAuthenticated()) {
+        setErreur("Votre session a expiré. Veuillez vous reconnecter.");
+        return;
+      }
+
+      const typePosteNormalise =
+        {
+          cdi: "cdi",
+          cdd: "cdd",
+          stage: "stage",
+          freelance: "freelance",
+          alternance: "alternance",
+        }[String(offreMiseAJour.type_poste || "").toLowerCase()] || String(offreMiseAJour.type_poste || "").toLowerCase();
+
+      const payload = {
+        ...offreMiseAJour,
+        type_poste: typePosteNormalise,
+        salaire_min: salaireMin === null ? "" : String(salaireMin),
+        salaire_max: salaireMax === null ? "" : String(salaireMax),
+      };
+      const response = await authenticatedFetch(construireUrlApi(`/api/entreprise/offres/${id}`), {
+        method: "PUT",
+        body: JSON.stringify(payload),
+      });
+
+      if (response.ok) {
+        setOffreEnEdition(null);
+        setMessage("Offer updated successfully.");
+        void chargerOffres();
+        return;
+      }
+
+      if (response.status === 404) {
+        const offresTest = JSON.parse(localStorage.getItem("offres_test") || "[]") as OffreEntreprise[];
+        const offresModifiees = offresTest.map((offre) =>
+          offre.id_offre === id
+            ? {
+                ...offre,
+                ...payload,
+              }
+            : offre,
+        );
+        localStorage.setItem("offres_test", JSON.stringify(offresModifiees));
+        setOffreEnEdition(null);
+        setMessage("Offer updated successfully. (Local mode)");
         void chargerOffres();
         return;
       }
 
       const errorData = await response.json().catch(() => ({ message: "Unknown error." }));
-      setErreur(`Unable to create the offer: ${errorData.message || "Unknown error."}`);
+      setErreur(`Impossible de mettre a jour l'offre : ${errorData.message || "Erreur inconnue."}`);
     } catch (error) {
-      const detail = error instanceof Error ? error.message : "Unknown error.";
-      setErreur(`Unable to create the offer: ${detail}`);
+      const detail = error instanceof Error ? error.message : "Erreur inconnue.";
+      const offresTest = JSON.parse(localStorage.getItem("offres_test") || "[]") as OffreEntreprise[];
+      const offresModifiees = offresTest.map((offre) =>
+        offre.id_offre === id
+          ? {
+              ...offre,
+              ...offreMiseAJour,
+            }
+          : offre,
+      );
+      localStorage.setItem("offres_test", JSON.stringify(offresModifiees));
+      setOffreEnEdition(null);
+      setMessage(`Offre mise a jour avec succes. (Mode hors ligne : ${detail})`);
+      void chargerOffres();
     }
   };
 
@@ -285,7 +468,7 @@ function MesOffresPage() {
       }
 
       const errorData = await response.json().catch(() => ({ message: "Unknown error." }));
-      setErreur(`Unable to change the role status: ${errorData.message}`);
+      setErreur(`Impossible de modifier le statut de l'offre : ${errorData.message}`);
     } catch {
       const offresTest = JSON.parse(localStorage.getItem("offres_test") || "[]") as OffreEntreprise[];
       const offresModifiees = offresTest.map((offre) => (offre.id_offre === id ? { ...offre, statut: nouveauStatut } : offre));
@@ -328,7 +511,7 @@ function MesOffresPage() {
       }
 
       const errorData = await response.json().catch(() => ({ message: "Unknown error." }));
-      setErreur(`Unable to delete the role: ${errorData.message}`);
+      setErreur(`Impossible de supprimer l'offre : ${errorData.message}`);
     } catch {
       const offresTest = JSON.parse(localStorage.getItem("offres_test") || "[]") as OffreEntreprise[];
       const offresFiltered = offresTest.filter((offre) => offre.id_offre !== id);
@@ -337,15 +520,6 @@ function MesOffresPage() {
       void chargerOffres();
     }
   };
-
-  const stats = useMemo(() => {
-    const totalRoles = offres.length;
-    const activeRoles = offres.filter((item) => item.statut === "active").length;
-    const applications = offres.reduce((acc, item) => acc + (item.candidatures_count || 0), 0);
-    const views = offres.reduce((acc, item) => acc + (item.vues_count || 0), 0);
-
-    return { totalRoles, activeRoles, applications, views };
-  }, [offres]);
 
   const offresFiltrees = useMemo(() => {
     const recherche = filtreRecherche.trim().toLowerCase();
@@ -398,11 +572,10 @@ function MesOffresPage() {
     <div className="listings-dashboard" aria-live="polite">
       <div className="listings-header">
         <div>
-          <h1>My job listings</h1>
-          <p>Manage your roles and track their performance</p>
+          <Heading as="h1" variant="page">Gestion des offres</Heading>
         </div>
         <div className="header-actions">
-          <Button onClick={() => setShowCreateModal(true)}>Create a role</Button>
+          <Button onClick={() => setShowCreateModal(true)}>Creer une offre</Button>
         </div>
       </div>
 
@@ -419,65 +592,34 @@ function MesOffresPage() {
         </div>
       ) : null}
 
-      <section className="kpi-grid">
-        <article className="kpi-card">
-          <span className="kpi-icon">TR</span>
-          <div>
-            <strong>{stats.totalRoles}</strong>
-            <p>Total roles</p>
-            <small>All published roles</small>
-          </div>
-        </article>
-        <article className="kpi-card">
-          <span className="kpi-icon kpi-green">AR</span>
-          <div>
-            <strong>{stats.activeRoles}</strong>
-            <p>Active roles</p>
-            <small>Currently active</small>
-          </div>
-        </article>
-        <article className="kpi-card">
-          <span className="kpi-icon kpi-blue">AP</span>
-          <div>
-            <strong>{stats.applications}</strong>
-            <p>Applications received</p>
-            <small>Across all roles</small>
-          </div>
-        </article>
-        <article className="kpi-card">
-          <span className="kpi-icon kpi-orange">VW</span>
-          <div>
-            <strong>{stats.views}</strong>
-            <p>Total views</p>
-            <small>Across all roles</small>
-          </div>
-        </article>
-      </section>
-
-      <section className="filter-bar">
-        <input
-          value={filtreRecherche}
-          onChange={(event) => setFiltreRecherche(event.target.value)}
-          className="filter-input"
-          placeholder="Search by role title or location..."
-        />
-        <select value={filtreStatus} onChange={(event) => setFiltreStatus(event.target.value)} className="filter-select">
-          <option value="">All statuses</option>
+      <section className="filter-bar" aria-label="Filtrer les offres">
+        <label className="filter-search ht-search-control">
+          <Search size={16} aria-hidden="true" />
+          <input
+            value={filtreRecherche}
+            onChange={(event) => setFiltreRecherche(event.target.value)}
+            placeholder="Rechercher une offre..."
+            aria-label="Rechercher par titre ou localisation"
+          />
+        </label>
+        <select className="ht-filter-control" value={filtreStatus} onChange={(event) => setFiltreStatus(event.target.value)} aria-label="Filtrer par statut">
+          <option value="">Tous les statuts</option>
           <option value="active">Active</option>
           <option value="inactive">Draft</option>
           <option value="expiree">Expired</option>
           <option value="pourvue">Filled</option>
         </select>
-        <select value={filtreTypeContrat} onChange={(event) => setFiltreTypeContrat(event.target.value)} className="filter-select">
-          <option value="">All types</option>
+        <select className="ht-filter-control" value={filtreTypeContrat} onChange={(event) => setFiltreTypeContrat(event.target.value)} aria-label="Filtrer par type de contrat">
+          <option value="">Tous les contrats</option>
           {typesDisponibles.map((type) => (
             <option key={type} value={type}>
               {contractTypeLabel(type)}
             </option>
           ))}
         </select>
-        <Button
-          variant="secondary"
+        <button
+          type="button"
+          className="filter-reset"
           onClick={() => {
             setFiltreRecherche("");
             setFiltreStatus("");
@@ -485,8 +627,8 @@ function MesOffresPage() {
             setPage(1);
           }}
         >
-          Filters
-        </Button>
+          Reinitialiser
+        </button>
       </section>
 
       {offresFiltrees.length === 0 ? (
@@ -521,76 +663,70 @@ function MesOffresPage() {
           )}
         </section>
       ) : (
-        <section className="roles-list">
+        <section className="roles-grid">
           {offresPage.map((offre) => {
             const status = getStatusBadgeConfig(offre.statut);
             const isActive = offre.statut === "active";
             return (
               <article className="role-card" key={offre.id_offre}>
-                <div className="role-left">
-                  <div className="role-avatar">{contractIcon(offre.type_poste)}</div>
-                  <div className="role-badges">
-                    <span className="contract-badge">{contractTypeLabel(offre.type_poste)}</span>
-                    <span className={`status-badge ${status.className}`}>{status.label}</span>
-                  </div>
+                <div className="role-card-top">
+                  <span className={`status-badge ${status.className}`}>
+                    <i aria-hidden="true" />
+                    {status.label}
+                  </span>
+                  <details className="role-menu">
+                    <summary aria-label={`More actions for ${offre.titre}`}>
+                      <MoreHorizontal size={17} />
+                    </summary>
+                    <div>
+                      <button type="button" onClick={() => setOffreEnEdition(offre)}>
+                        <BriefcaseBusiness size={14} /> Modifier
+                      </button>
+                      <button type="button" onClick={() => changerStatut(offre.id_offre, isActive ? "inactive" : "active")}>
+                        {isActive ? <PauseCircle size={14} /> : <PlayCircle size={14} />}
+                        {isActive ? "Mettre en pause" : "Activer"}
+                      </button>
+                      <button type="button" className="danger-item" onClick={() => supprimerOffre(offre.id_offre)}>
+                        <Trash2 size={14} /> Supprimer
+                      </button>
+                    </div>
+                  </details>
                 </div>
 
-                <div className="role-main">
-                  <h3>{offre.titre}</h3>
-                  <p className="role-location">{offre.localisation || "\u2014"}</p>
-                  <p className="role-salary">
-                    {formatSalaryTnd(offre.salaire_min)} - {formatSalaryTnd(offre.salaire_max)} TND
-                  </p>
-                </div>
-
-                <div className="role-stats">
+                <div className="role-card-main">
+                  <div className="role-icon">{contractIcon(offre.type_poste)}</div>
                   <div>
-                    <strong>{offre.candidatures_count || 0}</strong>
-                    <span>Applications</span>
-                  </div>
-                  <div>
-                    <strong>{offre.vues_count || 0}</strong>
-                    <span>Views</span>
+                    <Heading as="h3" variant="card">{offre.titre}</Heading>
+                    <Text as="p" variant="small" className="role-card-meta">
+                      <MapPin size={13} />
+                      {offre.localisation || "Localisation non renseignee"} <span aria-hidden="true">•</span> {contractTypeLabel(offre.type_poste)}{" "}
+                      <span aria-hidden="true">•</span> {workModeLabel(offre.localisation)}
+                    </Text>
                   </div>
                 </div>
 
-                <div className="role-dates">
-                  <p>
-                    <span>Created on</span>
-                    <strong>{formatDate(offre.created_at)}</strong>
-                  </p>
-                  <p>
-                    <span>Expires on</span>
-                    <strong className="expiry">{formatDate(offre.date_limite)}</strong>
-                  </p>
+                <p className="role-salary">{formatSalaryRange(offre)}</p>
+
+                <div className="role-metrics" aria-label={`Metrics for ${offre.titre}`}>
+                  <span className="metric-primary">
+                    <Users size={14} />
+                    <Stat size="compact" value={offre.candidatures_count || 0} label="Candidatures" />
+                  </span>
+                  <span>
+                    <Eye size={14} />
+                    <Stat size="compact" value={offre.vues_count || 0} label="Vues" />
+                  </span>
+                  <span>
+                    <Sparkles size={14} />
+                    <Stat size="compact" value="-" label="Analyse IA" />
+                  </span>
                 </div>
 
-                <div className="role-actions">
-                  <button className="dots-btn" type="button" aria-label="More options">
-                    ...
-                  </button>
-                  <div className="actions-row">
-                    <ButtonLink href="/entreprise/candidatures" variant="secondary" size="sm">
-                      View applicants
-                    </ButtonLink>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setMessage("Edit workflow will be connected in the next iteration.")}
-                    >
-                      Edit
-                    </Button>
-                    <Button
-                      variant={isActive ? "secondary" : "ghost"}
-                      size="sm"
-                      onClick={() => changerStatut(offre.id_offre, isActive ? "inactive" : "active")}
-                    >
-                      {isActive ? "Pause" : "Activate"}
-                    </Button>
-                    <Button variant="danger" size="sm" onClick={() => supprimerOffre(offre.id_offre)}>
-                      Delete
-                    </Button>
-                  </div>
+                <div className="role-card-foot">
+                  <span>Date limite {formatDate(offre.date_limite)}</span>
+                  <ButtonLink href="/entreprise/candidatures" size="sm">
+                    Voir les candidatures
+                  </ButtonLink>
                 </div>
               </article>
             );
@@ -598,31 +734,55 @@ function MesOffresPage() {
         </section>
       )}
 
-      <footer className="pagination-bar">
-        <p>
-          Showing {offresFiltrees.length === 0 ? 0 : startIndex + 1} to {Math.min(startIndex + PAGE_SIZE, offresFiltrees.length)} of{" "}
-          {offresFiltrees.length} roles
-        </p>
-        <div>
-          <button type="button" disabled={pageSafe <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>
-            {"<"}
-          </button>
-          <span>{pageSafe}</span>
-          <button type="button" disabled={pageSafe >= totalPages} onClick={() => setPage((p) => Math.min(totalPages, p + 1))}>
-            {">"}
-          </button>
-        </div>
-      </footer>
+      {totalPages > 1 ? (
+        <footer className="pagination-bar">
+          <p>
+            {startIndex + 1}-{Math.min(startIndex + PAGE_SIZE, offresFiltrees.length)} of {offresFiltrees.length} roles
+          </p>
+          <div>
+            <button type="button" disabled={pageSafe <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>
+              {"<"}
+            </button>
+            <span>{pageSafe}</span>
+            <button type="button" disabled={pageSafe >= totalPages} onClick={() => setPage((p) => Math.min(totalPages, p + 1))}>
+              {">"}
+            </button>
+          </div>
+        </footer>
+      ) : null}
 
-      {showCreateModal ? (
+      {showCreateModal || offreEnEdition ? (
         <div className="modal-overlay">
           <div className="modal-card">
             <div className="modal-head">
-              <h2>Create a new role</h2>
-              <button onClick={() => setShowCreateModal(false)} type="button">x</button>
+              <h2>{offreEnEdition ? "Edit role" : "Create a new role"}</h2>
+              <button
+                onClick={() => {
+                  setShowCreateModal(false);
+                  setOffreEnEdition(null);
+                }}
+                type="button"
+              >
+                x
+              </button>
             </div>
 
-            <ModalCreationOffre onSubmit={creerNouvelleOffre} onCancel={() => setShowCreateModal(false)} />
+            <ModalCreationOffre
+              key={offreEnEdition ? `edit-${offreEnEdition.id_offre}` : "create-offer"}
+              initialValues={offreEnEdition ? mapOffreToFormulaire(offreEnEdition) : undefined}
+              submitLabel={offreEnEdition ? "Save changes" : "Create role"}
+              onSubmit={(offre) => {
+                if (offreEnEdition) {
+                  void modifierOffre(offreEnEdition.id_offre, offre);
+                  return;
+                }
+                void creerNouvelleOffre(offre);
+              }}
+              onCancel={() => {
+                setShowCreateModal(false);
+                setOffreEnEdition(null);
+              }}
+            />
           </div>
         </div>
       ) : null}
@@ -1111,6 +1271,427 @@ function MesOffresPage() {
             grid-column: span 2;
           }
         }
+        .listings-dashboard {
+          position: relative;
+          min-height: calc(100vh - 120px);
+          padding: 22px;
+          border-radius: 24px;
+          background:
+            radial-gradient(circle at 84% 0%, rgba(109, 40, 217, 0.1), transparent 30%),
+            linear-gradient(180deg, #fbfaff 0%, #f7f4fb 100%);
+        }
+
+        .listings-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 18px;
+          margin-bottom: 14px;
+        }
+
+        .listings-header h1 {
+          margin: 0;
+          color: #16051f;
+          font-size: clamp(2rem, 3vw, 2.6rem);
+          line-height: 1;
+          letter-spacing: 0;
+        }
+
+        .listings-header p {
+          margin: 7px 0 0;
+          color: #6c617a;
+          font-size: 0.95rem;
+        }
+
+        .header-actions :global(.ui-button) {
+          min-height: 42px;
+          border-radius: 12px;
+          background: var(--app-primary);
+          border-color: var(--app-primary);
+          box-shadow: 0 16px 32px rgba(var(--app-primary-rgb), 0.22);
+        }
+
+        .header-actions :global(.ui-button:hover) {
+          background: var(--app-primary-hover);
+          border-color: var(--app-primary-hover);
+        }
+
+        .filter-bar {
+          min-height: 62px;
+          display: grid;
+          grid-template-columns: minmax(260px, 1fr) 170px 180px auto;
+          align-items: center;
+          gap: 10px;
+          margin-bottom: 14px;
+          padding: 10px;
+          border: 1px solid rgba(var(--app-primary-rgb), 0.12);
+          border-radius: 18px;
+          background: rgba(255, 255, 255, 0.78);
+          box-shadow: 0 14px 34px rgba(var(--app-primary-rgb), 0.08);
+          backdrop-filter: blur(16px);
+        }
+
+        .filter-search {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          min-width: 0;
+          min-height: 42px;
+          padding: 0 12px;
+          border: 1px solid rgba(var(--app-primary-rgb), 0.13);
+          border-radius: 12px;
+          background: #fff;
+          color: var(--app-primary);
+        }
+
+        .filter-search input {
+          width: 100%;
+          min-width: 0;
+          border: 0;
+          outline: 0;
+          background: transparent;
+          color: #201337;
+          font-size: 0.86rem;
+        }
+
+        .filter-search input::placeholder {
+          color: #8b8196;
+        }
+
+        .filter-bar select {
+          min-height: 42px;
+          width: 100%;
+          border: 1px solid rgba(var(--app-primary-rgb), 0.13);
+          border-radius: 12px;
+          background: #fff;
+          color: #2a173d;
+          padding: 0 12px;
+          font-size: 0.86rem;
+          outline: 0;
+        }
+
+        .filter-search:focus-within,
+        .filter-bar select:focus-visible {
+          border-color: rgba(var(--app-primary-rgb), 0.32);
+          box-shadow: 0 0 0 4px rgba(var(--app-primary-rgb), 0.1);
+        }
+
+        .filter-reset {
+          min-height: 42px;
+          padding: 0 14px;
+          border: 1px solid rgba(var(--app-primary-rgb), 0.16);
+          border-radius: 12px;
+          background: rgba(var(--app-primary-rgb), 0.06);
+          color: var(--app-primary);
+          font-size: 0.84rem;
+          font-weight: 850;
+          cursor: pointer;
+        }
+
+        .filter-reset:hover {
+          background: var(--app-primary);
+          border-color: var(--app-primary);
+          color: #fff;
+        }
+
+        .roles-grid {
+          display: grid;
+          grid-template-columns: repeat(3, minmax(280px, 1fr));
+          gap: 14px;
+        }
+
+        .role-card {
+          position: relative;
+          min-height: 278px;
+          max-height: 320px;
+          display: grid;
+          grid-template-columns: 1fr;
+          grid-template-rows: auto auto auto 1fr auto;
+          gap: 12px;
+          padding: 16px;
+          overflow: visible;
+          border: 1px solid rgba(76, 29, 149, 0.11);
+          border-radius: 20px;
+          background:
+            linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(253, 251, 255, 0.94)),
+            radial-gradient(circle at 90% 0%, rgba(109, 40, 217, 0.12), transparent 32%);
+          box-shadow: 0 18px 44px rgba(42, 8, 69, 0.08), 0 1px 0 rgba(255, 255, 255, 0.9) inset;
+          transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+        }
+
+        .role-card:hover {
+          transform: translateY(-3px);
+          border-color: rgba(109, 40, 217, 0.28);
+          box-shadow: 0 24px 60px rgba(42, 8, 69, 0.13);
+        }
+
+        .role-card-top,
+        .role-card-foot {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 10px;
+        }
+
+        .status-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          width: fit-content;
+          padding: 5px 9px;
+          border-radius: 999px;
+          font-size: 0.72rem;
+          font-weight: 850;
+          letter-spacing: 0;
+        }
+
+        .status-badge i {
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background: currentColor;
+          box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 14%, transparent);
+        }
+
+        .status-active {
+          color: #4c1d95;
+          background: rgba(109, 40, 217, 0.1);
+        }
+
+        .status-draft {
+          color: #5c526c;
+          background: rgba(42, 8, 69, 0.07);
+        }
+
+        .status-expired {
+          color: #7f3154;
+          background: rgba(127, 49, 84, 0.1);
+        }
+
+        .status-filled {
+          color: #2a0845;
+          background: rgba(42, 8, 69, 0.12);
+        }
+
+        .role-menu {
+          position: relative;
+          z-index: 5;
+        }
+
+        .role-menu summary {
+          width: 32px;
+          height: 32px;
+          display: grid;
+          place-items: center;
+          border: 1px solid rgba(76, 29, 149, 0.13);
+          border-radius: 11px;
+          background: rgba(255, 255, 255, 0.82);
+          color: #4c1d95;
+          cursor: pointer;
+          list-style: none;
+        }
+
+        .role-menu summary::-webkit-details-marker {
+          display: none;
+        }
+
+        .role-menu[open] summary {
+          background: #f2edff;
+          border-color: rgba(109, 40, 217, 0.28);
+        }
+
+        .role-menu div {
+          position: absolute;
+          top: calc(100% + 8px);
+          right: 0;
+          min-width: 174px;
+          display: grid;
+          gap: 3px;
+          padding: 7px;
+          border: 1px solid rgba(76, 29, 149, 0.12);
+          border-radius: 14px;
+          background: rgba(255, 255, 255, 0.96);
+          box-shadow: 0 22px 46px rgba(42, 8, 69, 0.18);
+          backdrop-filter: blur(14px);
+        }
+
+        .role-menu button {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          width: 100%;
+          min-height: 34px;
+          padding: 0 9px;
+          border: 0;
+          border-radius: 10px;
+          background: transparent;
+          color: #2a173d;
+          font-size: 0.82rem;
+          font-weight: 760;
+          cursor: pointer;
+          text-align: left;
+        }
+
+        .role-menu button:hover {
+          background: rgba(109, 40, 217, 0.08);
+          color: #4c1d95;
+        }
+
+        .role-menu .danger-item {
+          color: #9f2f4a;
+        }
+
+        .role-menu .danger-item:hover {
+          background: rgba(159, 47, 74, 0.08);
+          color: #8d2039;
+        }
+
+        .role-card-main {
+          display: grid;
+          grid-template-columns: 42px minmax(0, 1fr);
+          gap: 10px;
+          align-items: start;
+        }
+
+        .role-icon {
+          width: 42px;
+          height: 42px;
+          display: grid;
+          place-items: center;
+          border-radius: 14px;
+          background: linear-gradient(135deg, #2a0845, #5b21b6);
+          color: #fff;
+          font-size: 0.7rem;
+          font-weight: 900;
+          box-shadow: 0 14px 26px rgba(76, 29, 149, 0.22);
+        }
+
+        .role-card-main h3 {
+          margin: 0;
+          overflow: hidden;
+          color: #16051f;
+          font-size: 1.15rem;
+          line-height: 1.16;
+          letter-spacing: 0;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        .role-card-main p,
+        .role-card-main :global(.role-card-meta) {
+          margin: 6px 0 0;
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          gap: 5px;
+          color: #6c617a;
+          font-size: 0.78rem;
+          line-height: 1.3;
+        }
+
+        .role-salary {
+          margin: 0;
+          color: #4c1d95;
+          font-size: 1.02rem;
+          font-weight: 900;
+          line-height: 1.15;
+        }
+
+        .role-metrics {
+          display: grid;
+          grid-template-columns: 1.35fr 1fr 1fr;
+          gap: 8px;
+          align-items: stretch;
+        }
+
+        .role-metrics span {
+          min-width: 0;
+          display: grid;
+          grid-template-columns: auto 1fr;
+          align-content: center;
+          gap: 2px 6px;
+          min-height: 54px;
+          padding: 9px;
+          border: 1px solid rgba(76, 29, 149, 0.08);
+          border-radius: 14px;
+          background: rgba(76, 29, 149, 0.04);
+          color: #746a81;
+          font-size: 0.68rem;
+          font-weight: 750;
+        }
+
+        .role-metrics svg {
+          grid-row: span 2;
+          align-self: center;
+          color: #5b21b6;
+        }
+
+        .role-metrics strong {
+          color: #1b0628;
+          font-size: 1.04rem;
+          line-height: 1;
+        }
+
+        .role-metrics .metric-primary {
+          background: linear-gradient(135deg, rgba(76, 29, 149, 0.1), rgba(109, 40, 217, 0.06));
+          border-color: rgba(76, 29, 149, 0.15);
+        }
+
+        .role-card-foot {
+          padding-top: 2px;
+        }
+
+        .role-card-foot > span {
+          color: #85798f;
+          font-size: 0.75rem;
+          font-weight: 740;
+        }
+
+        .role-card-foot :global(.ui-button) {
+          min-height: 36px;
+          border-radius: 11px;
+          background: var(--app-primary);
+          border-color: var(--app-primary);
+          box-shadow: 0 12px 24px rgba(var(--app-primary-rgb), 0.18);
+        }
+
+        .role-card-foot :global(.ui-button:hover) {
+          background: var(--app-primary-hover);
+          border-color: var(--app-primary-hover);
+        }
+
+        .pagination-bar {
+          margin-top: 14px;
+          padding: 0 4px;
+        }
+
+        .empty-state {
+          border: 1px solid rgba(76, 29, 149, 0.12);
+          background: rgba(255, 255, 255, 0.76);
+          box-shadow: 0 18px 46px rgba(42, 8, 69, 0.08);
+          backdrop-filter: blur(14px);
+        }
+
+        @media (max-width: 1320px) {
+          .roles-grid {
+            grid-template-columns: repeat(2, minmax(280px, 1fr));
+          }
+        }
+
+        @media (max-width: 920px) {
+          .filter-bar {
+            grid-template-columns: 1fr 1fr;
+          }
+
+          .filter-search {
+            grid-column: 1 / -1;
+          }
+
+          .roles-grid {
+            grid-template-columns: 1fr;
+          }
+        }
+
         @media (max-width: 720px) {
           .listings-dashboard {
             padding: 16px;
@@ -1118,22 +1699,20 @@ function MesOffresPage() {
           .listings-header {
             flex-direction: column;
           }
-          .kpi-grid {
-            grid-template-columns: 1fr;
-          }
+
           .filter-bar {
             grid-template-columns: 1fr;
           }
-          .filter-input {
-            grid-column: auto;
-          }
+
           .role-card {
             grid-template-columns: 1fr;
+            min-height: 286px;
           }
-          .role-dates,
-          .role-actions {
-            grid-column: auto;
+
+          .role-metrics {
+            grid-template-columns: 1fr;
           }
+
           .pagination-bar {
             flex-direction: column;
             align-items: flex-start;
@@ -1161,21 +1740,39 @@ function MesOffresPage() {
   );
 }
 
-function ModalCreationOffre({ onSubmit, onCancel }: { onSubmit: (offre: OffreFormulaire) => void; onCancel: () => void }) {
-  const minimumDeadlineDate = useMemo(() => getTodayDateInputValue(), []);
+function ModalCreationOffre({
+  initialValues,
+  submitLabel,
+  onSubmit,
+  onCancel,
+}: {
+  initialValues?: OffreFormulaire;
+  submitLabel?: string;
+  onSubmit: (offre: OffreFormulaire) => void;
+  onCancel: () => void;
+}) {
+  const minimumDeadlineDate = useMemo(() => {
+    const today = getTodayDateInputValue();
+    if (initialValues?.date_limite && initialValues.date_limite < today) {
+      return initialValues.date_limite;
+    }
+    return today;
+  }, [initialValues?.date_limite]);
   const [skillInput, setSkillInput] = useState("");
-  const [formData, setFormData] = useState<OffreFormulaire>({
-    titre: "",
-    description: "",
-    localisation: "",
-    type_poste: "CDI",
-    salaire_min: "",
-    salaire_max: "",
-    date_limite: "",
-    competences_requises: "",
-    experience_requise: "",
-    niveau_etude: "",
-  });
+  const [formData, setFormData] = useState<OffreFormulaire>(
+    initialValues || {
+      titre: "",
+      description: "",
+      localisation: "",
+      type_poste: "CDI",
+      salaire_min: "",
+      salaire_max: "",
+      date_limite: "",
+      competences_requises: "",
+      experience_requise: "",
+      niveau_etude: "",
+    },
+  );
 
   const skills = useMemo(
     () =>
@@ -1185,6 +1782,12 @@ function ModalCreationOffre({ onSubmit, onCancel }: { onSubmit: (offre: OffreFor
         .filter(Boolean),
     [formData.competences_requises],
   );
+  const salaireMinValue = parseNonNegativeSalary(formData.salaire_min);
+  const salaireMaxValue = parseNonNegativeSalary(formData.salaire_max);
+  const salaireMinInvalide = formData.salaire_min.trim() !== "" && salaireMinValue === null;
+  const salaireMaxInvalide = formData.salaire_max.trim() !== "" && salaireMaxValue === null;
+  const salaireRangeInvalide =
+    salaireMinValue !== null && salaireMaxValue !== null && salaireMaxValue < salaireMinValue;
 
   const updateSkills = (nextSkills: string[]) => {
     setFormData((current) => ({
@@ -1227,8 +1830,12 @@ function ModalCreationOffre({ onSubmit, onCancel }: { onSubmit: (offre: OffreFor
       erreurs.push("Location is required.");
     }
 
-    if (formData.salaire_min && formData.salaire_max && Number(formData.salaire_min) > Number(formData.salaire_max)) {
-      erreurs.push("The minimum salary cannot be higher than the maximum salary.");
+    if (salaireMinInvalide || salaireMaxInvalide) {
+      erreurs.push("Les salaires doivent etre des nombres valides et non negatifs.");
+    }
+
+    if (salaireRangeInvalide) {
+      erreurs.push("La valeur du salaire maximum doit etre superieure ou egale a la valeur du salaire minimum.");
     }
 
     if (!formData.date_limite || formData.date_limite < minimumDeadlineDate) {
@@ -1236,11 +1843,11 @@ function ModalCreationOffre({ onSubmit, onCancel }: { onSubmit: (offre: OffreFor
     }
 
     if (!formData.experience_requise) {
-      erreurs.push("Required experience is required.");
+      erreurs.push("L'experience requise est obligatoire.");
     }
 
     if (!formData.niveau_etude) {
-      erreurs.push("Education level is required.");
+      erreurs.push("Le niveau d'etudes est obligatoire.");
     }
 
     if (erreurs.length > 0) {
@@ -1252,9 +1859,32 @@ function ModalCreationOffre({ onSubmit, onCancel }: { onSubmit: (offre: OffreFor
   };
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = event.target;
+
+    if (name === "salaire_min" || name === "salaire_max") {
+      if (value === "") {
+        setFormData((current) => ({
+          ...current,
+          [name]: "",
+        }));
+        return;
+      }
+
+      const numericValue = Number(value);
+      if (!Number.isFinite(numericValue)) {
+        return;
+      }
+
+      setFormData((current) => ({
+        ...current,
+        [name]: String(Math.max(0, numericValue)),
+      }));
+      return;
+    }
+
     setFormData((current) => ({
       ...current,
-      [event.target.name]: event.target.value,
+      [name]: value,
     }));
   };
 
@@ -1264,6 +1894,9 @@ function ModalCreationOffre({ onSubmit, onCancel }: { onSubmit: (offre: OffreFor
     !formData.description ||
     formData.description.length < 50 ||
     !formData.localisation ||
+    salaireMinInvalide ||
+    salaireMaxInvalide ||
+    salaireRangeInvalide ||
     !formData.date_limite ||
     formData.date_limite < minimumDeadlineDate ||
     !formData.experience_requise ||
@@ -1278,7 +1911,7 @@ function ModalCreationOffre({ onSubmit, onCancel }: { onSubmit: (offre: OffreFor
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
         <div className="lg:col-span-2">
           <label className={labelClass}>
-            Role title *
+            Titre de l'offre *
             <span className="ml-2 font-medium text-[#7c748f]">(min 3)</span>
           </label>
           <input
@@ -1293,29 +1926,29 @@ function ModalCreationOffre({ onSubmit, onCancel }: { onSubmit: (offre: OffreFor
                   ? "!border-green-300 bg-green-50"
                   : ""
             }`}
-            placeholder="Example: Full-Stack Developer"
+            placeholder="Exemple : Developpeur full-stack"
             required
           />
           {formData.titre.length > 0 && formData.titre.length < 3 ? (
-            <p className="text-xs text-red-600 mt-1">The title must be at least 3 characters long.</p>
+            <p className="text-xs text-red-600 mt-1">Le titre doit contenir au moins 3 caracteres.</p>
           ) : null}
         </div>
 
         <div>
-          <label className={labelClass}>Location *</label>
+          <label className={labelClass}>Localisation *</label>
           <input
             type="text"
             name="localisation"
             value={formData.localisation}
             onChange={handleChange}
             className={fieldBaseClass}
-            placeholder="Example: Tunis, Sfax, Remote"
+            placeholder="Exemple : Tunis, Sfax, teletravail"
             required
           />
         </div>
 
         <div>
-          <label className={labelClass}>Role type</label>
+          <label className={labelClass}>Type de contrat</label>
           <select
             name="type_poste"
             value={formData.type_poste}
@@ -1331,33 +1964,40 @@ function ModalCreationOffre({ onSubmit, onCancel }: { onSubmit: (offre: OffreFor
         </div>
 
         <div>
-          <label className={labelClass}>Minimum salary (TND)</label>
+          <label className={labelClass}>Salaire minimum (TND)</label>
           <input
             type="number"
             min="0"
+            step="1"
             name="salaire_min"
             value={formData.salaire_min}
             onChange={handleChange}
-            className={fieldBaseClass}
+            className={`${fieldBaseClass} ${salaireMinInvalide || salaireRangeInvalide ? "!border-red-300 bg-red-50" : formData.salaire_min ? "!border-green-300 bg-green-50" : ""}`}
             placeholder="800"
           />
+          {salaireMinInvalide ? <p className="mt-1 text-xs text-red-600">Le salaire minimum doit etre une valeur positive ou nulle.</p> : null}
         </div>
 
         <div>
-          <label className={labelClass}>Maximum salary (TND)</label>
+          <label className={labelClass}>Salaire maximum (TND)</label>
           <input
             type="number"
             min="0"
+            step="1"
             name="salaire_max"
             value={formData.salaire_max}
             onChange={handleChange}
-            className={fieldBaseClass}
+            className={`${fieldBaseClass} ${salaireMaxInvalide || salaireRangeInvalide ? "!border-red-300 bg-red-50" : formData.salaire_max ? "!border-green-300 bg-green-50" : ""}`}
             placeholder="1200"
           />
+          {salaireMaxInvalide ? <p className="mt-1 text-xs text-red-600">Le salaire maximum doit etre une valeur positive ou nulle.</p> : null}
+          {!salaireMaxInvalide && salaireRangeInvalide ? (
+            <p className="mt-1 text-xs text-red-600">La valeur du salaire maximum doit etre superieure ou egale a la valeur du salaire minimum.</p>
+          ) : null}
         </div>
 
         <div>
-          <label className={labelClass}>Application deadline *</label>
+          <label className={labelClass}>Date limite de candidature *</label>
           <input
             type="date"
             name="date_limite"
@@ -1383,7 +2023,7 @@ function ModalCreationOffre({ onSubmit, onCancel }: { onSubmit: (offre: OffreFor
 
         <div className="md:col-span-2">
           <label className={labelClass}>
-            Role description *
+            Description de l'offre *
             <span className="ml-2 font-medium text-[#7c748f]">(min 50 - {formData.description.length})</span>
           </label>
           <textarea
@@ -1398,19 +2038,19 @@ function ModalCreationOffre({ onSubmit, onCancel }: { onSubmit: (offre: OffreFor
                   ? "!border-green-300 bg-green-50"
                   : ""
             }`}
-            placeholder="Describe the role, responsibilities, and work environment..."
+            placeholder="Decrivez le poste, les responsabilites et l'environnement de travail..."
             required
           />
           {formData.description.length > 0 && formData.description.length < 50 ? (
-            <p className="text-xs text-red-600 mt-1">{50 - formData.description.length} more character(s) required</p>
+            <p className="text-xs text-red-600 mt-1">Il manque encore {50 - formData.description.length} caractere(s).</p>
           ) : null}
           {formData.description.length >= 50 ? (
-            <p className="text-xs text-green-600 mt-1">Description looks detailed enough.</p>
+            <p className="text-xs text-green-600 mt-1">La description est suffisamment detaillee.</p>
           ) : null}
         </div>
 
         <div className="md:col-span-2 lg:col-span-1">
-          <label className={labelClass}>Required skills</label>
+          <label className={labelClass}>Competences requises</label>
           <div className="flex gap-2">
             <input
               type="text"
@@ -1430,7 +2070,7 @@ function ModalCreationOffre({ onSubmit, onCancel }: { onSubmit: (offre: OffreFor
               onClick={addSkill}
               className="h-11 rounded-xl bg-[#35063e] px-4 text-sm font-bold text-white shadow-sm transition hover:bg-[#4a0a58]"
             >
-              Add
+              Ajouter
             </button>
           </div>
           {skills.length > 0 ? (
@@ -1451,7 +2091,7 @@ function ModalCreationOffre({ onSubmit, onCancel }: { onSubmit: (offre: OffreFor
         </div>
 
         <div>
-          <label className={labelClass}>Required experience *</label>
+          <label className={labelClass}>Experience requise *</label>
           <select
             name="experience_requise"
             value={formData.experience_requise}
@@ -1460,7 +2100,7 @@ function ModalCreationOffre({ onSubmit, onCancel }: { onSubmit: (offre: OffreFor
             required
           >
             <option value="" disabled>
-              Choose experience
+              Choisir une experience
             </option>
             {experienceOptions.map((option) => (
               <option key={option} value={option}>
@@ -1471,7 +2111,7 @@ function ModalCreationOffre({ onSubmit, onCancel }: { onSubmit: (offre: OffreFor
         </div>
 
         <div>
-          <label className={labelClass}>Education level *</label>
+          <label className={labelClass}>Niveau d'etudes *</label>
           <select
             name="niveau_etude"
             value={formData.niveau_etude}
@@ -1480,7 +2120,7 @@ function ModalCreationOffre({ onSubmit, onCancel }: { onSubmit: (offre: OffreFor
             required
           >
             <option value="" disabled>
-              Choose education level
+              Choisir un niveau d'etudes
             </option>
             {educationOptions.map((option) => (
               <option key={option} value={option}>
@@ -1506,7 +2146,7 @@ function ModalCreationOffre({ onSubmit, onCancel }: { onSubmit: (offre: OffreFor
             submitDisabled ? "cursor-not-allowed bg-gray-200 text-gray-500" : "bg-[#35063e] text-white shadow-lg shadow-[#35063e]/20 hover:bg-[#4a0a58]"
           }`}
         >
-          Create role
+          {submitLabel || "Create role"}
         </button>
       </div>
     </form>

@@ -2,13 +2,14 @@
 
 import { useEffect, useEffectEvent, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Bell, Mail, Phone, ShieldCheck } from "lucide-react";
+import { Mail, Phone, ShieldCheck } from "lucide-react";
 import { useI18n } from "@/components/i18n-provider";
 import { construireUrlApi } from "@/lib/config";
 import { UtilisateurConnecte } from "@/types/api";
 
 interface ProfilAdminProps {
   utilisateur: UtilisateurConnecte;
+  lectureSeule?: boolean;
 }
 
 interface ProfilAdminData {
@@ -40,7 +41,7 @@ const departementValues = [
   "Other",
 ] as const;
 
-export function ProfilAdmin({ utilisateur }: ProfilAdminProps) {
+export function ProfilAdmin({ utilisateur, lectureSeule = false }: ProfilAdminProps) {
   const { t, locale } = useI18n();
   const [profil, setProfil] = useState<ProfilAdminData>({
     nom: utilisateur.nom || "",
@@ -178,23 +179,25 @@ export function ProfilAdmin({ utilisateur }: ProfilAdminProps) {
           <p className="candidate-profile-kicker">{t("profile.admin.title")}</p>
           <h2>Admin profile</h2>
         </div>
-        <div className="candidate-profile-actions">
-          <button
-            type="button"
-            className="candidate-profile-button candidate-profile-button-secondary"
-            onClick={() => setModeEdition((courant) => !courant)}
-          >
-            {modeEdition ? t("profile.candidate.exitEdit") : t("common.actions.edit")}
-          </button>
-          <button
-            type="button"
-            className="candidate-profile-button candidate-profile-button-primary"
-            onClick={sauvegarderProfil}
-            disabled={chargement}
-          >
-            {chargement ? t("profile.candidate.saving") : t("common.actions.save")}
-          </button>
-        </div>
+        {!lectureSeule ? (
+          <div className="candidate-profile-actions">
+            <button
+              type="button"
+              className="candidate-profile-button candidate-profile-button-secondary"
+              onClick={() => setModeEdition((courant) => !courant)}
+            >
+              {modeEdition ? t("profile.candidate.exitEdit") : t("common.actions.edit")}
+            </button>
+            <button
+              type="button"
+              className="candidate-profile-button candidate-profile-button-primary"
+              onClick={sauvegarderProfil}
+              disabled={chargement}
+            >
+              {chargement ? t("profile.candidate.saving") : t("common.actions.save")}
+            </button>
+          </div>
+        ) : null}
       </div>
 
       {message ? <div className="message message-info">{message}</div> : null}
@@ -310,37 +313,6 @@ export function ProfilAdmin({ utilisateur }: ProfilAdminProps) {
           </div>
         </motion.article>
 
-        <motion.article className="candidate-profile-card candidate-profile-section candidate-profile-upload-block" whileHover={{ y: -2 }} transition={{ duration: 0.2 }}>
-          <div className="candidate-profile-card-head">
-            <strong>{t("profile.admin.notificationsTitle")}</strong>
-          </div>
-          <div className="candidate-profile-stack">
-            <div className="candidate-profile-support-chip">
-              <Bell size={14} />
-              <span>Choose how the platform reaches you for operational updates.</span>
-            </div>
-            <div className="candidate-profile-toggle-list">
-              <PreferenceRow
-                title={t("profile.admin.notifications.emailTitle")}
-                description={t("profile.admin.notifications.emailDescription")}
-                enabled={profil.notifications_email}
-                edit={modeEdition}
-                enabledLabel={t("profile.admin.notifications.enabled")}
-                disabledLabel={t("profile.admin.notifications.disabled")}
-                onToggle={(checked) => setProfil((courant) => ({ ...courant, notifications_email: checked }))}
-              />
-              <PreferenceRow
-                title={t("profile.admin.notifications.smsTitle")}
-                description={t("profile.admin.notifications.smsDescription")}
-                enabled={profil.notifications_sms}
-                edit={modeEdition}
-                enabledLabel={t("profile.admin.notifications.enabled")}
-                disabledLabel={t("profile.admin.notifications.disabled")}
-                onToggle={(checked) => setProfil((courant) => ({ ...courant, notifications_sms: checked }))}
-              />
-            </div>
-          </div>
-        </motion.article>
       </div>
     </section>
   );
@@ -428,40 +400,6 @@ function EditableSelect({
         <p>{resolveOptionLabel(value, options) || emptyValue}</p>
       )}
     </div>
-  );
-}
-
-function PreferenceRow({
-  title,
-  description,
-  enabled,
-  edit,
-  enabledLabel,
-  disabledLabel,
-  onToggle,
-}: {
-  title: string;
-  description: string;
-  enabled: boolean;
-  edit: boolean;
-  enabledLabel: string;
-  disabledLabel: string;
-  onToggle: (checked: boolean) => void;
-}) {
-  return (
-    <label className="candidate-profile-toggle-item admin-profile-toggle-item">
-      <span>
-        <strong>{title}</strong>
-        <small>{description}</small>
-      </span>
-      {edit ? (
-        <input type="checkbox" checked={enabled} onChange={(event) => onToggle(event.target.checked)} />
-      ) : (
-        <em className={enabled ? "admin-profile-status-active" : "admin-profile-status-muted"}>
-          {enabled ? enabledLabel : disabledLabel}
-        </em>
-      )}
-    </label>
   );
 }
 

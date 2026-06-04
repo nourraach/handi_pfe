@@ -115,9 +115,6 @@ function AdminPublicationOffersPage() {
     <section style={{ display: "grid", gap: 16 }}>
       <header>
         <h1 style={{ margin: 0, fontSize: "1.6rem", fontWeight: 800 }}>Validation des offres</h1>
-        <p style={{ margin: "6px 0 0", color: "#605777" }}>
-          Controlez les offres soumises avant leur publication.
-        </p>
       </header>
 
       {message ? (

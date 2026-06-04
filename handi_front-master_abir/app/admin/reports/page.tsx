@@ -4,9 +4,9 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { ComplianceReportDetail, ComplianceReportSummary, fetchSupervisionResource } from "@/lib/supervision";
 
 const STATUS_LABELS: Record<string, string> = {
-  submitted: "Submitted",
-  validated: "Validated",
-  rejected: "Rejected",
+  submitted: "Soumis",
+  validated: "Valide",
+  rejected: "Refuse",
 };
 
 const ITEMS_PER_PAGE = 25;
@@ -41,7 +41,7 @@ export default function AdminReportsPage() {
       setReports([]);
       setSelectedReport(null);
       setSelectedId(null);
-      setError(cause instanceof Error ? cause.message : "Unable to load company reports.");
+      setError(cause instanceof Error ? cause.message : "Impossible de charger les rapports des entreprises.");
     } finally {
       setLoading(false);
     }
@@ -63,7 +63,7 @@ export default function AdminReportsPage() {
         const detail = await fetchSupervisionResource<ComplianceReportDetail>(`/reports/${selectedId}`);
         setSelectedReport(detail);
       } catch (cause) {
-        setError(cause instanceof Error ? cause.message : "Unable to load report detail.");
+        setError(cause instanceof Error ? cause.message : "Impossible de charger le détail du rapport.");
       } finally {
         setDetailLoading(false);
       }
@@ -113,14 +113,14 @@ export default function AdminReportsPage() {
       <section className="admin-reports-page">
         <header className="admin-reports-hero">
           <div>
-            <p className="admin-reports-kicker">Enterprise reports</p>
-            <h1>Company compliance reports</h1>
+            <p className="admin-reports-kicker">Rapports entreprise</p>
+            <h1>Rapports de conformite des entreprises</h1>
           </div>
-          <div className="admin-reports-summary" aria-label="Reports summary">
+          <div className="admin-reports-summary" aria-label="Resume des rapports">
             <span><strong>{summary.total}</strong>Total</span>
-            <span><strong>{summary.submitted}</strong>Submitted</span>
-            <span><strong>{summary.validated}</strong>Validated</span>
-            <span><strong>{summary.rejected}</strong>Rejected</span>
+            <span><strong>{summary.submitted}</strong>Soumis</span>
+            <span><strong>{summary.validated}</strong>Valides</span>
+            <span><strong>{summary.rejected}</strong>Refuses</span>
           </div>
         </header>
 
@@ -138,7 +138,7 @@ export default function AdminReportsPage() {
                 <option value="">All statuses</option>
                 <option value="submitted">Submitted</option>
                 <option value="validated">Validated</option>
-                <option value="rejected">Rejected</option>
+                <option value="rejected">Refuse</option>
               </select>
             </div>
 
@@ -148,18 +148,18 @@ export default function AdminReportsPage() {
               <table className="admin-reports-table">
                 <thead>
                   <tr>
-                    <th>Company</th>
-                    <th>Period</th>
-                    <th>Status</th>
-                    <th>Applications</th>
-                    <th>Hired</th>
+                    <th>Entreprise</th>
+                    <th>Periode</th>
+                    <th>Statut</th>
+                    <th>Candidatures</th>
+                    <th>Acceptes</th>
                   </tr>
                 </thead>
                 <tbody>
                   {loading ? (
-                    <tr><td colSpan={5}>Loading reports...</td></tr>
+                    <tr><td colSpan={5}>Chargement des rapports...</td></tr>
                   ) : visibleReports.length === 0 ? (
-                    <tr><td colSpan={5}>No reports match these filters.</td></tr>
+                    <tr><td colSpan={5}>Aucun rapport ne correspond a ces filtres.</td></tr>
                   ) : (
                     visibleReports.map((report) => (
                       <tr
@@ -183,17 +183,17 @@ export default function AdminReportsPage() {
             </div>
 
             <footer className="admin-reports-pagination">
-              <span>Page {pageCourante} / {totalPages} - {filteredReports.length} report(s)</span>
+              <span>Page {pageCourante} / {totalPages} - {filteredReports.length} rapport(s)</span>
               <div>
-                <button type="button" onClick={() => setPage((current) => Math.max(1, current - 1))} disabled={pageCourante <= 1}>Previous</button>
-                <button type="button" onClick={() => setPage((current) => Math.min(totalPages, current + 1))} disabled={pageCourante >= totalPages}>Next</button>
+                <button type="button" onClick={() => setPage((current) => Math.max(1, current - 1))} disabled={pageCourante <= 1}>Precedent</button>
+                <button type="button" onClick={() => setPage((current) => Math.min(totalPages, current + 1))} disabled={pageCourante >= totalPages}>Suivant</button>
               </div>
             </footer>
           </article>
 
           <aside className="admin-reports-detail-panel">
             {detailLoading ? (
-              <p className="admin-reports-detail-empty">Opening report detail...</p>
+              <p className="admin-reports-detail-empty">Ouverture du detail du rapport...</p>
             ) : selectedReport ? (
               <>
                 <div className="admin-reports-detail-head">
@@ -205,28 +205,28 @@ export default function AdminReportsPage() {
                 </div>
 
                 <div className="admin-reports-detail-metrics">
-                  <span><strong>{selectedReport.workforce_total}</strong>Workforce</span>
-                  <span><strong>{selectedReport.disabled_employees}</strong>Disabled employees</span>
-                  <span><strong>{selectedReport.active_offers}</strong>Active offers</span>
-                  <span><strong>{selectedReport.shortlisted_count}</strong>Shortlisted</span>
+                  <span><strong>{selectedReport.workforce_total}</strong>Effectif</span>
+                  <span><strong>{selectedReport.disabled_employees}</strong>Employes en situation de handicap</span>
+                  <span><strong>{selectedReport.active_offers}</strong>Offres actives</span>
+                  <span><strong>{selectedReport.shortlisted_count}</strong>Preselection</span>
                 </div>
 
                 <div className="admin-reports-detail-block">
-                  <strong>Generated report</strong>
-                  <p>{selectedReport.accommodation_actions || "No generated report body or accommodation actions were provided."}</p>
+                  <strong>Rapport genere</strong>
+                  <p>{selectedReport.accommodation_actions || "Aucun contenu de rapport ni action d'accompagnement n'a ete fourni."}</p>
                 </div>
 
                 <div className="admin-reports-detail-block">
-                  <strong>Review history</strong>
-                  <p>Submitted by {selectedReport.submitted_by_name || "-"} on {formatDate(selectedReport.submitted_at)}.</p>
-                  <p>Reviewed by {selectedReport.reviewed_by_name || "-"} {selectedReport.reviewed_at ? `on ${formatDate(selectedReport.reviewed_at)}` : ""}</p>
+                  <strong>Historique de revue</strong>
+                  <p>Soumis par {selectedReport.submitted_by_name || "-"} le {formatDate(selectedReport.submitted_at)}.</p>
+                  <p>Revu par {selectedReport.reviewed_by_name || "-"} {selectedReport.reviewed_at ? `le ${formatDate(selectedReport.reviewed_at)}` : ""}</p>
                   {selectedReport.review_comment ? <p>{selectedReport.review_comment}</p> : null}
                 </div>
 
                 <div className="admin-reports-detail-block">
-                  <strong>Recommendations</strong>
+                  <strong>Recommandations</strong>
                   {selectedReport.recommendations.length === 0 ? (
-                    <p>No recommendations have been added.</p>
+                    <p>Aucune recommandation n&apos;a été ajoutée.</p>
                   ) : (
                     selectedReport.recommendations.map((item) => (
                       <p key={item.id}>{item.text}</p>
@@ -235,7 +235,7 @@ export default function AdminReportsPage() {
                 </div>
               </>
             ) : (
-              <p className="admin-reports-detail-empty">Select a report to view its content.</p>
+              <p className="admin-reports-detail-empty">Selectionnez un rapport pour afficher son contenu.</p>
             )}
           </aside>
         </section>

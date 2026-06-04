@@ -26,9 +26,9 @@ function formatDate(value?: string | null) {
 }
 
 const STATUS_LABELS: Record<string, string> = {
-  submitted: "Submitted",
-  validated: "Approved",
-  rejected: "Rejected",
+  submitted: "Soumis",
+  validated: "Validé",
+  rejected: "Refusé",
 };
 
 const STATUS_CLASSES: Record<string, string> = {
@@ -51,7 +51,7 @@ export function EnterpriseReportsRequestsHub() {
       setReports(reportsResult);
       setDrafts(listEnterpriseDrafts());
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Unable to load company reports.");
+      setError(cause instanceof Error ? cause.message : "Impossible de charger les rapports de l'entreprise.");
       setDrafts(listEnterpriseDrafts());
     } finally {
       setLoading(false);
@@ -69,13 +69,13 @@ export function EnterpriseReportsRequestsHub() {
 
   const exportReport = (report: EnterpriseGeneratedReportSummary) => {
     const content = [
-      `Report: ${report.summary}`,
-      `Period: ${formatDate(report.reporting_period_start)} - ${formatDate(report.reporting_period_end)}`,
-      `Status: ${STATUS_LABELS[report.status] || report.status}`,
-      `Submitted on: ${formatDate(report.submitted_at)}`,
-      `Applications: ${report.applications_count}`,
-      `Shortlisted: ${report.shortlisted_count}`,
-      `Hired: ${report.hired_count}`,
+      `Rapport : ${report.summary}`,
+      `Période : ${formatDate(report.reporting_period_start)} - ${formatDate(report.reporting_period_end)}`,
+      `Statut : ${STATUS_LABELS[report.status] || report.status}`,
+      `Soumis le : ${formatDate(report.submitted_at)}`,
+      `Candidatures : ${report.applications_count}`,
+      `Présélection : ${report.shortlisted_count}`,
+      `Recrutements : ${report.hired_count}`,
     ].join("\n");
 
     downloadTextDocument(`compliance-report-${report.id}.txt`, content);
@@ -86,15 +86,15 @@ export function EnterpriseReportsRequestsHub() {
       return report.reviewed_by_name;
     }
 
-    return report.region ? "Labour Inspectorate" : "ANETI";
+    return report.region ? "Inspection du travail" : "ANETI";
   };
 
   if (loading) {
     return (
       <main className="reports-requests-page">
         <LoadingState
-          title="Loading reports and requests"
-          description="Preparing the company reporting workspace and your saved drafts."
+          title="Chargement des rapports et demandes"
+          description="Préparation de l'espace de reporting entreprise et de vos brouillons enregistrés."
         />
       </main>
     );
@@ -104,12 +104,8 @@ export function EnterpriseReportsRequestsHub() {
     <main className="reports-requests-page">
       <section className="rr-header">
         <div>
-          <p className="rr-eyebrow">REPORTS & REQUESTS</p>
-          <h1>Generate compliance documents and manage your company drafts</h1>
-          <p className="rr-subtitle">
-            Create the compliance report for law n 41-2016, prepare a transfer request, and reopen your saved work
-            whenever needed.
-          </p>
+          <p className="rr-eyebrow">Rapports et demandes</p>
+          <h1>Générez vos documents de conformité et gérez vos brouillons</h1>
         </div>
         <div className="rr-hero-art" aria-hidden="true" />
       </section>
@@ -120,32 +116,32 @@ export function EnterpriseReportsRequestsHub() {
         <article className="rr-step">
           <span className="rr-step-icon">📄</span>
           <div>
-            <strong>Generate report</strong>
-            <p>Build your compliance report from live data</p>
+            <strong>Générer le rapport</strong>
+            <p>Construisez votre rapport de conformité à partir des données en temps réel</p>
           </div>
         </article>
         <span className="rr-step-link" aria-hidden="true" />
         <article className="rr-step">
           <span className="rr-step-icon">👁</span>
           <div>
-            <strong>Review</strong>
-            <p>Review and validate the report</p>
+            <strong>Relire</strong>
+            <p>Relisez et validez le rapport</p>
           </div>
         </article>
         <span className="rr-step-link" aria-hidden="true" />
         <article className="rr-step">
           <span className="rr-step-icon">✈</span>
           <div>
-            <strong>Submit</strong>
-            <p>Submit to inspector or ANETI</p>
+            <strong>Soumettre</strong>
+            <p>Adressez le dossier à l&apos;inspection ou à l&apos;ANETI</p>
           </div>
         </article>
         <span className="rr-step-link" aria-hidden="true" />
         <article className="rr-step">
           <span className="rr-step-icon">✓</span>
           <div>
-            <strong>Follow-up</strong>
-            <p>Track status and follow actions</p>
+            <strong>Suivi</strong>
+            <p>Suivez le statut et les actions à mener</p>
           </div>
         </article>
       </section>
@@ -153,19 +149,19 @@ export function EnterpriseReportsRequestsHub() {
       <section className="rr-actions-grid">
         <article className="rr-action-card rr-action-primary">
           <div className="rr-action-copy">
-            <h2>Generate compliance report</h2>
-            <p>Build the law n 41-2016 report from your live hiring data.</p>
-            <ButtonLink href="/entreprise/reports-requests/compliance">Start report</ButtonLink>
+            <h2>Générer le rapport de conformité</h2>
+            <p>Construisez le rapport lié à la loi n°41-2016 à partir de vos données de recrutement.</p>
+            <ButtonLink href="/entreprise/reports-requests/compliance">Commencer le rapport</ButtonLink>
           </div>
           <div className="rr-action-art" aria-hidden="true" />
         </article>
 
         <article className="rr-action-card rr-action-secondary">
           <div className="rr-action-copy">
-            <h2>Create transfer request</h2>
-            <p>Prepare a structured transfer request for your inclusion follow-up.</p>
+            <h2>Créer une demande de transfert</h2>
+            <p>Préparez une demande structurée pour le suivi de votre politique d&apos;inclusion.</p>
             <ButtonLink href="/entreprise/reports-requests/transfer" variant="secondary">
-              Start request
+              Commencer la demande
             </ButtonLink>
           </div>
           <div className="rr-action-art rr-action-art-transfer" aria-hidden="true" />
@@ -176,25 +172,25 @@ export function EnterpriseReportsRequestsHub() {
         <section className="rr-panel">
           <header className="rr-panel-head">
             <h3>
-              Published reports <span>{reports.length}</span>
+              Rapports publiés <span>{reports.length}</span>
             </h3>
           </header>
 
           {reports.length === 0 ? (
             <div className="rr-empty">
-              <strong>No reports yet</strong>
-              <p>Start by generating your first compliance report</p>
-              <ButtonLink href="/entreprise/reports-requests/compliance">Generate report</ButtonLink>
+              <strong>Aucun rapport pour le moment</strong>
+              <p>Commencez par générer votre premier rapport de conformité</p>
+              <ButtonLink href="/entreprise/reports-requests/compliance">Générer un rapport</ButtonLink>
             </div>
           ) : (
             <div className="rr-table-wrap">
               <table className="rr-table">
                 <thead>
                   <tr>
-                    <th>Report name</th>
-                    <th>Period</th>
-                    <th>Status</th>
-                    <th>Submitted to</th>
+                    <th>Nom du rapport</th>
+                    <th>Période</th>
+                    <th>Statut</th>
+                    <th>Destinataire</th>
                     <th>Date</th>
                     <th>Actions</th>
                   </tr>
@@ -216,10 +212,10 @@ export function EnterpriseReportsRequestsHub() {
                       <td>
                         <div className="rr-actions-inline">
                           <ButtonLink href={`/entreprise/reports-requests/reports/${report.id}`} variant="ghost" size="sm">
-                            View
+                            Voir
                           </ButtonLink>
                           <Button onClick={() => exportReport(report)} variant="ghost" size="sm">
-                            Download
+                            Télécharger
                           </Button>
                         </div>
                       </td>
@@ -234,24 +230,24 @@ export function EnterpriseReportsRequestsHub() {
         <section className="rr-panel">
           <header className="rr-panel-head">
             <h3>
-              Saved drafts <span>{drafts.length}</span>
+              Brouillons enregistrés <span>{drafts.length}</span>
             </h3>
           </header>
 
           {drafts.length === 0 ? (
             <div className="rr-empty">
-              <strong>No reports yet</strong>
-              <p>Start by generating your first compliance report</p>
-              <ButtonLink href="/entreprise/reports-requests/compliance">Generate report</ButtonLink>
+              <strong>Aucun brouillon pour le moment</strong>
+              <p>Commencez par générer votre premier rapport de conformité</p>
+              <ButtonLink href="/entreprise/reports-requests/compliance">Générer un rapport</ButtonLink>
             </div>
           ) : (
             <div className="rr-table-wrap">
               <table className="rr-table">
                 <thead>
                   <tr>
-                    <th>Draft name</th>
+                    <th>Nom du brouillon</th>
                     <th>Type</th>
-                    <th>Last updated</th>
+                    <th>Dernière mise à jour</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
@@ -267,17 +263,17 @@ export function EnterpriseReportsRequestsHub() {
                         <td>{draft.title}</td>
                         <td>
                           <span className={`rr-type-pill ${draft.type === "compliance" ? "type-report" : "type-request"}`}>
-                            {draft.type === "compliance" ? "Report" : "Request"}
+                            {draft.type === "compliance" ? "Rapport" : "Demande"}
                           </span>
                         </td>
                         <td>{formatDate(draft.updated_at)}</td>
                         <td>
                           <div className="rr-actions-inline">
                             <ButtonLink href={editHref} variant="ghost" size="sm">
-                              Edit
+                              Modifier
                             </ButtonLink>
                             <Button onClick={() => removeDraft(draft.id)} variant="ghost" size="sm">
-                              Delete
+                              Supprimer
                             </Button>
                           </div>
                         </td>

@@ -1,0 +1,38 @@
+OFFRE D'EMPLOI — DEVELOPPEUR BACKEND JAVA / SPRING BOOT
+Entreprise : Sopra Banking Software Tunis
+Poste : Developpeur Backend Java Senior (H/F)
+Contrat : CDI | Tunis, Tunisie
+
+DESCRIPTION DU POSTE
+Dans le cadre du renforcement de notre equipe technique, nous recrutons un developpeur Java
+Backend experimente pour contribuer a nos solutions bancaires core.
+
+MISSIONS PRINCIPALES
+- Concevoir et developper des microservices Java Spring Boot
+- Developper et maintenir des APIs REST documentees avec OpenAPI
+- Optimiser les performances des bases de donnees PostgreSQL
+- Mettre en place des tests unitaires et d integration (JUnit, Mockito)
+- Participer a la revue de code et au maintien de la qualite logicielle
+
+COMPETENCES REQUISES
+- Java 11+ : maitrise avancee
+- Spring Boot, Spring MVC, Spring Security
+- JPA / Hibernate et SQL avance (PostgreSQL, MySQL)
+- API REST et architecture microservices
+- Git et outils de CI/CD
+
+COMPETENCES APPRECIEES (bonus)
+- Docker et Kubernetes
+- Kafka ou RabbitMQ (messaging)
+- MongoDB ou Redis (bases NoSQL)
+- Oracle Certified Java Programmer
+
+PROFIL RECHERCHE
+- 3 a 7 ans d experience en developpement Java Backend
+- Formation superieure en informatique (Licence, Master, ou Ingenieur)
+- Rigueur, sens de l architecture logicielle, gout pour la performance
+
+CONDITIONS
+- Salaire competitif selon experience
+- Environnement technique stimulant, projets bancaires internationaux
+- Localisation : Tunis (Les Berges du Lac)

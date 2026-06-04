@@ -1,0 +1,38 @@
+OFFRE D'EMPLOI — DEVELOPPEUR FRONTEND REACT
+Entreprise : HandiTech Solutions Tunis
+Poste : Developpeur Frontend React (H/F)
+Contrat : CDI | Teletravail partiel possible
+
+DESCRIPTION DU POSTE
+Nous recherchons un developpeur Frontend passionne par React.js pour rejoindre notre equipe produit.
+Vous serez responsable du developpement et de la maintenance de nos interfaces utilisateur web.
+
+MISSIONS PRINCIPALES
+- Developper des composants React reutilisables et maintenir la codebase existante
+- Integrer des APIs REST et GraphQL dans les interfaces
+- Optimiser les performances des applications frontend
+- Collaborer avec les equipes design (Figma) et backend
+- Participer aux code reviews et appliquer les bonnes pratiques
+
+COMPETENCES REQUISES
+- React.js : maitrise solide (Hooks, Context API, React Router)
+- JavaScript ES6+ et TypeScript
+- HTML5 et CSS3 (responsive design)
+- Git et methodes Agile/Scrum
+- Connaissance des REST APIs
+
+COMPETENCES APPRECIEES (bonus)
+- Next.js et rendu cote serveur (SSR/SSG)
+- Tests unitaires (Jest, React Testing Library)
+- Tailwind CSS ou Styled Components
+- Redux ou Zustand pour la gestion d etat
+
+PROFIL RECHERCHE
+- 1 a 5 ans d experience en developpement Frontend
+- Autonome, rigoureux et esprit d equipe
+- Sensibilite a l accessibilite et au handicap est un plus
+
+CONDITIONS
+- Salaire : selon profil et experience
+- Avantages : transport, mutuelle, formation continue
+- Localisation : Tunis (El Ghazala) ou teletravail

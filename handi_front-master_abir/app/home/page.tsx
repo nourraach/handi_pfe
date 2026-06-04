@@ -7,16 +7,13 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   ArrowRight,
-  Bell,
   Bookmark,
   BrainCircuit,
   BriefcaseBusiness,
   CalendarClock,
   CheckCircle2,
-  Download,
   FileText,
   MessageCircle,
-  Search,
   ShieldCheck,
   Sparkles,
   UserRoundCheck,
@@ -1133,17 +1130,17 @@ function AdminDashboardHome({
   ];
 
   const focusItems = [
-    { label: "Pending review", value: pendingApplications, total: Math.max(totalApplications, 1), tone: "purple" },
-    { label: "Shortlisted", value: shortlisted, total: Math.max(totalApplications, 1), tone: "blue" },
-    { label: "Interviews", value: interviews, total: Math.max(totalApplications, 1), tone: "green" },
-    { label: "Accepted", value: accepted, total: Math.max(totalApplications, 1), tone: "orange" },
+    { label: "En attente de revue", value: pendingApplications, total: Math.max(totalApplications, 1), tone: "purple" },
+    { label: "Présélection", value: shortlisted, total: Math.max(totalApplications, 1), tone: "blue" },
+    { label: "Entretiens", value: interviews, total: Math.max(totalApplications, 1), tone: "green" },
+    { label: "Acceptées", value: accepted, total: Math.max(totalApplications, 1), tone: "orange" },
   ];
 
   const quickActions = [
-    { href: "/admin/demandes-en-attente", label: "Review pending requests", icon: metricIcon("applications") },
-    { href: "/entreprise/offres", label: "Manage job postings", icon: metricIcon("jobs") },
-    { href: "/home#admin-stats", label: "View accessibility feedback", icon: metricIcon("accessibility") },
-    { href: "/admin/statistiques", label: "Open analytics report", icon: metricIcon("report") },
+    { href: "/admin/demandes-en-attente", label: "Voir les demandes en attente", icon: metricIcon("applications") },
+    { href: "/entreprise/offres", label: "Gérer les offres", icon: metricIcon("jobs") },
+    { href: "/home#admin-stats", label: "Voir les retours d'accessibilité", icon: metricIcon("accessibility") },
+    { href: "/admin/statistiques", label: "Ouvrir le rapport d'analyse", icon: metricIcon("report") },
   ];
 
   const commandKpis = [
@@ -1158,7 +1155,7 @@ function AdminDashboardHome({
       id: "activity-shortlist",
       icon: metricIcon("clipboard"),
       title: `${recentShortlisted} candidat(s) shortlisté(s)`,
-      detail: "Recruitment pipeline",
+      detail: "Pipeline de recrutement",
       time: "sur 30 jours",
       tone: "green",
     },
@@ -1173,15 +1170,15 @@ function AdminDashboardHome({
     {
       id: "activity-users",
       icon: metricIcon("user"),
-      title: `${totalCompanies} company account(s) monitored`,
-      detail: "Inscrit sur la plateforme",
+      title: `${totalCompanies} compte(s) entreprise suivi(s)`,
+      detail: "Inscrits sur la plateforme",
       time: "actuel",
       tone: "blue",
     },
     {
       id: "activity-feedback",
       icon: metricIcon("eye"),
-      title: `${reportCount} accessibility feedback item(s)`,
+      title: `${reportCount} retour(s) d'accessibilite`,
       detail: "Rapports de conformité",
       time: "total réel",
       tone: "purple",
@@ -1212,23 +1209,18 @@ function AdminDashboardHome({
         <section className="admin-command__hero">
           <div className="admin-command__hero-copy">
             <p className="admin-command__hello">Bonjour, {firstName} 👋</p>
-            <h1>Admin <span>command</span> center</h1>
+            <h1>Centre de <span>pilotage</span> admin</h1>
             <p>Administrez la plateforme, suivez les decisions, la qualite d&apos;accessibilite et la dynamique de recrutement.</p>
             <div className="admin-command__hero-actions">
               <Link href="/admin/demandes-en-attente">Voir la file d&apos;attente <ArrowRight size={17} /></Link>
               <Link href="/admin/statistiques">Voir les rapports</Link>
             </div>
           </div>
-          <div className="admin-command__top-actions" aria-label="Admin workspace actions">
-            <button type="button" aria-label="Rechercher"><Search size={22} /></button>
-            <button type="button" aria-label="Notifications"><Bell size={22} /><span>3</span></button>
-            <Link href="/admin/statistiques"><Download size={19} /> Exporter un rapport</Link>
-          </div>
         </section>
 
         {erreurStats ? <div className="message message-erreur">{erreurStats}</div> : null}
 
-        <section className="admin-command__kpis" aria-label="Admin key indicators">
+        <section className="admin-command__kpis" aria-label="Indicateurs cles administrateur">
           {commandKpis.map((item) => (
             <article key={item.label} className="admin-command__metric">
               <span aria-hidden="true">{item.icon}</span>
@@ -1244,10 +1236,10 @@ function AdminDashboardHome({
           <article className="admin-command__card admin-command__card--focus">
             <header className="admin-command__card-head">
               <div>
-                <p className="admin-command__section-label">Priority lane</p>
-                <h2>Recruitment flow</h2>
+                <p className="admin-command__section-label">Priorites</p>
+                <h2>Flux de recrutement</h2>
               </div>
-              <Link href="/admin/demandes-en-attente">Open queue</Link>
+              <Link href="/admin/demandes-en-attente">Ouvrir la file</Link>
             </header>
 
             <div className="admin-command__focus-list">
@@ -1267,8 +1259,8 @@ function AdminDashboardHome({
             <div className="admin-command__spotlight">
               <span aria-hidden="true">{metricIcon("shield")}</span>
               <div>
-                <strong>Keep decisions moving with accessible hiring checks.</strong>
-                <p>Prioritize pending reviews and compliance feedback before they pile up.</p>
+                <strong>Gardez les decisions en mouvement avec des controles de recrutement accessibles.</strong>
+                <p>Priorisez les revues en attente et les retours de conformite avant qu'ils ne s'accumulent.</p>
               </div>
             </div>
           </article>
@@ -1276,8 +1268,8 @@ function AdminDashboardHome({
           <article className="admin-command__card admin-command__card--access">
             <header className="admin-command__card-head">
               <div>
-                <p className="admin-command__section-label">Quality</p>
-                <h2>Accessibility signals</h2>
+                <p className="admin-command__section-label">Qualite</p>
+                <h2>Signaux d'accessibilite</h2>
               </div>
               <Link href="/home#admin-stats">Details</Link>
             </header>
@@ -1753,14 +1745,14 @@ function CandidateHome({
               <h1
                 id="candidate-home-hero-title"
                 className="font-[600] leading-[1.05] text-[#1f1230] sm:text-4xl lg:text-5xl"
-                style={{ fontFamily: "Manrope, sans-serif" }}
+                style={{ fontFamily: "var(--app-heading)" }}
               >
                 <span className="block">Trouvez</span>
                 <span className="block">l&apos;opportunité</span>
                 <span className="block">qui vous</span>
                 <span className="block">correspond.</span>
               </h1>
-              <p className="max-w-xl text-[15px] leading-relaxed text-[#5c5171]" style={{ fontFamily: "IBM Plex Sans, sans-serif" }}>
+              <p className="max-w-xl text-[15px] leading-relaxed text-[#5c5171]" style={{ fontFamily: "var(--app-body)" }}>
                 Des entreprises inclusives recherchent des talents comme le vôtre.
               </p>
             </div>
@@ -1835,7 +1827,7 @@ function CandidateHome({
           className="rounded-[28px] border border-[#e8ddfb] bg-white/90 p-5 shadow-[0_16px_42px_-28px_rgba(53,6,62,0.45)] lg:col-span-8"
         >
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-[#23143a]" style={{ fontFamily: "Manrope, sans-serif" }}>
+            <h2 className="text-lg font-semibold text-[#23143a]" style={{ fontFamily: "var(--app-heading)" }}>
               Offres suggérées
             </h2>
             <Link href="/offres" className="inline-flex items-center gap-1 text-sm font-medium text-[#5f31ac] hover:underline">
@@ -1900,7 +1892,7 @@ function CandidateHome({
           className="rounded-[28px] border border-[#e8ddfb] bg-white/90 p-5 shadow-[0_16px_42px_-28px_rgba(53,6,62,0.45)] lg:col-span-4"
         >
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-[#23143a]" style={{ fontFamily: "Manrope, sans-serif" }}>
+            <h2 className="text-lg font-semibold text-[#23143a]" style={{ fontFamily: "var(--app-heading)" }}>
               Activité récente
             </h2>
             <Link href="/candidat/candidatures" className="text-sm font-medium text-[#5f31ac] hover:underline">
@@ -1961,7 +1953,7 @@ function CandidateHome({
           className="rounded-[28px] bg-gradient-to-br from-[#35063E] via-[#4d1b67] to-[#6f38a6] p-5 text-white shadow-[0_20px_44px_-20px_rgba(53,6,62,0.8)] lg:col-span-4"
         >
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-semibold" style={{ fontFamily: "Manrope, sans-serif" }}>
+            <h2 className="text-lg font-semibold" style={{ fontFamily: "var(--app-heading)" }}>
               Suivi de votre profil
             </h2>
             <WandSparkles className="h-5 w-5 text-[#d9c9fb]" />
@@ -1993,7 +1985,7 @@ function CandidateHome({
             className="rounded-[28px] border border-[#e8ddfb] bg-white/90 p-5 shadow-[0_16px_42px_-28px_rgba(53,6,62,0.45)]"
           >
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-[#23143a]" style={{ fontFamily: "Manrope, sans-serif" }}>
+              <h2 className="text-lg font-semibold text-[#23143a]" style={{ fontFamily: "var(--app-heading)" }}>
                 Ressources premium
               </h2>
               <Link href="/candidat/cv" className="text-sm font-medium text-[#5f31ac] hover:underline">
@@ -2041,7 +2033,7 @@ function CandidateHome({
             className="rounded-[28px] border border-[#e8ddfb] bg-white/90 p-5 shadow-[0_16px_42px_-28px_rgba(53,6,62,0.45)]"
           >
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-[#23143a]" style={{ fontFamily: "Manrope, sans-serif" }}>
+              <h2 className="text-lg font-semibold text-[#23143a]" style={{ fontFamily: "var(--app-heading)" }}>
                 Vos compétences clés
               </h2>
               <UserRoundCheck className="h-5 w-5 text-[#7047ba]" />
@@ -2209,4 +2201,3 @@ function formatRelativeDate(value: string) {
 function formatPercent(value: number | undefined) {
   return Number(value ?? 0).toFixed(1);
 }
-

@@ -1585,8 +1585,178 @@ const jobsStudioScopedStyles = `
   }
 
   .jobs-modal-card-lg {
-    width: min(100%, 820px);
+    width: min(100%, 1040px);
     max-height: min(90vh, 860px);
+  }
+
+  .company-job-profile {
+    position: relative;
+    display: grid;
+    gap: 18px;
+  }
+
+  .company-job-close {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 2;
+    width: 42px;
+    height: 42px;
+    border: 1px solid rgba(var(--app-primary-rgb), 0.14);
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.92);
+    color: var(--app-primary);
+    font-size: 1.35rem;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  .company-job-hero {
+    display: grid;
+    grid-template-columns: 96px minmax(0, 1fr);
+    align-items: center;
+    gap: 18px;
+    padding: 22px 54px 22px 22px;
+    border: 1px solid rgba(var(--app-primary-rgb), 0.1);
+    border-radius: 22px;
+    background:
+      radial-gradient(circle at 92% 12%, rgba(216, 106, 141, 0.18), transparent 34%),
+      linear-gradient(135deg, rgba(var(--app-primary-rgb), 0.08), rgba(255, 255, 255, 0.96));
+  }
+
+  .company-job-logo {
+    width: 82px;
+    height: 82px;
+    display: grid;
+    place-items: center;
+    border-radius: 22px;
+    background: linear-gradient(135deg, var(--app-primary), #d86a8d);
+    color: #fff;
+    font-size: 1.5rem;
+    font-weight: 900;
+    box-shadow: 0 18px 38px rgba(var(--app-primary-rgb), 0.2);
+  }
+
+  .company-job-meta,
+  .company-job-skills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 14px;
+  }
+
+  .company-job-meta span,
+  .company-job-skills span {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 10px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.78);
+    color: #4b415e;
+    font-size: 0.82rem;
+    font-weight: 800;
+  }
+
+  .company-job-meta svg,
+  .company-job-kpis svg {
+    width: 16px;
+    height: 16px;
+    color: var(--app-primary);
+  }
+
+  .company-job-kpis {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .company-job-kpis article,
+  .company-job-panel {
+    border: 1px solid rgba(var(--app-primary-rgb), 0.1);
+    border-radius: 16px;
+    background: linear-gradient(180deg, #fff, #fcfafd);
+    box-shadow: 0 14px 34px rgba(31, 18, 49, 0.05);
+  }
+
+  .company-job-kpis article {
+    min-height: 98px;
+    display: grid;
+    align-content: center;
+    gap: 6px;
+    padding: 16px;
+  }
+
+  .company-job-kpis span {
+    color: #716883;
+    font-size: 0.78rem;
+    font-weight: 800;
+  }
+
+  .company-job-kpis strong {
+    color: #1d1430;
+    font-size: 0.96rem;
+    line-height: 1.25;
+  }
+
+  .company-job-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 0.82fr);
+    gap: 14px;
+  }
+
+  .company-job-panel {
+    padding: 20px;
+  }
+
+  .company-job-panel-wide {
+    grid-column: span 2;
+  }
+
+  .company-job-panel h3 {
+    margin: 0 0 12px;
+    color: #1d1430;
+    font-size: 1.02rem;
+  }
+
+  .company-job-panel p {
+    margin: 0;
+    color: #625773;
+    line-height: 1.58;
+  }
+
+  .company-job-skills {
+    margin-top: 0;
+  }
+
+  .company-job-skills span {
+    background: rgba(var(--app-primary-rgb), 0.08);
+    color: var(--app-primary);
+  }
+
+  .company-job-stack {
+    display: grid;
+    gap: 10px;
+  }
+
+  .company-job-stack span {
+    display: grid;
+    gap: 4px;
+    color: #625773;
+    line-height: 1.35;
+  }
+
+  .company-job-stack b {
+    color: #1d1430;
+  }
+
+  .company-job-actions {
+    position: sticky;
+    bottom: -1px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(var(--app-primary-rgb), 0.1);
+    background: rgba(255, 255, 255, 0.94);
+    backdrop-filter: blur(10px);
   }
 
   .jobs-modal-header {
@@ -1928,6 +2098,20 @@ const jobsStudioScopedStyles = `
       border-top-left-radius: 20px;
       border-top-right-radius: 20px;
       overflow-y: auto;
+    }
+
+    .company-job-hero,
+    .company-job-kpis,
+    .company-job-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .company-job-panel-wide {
+      grid-column: auto;
+    }
+
+    .company-job-hero {
+      padding: 18px 50px 18px 18px;
     }
 
     .jobs-apply-modal__title {
@@ -2775,45 +2959,39 @@ export default function OffresPage() {
               style={modalCardLargeStyle}
               onClick={(event) => event.stopPropagation()}
             >
-            <div className="stack-lg">
-              <div className="page-header-actions jobs-modal-header">
+            <div className="company-job-profile">
+              <button className="company-job-close" type="button" onClick={fermerDetailsOffre} aria-label="Fermer">×</button>
+
+              <section className="company-job-hero">
+                <div className="company-job-logo">{(offreEnDetails.nom_entreprise || "Entreprise").slice(0, 2).toUpperCase()}</div>
                 <div>
-                  <p className="badge jobs-modal-eyebrow">
-                    Details du poste
-                  </p>
+                  <p className="badge jobs-modal-eyebrow">Entreprise qui recrute</p>
                   <h2 id="job-details-modal-title" className="jobs-modal-title">
-                    {offreEnDetails.titre}
+                    {(offreEnDetails.nom_entreprise || "Entreprise").trim()}
                   </h2>
-                  <p className="texte-secondaire jobs-modal-subtitle">
-                    {(offreEnDetails.nom_entreprise || "Entreprise").trim()} - {offreEnDetails.localisation}
+                  <p className="jobs-modal-subtitle">
+                    {offreEnDetails.titre} - {offreEnDetails.localisation}
                   </p>
-                </div>
-                <Button variant="ghost" onClick={fermerDetailsOffre}>
-                  Fermer
-                </Button>
-              </div>
-
-              <Card tone="accent" padding="md">
-                <div className="details-grid">
-                  <div className="detail-box">
-                    <strong>Type de contrat</strong>
-                    <p>{offreEnDetails.type_poste.toUpperCase()}</p>
-                  </div>
-                  <div className="detail-box">
-                    <strong>Salaire</strong>
-                    <p>{formatSalaryRange(offreEnDetails)}</p>
-                  </div>
-                  <div className="detail-box">
-                    <strong>Candidatures</strong>
-                    <p>{offreEnDetails.candidatures_count || "\u2014"}</p>
+                  <div className="company-job-meta">
+                    <span><LocationIcon /> {offreEnDetails.localisation}</span>
+                    <span><ExperienceIcon /> {offreEnDetails.type_poste.toUpperCase()}</span>
+                    <span><UsersIcon /> Recrutement actif</span>
                   </div>
                 </div>
-              </Card>
+              </section>
 
-              <div className="detail-box">
-                <strong>Description</strong>
-                <p>{offreEnDetails.description}</p>
-              </div>
+              <section className="company-job-kpis">
+                <article><ExperienceIcon /><span>Poste</span><strong>{offreEnDetails.titre}</strong></article>
+                <article><SalaryIcon /><span>Salaire</span><strong>{formatSalaryRange(offreEnDetails)}</strong></article>
+                <article><UsersIcon /><span>Candidatures</span><strong>{offreEnDetails.candidatures_count || "—"}</strong></article>
+                <article><CalendarIcon /><span>Date limite</span><strong>{formatDeadline(offreEnDetails.date_limite)}</strong></article>
+              </section>
+
+              <section className="company-job-grid">
+                <article className="company-job-panel company-job-panel-wide">
+                  <h3>Vue d&apos;ensemble</h3>
+                  <p>{offreEnDetails.description}</p>
+                </article>
 
               <Card tone="accent" padding="md">
                 <div className="jobs-form-field">
@@ -2854,26 +3032,29 @@ export default function OffresPage() {
                 </div>
               </Card>
 
-              <div className="details-grid">
-                <div className="detail-box">
-                  <strong>Competences requises</strong>
-                  <p>{offreEnDetails.competences_requises || "\u2014"}</p>
-                </div>
-                <div className="detail-box">
-                  <strong>Experience</strong>
-                  <p>{offreEnDetails.experience_requise || "\u2014"}</p>
-                </div>
-                <div className="detail-box">
-                  <strong>Niveau d&apos;etude</strong>
-                  <p>{offreEnDetails.niveau_etude || "\u2014"}</p>
-                </div>
-                <div className="detail-box">
-                  <strong>Date limite</strong>
-                  <p>{formatDeadline(offreEnDetails.date_limite)}</p>
-                </div>
-              </div>
+                <article className="company-job-panel">
+                  <h3>Competences recherchees</h3>
+                  <div className="company-job-skills">
+                    {(offreEnDetails.competences_requises || "Communication, Adaptabilite, Collaboration")
+                      .split(/[,;•]/)
+                      .map((skill) => skill.trim())
+                      .filter(Boolean)
+                      .slice(0, 8)
+                      .map((skill) => <span key={skill}>{skill}</span>)}
+                  </div>
+                </article>
 
-              <div className="page-header-actions jobs-modal-actions">
+                <article className="company-job-panel">
+                  <h3>Profil attendu</h3>
+                  <div className="company-job-stack">
+                    <span><b>Experience</b>{offreEnDetails.experience_requise || "Non renseignee"}</span>
+                    <span><b>Niveau d&apos;etude</b>{offreEnDetails.niveau_etude || "Non renseigne"}</span>
+                    <span><b>Accessibilite</b>Processus inclusif HandiTalents</span>
+                  </div>
+                </article>
+              </section>
+
+              <div className="page-header-actions jobs-modal-actions company-job-actions">
                 <Button variant="secondary" onClick={fermerDetailsOffre}>
                   Fermer
                 </Button>

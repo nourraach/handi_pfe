@@ -42,7 +42,7 @@ export function EnterpriseGeneratedReportDetailView({ reportId }: { reportId: st
   if (loading) {
     return (
       <main className="app-page">
-        <LoadingState title="Loading report detail" description="Opening the published compliance report." />
+        <LoadingState title="Chargement du détail du rapport" description="Ouverture du rapport de conformité publié." />
       </main>
     );
   }
@@ -50,7 +50,7 @@ export function EnterpriseGeneratedReportDetailView({ reportId }: { reportId: st
   if (error || !report) {
     return (
       <main className="app-page">
-        <EmptyState title="Report unavailable" description={error || "This compliance report could not be found."} />
+        <EmptyState title="Rapport indisponible" description={error || "Ce rapport de conformité est introuvable."} />
       </main>
     );
   }

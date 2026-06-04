@@ -22,18 +22,18 @@ export function formaterDateEntretien(dateString?: string) {
   }
 
   return {
-    date: date.toLocaleDateString("en-US", {
+    date: date.toLocaleDateString("fr-FR", {
       weekday: "long",
       day: "2-digit",
       month: "long",
       year: "numeric",
     }),
-    shortDate: date.toLocaleDateString("en-US", {
+    shortDate: date.toLocaleDateString("fr-FR", {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
     }),
-    time: date.toLocaleTimeString("en-US", {
+    time: date.toLocaleTimeString("fr-FR", {
       hour: "2-digit",
       minute: "2-digit",
     }),
@@ -44,29 +44,29 @@ export function formaterDateEntretien(dateString?: string) {
 export function getEntretienTypeLabel(type?: EntretienType) {
   switch (type) {
     case "visio":
-      return "Video";
+      return "Visio";
     case "presentiel":
-      return "In person";
+      return "Présentiel";
     case "telephonique":
-      return "Phone";
+      return "Téléphone";
     default:
-      return "Interview";
+      return "Entretien";
   }
 }
 
 export function getEntretienStatutConfig(statut?: EntretienStatut) {
   switch (statut) {
     case "confirme":
-      return { label: "Confirmed", className: "message-info" };
+      return { label: "Confirmé", className: "message-info" };
     case "reporte":
-      return { label: "Rescheduled", className: "message-neutre" };
+      return { label: "Reprogrammé", className: "message-neutre" };
     case "annule":
-      return { label: "Cancelled", className: "message-erreur" };
+      return { label: "Annulé", className: "message-erreur" };
     case "termine":
-      return { label: "Completed", className: "message-neutre" };
+      return { label: "Terminé", className: "message-neutre" };
     case "planifie":
     default:
-      return { label: "Scheduled", className: "message-neutre" };
+      return { label: "Planifié", className: "message-neutre" };
   }
 }
 

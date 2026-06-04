@@ -177,12 +177,12 @@ export function TransferRequestBuilder() {
     saveEnterpriseDraft<TransferDraftPayload>({
       id: finalDraftId,
       type: "transfer",
-      title: payload.title || "Transfer request draft",
+      title: payload.title || "Brouillon de demande de transfert",
       updated_at: new Date().toISOString(),
       payload,
     });
 
-    setMessage("Transfer request draft saved locally.");
+    setMessage("Brouillon de demande de transfert enregistré localement.");
     setError(null);
 
     if (!draftId) {
@@ -204,14 +204,14 @@ export function TransferRequestBuilder() {
     }
 
     downloadTextDocument(`${payload.title || "transfer-request"}.txt`, generatedPreview);
-    setMessage("Transfer request generated as a downloadable document.");
+    setMessage("Demande de transfert générée sous forme de document téléchargeable.");
     setError(null);
   };
 
   if (loading) {
     return (
       <main className="app-page">
-        <LoadingState title="Loading transfer request builder" description="Preparing your company context and latest compliance reports." />
+        <LoadingState title="Chargement du générateur de demande de transfert" description="Préparation du contexte entreprise et des derniers rapports de conformité." />
       </main>
     );
   }
@@ -219,7 +219,7 @@ export function TransferRequestBuilder() {
   if (error && !context) {
     return (
       <main className="app-page">
-        <EmptyState title="Transfer request unavailable" description={error} />
+        <EmptyState title="Demande de transfert indisponible" description={error} />
       </main>
     );
   }
@@ -227,7 +227,7 @@ export function TransferRequestBuilder() {
   if (!context || !payload) {
     return (
       <main className="app-page">
-        <EmptyState title="No context available" description="The transfer request builder could not be initialized." />
+        <EmptyState title="Aucun contexte disponible" description="Le générateur de demande de transfert n'a pas pu être initialisé." />
       </main>
     );
   }
@@ -281,7 +281,7 @@ export function TransferRequestBuilder() {
 
           <div className="form-grid form-grid-tight">
             <div className="groupe-champ">
-              <label htmlFor="transfer-title">Request title</label>
+              <label htmlFor="transfer-title">Titre de la demande</label>
               <input
                 id="transfer-title"
                 className="champ"
@@ -290,7 +290,7 @@ export function TransferRequestBuilder() {
               />
             </div>
             <div className="groupe-champ">
-              <label htmlFor="recipient-name">Recipient</label>
+              <label htmlFor="recipient-name">Destinataire</label>
               <input
                 id="recipient-name"
                 className="champ"
@@ -302,7 +302,7 @@ export function TransferRequestBuilder() {
 
           <div className="form-grid form-grid-tight">
             <div className="groupe-champ">
-              <label htmlFor="recipient-department">Service / delegation</label>
+              <label htmlFor="recipient-department">Service / délégation</label>
               <input
                 id="recipient-department"
                 className="champ"
@@ -311,14 +311,14 @@ export function TransferRequestBuilder() {
               />
             </div>
             <div className="groupe-champ">
-              <label htmlFor="related-report">Related compliance report</label>
+              <label htmlFor="related-report">Rapport de conformité lié</label>
               <select
                 id="related-report"
                 className="champ-select"
                 value={payload.related_report_id}
                 onChange={(event) => setPayload((current) => (current ? { ...current, related_report_id: event.target.value } : current))}
               >
-                <option value="">No linked report</option>
+                <option value="">Aucun rapport lié</option>
                 {reports.map((report) => (
                   <option key={report.id} value={report.id}>
                     {report.summary} - {formatDate(report.submitted_at)}
@@ -330,7 +330,7 @@ export function TransferRequestBuilder() {
 
           <div className="textareas-grid">
             <div className="groupe-champ">
-              <label htmlFor="request-reason">Request reason</label>
+              <label htmlFor="request-reason">Motif de la demande</label>
               <textarea
                 id="request-reason"
                 className="champ-zone"
@@ -341,7 +341,7 @@ export function TransferRequestBuilder() {
             </div>
 
             <div className="groupe-champ">
-              <label htmlFor="requested-action">Requested action</label>
+              <label htmlFor="requested-action">Action demandée</label>
               <textarea
                 id="requested-action"
                 className="champ-zone"
@@ -354,7 +354,7 @@ export function TransferRequestBuilder() {
 
           <div className="form-grid form-grid-tight">
             <div className="groupe-champ">
-              <label htmlFor="timeline">Preferred timeline</label>
+              <label htmlFor="timeline">Délai souhaité</label>
               <input
                 id="timeline"
                 className="champ"
@@ -363,7 +363,7 @@ export function TransferRequestBuilder() {
               />
             </div>
             <div className="groupe-champ">
-              <label htmlFor="legal-basis">Legal basis</label>
+              <label htmlFor="legal-basis">Base légale</label>
               <input
                 id="legal-basis"
                 className="champ"
@@ -374,12 +374,12 @@ export function TransferRequestBuilder() {
           </div>
 
           <div className="groupe-champ">
-            <label htmlFor="additional-notes">Additional notes</label>
+            <label htmlFor="additional-notes">Notes complémentaires</label>
             <textarea
               id="additional-notes"
               className="champ-zone"
               rows={3}
-              placeholder="Add any detail that should appear in the final request."
+              placeholder="Ajoutez tout détail devant apparaître dans la demande finale."
               value={payload.additional_notes}
               onChange={(event) => setPayload((current) => (current ? { ...current, additional_notes: event.target.value } : current))}
             />

@@ -304,7 +304,7 @@ export function ComplianceReportBuilder() {
       updated_at: new Date().toISOString(),
       payload,
     });
-    setMessage("Draft saved locally.");
+    setMessage("Brouillon enregistré localement.");
     setError(null);
 
     if (!draftId) {
@@ -367,28 +367,28 @@ export function ComplianceReportBuilder() {
   }, [context, payload]);
 
   if (loading) {
-    return <LoadingState title="Loading compliance builder" description="Preparing company data, offers, and applications." />;
+    return <LoadingState title="Chargement du générateur de conformité" description="Préparation des données entreprise, des offres et des candidatures." />;
   }
 
   if (error && !context) {
-    return <EmptyState title="Compliance builder unavailable" description={error} />;
+    return <EmptyState title="Générateur de conformité indisponible" description={error} />;
   }
 
   if (!context || !payload) {
-    return <EmptyState title="No context available" description="The compliance report builder could not be initialized." />;
+    return <EmptyState title="Aucun contexte disponible" description="Le générateur de rapport de conformité n'a pas pu être initialisé." />;
   }
 
   return (
     <main className="app-page compliance-builder">
       <section className="builder-hero">
         <div>
-          <p>Compliance report</p>
+          <p>Rapport de conformité</p>
           <h1>Rapport de Conformite a la Loi n°41-2016</h1>
           <span>Verifier, completer, sauvegarder ou publier le rapport final.</span>
         </div>
         <div className="builder-actions">
-          <ButtonLink href="/entreprise/reports-requests" variant="ghost">Return</ButtonLink>
-          <Button onClick={saveDraft} variant="secondary">Save draft</Button>
+          <ButtonLink href="/entreprise/reports-requests" variant="ghost">Retour</ButtonLink>
+          <Button onClick={saveDraft} variant="secondary">Enregistrer le brouillon</Button>
           <Button onClick={() => downloadTextDocument(`${payload.summary || "compliance-report"}.txt`, generatedPreview)} variant="ghost">
             Text
           </Button>
@@ -396,7 +396,7 @@ export function ComplianceReportBuilder() {
             PDF
           </Button>
           <Button onClick={() => void submitReport()} disabled={saving}>
-            {saving ? "Generating..." : "Generate"}
+            {saving ? "Génération..." : "Générer"}
           </Button>
         </div>
       </section>
@@ -407,13 +407,13 @@ export function ComplianceReportBuilder() {
       <section className="builder-layout">
         <Card padding="md" className="settings-card">
           <div className="compact-head">
-            <strong>Report settings</strong>
-            <p>Legal company data and live hiring metrics are prefilled.</p>
+            <strong>Paramètres du rapport</strong>
+            <p>Les données légales de l&apos;entreprise et les indicateurs de recrutement sont préremplis.</p>
           </div>
 
           <div className="form-grid">
             <div className="groupe-champ">
-              <label htmlFor="summary">Report title</label>
+              <label htmlFor="summary">Titre du rapport</label>
               <input
                 id="summary"
                 className="champ"
@@ -422,7 +422,7 @@ export function ComplianceReportBuilder() {
               />
             </div>
             <div className="groupe-champ">
-              <label htmlFor="period-start">Reporting period start</label>
+              <label htmlFor="period-start">Début de période</label>
               <input
                 id="period-start"
                 type="date"
@@ -432,7 +432,7 @@ export function ComplianceReportBuilder() {
               />
             </div>
             <div className="groupe-champ">
-              <label htmlFor="period-end">Reporting period end</label>
+              <label htmlFor="period-end">Fin de période</label>
               <input
                 id="period-end"
                 type="date"
@@ -457,7 +457,7 @@ export function ComplianceReportBuilder() {
               <p>{context.company.workforce_total}</p>
             </div>
             <div className="detail-box">
-              <strong>Employes handicapes</strong>
+              <strong>Employés en situation de handicap</strong>
               <p>{context.company.disabled_employees}</p>
             </div>
           </div>
@@ -538,7 +538,7 @@ export function ComplianceReportBuilder() {
 
                 {offer.candidates.length > 0 ? (
                   <div className="candidate-status-block">
-                    <strong>Resultat des candidats convoques</strong>
+                    <strong>Résultat des candidats convoqués</strong>
                     <div className="candidate-status-grid">
                       {offer.candidates.map((candidate) => (
                         <div key={candidate.application_id} className="candidate-status-row">
@@ -577,24 +577,24 @@ export function ComplianceReportBuilder() {
           })}
 
           <div className="groupe-champ">
-            <label htmlFor="evidence-urls">Additional evidence URLs</label>
+            <label htmlFor="evidence-urls">Liens de preuve complémentaires</label>
             <textarea
               id="evidence-urls"
               className="champ-zone"
               rows={4}
-              placeholder="One URL per line"
+              placeholder="Un lien par ligne"
               value={payload.evidence_urls_text}
               onChange={(event) => setPayload((current) => current ? { ...current, evidence_urls_text: event.target.value } : current)}
             />
           </div>
 
           <div className="groupe-champ">
-            <label htmlFor="notes">Additional notes</label>
+            <label htmlFor="notes">Notes complémentaires</label>
             <textarea
               id="notes"
               className="champ-zone"
               rows={6}
-              placeholder="Add any complementary context for the generated report."
+              placeholder="Ajoutez tout contexte complémentaire pour le rapport généré."
               value={payload.additional_notes}
               onChange={(event) => setPayload((current) => current ? { ...current, additional_notes: event.target.value } : current)}
             />
@@ -603,8 +603,8 @@ export function ComplianceReportBuilder() {
 
         <Card padding="md" className="preview-card">
           <div className="compact-head">
-            <strong>Generated preview</strong>
-            <p>Generated from the current data and your edits.</p>
+            <strong>Aperçu généré</strong>
+            <p>Généré à partir des données actuelles et de vos modifications.</p>
           </div>
 
           <div

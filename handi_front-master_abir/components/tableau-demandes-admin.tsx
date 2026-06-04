@@ -69,10 +69,10 @@ function normaliserDemandes(resultat: ReponseApi<DemandeEnAttente[]> | Record<st
 
 function getRoleLabel(role: string) {
   const labels: Record<string, string> = {
-    candidat: "Candidate",
-    entreprise: "Company",
-    admin: "Admin",
-    inspecteur: "Inspector",
+    candidat: "Candidat",
+    entreprise: "Entreprise",
+    admin: "Administrateur",
+    inspecteur: "Inspecteur",
     aneti: "ANETI",
   };
 
@@ -81,11 +81,11 @@ function getRoleLabel(role: string) {
 
 function getStatusLabel(statut: string) {
   const labels: Record<string, string> = {
-    en_attente: "Pending",
-    actif: "Active",
-    inactif: "Inactive",
-    suspendu: "Suspended",
-    refuse: "Rejected",
+    en_attente: "En attente",
+    actif: "Actif",
+    inactif: "Inactif",
+    suspendu: "Suspendu",
+    refuse: "Refusé",
   };
 
   return labels[statut] ?? statut;
@@ -168,13 +168,13 @@ function construireDetailsEntreprise(demande: DemandeEnAttente) {
 
 function construireDetailsDemande(demande: DemandeEnAttente) {
   const infosGenerales: LigneDetail[] = [
-    { label: "Name", value: demande.nom || "-" },
+    { label: "Nom", value: demande.nom || "-" },
     { label: "Email", value: demande.email || "-" },
-    { label: "Phone", value: demande.telephone || "-" },
-    { label: "Address", value: demande.addresse || "-" },
-    { label: "Role", value: getRoleLabel(demande.role) },
-    { label: "Status", value: getStatusLabel(demande.statut) },
-    { label: "Created at", value: formaterDate(demande.created_at) },
+    { label: "Téléphone", value: demande.telephone || "-" },
+    { label: "Adresse", value: demande.addresse || "-" },
+    { label: "Rôle", value: getRoleLabel(demande.role) },
+    { label: "Statut", value: getStatusLabel(demande.statut) },
+    { label: "Créé le", value: formaterDate(demande.created_at) },
   ];
 
   const profilCandidat =
@@ -208,7 +208,7 @@ export function TableauDemandesAdmin() {
     try {
       const token = localStorage.getItem("token_auth");
       if (!token) {
-        throw new Error("Sign in with an admin account to load pending requests.");
+        throw new Error("Connectez-vous avec un compte administrateur pour charger les demandes en attente.");
       }
 
       const reponse = await fetch(construireUrlApi("/api/admin/demandes-en-attente"), {
@@ -222,7 +222,7 @@ export function TableauDemandesAdmin() {
         const demandesNormalisees = normaliserDemandes(resultat);
 
         if (!demandesNormalisees) {
-          setErreur("Invalid data format. Showing test data instead.");
+          setErreur("Format de données invalide. Affichage des données de démonstration.");
           const fallback = lireDemandesLocales();
           setDemandes(fallback);
           return;
@@ -233,7 +233,7 @@ export function TableauDemandesAdmin() {
       }
 
       if (reponse.status === 404) {
-        setErreur("The backend API is not available yet. Showing test data instead.");
+        setErreur("L'API backend n'est pas encore disponible. Affichage des données de démonstration.");
         const fallback = lireDemandesLocales();
 
         if (fallback.length === 0) {
@@ -246,13 +246,13 @@ export function TableauDemandesAdmin() {
         return;
       }
 
-      const resultat = await reponse.json().catch(() => ({ message: "Unknown error." }));
-      throw new Error((resultat as { message?: string }).message ?? "Unable to load pending requests.");
+      const resultat = await reponse.json().catch(() => ({ message: "Erreur inconnue." }));
+      throw new Error((resultat as { message?: string }).message ?? "Impossible de charger les demandes en attente.");
     } catch (cause) {
       if (cause instanceof Error && cause.message.includes("Sign in")) {
         setErreur(cause.message);
       } else {
-        setErreur("The backend is unavailable. Offline mode is active.");
+        setErreur("Le backend est indisponible. Le mode hors ligne est activé.");
         setDemandes(lireDemandesLocales());
       }
     } finally {
@@ -266,14 +266,14 @@ export function TableauDemandesAdmin() {
 
   const agir = async (id_utilisateur: string, action: "approuver" | "refuser", motif?: string) => {
     if (!id_utilisateur) {
-      setErreur("Missing user identifier.");
+      setErreur("Identifiant utilisateur manquant.");
       return;
     }
 
     try {
       const token = localStorage.getItem("token_auth");
       if (!token) {
-        throw new Error("Missing admin token.");
+        throw new Error("Jeton administrateur manquant.");
       }
 
       const corps = action === "refuser" ? JSON.stringify({ motif_refus: motif ?? "" }) : undefined;
@@ -304,8 +304,8 @@ export function TableauDemandesAdmin() {
         ecrireDemandesLocales(demandesLocales);
         setMessage(
           action === "approuver"
-            ? "Request approved successfully. (Local mode)"
-            : "Request rejected successfully. (Local mode)",
+            ? "Demande approuvée avec succès. (Mode local)"
+            : "Demande refusée avec succès. (Mode local)",
         );
         setDemandeRefus(null);
         setMotifRefus("");
@@ -314,8 +314,8 @@ export function TableauDemandesAdmin() {
         return;
       }
 
-      const resultat = await reponse.json().catch(() => ({ message: "Unknown error." }));
-      throw new Error((resultat as { message?: string }).message ?? "This action could not be completed.");
+      const resultat = await reponse.json().catch(() => ({ message: "Erreur inconnue." }));
+      throw new Error((resultat as { message?: string }).message ?? "Cette action n'a pas pu être terminée.");
     } catch (cause) {
       if (cause instanceof Error && cause.message.includes("token")) {
         setErreur(cause.message);
@@ -324,8 +324,8 @@ export function TableauDemandesAdmin() {
         ecrireDemandesLocales(demandesLocales);
         setMessage(
           action === "approuver"
-            ? "Request approved successfully. (Offline mode)"
-            : "Request rejected successfully. (Offline mode)",
+            ? "Demande approuvée avec succès. (Mode hors ligne)"
+            : "Demande refusée avec succès. (Mode hors ligne)",
         );
         setDemandeRefus(null);
         setMotifRefus("");
@@ -339,7 +339,7 @@ export function TableauDemandesAdmin() {
     if (!demandeRefus) return;
     const motifNormalise = motifRefus.trim();
     if (!motifNormalise) {
-      setErreur("Please enter a rejection reason.");
+      setErreur("Veuillez saisir un motif de refus.");
       return;
     }
     setSoumissionRefus(true);
@@ -352,7 +352,7 @@ export function TableauDemandesAdmin() {
   };
 
   if (chargement) {
-    return <p className="message message-neutre">Loading pending requests...</p>;
+    return <p className="message message-neutre">Chargement des demandes en attente...</p>;
   }
 
   const details = demandeOuverte ? construireDetailsDemande(demandeOuverte) : null;
@@ -361,7 +361,7 @@ export function TableauDemandesAdmin() {
     <div className="carte bloc-principal">
       <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", marginBottom: 16 }}>
         <p className="texte-secondaire" style={{ margin: 0 }}>
-          Review each pending request and validate only after checking all candidate/company details.
+          Examinez chaque demande en attente et validez-la seulement après vérification complète des informations candidat ou entreprise.
         </p>
       </div>
 
@@ -372,16 +372,17 @@ export function TableauDemandesAdmin() {
         <thead>
           <tr>
             <th>Name</th>
+            <th>Nom</th>
             <th>Email</th>
-            <th>Role</th>
-            <th>Status</th>
+            <th>Rôle</th>
+            <th>Statut</th>
             <th>Actions</th>
           </tr>
         </thead>
         <tbody>
           {!Array.isArray(demandes) || demandes.length === 0 ? (
             <tr>
-              <td colSpan={5}>{!Array.isArray(demandes) ? "Error: invalid data." : "No pending requests."}</td>
+              <td colSpan={5}>{!Array.isArray(demandes) ? "Erreur : données invalides." : "Aucune demande en attente."}</td>
             </tr>
           ) : (
             demandes.map((demande) => {
@@ -403,10 +404,10 @@ export function TableauDemandesAdmin() {
                           onClick={() => setDemandeOuverteId(estOuvert ? null : demande.id_utilisateur)}
                           type="button"
                         >
-                          {estOuvert ? "Hide details" : "View details"}
+                          {estOuvert ? "Masquer les détails" : "Voir les détails"}
                         </button>
                         <button className="bouton-primaire" onClick={() => void agir(demande.id_utilisateur, "approuver")} type="button">
-                          Approve
+                          Approuver
                         </button>
                         <button
                           className="bouton-danger"
@@ -417,7 +418,7 @@ export function TableauDemandesAdmin() {
                           }}
                           type="button"
                         >
-                          Reject
+                          Refuser
                         </button>
                       </div>
                     </td>
@@ -427,7 +428,7 @@ export function TableauDemandesAdmin() {
                       <td colSpan={5} style={{ background: "#fcfbff" }}>
                         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 10 }}>
                           <div style={{ border: "1px solid #e5dcfb", borderRadius: 10, padding: 10 }}>
-                            <h4 style={{ margin: "0 0 6px 0" }}>General information</h4>
+                            <h4 style={{ margin: "0 0 6px 0" }}>Informations générales</h4>
                             <ul style={{ margin: 0, paddingLeft: 16, lineHeight: 1.55 }}>
                               {details.infosGenerales.map((item) => (
                                 <li key={item.label}>
@@ -439,7 +440,7 @@ export function TableauDemandesAdmin() {
 
                           {details.profilCandidat.length > 0 ? (
                             <div style={{ border: "1px solid #e5dcfb", borderRadius: 10, padding: 10 }}>
-                              <h4 style={{ margin: "0 0 6px 0" }}>Candidate profile</h4>
+                              <h4 style={{ margin: "0 0 6px 0" }}>Profil candidat</h4>
                               <ul style={{ margin: 0, paddingLeft: 16, lineHeight: 1.55 }}>
                                 {details.profilCandidat.map((item) => (
                                   <li key={`c-${item.label}`}>
@@ -452,7 +453,7 @@ export function TableauDemandesAdmin() {
 
                           {details.profilEntreprise.length > 0 ? (
                             <div style={{ border: "1px solid #e5dcfb", borderRadius: 10, padding: 10 }}>
-                              <h4 style={{ margin: "0 0 6px 0" }}>Company request</h4>
+                              <h4 style={{ margin: "0 0 6px 0" }}>Demande entreprise</h4>
                               <ul style={{ margin: 0, paddingLeft: 16, lineHeight: 1.55 }}>
                                 {details.profilEntreprise.map((item) => (
                                   <li key={`e-${item.label}`}>

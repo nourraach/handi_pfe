@@ -10,28 +10,28 @@ import { construireUrlApi } from "@/lib/config";
 
 type StatItem = { statut: string; count: number };
 
-const trustedPartners = ["Inclusive Hiring Hub", "Career Bridge", "Access Talent", "Future Skills", "Open Work"];
+const trustedPartners = ["Réseau emploi inclusif", "Passerelle carrière", "Talents accessibles", "Compétences d'avenir", "Travail ouvert"];
 
 const featureCards = [
   {
-    title: "Accessible opportunity flow",
-    text: "Move from discovery to application with calmer spacing, clearer reading paths, and less visual friction.",
+    title: "Parcours d'offres accessible",
+    text: "Passez de la découverte à la candidature avec une lecture plus claire et moins de friction visuelle.",
   },
   {
-    title: "Focused preparation tools",
-    text: "Keep your CV, assessments, messages, and interviews close without feeling buried in administrative screens.",
+    title: "Outils de préparation ciblés",
+    text: "Gardez votre CV, vos évaluations, votre messagerie et vos entretiens à portée de main sans vous perdre dans l'administratif.",
   },
   {
-    title: "Progress you can feel",
-    text: "Your workspace highlights movement, not just numbers, so each next step feels purposeful and visible.",
+    title: "Une progression visible",
+    text: "Votre espace met en avant les avancées concrètes pour rendre chaque prochaine étape lisible et utile.",
   },
 ];
 
 const quickLinks = [
-  { title: "Browse jobs", text: "Explore fresh opportunities matched to your profile.", href: "/offres" },
-  { title: "Applications", text: "Check where each candidature stands right now.", href: "/candidat/candidatures" },
-  { title: "CV builder", text: "Polish your story before recruiters ask for it.", href: "/candidat/cv" },
-  { title: "Messages", text: "Stay connected with companies and admins clearly.", href: "/messages" },
+  { title: "Voir les offres", text: "Explorez les offres qui correspondent à votre profil.", href: "/offres" },
+  { title: "Candidatures", text: "Suivez l'état de chaque candidature en temps réel.", href: "/candidat/candidatures" },
+  { title: "CV", text: "Mettez votre parcours en valeur avant l'ouverture de votre profil.", href: "/candidat/cv" },
+  { title: "Messagerie", text: "Restez en contact avec les entreprises et les administrateurs.", href: "/messages" },
 ];
 
 function CandidateWorkspacePage() {
@@ -50,12 +50,12 @@ function CandidateWorkspacePage() {
       const res = await authenticatedFetch(construireUrlApi("/api/candidatures/mes-statistiques"));
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.message || "Unable to load your statistics.");
+        throw new Error(data.message || "Impossible de charger vos statistiques.");
       }
       setStats(Array.isArray(data.donnees) ? data.donnees : []);
       setErreur(null);
     } catch (cause: unknown) {
-      setErreur(cause instanceof Error ? cause.message : "Unable to load your statistics.");
+      setErreur(cause instanceof Error ? cause.message : "Impossible de charger vos statistiques.");
     } finally {
       setLoading(false);
     }
@@ -92,23 +92,22 @@ function CandidateWorkspacePage() {
     <div className="candidate-workspace-page" aria-live="polite">
       <section className="candidate-workspace-hero">
         <div className="candidate-workspace-copy">
-          <p className="candidate-workspace-kicker">Candidate workspace</p>
+          <p className="candidate-workspace-kicker">Espace candidat</p>
           <h1>
-            Build your next chapter
+            Construisez la suite de votre parcours
             <br />
-            with clarity, confidence,
+            avec plus de clarté,
             <br />
-            and momentum.
+            de confiance et d&apos;élan.
           </h1>
           <p className="candidate-workspace-intro">
-            Welcome back, {firstName}. This workspace is designed to help you navigate jobs, applications, interviews,
-            and preparation with a calmer and more inspiring rhythm.
+            Bon retour, {firstName}. Cet espace vous aide à naviguer entre offres, candidatures, entretiens et préparation avec plus de lisibilité.
           </p>
 
           <div className="candidate-workspace-actions">
-            <ButtonLink href="/offres">Explore opportunities</ButtonLink>
+            <ButtonLink href="/offres">Voir les offres</ButtonLink>
             <ButtonLink href="/candidat/candidatures" variant="secondary">
-              Open applications
+              Voir les candidatures
             </ButtonLink>
           </div>
 
@@ -118,31 +117,31 @@ function CandidateWorkspacePage() {
               <span />
               <span />
             </div>
-            <p>Built for a more accessible, encouraging, and inclusive candidate journey.</p>
+            <p>Conçu pour un parcours candidat plus accessible, plus lisible et plus inclusif.</p>
           </div>
         </div>
 
           <div className="candidate-workspace-visual">
           <div className="candidate-workspace-portrait">
             <div className="candidate-workspace-image-placeholder">
-              Candidate journey
+              Parcours candidat
             </div>
           </div>
 
           <div className="candidate-workspace-floating candidate-workspace-floating-top">
             <strong>{shortlisted}</strong>
-            <span>Shortlisted roles</span>
+            <span>Offres en présélection</span>
           </div>
 
           <div className="candidate-workspace-floating candidate-workspace-floating-bottom">
             <strong>{accepted}</strong>
-            <span>Accepted outcomes</span>
+            <span>Réponses positives</span>
           </div>
         </div>
       </section>
 
       <section className="candidate-workspace-partners">
-        <p>Trusted across inclusive recruitment and candidate support ecosystems</p>
+        <p>Adopté dans des écosystèmes de recrutement inclusif et d&apos;accompagnement des candidats</p>
         <div className="candidate-workspace-partner-row">
           {trustedPartners.map((partner) => (
             <span key={partner}>{partner}</span>
@@ -164,31 +163,31 @@ function CandidateWorkspacePage() {
 
       <section className="candidate-workspace-stats">
         <Card padding="lg" interactive>
-          <span>Total applications</span>
+          <span>Total des candidatures</span>
           <strong>{total}</strong>
-          <p>Everything you have already put into motion.</p>
+          <p>L&apos;ensemble des candidatures déjà envoyées.</p>
         </Card>
         <Card padding="lg" interactive>
-          <span>Pending reviews</span>
+          <span>En attente de revue</span>
           <strong>{pending}</strong>
-          <p>Opportunities still being examined by employers.</p>
+          <p>Offres encore en cours d&apos;examen par les employeurs.</p>
         </Card>
         <Card padding="lg" interactive>
-          <span>Shortlisted</span>
+          <span>Présélection</span>
           <strong>{shortlisted}</strong>
-          <p>Roles where your profile is moving forward.</p>
+          <p>Offres où votre profil avance dans le processus.</p>
         </Card>
         <Card padding="lg" interactive>
-          <span>Accepted</span>
+          <span>Acceptées</span>
           <strong>{accepted}</strong>
-          <p>Concrete progress already achieved in your journey.</p>
+          <p>Avancées concrètes déjà obtenues dans votre parcours.</p>
         </Card>
       </section>
 
       <section className="candidate-workspace-value">
         <div className="candidate-workspace-section-head">
-          <p className="candidate-workspace-kicker">What sets this space apart</p>
-          <h2>A workspace that feels more human, supportive, and beautifully structured.</h2>
+          <p className="candidate-workspace-kicker">Ce qui distingue cet espace</p>
+          <h2>Un espace plus humain, plus soutenant et mieux structuré.</h2>
         </div>
 
         <div className="candidate-workspace-feature-grid">
@@ -204,8 +203,8 @@ function CandidateWorkspacePage() {
 
       <section className="candidate-workspace-actions-grid">
         <div className="candidate-workspace-section-head">
-          <p className="candidate-workspace-kicker">Quick actions</p>
-          <h2>Move directly to the parts of the platform that matter most today.</h2>
+          <p className="candidate-workspace-kicker">Actions rapides</p>
+          <h2>Accédez directement aux parties de la plateforme qui comptent le plus aujourd&apos;hui.</h2>
         </div>
 
         <div className="candidate-workspace-link-grid">
@@ -215,7 +214,7 @@ function CandidateWorkspacePage() {
                 <strong>{item.title}</strong>
                 <p>{item.text}</p>
                 <ButtonLink href={item.href} variant="secondary">
-                  Open
+                  Ouvrir
                 </ButtonLink>
               </div>
             </Card>
