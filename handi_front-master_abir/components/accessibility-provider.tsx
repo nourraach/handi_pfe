@@ -9,6 +9,7 @@ import {
   type CSSProperties,
   type ReactNode,
 } from "react";
+import { getUtilisateurConnecte } from "@/lib/auth-utils";
 
 type AccessibilitySettings = {
   activeQuickMode: AccessibilityMode | null;
@@ -60,7 +61,8 @@ type AccessibilityContextValue = {
   resetSettings: () => void;
 };
 
-const STORAGE_KEY = "handitalents_accessibility_settings";
+const STORAGE_KEY_PREFIX = "handitalents_accessibility_settings";
+export const ACCESSIBILITY_AUTH_EVENT = "handitalents:auth-changed";
 
 const defaultSettings: AccessibilitySettings = {
   activeQuickMode: null,
@@ -98,27 +100,86 @@ const defaultSettings: AccessibilitySettings = {
 
 const AccessibilityContext = createContext<AccessibilityContextValue | null>(null);
 
+function buildAccessibilityStorageKey() {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  const utilisateur = getUtilisateurConnecte();
+
+  if (!utilisateur?.id_utilisateur) {
+    return null;
+  }
+
+  return `${STORAGE_KEY_PREFIX}:${utilisateur.id_utilisateur}`;
+}
+
+export function notifyAccessibilityAuthChanged() {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.dispatchEvent(new Event(ACCESSIBILITY_AUTH_EVENT));
+}
+
+export function clearAccessibilitySessionState() {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  localStorage.removeItem(STORAGE_KEY_PREFIX);
+  notifyAccessibilityAuthChanged();
+}
+
 export function AccessibilityProvider({ children }: { children: ReactNode }) {
   const [settings, setSettings] = useState<AccessibilitySettings>(defaultSettings);
   const [pointerY, setPointerY] = useState(-200);
+  const [storageKey, setStorageKey] = useState<string | null>(null);
 
   useEffect(() => {
-    const raw = typeof window !== "undefined" ? localStorage.getItem(STORAGE_KEY) : null;
-    if (!raw) {
+    if (typeof window === "undefined") {
       return;
     }
 
-    try {
-      const parsed = JSON.parse(raw) as Partial<AccessibilitySettings>;
-      setSettings({ ...defaultSettings, ...parsed });
-    } catch {
-      setSettings(defaultSettings);
-    }
+    const syncFromSession = () => {
+      const nextStorageKey = buildAccessibilityStorageKey();
+      setStorageKey(nextStorageKey);
+
+      if (!nextStorageKey) {
+        setSettings(defaultSettings);
+        return;
+      }
+
+      const raw = localStorage.getItem(nextStorageKey);
+
+      if (!raw) {
+        setSettings(defaultSettings);
+        return;
+      }
+
+      try {
+        const parsed = JSON.parse(raw) as Partial<AccessibilitySettings>;
+        setSettings({ ...defaultSettings, ...parsed });
+      } catch {
+        setSettings(defaultSettings);
+      }
+    };
+
+    syncFromSession();
+    window.addEventListener(ACCESSIBILITY_AUTH_EVENT, syncFromSession);
+    window.addEventListener("storage", syncFromSession);
+
+    return () => {
+      window.removeEventListener(ACCESSIBILITY_AUTH_EVENT, syncFromSession);
+      window.removeEventListener("storage", syncFromSession);
+    };
   }, []);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+    if (typeof window !== "undefined" && storageKey) {
+      localStorage.setItem(storageKey, JSON.stringify(settings));
+    } else if (typeof window !== "undefined" && !storageKey) {
+      localStorage.removeItem(STORAGE_KEY_PREFIX);
     }
 
     const body = document.body;
@@ -154,7 +215,7 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
     body.style.setProperty("--accessibility-title-color", settings.titleColor || "inherit");
     body.style.setProperty("--accessibility-text-color", settings.textColor || "inherit");
     body.style.setProperty("--accessibility-bg-color", settings.backgroundColor || "transparent");
-  }, [settings]);
+  }, [settings, storageKey]);
 
   useEffect(() => {
     if (!settings.muteSounds) {

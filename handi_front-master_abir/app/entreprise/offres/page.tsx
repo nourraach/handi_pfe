@@ -8,7 +8,7 @@ import { LoadingState } from "@/components/ui/layout";
 import { Heading, Stat, Text } from "@/components/ui/typography";
 import { authenticatedFetch, getUtilisateurConnecte, isAuthenticated, requireAuth } from "@/lib/auth-utils";
 import { construireUrlApi } from "@/lib/config";
-import { BriefcaseBusiness, Eye, MapPin, MoreHorizontal, PauseCircle, PlayCircle, Search, Sparkles, Trash2, Users } from "lucide-react";
+import { BriefcaseBusiness, MapPin, MoreHorizontal, PauseCircle, PlayCircle, Search, Sparkles, Trash2, Users } from "lucide-react";
 
 type OffreEntreprise = {
   id_offre: string;
@@ -571,9 +571,6 @@ function MesOffresPage() {
   return (
     <div className="listings-dashboard" aria-live="polite">
       <div className="listings-header">
-        <div>
-          <Heading as="h1" variant="page">Gestion des offres</Heading>
-        </div>
         <div className="header-actions">
           <Button onClick={() => setShowCreateModal(true)}>Creer une offre</Button>
         </div>
@@ -713,10 +710,6 @@ function MesOffresPage() {
                     <Stat size="compact" value={offre.candidatures_count || 0} label="Candidatures" />
                   </span>
                   <span>
-                    <Eye size={14} />
-                    <Stat size="compact" value={offre.vues_count || 0} label="Vues" />
-                  </span>
-                  <span>
                     <Sparkles size={14} />
                     <Stat size="compact" value="-" label="Analyse IA" />
                   </span>
@@ -724,7 +717,7 @@ function MesOffresPage() {
 
                 <div className="role-card-foot">
                   <span>Date limite {formatDate(offre.date_limite)}</span>
-                  <ButtonLink href="/entreprise/candidatures" size="sm">
+                  <ButtonLink href="/entreprise/candidatures" size="sm" className="role-card-cta">
                     Voir les candidatures
                   </ButtonLink>
                 </div>
@@ -1599,7 +1592,7 @@ function MesOffresPage() {
 
         .role-metrics {
           display: grid;
-          grid-template-columns: 1.35fr 1fr 1fr;
+          grid-template-columns: 1.35fr 1fr;
           gap: 8px;
           align-items: stretch;
         }
@@ -1648,11 +1641,20 @@ function MesOffresPage() {
         }
 
         .role-card-foot :global(.ui-button) {
+          inline-size: min(100%, 156px);
           min-height: 36px;
+          padding: 6px 12px;
           border-radius: 11px;
           background: var(--app-primary);
           border-color: var(--app-primary);
           box-shadow: 0 12px 24px rgba(var(--app-primary-rgb), 0.18);
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          text-align: center;
+          white-space: normal;
+          line-height: 1.12;
+          overflow-wrap: anywhere;
         }
 
         .role-card-foot :global(.ui-button:hover) {
@@ -1911,7 +1913,7 @@ function ModalCreationOffre({
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
         <div className="lg:col-span-2">
           <label className={labelClass}>
-            Titre de l'offre *
+            Titre de l&apos;offre *
             <span className="ml-2 font-medium text-[#7c748f]">(min 3)</span>
           </label>
           <input
@@ -2023,7 +2025,7 @@ function ModalCreationOffre({
 
         <div className="md:col-span-2">
           <label className={labelClass}>
-            Description de l'offre *
+            Description de l&apos;offre *
             <span className="ml-2 font-medium text-[#7c748f]">(min 50 - {formData.description.length})</span>
           </label>
           <textarea
@@ -2111,7 +2113,7 @@ function ModalCreationOffre({
         </div>
 
         <div>
-          <label className={labelClass}>Niveau d'etudes *</label>
+          <label className={labelClass}>Niveau d&apos;etudes *</label>
           <select
             name="niveau_etude"
             value={formData.niveau_etude}
@@ -2120,7 +2122,7 @@ function ModalCreationOffre({
             required
           >
             <option value="" disabled>
-              Choisir un niveau d'etudes
+              Choisir un niveau d&apos;etudes
             </option>
             {educationOptions.map((option) => (
               <option key={option} value={option}>

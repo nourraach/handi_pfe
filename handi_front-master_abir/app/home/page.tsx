@@ -1211,10 +1211,6 @@ function AdminDashboardHome({
             <p className="admin-command__hello">Bonjour, {firstName} 👋</p>
             <h1>Centre de <span>pilotage</span> admin</h1>
             <p>Administrez la plateforme, suivez les decisions, la qualite d&apos;accessibilite et la dynamique de recrutement.</p>
-            <div className="admin-command__hero-actions">
-              <Link href="/admin/demandes-en-attente">Voir la file d&apos;attente <ArrowRight size={17} /></Link>
-              <Link href="/admin/statistiques">Voir les rapports</Link>
-            </div>
           </div>
         </section>
 

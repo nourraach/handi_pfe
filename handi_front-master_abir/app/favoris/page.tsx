@@ -431,13 +431,6 @@ function FavorisPage() {
     <div className="app-page favorites-page">
       <style>{favoritePageStyles}</style>
 
-      <header className="favorites-hero">
-        <div className="favorites-hero__content">
-          <p className="favorites-eyebrow">Offres enregistrées</p>
-          <h1 className="favorites-title">Offres enregistrées</h1>
-        </div>
-      </header>
-
       {erreur ? <div className="message message-erreur">{erreur}</div> : null}
 
       {favoris.length === 0 ? (

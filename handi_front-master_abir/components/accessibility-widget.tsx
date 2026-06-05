@@ -239,6 +239,38 @@ export function AccessibilityWidget() {
   const fontLabel = settings.fontScale === 1 ? t("accessibility.default") : `${Math.round(settings.fontScale * 100)}%`;
   const lineHeightLabel = `${Math.round((settings.lineHeight - 1) * 100)}%`;
   const isCandidate = utilisateur?.role === "candidat";
+  const isEntreprise = utilisateur?.role === "entreprise";
+  const isSupervisor = utilisateur?.role === "inspecteur" || utilisateur?.role === "aneti";
+  const keyboardShortcuts = useMemo(() => {
+    if (isCandidate) {
+      return [
+        { key: "O", label: "Offres" },
+        { key: "C", label: "Candidatures" },
+        { key: "M", label: "Messagerie" },
+        { key: "P", label: "Profil" },
+      ];
+    }
+
+    if (isEntreprise) {
+      return [
+        { key: "A", label: "Accueil" },
+        { key: "O", label: "Offres" },
+        { key: "C", label: "Candidatures" },
+        { key: "E", label: "Entretiens" },
+      ];
+    }
+
+    if (isSupervisor) {
+      return [
+        { key: "S", label: "Supervision" },
+        { key: "O", label: "Offres" },
+        { key: "C", label: "Candidats" },
+        { key: "R", label: "Rapports" },
+      ];
+    }
+
+    return [];
+  }, [isCandidate, isEntreprise, isSupervisor]);
   const speechLang: "fr-FR" | "en-US" | "ar-SA" = useMemo(() => {
     if (typeof document === "undefined") return "fr-FR";
     const htmlLang = document.documentElement.lang.toLowerCase();
@@ -505,11 +537,19 @@ export function AccessibilityWidget() {
 
   useEffect(() => {
     if (!open) return;
+    const uniqueAnchors = new Map<string, { href: string; label: string }>();
     const anchors = Array.from(document.querySelectorAll<HTMLAnchorElement>("main.app-main a[href]"))
       .map((a) => ({ href: a.href, label: a.textContent?.trim() || a.href }))
-      .filter((item) => item.label)
-      .slice(0, 150);
-    setLinks(anchors);
+      .filter((item) => item.label);
+
+    for (const item of anchors) {
+      const dedupeKey = `${item.href}::${item.label}`;
+      if (!uniqueAnchors.has(dedupeKey)) {
+        uniqueAnchors.set(dedupeKey, item);
+      }
+    }
+
+    setLinks(Array.from(uniqueAnchors.values()).slice(0, 150));
   }, [open, pageSpeechText]);
 
   useEffect(() => {
@@ -785,6 +825,44 @@ export function AccessibilityWidget() {
           <FeatureToggle compact icon={<InlineIcon name="voice" />} label="Navigation vocale" active={settings.voiceNavigation} onClick={() => toggleSetting("voiceNavigation")} />
           <FeatureToggle compact icon={<InlineIcon name="hover" />} label="Surlignage au survol" active={settings.highlightHover} onClick={() => toggleSetting("highlightHover")} />
         </div>
+        {settings.keyboardMoveMode ? (
+          <div
+            style={{
+              marginTop: "14px",
+              display: "grid",
+              gap: "12px",
+              padding: "14px",
+              borderRadius: "18px",
+              border: "1px solid rgba(91, 63, 153, 0.12)",
+              background: "rgba(255,255,255,0.94)",
+            }}
+          >
+            <div style={{ display: "grid", gap: "4px" }}>
+              <strong style={{ fontSize: "0.92rem", color: "#24163f" }}>{t("accessibility.keyboardGuideTitle")}</strong>
+              <p className="texte-secondaire" style={{ margin: 0 }}>{t("accessibility.keyboardGuideIntro")}</p>
+            </div>
+            <div style={{ display: "grid", gap: "8px" }}>
+              <span><kbd>Tab</kbd> Naviguer vers l&apos;element suivant</span>
+              <span><kbd>Shift + Tab</kbd> Revenir a l&apos;element precedent</span>
+              <span><kbd>Entree</kbd> Activer le lien, bouton ou champ selectionne</span>
+              <span><kbd>Echap</kbd> Fermer un menu, un panneau ou une modale</span>
+              <span><kbd>Fleches</kbd> Se deplacer dans les listes et menus</span>
+            </div>
+            {keyboardShortcuts.length > 0 ? (
+              <div style={{ display: "grid", gap: "8px" }}>
+                <p className="texte-secondaire" style={{ margin: 0 }}>{t("accessibility.keyboardGuideExplore")}</p>
+                <div style={{ display: "grid", gap: "8px" }}>
+                  {keyboardShortcuts.map((shortcut) => (
+                    <span key={`${shortcut.key}-${shortcut.label}`}>
+                      <kbd>{shortcut.key}</kbd> {shortcut.label}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+            <p className="texte-secondaire" style={{ margin: 0 }}>{t("accessibility.keyboardGuideClose")}</p>
+          </div>
+        ) : null}
       </section>
 
       <section className="accessibility-module">
@@ -909,7 +987,7 @@ export function AccessibilityWidget() {
         <div style={{ display: "grid", gap: "8px" }}>
           <select value={selectedLink} onChange={(event) => setSelectedLink(event.target.value)} className="language-switcher-select" aria-label="Link navigator">
             <option value="">Selectionnez une option</option>
-            {links.map((item) => <option key={item.href} value={item.href}>{item.label}</option>)}
+            {links.map((item, index) => <option key={`${item.href}-${item.label}-${index}`} value={item.href}>{item.label}</option>)}
           </select>
           <button type="button" className="accessibility-reset" onClick={() => selectedLink && window.location.assign(selectedLink)}>Ouvrir le lien</button>
         </div>

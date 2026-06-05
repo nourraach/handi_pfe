@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { type FormEvent, type HTMLAttributes, type ReactNode, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { useAccessibility, type AccessibilityMode } from "@/components/accessibility-provider";
 import { construireUrlApi } from "@/lib/config";
 import styles from "./formulaire-inscription-candidat.module.css";
 
@@ -39,14 +38,6 @@ const accessibilityProfileOptions = [
   { value: "cognitive", label: "Cognitif ou psychique : interface simplifiee et calme" },
   { value: "hearing", label: "Auditif : alertes visuelles et interface sans dependance sonore" },
 ];
-
-const accessibilityProfileModeMap: Record<string, AccessibilityMode | null> = {
-  visual: "visuallyImpaired",
-  blindness: "blindness",
-  mobility: "mobility",
-  cognitive: "cognitive",
-  hearing: "hearing",
-};
 
 const handicapToAccessibilityProfile: Record<string, string> = {
   "Handicap visuel": "visual",
@@ -257,7 +248,6 @@ function getOptionLabel(options: Array<{ value: string; label: string }>, value:
 
 export function FormulaireInscriptionCandidat() {
   const router = useRouter();
-  const { applyMode } = useAccessibility();
   const [formulaire, setFormulaire] = useState(initialState);
   const [confirmationMotDePasse, setConfirmationMotDePasse] = useState("");
   const [message, setMessage] = useState<string | null>(null);
@@ -709,20 +699,6 @@ export function FormulaireInscriptionCandidat() {
 
       if (!response.ok) {
         throw new Error(result.message ?? "Impossible de créer votre compte pour le moment.");
-      }
-
-      const recommendedMode = accessibilityProfileModeMap[formulaire.accessibility_profile];
-      if (recommendedMode) {
-        applyMode(recommendedMode, { force: true });
-        localStorage.setItem(
-          "candidate_accessibility_profile_v1",
-          JSON.stringify({
-            profile: formulaire.accessibility_profile,
-            mode: recommendedMode,
-            source: "candidate-signup",
-            appliedAt: new Date().toISOString(),
-          }),
-        );
       }
 
       setMessage(result.message ?? "Votre compte a bien été créé.");

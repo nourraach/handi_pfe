@@ -2,21 +2,21 @@
   width: 100%;
   min-height: 100vh;
   position: relative;
-  background: linear-gradient(180deg, #fafafc 0%, #f7f6fb 100%);
+  background: linear-gradient(180deg, #fcfbfe 0%, #f6f3fa 100%);
 }
 
 .sidebar {
   position: fixed;
   inset: 12px auto 12px 12px;
   width: 286px;
-  border: 1px solid #ece8f5;
-  border-radius: 18px;
-  background: #ffffff;
-  box-shadow: 0 1px 2px rgba(31, 24, 48, 0.05), 0 8px 18px rgba(31, 24, 48, 0.04);
+  border: 1px solid rgba(53, 6, 62, 0.08);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: none;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding: 8px;
+  padding: 12px;
   z-index: 40;
   overflow: hidden;
 }
@@ -31,7 +31,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  min-height: 50px;
+  min-height: 48px;
   border-radius: 14px;
   padding: 8px 10px;
   color: #1f1830;
@@ -46,7 +46,7 @@
 .brandMark {
   width: 36px;
   height: 36px;
-  border-radius: 12px;
+  border-radius: 10px;
   display: grid;
   place-items: center;
   color: #5c25a4;
@@ -61,16 +61,16 @@
 }
 
 .brandCopy strong {
-  font-size: 1.2rem;
+  font-size: 1rem;
   line-height: 1;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
   font-family: var(--app-heading);
 }
 
 .brandCopy span {
   font-size: 0.72rem;
   color: #6e6883;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.08em;
   font-weight: 500;
   text-transform: uppercase;
 }
@@ -82,7 +82,7 @@
   width: fit-content;
   min-height: 26px;
   border-radius: 999px;
-  border: 1px solid rgba(74, 29, 89, 0.12);
+  border: 1px solid rgba(74, 29, 89, 0.1);
   padding: 0 12px;
   font-size: 0.7rem;
   letter-spacing: 0.04em;
@@ -94,7 +94,7 @@
 
 .sidebarNav {
   display: grid;
-  gap: 4px;
+  gap: 6px;
   margin-top: 2px;
   flex: 1 1 auto;
   min-height: 0;
@@ -102,7 +102,7 @@
 }
 
 .sidebarNavItem {
-  min-height: 44px;
+  min-height: 46px;
   border-radius: 14px;
   border: 1px solid transparent;
   display: flex;
@@ -110,7 +110,7 @@
   gap: 12px;
   padding: 0 12px;
   color: #3c344f;
-  font-size: 0.88rem;
+  font-size: 0.92rem;
   font-weight: 500;
   transition: all 160ms ease;
   text-decoration: none;
@@ -119,7 +119,7 @@
 .sidebarNavItemIcon {
   width: 30px;
   height: 30px;
-  border-radius: 10px;
+  border-radius: 9px;
   display: grid;
   place-items: center;
   color: #4a1d59;
@@ -129,14 +129,14 @@
 
 .sidebarNavItem:hover {
   border-color: rgba(74, 29, 89, 0.12);
-  background: #f3eaf7;
+  background: rgba(74, 29, 89, 0.06);
   color: #4a1d59;
   box-shadow: none;
 }
 
 .sidebarNavItemActive {
   border-color: rgba(74, 29, 89, 0.12);
-  background: #f3eaf7;
+  background: rgba(74, 29, 89, 0.06);
   color: #4a1d59;
   box-shadow: none;
 }
@@ -156,9 +156,9 @@
 
 .sidebarProfile {
   width: 100%;
-  border: 1px solid #ece8f5;
+  border: 1px solid rgba(53, 6, 62, 0.08);
   border-radius: 14px;
-  background: #fafafc;
+  background: #faf9fc;
   padding: 6px;
   display: grid;
   grid-template-columns: 40px minmax(0, 1fr);
@@ -172,7 +172,7 @@
 }
 
 .sidebarProfileActions {
-  border: 1px solid #ece8f5;
+  border: 1px solid rgba(53, 6, 62, 0.08);
   border-radius: 12px;
   background: #ffffff;
   padding: 6px;
@@ -232,9 +232,9 @@
   max-width: none;
   min-width: 0;
   min-height: 100vh;
-  padding: 14px 18px 24px 14px;
+  padding: 16px 18px 24px 14px;
   display: grid;
-  gap: 14px;
+  gap: 16px;
 }
 
 .workspaceTopbar {

@@ -177,7 +177,6 @@ export function ProfilAdmin({ utilisateur, lectureSeule = false }: ProfilAdminPr
       <div className="candidate-profile-topbar">
         <div>
           <p className="candidate-profile-kicker">{t("profile.admin.title")}</p>
-          <h2>Admin profile</h2>
         </div>
         {!lectureSeule ? (
           <div className="candidate-profile-actions">

@@ -579,7 +579,7 @@ function buildCvHtml(cv: CvFormState, theme: CvTheme) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>${escapeHtml(cv.fullName || "CV")}</title>
     <style>
-      html, body { margin:0; padding:0; overflow:hidden; background:#e2e8f0; font-family: Inter, sans-serif; color:#1f1839; }
+      html, body { margin:0; padding:0; overflow:hidden; background:#e2e8f0; font-family: Geist, sans-serif; color:#1f1839; }
       .page { width:210mm; min-height:297mm; margin:24px auto; background:#fff; box-shadow:0 20px 40px rgba(15,23,42,0.12); }
       * { box-sizing:border-box; }
       @media print {
@@ -1185,10 +1185,6 @@ export default function CandidateCvPage() {
 
         <section className="cvb__content" data-saved={isSaved ? "true" : "false"}>
             <header className="cvb__header">
-              <div>
-                <h1>CV</h1>
-              </div>
-
               <div className="cvb__header-actions">
                 <button type="button" className="cvb__action cvb__action--ghost" onClick={previewInNewTab}>
                   <Eye size={16} strokeWidth={2.1} />
@@ -1615,7 +1611,7 @@ export default function CandidateCvPage() {
           min-height: 100vh;
           background: #fbf9ff;
           color: #1f1839;
-          font-family: Inter, sans-serif;
+          font-family: var(--app-body);
           padding: 18px;
         }
 

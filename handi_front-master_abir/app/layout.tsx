@@ -1,15 +1,15 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Geist } from "next/font/google";
 import "./globals.css";
 import { AccessibilityProvider } from "@/components/accessibility-provider";
 import { AccessibilityWidget } from "@/components/accessibility-widget";
 import { DocumentTitle } from "@/components/document-title";
 import { I18nProvider } from "@/components/i18n-provider";
 
-const inter = Inter({
+const geist = Geist({
   subsets: ["latin"],
   display: "swap",
-  variable: "--font-inter",
+  variable: "--font-geist",
 });
 
 export const metadata: Metadata = {
@@ -29,7 +29,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr" data-scroll-behavior="smooth" suppressHydrationWarning>
-      <body className={`${inter.variable} app-theme`} suppressHydrationWarning>
+      <body className={`${geist.variable} app-theme`} suppressHydrationWarning>
         <a href="#main-content" className="skip-link">
           Aller au contenu principal
         </a>

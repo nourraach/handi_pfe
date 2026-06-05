@@ -1,13 +1,8 @@
 // Utilitaires d'authentification
-export interface UtilisateurConnecte {
-  id_utilisateur: string;
-  nom: string;
-  email: string;
-  role: 'admin' | 'candidat' | 'entreprise' | 'inspecteur' | 'aneti';
-  statut?: string;
-  candidat?: { id?: string };
-  entreprise?: { id?: string };
-}
+import type { UtilisateurConnecte } from "@/types/api";
+
+const ACCESSIBILITY_STORAGE_KEY_PREFIX = "handitalents_accessibility_settings";
+const ACCESSIBILITY_AUTH_EVENT = "handitalents:auth-changed";
 
 export interface TokenPayload {
   id_utilisateur: string;
@@ -87,6 +82,16 @@ export function clearAuth(): void {
   
   localStorage.removeItem('token_auth');
   localStorage.removeItem('utilisateur_connecte');
+  localStorage.removeItem(ACCESSIBILITY_STORAGE_KEY_PREFIX);
+  window.dispatchEvent(new Event(ACCESSIBILITY_AUTH_EVENT));
+}
+
+export function persistAuth(token: string, utilisateur: UtilisateurConnecte | null): void {
+  if (typeof window === "undefined") return;
+
+  localStorage.setItem("token_auth", token);
+  localStorage.setItem("utilisateur_connecte", JSON.stringify(utilisateur));
+  window.dispatchEvent(new Event(ACCESSIBILITY_AUTH_EVENT));
 }
 
 /**

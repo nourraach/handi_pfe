@@ -69,7 +69,7 @@ const interviewBoardStyles = `
   .interviews-board {
     width: 100%;
     color: #171142;
-    font-family: Inter, sans-serif;
+    font-family: var(--app-body);
   }
 
   .interviews-board__panel {
@@ -102,7 +102,7 @@ const interviewBoardStyles = `
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    color: #6c42ef;
+    color: #5b2d91;
     pointer-events: none;
   }
 
@@ -376,23 +376,27 @@ const interviewBoardStyles = `
   }
 
   .interviews-board__status--done {
-    background: rgba(34,197,94,0.12);
-    color: #80d8a0;
+    background: rgba(112, 156, 124, 0.16);
+    color: #b7d7bf;
+    border: 1px solid rgba(112, 156, 124, 0.26);
   }
 
   .interviews-board__status--scheduled {
-    background: rgba(91,45,145,0.2);
-    color: #d6c4ff;
+    background: rgba(109, 121, 154, 0.16);
+    color: #c6d0ea;
+    border: 1px solid rgba(109, 121, 154, 0.22);
   }
 
   .interviews-board__status--warning {
-    background: rgba(217,120,7,0.16);
-    color: #f4bf73;
+    background: rgba(168, 132, 92, 0.16);
+    color: #e3c8a1;
+    border: 1px solid rgba(168, 132, 92, 0.24);
   }
 
   .interviews-board__status--cancelled {
-    background: rgba(217,47,88,0.12);
-    color: #ff9cb4;
+    background: rgba(152, 103, 111, 0.16);
+    color: #e0b8c0;
+    border: 1px solid rgba(152, 103, 111, 0.24);
   }
 
   .interviews-board__pagination {

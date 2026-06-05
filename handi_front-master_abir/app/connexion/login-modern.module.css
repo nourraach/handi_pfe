@@ -70,7 +70,7 @@
   border-radius: 24px;
   border: 1px solid #ece5f4;
   background: #ffffff;
-  box-shadow: 0 22px 52px rgba(56, 8, 66, 0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   padding: clamp(18px, 2.2vw, 30px) clamp(14px, 2.8vw, 36px);
 }
 
@@ -279,12 +279,12 @@
 .submitButton:hover:not(:disabled) {
   transform: translateY(-1px);
   filter: brightness(1.02);
-  box-shadow: 0 14px 30px rgba(56, 8, 66, 0.3);
+  box-shadow: 0 2px 8px rgba(91, 61, 245, 0.1);
 }
 
 .submitButton:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 3px var(--lg-ring), 0 14px 30px rgba(56, 8, 66, 0.3);
+  box-shadow: 0 0 0 3px var(--lg-ring), 0 2px 8px rgba(91, 61, 245, 0.1);
 }
 
 .submitButton:disabled {

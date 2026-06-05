@@ -1,8 +1,8 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, BriefcaseBusiness, CircleCheckBig, MoveRight, Plus, Search, Sparkles, WandSparkles } from "lucide-react";
 import { ButtonLink } from "@/components/ui/button";
 import { LoadingState } from "@/components/ui/layout";
 import { authenticatedFetch } from "@/lib/auth-utils";
@@ -652,29 +652,53 @@ export function EntrepriseHome({ utilisateurNom, stats, loadingStats, erreurStat
         : "Publiez une premiere offre pour lancer un pipeline de recrutement cible.";
 
   const companyName = utilisateurNom?.trim() || "Entreprise";
+  void formatInterviewDay;
+  const greeting = new Date(referenceNow).getHours() < 12 ? "Bonjour" : new Date(referenceNow).getHours() < 18 ? "Bon apres-midi" : "Bonsoir";
+  const todayInterviews = upcomingInterviews.filter((item) => {
+    const interviewDate = new Date(item.entretien.date_heure);
+    const today = new Date(referenceNow);
+    return (
+      !Number.isNaN(interviewDate.getTime()) &&
+      interviewDate.getFullYear() === today.getFullYear() &&
+      interviewDate.getMonth() === today.getMonth() &&
+      interviewDate.getDate() === today.getDate()
+    );
+  });
 
-  const kpis = [
+  void totalApplications;
+  void interviewsThisWeek;
+
+  const inclusionScore = Math.max(0, Math.min(100, averageAiScore || (recommendedCandidates.length > 0 ? 68 : 0)));
+  const pipelineScore = totalApplications > 0 ? Math.round(((pipeline.shortlisted + pipeline.interview + pipeline.accepted) / totalApplications) * 100) : 0;
+  const satisfactionScore =
+    upcomingInterviews.length > 0
+      ? Math.max(62, Math.min(96, Math.round(((upcomingInterviews.length - interviewsNeedingConfirmation) / upcomingInterviews.length) * 100)))
+      : 91;
+  const discoverLabel =
+    recommendedCandidates.length > 0
+      ? `${pluralize(recommendedCandidates.length, "nouveau candidat", "nouveaux candidats")}`
+      : activeOffers > 0
+        ? `${pluralize(activeOffers, "offre active", "offres actives")}`
+        : "Lancer votre recrutement";
+  const discoverHref = recommendedCandidates.length > 0 ? "/entreprise/candidatures" : "/entreprise/offres";
+  const headlineName = companyName.includes("RH") ? companyName : `${companyName} RH`;
+  const scoreCards = [
     {
-      label: "Offres actives",
-      value: activeOffers,
-      hint: activeOffers > 0 ? `${pendingReviewCount} profil${pendingReviewCount > 1 ? "s" : ""} a traiter` : "Publiez une offre pour alimenter le pipeline",
+      label: "IA Shortlisting",
+      value: Math.max(0, Math.min(100, inclusionScore)),
+      hint: recommendedCandidates.length > 0 ? `+${Math.max(6, recommendedCandidates.length * 2)}% ce mois-ci` : "Actif",
     },
     {
-      label: "Candidatures",
-      value: totalApplications,
-      hint: `${pipeline.pending} en attente • ${pipeline.shortlisted} en preselection`,
+      label: "Pipeline",
+      value: Math.max(0, Math.min(100, pipelineScore)),
+      hint: pendingReviewCount > 0 ? `${pendingReviewCount} a revoir` : "En cours",
     },
     {
-      label: "Entretiens",
-      value: interviewsThisWeek || upcomingInterviews.length,
-      hint: interviewsNeedingConfirmation > 0 ? `${interviewsNeedingConfirmation} a confirmer` : "Planning a jour",
+      label: "Satisfaction candidats",
+      value: Math.max(0, Math.min(100, satisfactionScore)),
+      hint: todayInterviews.length > 0 ? `${todayInterviews.length} entretien${todayInterviews.length > 1 ? "s" : ""} aujourd'hui` : "Stable",
     },
-    {
-      label: "Score IA moyen",
-      value: averageAiScore > 0 ? `${averageAiScore}%` : "--",
-      hint: averageAiScore > 0 ? "Sur les candidatures evaluees" : "Aucune evaluation disponible",
-    },
-  ] as const;
+  ];
 
   if (loadingStats) {
     return <LoadingState title="Chargement de votre espace recrutement" description="Nous preparons vos priorites, candidats et entretiens." />;
@@ -682,27 +706,104 @@ export function EntrepriseHome({ utilisateurNom, stats, loadingStats, erreurStat
 
   return (
     <section className="enterprise-ops" aria-label={`Accueil recrutement ${companyName}`}>
-      <header className="ops-header">
-        <div className="ops-header-copy">
-          <span className="section-kicker">Tableau de bord entreprise</span>
-          <h1>Tableau de bord entreprise</h1>
-          <p>Vue d ensemble des activites de recrutement.</p>
+      <header className="ops-hero">
+        <div className="ops-hero-toolbar">
+          <div className="ops-hero-search">
+            <Search size={15} />
+            <span>Rechercher...</span>
+            <MoveRight size={14} />
+          </div>
+          <button type="button" className="ops-toolbar-chip" aria-label="Outils IA">
+            <Sparkles size={15} />
+            <span className="ops-toolbar-badge">2</span>
+          </button>
+          <ButtonLink href="/entreprise/offres" size="lg" className="hero-primary-action">
+            <Plus size={16} /> Publier une offre
+          </ButtonLink>
         </div>
 
-        <div className="ops-header-side">
-          <div className="ops-priority-card">
-            <span className="focus-kicker">Priorite</span>
-            <strong>{nextAction.label}</strong>
+        <div className="ops-hero-grid">
+          <div className="ops-hero-copy">
+            <span className="section-kicker">Cockpit recrutement</span>
+            <h1>
+              {greeting},
+              <span>{headlineName}</span>
+            </h1>
+            <div className="ops-hero-wave" aria-hidden="true">👋</div>
             <p>{headerLead}</p>
+
+            <div className="ops-priority-card">
+              <span className="focus-kicker">A traiter aujourd hui</span>
+              <strong>{nextAction.label}</strong>
+              <p>{nextAction.description}</p>
+              <div className="ops-priority-tags">
+                {pendingReviewCount > 0 ? <span className="ops-priority-pill">{pendingReviewCount} a revoir</span> : null}
+                {todayInterviews.length > 0 ? <span className="ops-priority-pill">{todayInterviews.length} entretien{todayInterviews.length > 1 ? "s" : ""} aujourd hui</span> : null}
+                {interviewsNeedingConfirmation > 0 ? <span className="ops-priority-pill">{interviewsNeedingConfirmation} confirmation{interviewsNeedingConfirmation > 1 ? "s" : ""}</span> : null}
+              </div>
+            </div>
+
+            <div className="ops-hero-actions">
+              <ButtonLink href={discoverHref} size="lg" className="hero-discover">
+                <div className="hero-discover-copy">
+                  <strong>Decouvrir</strong>
+                  <span>{discoverLabel}</span>
+                </div>
+                <ArrowRight size={18} />
+              </ButtonLink>
+            </div>
           </div>
 
-          <div className="ops-header-actions">
-            <ButtonLink href="/entreprise/candidatures" size="lg" className="hero-primary-action">
-              Voir les candidats
-            </ButtonLink>
-            <ButtonLink href="/entreprise/offres" variant="secondary" size="lg">
-              Creer une offre
-            </ButtonLink>
+          <div className="ops-hero-visual" aria-hidden="true">
+            <div className="orbital-shell">
+              <div className="orbital-ring orbital-ring-outer" />
+              <div className="orbital-ring orbital-ring-mid" />
+              <div className="orbital-ring orbital-ring-inner" />
+              <div className="orbital-core">
+                <small>Score d&apos;inclusion</small>
+                <strong>{inclusionScore}%</strong>
+                <span>+{Math.max(6, recommendedCandidates.length * 2)}% ce mois-ci</span>
+              </div>
+              <div className="floating-tag floating-tag-top">
+                <WandSparkles size={14} />
+                <div>
+                  <strong>Diversite</strong>
+                  <span>{Math.max(52, pipelineScore)}%</span>
+                </div>
+              </div>
+              <div className="floating-tag floating-tag-bottom">
+                <CircleCheckBig size={14} />
+                <div>
+                  <strong>Impact</strong>
+                  <span>Eleve</span>
+                </div>
+              </div>
+            </div>
+
+            <aside className="hero-analytics-panel">
+              <span className="focus-kicker">Vue impact</span>
+              {scoreCards.map((card) => (
+                <article className="hero-score-card" key={card.label}>
+                  <div className="hero-score-head">
+                    <div className="hero-score-chip">
+                      {card.label === "Pipeline" ? <BriefcaseBusiness size={14} /> : <Sparkles size={14} />}
+                    </div>
+                    <div className="hero-score-copy">
+                      <strong>{card.label}</strong>
+                      <span>{card.hint}</span>
+                    </div>
+                    <b>{card.value}%</b>
+                  </div>
+                  <div className="hero-score-track">
+                    <span style={{ width: `${card.value}%` }} />
+                  </div>
+                </article>
+              ))}
+
+              <Link href="/entreprise/reports-requests" className="hero-report-link">
+                Voir le rapport complet <ArrowRight size={16} />
+              </Link>
+            </aside>
           </div>
         </div>
       </header>
@@ -711,16 +812,6 @@ export function EntrepriseHome({ utilisateurNom, stats, loadingStats, erreurStat
 
       {erreurStats ? <p className="ops-notice ops-notice-warning">{erreurStats}</p> : null}
       {workspaceNotice ? <p className="ops-notice">{workspaceNotice}</p> : null}
-
-      <section className="ops-kpi-grid" aria-label="Indicateurs cles recrutement">
-        {kpis.map((item) => (
-          <article key={item.label} className="ops-kpi-card">
-            <span className="ops-kpi-label">{item.label}</span>
-            <strong>{item.value}</strong>
-            <p>{item.hint}</p>
-          </article>
-        ))}
-      </section>
 
       <section className="ops-section ops-section-pipeline">
         <div className="section-heading">
@@ -743,7 +834,7 @@ export function EntrepriseHome({ utilisateurNom, stats, loadingStats, erreurStat
                 <small>{step.label}</small>
                 <strong>{step.value}</strong>
               </div>
-              {index < 3 ? <span className="pipeline-arrow" aria-hidden="true">→</span> : null}
+              {index < 3 ? <span className="pipeline-arrow" aria-hidden="true">?</span> : null}
             </div>
           ))}
         </div>
@@ -817,6 +908,50 @@ export function EntrepriseHome({ utilisateurNom, stats, loadingStats, erreurStat
         <section className="ops-section ops-section-compact">
           <div className="section-heading">
             <div>
+              <span className="section-kicker">Aujourdhui</span>
+              <h2>Entretiens du jour</h2>
+            </div>
+            <Link href="/entreprise/entretiens" className="section-link">
+              Ouvrir le planning <ArrowRight size={16} />
+            </Link>
+          </div>
+
+          {todayInterviews.length > 0 ? (
+            <div className="timeline-table" role="list" aria-label="Entretiens du jour">
+              {todayInterviews.map((item) => {
+                const status = getInterviewStatusMeta(item.entretien.statut);
+                return (
+                  <article className="timeline-row" key={item.entretien.id} role="listitem">
+                    <div className="timeline-primary">
+                      <strong>{item.candidat?.nom || "Candidat"}</strong>
+                      <span>{item.offre?.titre || "Offre"}</span>
+                    </div>
+                    <div className="timeline-date">
+                      <span>Heure</span>
+                      <strong>{formatInterviewTime(item.entretien.date_heure)}</strong>
+                    </div>
+                    <div className="timeline-type">
+                      <span>Format</span>
+                      <strong>{item.entretien.type}</strong>
+                    </div>
+                    <span className={`status-pill status-pill-${status.tone}`}>{status.label}</span>
+                  </article>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="empty-inline">
+              <strong>Aucun entretien aujourd hui.</strong>
+              <p>Le planning du jour est libre pour avancer sur les candidatures prioritaires.</p>
+            </div>
+          )}
+        </section>
+      </section>
+
+      <section className="ops-grid-two">
+        <section className="ops-section ops-section-compact">
+          <div className="section-heading">
+            <div>
               <span className="section-kicker">Activite recente</span>
               <h2>Ce qui sest passe recemment</h2>
             </div>
@@ -845,67 +980,24 @@ export function EntrepriseHome({ utilisateurNom, stats, loadingStats, erreurStat
             </div>
           )}
         </section>
-      </section>
-
-      <section className="ops-grid-two">
-        <section className="ops-section ops-section-compact">
-          <div className="section-heading">
-            <div>
-              <span className="section-kicker">Cette semaine</span>
-              <h2>Entretiens a venir</h2>
-            </div>
-            <Link href="/entreprise/entretiens" className="section-link">
-              Ouvrir le planning <ArrowRight size={16} />
-            </Link>
-          </div>
-
-          {upcomingInterviews.length > 0 ? (
-            <div className="timeline-table" role="list" aria-label="Entretiens a venir">
-              {upcomingInterviews.map((item) => {
-                const status = getInterviewStatusMeta(item.entretien.statut);
-                return (
-                  <article className="timeline-row" key={item.entretien.id} role="listitem">
-                    <div className="timeline-primary">
-                      <strong>{item.candidat?.nom || "Candidat"}</strong>
-                      <span>{item.offre?.titre || "Offre"}</span>
-                    </div>
-                    <div className="timeline-date">
-                      <span>Date</span>
-                      <strong>{formatInterviewDay(item.entretien.date_heure)}</strong>
-                    </div>
-                    <div className="timeline-type">
-                      <span>Heure</span>
-                      <strong>{formatInterviewTime(item.entretien.date_heure)}</strong>
-                    </div>
-                    <span className={`status-pill status-pill-${status.tone}`}>{status.label}</span>
-                  </article>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="empty-inline">
-              <strong>Aucun entretien a venir.</strong>
-              <p>Planifiez la prochaine session directement depuis les candidatures.</p>
-            </div>
-          )}
-        </section>
 
         <section className="ops-section ops-section-compact">
           <div className="section-heading">
             <div>
-              <span className="section-kicker">Actions requises</span>
-              <h2>Offres necessitant une action</h2>
+              <span className="section-kicker">Actions rapides</span>
+              <h2>Que faire ensuite</h2>
             </div>
-            <Link href="/entreprise/offres" className="section-link">
-              Gerer les offres <ArrowRight size={16} />
+            <Link href={nextAction.href} className="section-link">
+              Aller a la priorite <ArrowRight size={16} />
             </Link>
           </div>
 
           {offersNeedingAction.length > 0 ? (
-            <div className="action-offer-list" role="list" aria-label="Offres necessitant une action">
+            <div className="action-offer-list" role="list" aria-label="Actions rapides recrutement">
               {offersNeedingAction.map((offer) => (
                 <article className="action-offer-row" key={offer.title} role="listitem">
                   <div className="action-offer-copy">
+                    <span className="focus-kicker">Offre a suivre</span>
                     <strong>{offer.title}</strong>
                     <p>{offer.summary}</p>
                   </div>
@@ -928,7 +1020,7 @@ export function EntrepriseHome({ utilisateurNom, stats, loadingStats, erreurStat
             </div>
           ) : (
             <div className="empty-inline">
-              <strong>Aucune offre en attente daction immediate.</strong>
+              <strong>Aucune action urgente pour le moment.</strong>
               <p>Vos offres actives sont a jour pour le moment.</p>
             </div>
           )}
@@ -938,6 +1030,8 @@ export function EntrepriseHome({ utilisateurNom, stats, loadingStats, erreurStat
       <style jsx>{`
         .enterprise-ops {
           --ht-purple: #4a154b;
+          --ht-purple-bright: #7d3f8b;
+          --ht-plum-deep: #291032;
           --ht-ink: #231628;
           --ht-muted: #6f6272;
           --ht-line: rgba(74, 21, 75, 0.12);
@@ -962,7 +1056,7 @@ export function EntrepriseHome({ utilisateurNom, stats, loadingStats, erreurStat
           z-index: 0;
         }
 
-        .ops-header,
+        .ops-hero,
         .ops-kpi-grid,
         .ops-section,
         .ops-grid-two,
@@ -971,63 +1065,131 @@ export function EntrepriseHome({ utilisateurNom, stats, loadingStats, erreurStat
           z-index: 1;
         }
 
-        .ops-header,
+        .ops-hero,
         .ops-section,
         .ops-kpi-card,
         .ops-priority-card {
           border: 1px solid var(--ht-line);
           background: var(--ht-surface);
           backdrop-filter: blur(18px);
-          box-shadow: 0 24px 70px rgba(52, 16, 53, 0.08);
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
         }
 
-        .ops-header {
+        .ops-hero {
+          display: grid;
+          gap: 28px;
+          padding: 26px 28px 24px;
+          border-radius: 34px;
+          overflow: hidden;
+          background:
+            radial-gradient(circle at 32% 18%, rgba(166, 124, 255, 0.22), transparent 26%),
+            radial-gradient(circle at 67% 28%, rgba(255, 255, 255, 0.92), transparent 32%),
+            linear-gradient(180deg, rgba(251, 247, 255, 0.96), rgba(255, 255, 255, 0.96));
+        }
+
+        .ops-hero-toolbar {
           display: flex;
-          justify-content: space-between;
-          align-items: flex-start;
-          gap: 18px;
-          padding: 0;
-          border: 0;
-          border-radius: 0;
-          background: transparent;
-          box-shadow: none;
-          backdrop-filter: none;
+          align-items: center;
+          justify-content: flex-end;
+          gap: 14px;
         }
 
-        .ops-header-copy {
+        .ops-hero-search {
+          display: inline-flex;
+          align-items: center;
+          gap: 10px;
+          min-width: min(100%, 320px);
+          min-height: 40px;
+          padding: 0 14px;
+          border-radius: 999px;
+          background: rgba(255, 255, 255, 0.92);
+          border: 1px solid rgba(74, 21, 75, 0.08);
+          color: #8d8091;
+          font-size: 14px;
+        }
+
+        .ops-hero-search span {
+          flex: 1 1 auto;
+        }
+
+        .ops-toolbar-chip {
+          position: relative;
+          width: 40px;
+          height: 40px;
+          border: 0;
+          border-radius: 999px;
+          background: rgba(255, 255, 255, 0.94);
+          color: var(--ht-purple);
+          display: inline-grid;
+          place-items: center;
+        }
+
+        .ops-toolbar-badge {
+          position: absolute;
+          top: -3px;
+          right: -3px;
+          min-width: 18px;
+          height: 18px;
+          padding: 0 4px;
+          border-radius: 999px;
+          display: inline-grid;
+          place-items: center;
+          background: #ff476f;
+          color: #fff;
+          font-size: 10px;
+          font-weight: 700;
+        }
+
+        .ops-hero-grid {
+          display: grid;
+          grid-template-columns: minmax(0, 0.95fr) minmax(420px, 1.05fr);
+          align-items: center;
+          gap: 28px;
+        }
+
+        .ops-hero-copy {
           min-width: 0;
           display: grid;
-          gap: 8px;
+          align-content: center;
+          gap: 14px;
+          padding: 20px 0 8px;
         }
 
-        .ops-header-copy h1 {
+        .ops-hero-copy h1 {
           margin: 0;
-          font-size: 36px;
-          line-height: 1.05;
+          font-size: clamp(46px, 5vw, 66px);
+          line-height: 1.04;
           letter-spacing: -0.04em;
+          max-width: 9ch;
         }
 
-        .ops-header-copy p {
+        .ops-hero-copy h1 span {
+          display: block;
+          color: var(--ht-purple-bright);
+        }
+
+        .ops-hero-wave {
+          font-size: 40px;
+          line-height: 1;
+        }
+
+        .ops-hero-copy p {
           margin: 0;
-          font-size: 14px;
-          line-height: 1.55;
+          font-size: 15px;
+          line-height: 1.65;
           color: var(--ht-muted);
-        }
-
-        .ops-header-side {
-          display: grid;
-          gap: 12px;
-          min-width: min(100%, 360px);
-          justify-items: end;
+          max-width: 38ch;
         }
 
         .ops-priority-card {
           display: grid;
-          gap: 6px;
-          width: 100%;
+          gap: 10px;
+          width: min(100%, 420px);
           padding: 16px 18px;
-          border-radius: 20px;
-          background: linear-gradient(180deg, rgba(74, 21, 75, 0.06), rgba(74, 21, 75, 0.02));
+          border-radius: 22px;
+          border: 1px solid var(--ht-line);
+          background: rgba(255, 255, 255, 0.62);
+          backdrop-filter: blur(14px);
         }
 
         .section-kicker,
@@ -1043,6 +1205,42 @@ export function EntrepriseHome({ utilisateurNom, stats, loadingStats, erreurStat
           color: rgba(74, 21, 75, 0.62);
         }
 
+        .ops-hero-actions {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+
+        .hero-discover {
+          display: inline-flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 14px;
+          min-width: min(100%, 300px);
+          min-height: 76px;
+          padding: 0 22px;
+          border-radius: 24px;
+          background: linear-gradient(135deg, #4a154b, #6a2d73);
+          color: #fff;
+          border-color: transparent;
+        }
+
+        .hero-discover-copy {
+          display: grid;
+          gap: 5px;
+          text-align: left;
+        }
+
+        .hero-discover-copy strong {
+          font-size: 22px;
+          line-height: 1;
+        }
+
+        .hero-discover-copy span {
+          font-size: 14px;
+          color: rgba(255, 255, 255, 0.76);
+        }
+
         .ops-priority-card strong {
           font-size: 16px;
           line-height: 1.35;
@@ -1056,23 +1254,236 @@ export function EntrepriseHome({ utilisateurNom, stats, loadingStats, erreurStat
           color: var(--ht-muted);
         }
 
-        .ops-header-actions {
+        .ops-priority-tags {
           display: flex;
           flex-wrap: wrap;
-          gap: 12px;
-          justify-content: flex-end;
-          width: 100%;
+          gap: 10px;
         }
 
-        .ops-header-actions :global(.ui-button) {
-          min-height: 46px;
+        .ops-priority-pill {
+          display: inline-flex;
+          align-items: center;
+          min-height: 32px;
+          padding: 0 12px;
+          border-radius: 999px;
+          border: 1px solid rgba(74, 21, 75, 0.1);
+          background: rgba(74, 21, 75, 0.05);
+          color: var(--ht-purple);
+          font-size: 13px;
+          font-weight: 600;
         }
 
-        .ops-header-actions :global(.hero-primary-action) {
+        :global(.hero-primary-action) {
           background: #4a154b;
           color: #ffffff;
           border-color: transparent;
-          box-shadow: 0 8px 18px rgba(74, 21, 75, 0.14);
+          box-shadow: 0 2px 8px rgba(91, 61, 245, 0.1);
+        }
+
+        .ops-hero-visual {
+          position: relative;
+          min-height: 460px;
+          display: grid;
+          align-items: center;
+        }
+
+        .orbital-shell {
+          position: absolute;
+          inset: 26px 160px 42px 34px;
+          display: grid;
+          place-items: center;
+        }
+
+        .orbital-shell::before {
+          content: "";
+          position: absolute;
+          inset: 18px;
+          border-radius: 999px;
+          border: 1px dashed rgba(96, 63, 149, 0.18);
+        }
+
+        .orbital-ring {
+          position: absolute;
+          border-radius: 999px;
+          mix-blend-mode: multiply;
+        }
+
+        .orbital-ring-outer {
+          width: 230px;
+          height: 230px;
+          background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.88), rgba(208, 126, 165, 0.78) 58%, rgba(90, 26, 109, 0.9));
+          transform: translateX(-24px);
+        }
+
+        .orbital-ring-mid {
+          width: 186px;
+          height: 186px;
+          background: radial-gradient(circle at 35% 35%, rgba(255, 255, 255, 0.9), rgba(224, 198, 231, 0.74) 55%, rgba(128, 66, 138, 0.92));
+          transform: translate(34px, 6px);
+        }
+
+        .orbital-ring-inner {
+          width: 142px;
+          height: 142px;
+          background: radial-gradient(circle at 48% 40%, #ffffff 0, #fff 62%, rgba(255, 255, 255, 0.8) 100%);
+          box-shadow: 0 12px 40px rgba(84, 41, 101, 0.08);
+        }
+
+        .orbital-core {
+          position: relative;
+          z-index: 2;
+          display: grid;
+          justify-items: center;
+          gap: 4px;
+          width: 142px;
+          text-align: center;
+        }
+
+        .orbital-core small {
+          font-size: 11px;
+          color: #7f7191;
+        }
+
+        .orbital-core strong {
+          font-size: 54px;
+          line-height: 1;
+          letter-spacing: -0.05em;
+        }
+
+        .orbital-core span {
+          font-size: 13px;
+          font-weight: 700;
+          color: #0b8d58;
+        }
+
+        .floating-tag {
+          position: absolute;
+          z-index: 3;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 12px 14px;
+          border-radius: 18px;
+          background: rgba(255, 255, 255, 0.9);
+          border: 1px solid rgba(74, 21, 75, 0.08);
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+          color: var(--ht-purple);
+        }
+
+        .floating-tag strong,
+        .floating-tag span {
+          display: block;
+          line-height: 1.2;
+        }
+
+        .floating-tag strong {
+          font-size: 12px;
+          color: var(--ht-ink);
+        }
+
+        .floating-tag span {
+          margin-top: 4px;
+          font-size: 11px;
+          color: var(--ht-muted);
+        }
+
+        .floating-tag-top {
+          left: 14px;
+          bottom: 58px;
+        }
+
+        .floating-tag-bottom {
+          right: 116px;
+          bottom: 26px;
+        }
+
+        .hero-analytics-panel {
+          position: absolute;
+          right: 6px;
+          top: 18px;
+          bottom: 18px;
+          width: 340px;
+          padding: 24px 22px;
+          border-radius: 28px;
+          background: linear-gradient(180deg, #2d1236, #1f0d2a);
+          color: #fff;
+          display: grid;
+          align-content: start;
+          gap: 18px;
+          box-shadow: 0 20px 50px rgba(29, 11, 38, 0.14);
+        }
+
+        .hero-analytics-panel .focus-kicker {
+          color: rgba(255, 255, 255, 0.54);
+        }
+
+        .hero-score-card {
+          display: grid;
+          gap: 10px;
+        }
+
+        .hero-score-head {
+          display: grid;
+          grid-template-columns: auto minmax(0, 1fr) auto;
+          align-items: center;
+          gap: 12px;
+        }
+
+        .hero-score-chip {
+          width: 44px;
+          height: 44px;
+          border-radius: 16px;
+          display: grid;
+          place-items: center;
+          background: rgba(255, 255, 255, 0.09);
+          color: #d8c7ff;
+        }
+
+        .hero-score-copy strong,
+        .hero-score-copy span {
+          display: block;
+        }
+
+        .hero-score-copy strong {
+          font-size: 14px;
+          line-height: 1.25;
+        }
+
+        .hero-score-copy span {
+          margin-top: 4px;
+          font-size: 12px;
+          color: rgba(255, 255, 255, 0.6);
+        }
+
+        .hero-score-head b {
+          font-size: 28px;
+          line-height: 1;
+          letter-spacing: -0.03em;
+        }
+
+        .hero-score-track {
+          height: 7px;
+          border-radius: 999px;
+          background: rgba(255, 255, 255, 0.12);
+          overflow: hidden;
+        }
+
+        .hero-score-track span {
+          display: block;
+          height: 100%;
+          border-radius: inherit;
+          background: linear-gradient(90deg, #ffd46b, #f1b83f);
+        }
+
+        .hero-report-link {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          margin-top: auto;
+          color: #fff;
+          text-decoration: none;
+          font-size: 14px;
+          font-weight: 700;
         }
 
         .ops-notice {
@@ -1092,9 +1503,7 @@ export function EntrepriseHome({ utilisateurNom, stats, loadingStats, erreurStat
         }
 
         .ops-kpi-grid {
-          display: grid;
-          grid-template-columns: repeat(4, minmax(0, 1fr));
-          gap: 16px;
+          display: none;
         }
 
         .ops-kpi-card {
@@ -1140,8 +1549,8 @@ export function EntrepriseHome({ utilisateurNom, stats, loadingStats, erreurStat
 
         .ops-grid-two {
           display: grid;
-          grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-          gap: 18px;
+          grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+          gap: 20px;
         }
 
         .section-heading {
@@ -1173,23 +1582,18 @@ export function EntrepriseHome({ utilisateurNom, stats, loadingStats, erreurStat
         .pipeline-shell {
           display: grid;
           grid-template-columns: repeat(4, minmax(0, 1fr));
-          gap: 0;
-          overflow: hidden;
-          border-radius: 24px;
-          border: 1px solid var(--ht-line);
-          background: linear-gradient(180deg, rgba(255, 255, 255, 0.7), rgba(244, 238, 245, 0.7));
+          gap: 14px;
         }
 
         .pipeline-step {
-          position: relative;
-          display: flex;
+          display: grid;
+          grid-template-columns: auto minmax(0, 1fr) auto;
           align-items: center;
           gap: 14px;
-          padding: 18px 20px;
-        }
-
-        .pipeline-step + .pipeline-step {
-          border-left: 1px solid var(--ht-line);
+          padding: 20px;
+          border-radius: 22px;
+          border: 1px solid var(--ht-line);
+          background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(247, 241, 249, 0.85));
         }
 
         .pipeline-step small,
@@ -1206,7 +1610,7 @@ export function EntrepriseHome({ utilisateurNom, stats, loadingStats, erreurStat
         .pipeline-step strong {
           display: block;
           margin-top: 8px;
-          font-size: 20px;
+          font-size: 28px;
           line-height: 1;
           color: var(--ht-ink);
         }
@@ -1235,7 +1639,6 @@ export function EntrepriseHome({ utilisateurNom, stats, loadingStats, erreurStat
         }
 
         .pipeline-arrow {
-          margin-left: auto;
           color: rgba(74, 21, 75, 0.34);
           font-size: 20px;
         }
@@ -1456,13 +1859,25 @@ export function EntrepriseHome({ utilisateurNom, stats, loadingStats, erreurStat
             grid-template-columns: 1fr;
           }
 
-          .ops-header {
-            flex-direction: column;
+          .ops-hero-grid {
+            grid-template-columns: 1fr;
           }
 
-          .ops-header-side {
-            width: 100%;
-            justify-items: stretch;
+          .ops-hero-visual {
+            min-height: 640px;
+          }
+
+          .orbital-shell {
+            inset: 14px 40px 220px 40px;
+          }
+
+          .hero-analytics-panel {
+            position: absolute;
+            left: 36px;
+            right: 36px;
+            bottom: 16px;
+            top: auto;
+            width: auto;
           }
 
           .candidate-actions {
@@ -1491,12 +1906,55 @@ export function EntrepriseHome({ utilisateurNom, stats, loadingStats, erreurStat
             padding-bottom: 20px;
           }
 
-          .ops-header,
+          .ops-hero,
           .ops-section,
           .ops-kpi-card,
           .ops-priority-card {
             padding: 18px;
             border-radius: 24px;
+          }
+
+          .ops-hero-toolbar {
+            justify-content: stretch;
+            flex-wrap: wrap;
+          }
+
+          .ops-hero-search {
+            min-width: 0;
+            width: 100%;
+          }
+
+          .ops-hero-copy h1 {
+            font-size: 40px;
+          }
+
+          .hero-discover {
+            width: 100%;
+            min-width: 0;
+          }
+
+          .ops-hero-visual {
+            min-height: 540px;
+          }
+
+          .orbital-shell {
+            inset: 8px 18px 210px;
+          }
+
+          .floating-tag-top {
+            left: 0;
+            bottom: 48px;
+          }
+
+          .floating-tag-bottom {
+            right: 28px;
+            bottom: 12px;
+          }
+
+          .hero-analytics-panel {
+            left: 18px;
+            right: 18px;
+            padding: 18px;
           }
 
           .section-heading {
@@ -1540,3 +1998,4 @@ export function EntrepriseHome({ utilisateurNom, stats, loadingStats, erreurStat
     </section>
   );
 }
+

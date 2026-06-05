@@ -36,7 +36,6 @@ const ROUTE_TITLES: Record<string, string> = {
   "/entreprise/candidats": "Candidats",
   "/entreprise/entretiens": "Entretiens entreprise",
   "/entreprise/profil": "Profil entreprise",
-  "/entreprise/shortlist": "Shortlisting intelligent",
   "/entreprise/tests-entretien": "Tests d'entretien entreprise",
   "/entreprise/reports-requests": "Demandes de rapports",
   "/entreprise/reports-requests/transfer": "Transfert de rapports",

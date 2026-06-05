@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import {
   CalendarClock,
@@ -14,6 +14,7 @@ import {
   Wallet,
   X,
 } from "lucide-react";
+import { useAccessibility, type AccessibilityMode } from "@/components/accessibility-provider";
 import { useI18n } from "@/components/i18n-provider";
 import { construireUrlApi } from "@/lib/config";
 import { UtilisateurConnecte } from "@/types/api";
@@ -61,6 +62,30 @@ const PREFERENCES = [
   "voice",
 ] as const;
 
+function resolveAccessibilityModeFromProfile(
+  preferences: string[],
+  handicap: string,
+): AccessibilityMode | null {
+  const normalizedPreferences = preferences.map((item) => item.trim().toLowerCase());
+  const normalizedHandicap = handicap.trim().toLowerCase();
+
+  if (normalizedPreferences.includes("speech")) return "visuallyImpaired";
+  if (normalizedPreferences.includes("voice")) return "mobility";
+  if (normalizedPreferences.includes("captions")) return "hearing";
+  if (normalizedPreferences.includes("largeText") || normalizedPreferences.includes("contrast")) return "visuallyImpaired";
+  if (normalizedPreferences.includes("keyboard")) return "mobility";
+
+  if (normalizedHandicap.includes("visuel")) return "visuallyImpaired";
+  if (normalizedHandicap.includes("non-voyant")) return "blindness";
+  if (normalizedHandicap.includes("auditif")) return "hearing";
+  if (normalizedHandicap.includes("mental") || normalizedHandicap.includes("psychique") || normalizedHandicap.includes("cognitif")) {
+    return "cognitive";
+  }
+  if (normalizedHandicap.includes("physique") || normalizedHandicap.includes("mobil")) return "mobility";
+
+  return null;
+}
+
 const VISIBILITY_FIELDS = [
   { key: "email", labelKey: "profile.candidate.visibility.email" },
   { key: "telephone", labelKey: "profile.candidate.visibility.phone" },
@@ -90,6 +115,7 @@ type SoftSkillsScoreState = {
 
 export function ProfilCandidat({ utilisateur, lectureSeule = false }: ProfilCandidatProps) {
   const { t } = useI18n();
+  const { settings, applyMode } = useAccessibility();
   const [profil, setProfil] = useState<ProfilCandidatData>({
     nom: utilisateur.nom || "",
     email: utilisateur.email || "",
@@ -135,6 +161,23 @@ export function ProfilCandidat({ utilisateur, lectureSeule = false }: ProfilCand
       void chargerScoreSoftSkills();
     }
   }, []);
+
+  const recommendedMode = useMemo(
+    () =>
+      resolveAccessibilityModeFromProfile(
+        profil.preferences_accessibilite,
+        profil.handicap,
+      ),
+    [profil.handicap, profil.preferences_accessibilite],
+  );
+
+  useEffect(() => {
+    if (!recommendedMode || settings.activeQuickMode === recommendedMode) {
+      return;
+    }
+
+    applyMode(recommendedMode);
+  }, [applyMode, recommendedMode, settings.activeQuickMode]);
 
   useEffect(() => {
     if (!photoFile) {
@@ -484,7 +527,7 @@ export function ProfilCandidat({ utilisateur, lectureSeule = false }: ProfilCand
       {erreur ? <div className="message message-erreur">{erreur}</div> : null}
 
       <motion.article
-        className="candidate-profile-card candidate-profile-hero"
+        className="candidate-profile-card candidate-profile-hero candidate-profile-hero-surface"
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35, ease: "easeOut" }}

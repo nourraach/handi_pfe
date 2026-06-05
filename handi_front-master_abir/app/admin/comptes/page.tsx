@@ -175,7 +175,7 @@ const styles = `
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    color: #6c42ef;
+    color: #5b2d91;
     pointer-events: none;
   }
 
@@ -265,17 +265,17 @@ const styles = `
     justify-content: center;
     gap: 10px;
     background: #ffffff;
-    color: #4f28df;
+    color: #5b2d91;
     font-weight: 900;
     box-shadow: 0 10px 24px rgba(77, 55, 135, 0.06);
     white-space: nowrap;
   }
 
   .companies-toolbar-btn--primary {
-    border-color: #3d0456;
+    border-color: #5b2d91;
     color: #ffffff;
-    background: #3f005b;
-    box-shadow: 0 14px 28px rgba(63, 0, 91, 0.28);
+    background: #5b2d91;
+    box-shadow: 0 14px 28px rgba(91, 45, 145, 0.24);
   }
 
   .companies-toolbar-btn svg,
@@ -396,7 +396,7 @@ const styles = `
     align-items: center;
     justify-content: center;
     background: #f3edff;
-    color: #6229e8;
+    color: #5b2d91;
     line-height: 1;
     padding: 0;
     box-sizing: border-box;
@@ -436,23 +436,27 @@ const styles = `
   }
 
   .company-status--actif {
-    background: #dcfce7;
-    color: #166534;
+    background: rgba(112, 156, 124, 0.16);
+    color: #b7d7bf;
+    border: 1px solid rgba(112, 156, 124, 0.26);
   }
 
   .company-status--en_attente {
-    background: #fff2e8;
-    color: #ff7a1a;
+    background: rgba(159, 138, 92, 0.16);
+    color: #dac79f;
+    border: 1px solid rgba(159, 138, 92, 0.22);
   }
 
   .company-status--suspendu {
-    background: #fee2e2;
-    color: #991b1b;
+    background: rgba(124, 102, 104, 0.16);
+    color: #d2bdc0;
+    border: 1px solid rgba(124, 102, 104, 0.24);
   }
 
   .company-status--inactif {
-    background: #ece8f4;
-    color: #4b3b66;
+    background: rgba(126, 123, 136, 0.16);
+    color: #d0ced8;
+    border: 1px solid rgba(126, 123, 136, 0.24);
   }
 
   .companies-actions {
@@ -695,7 +699,7 @@ const styles = `
     place-items: center;
     overflow: hidden;
     border-radius: 24px;
-    background: linear-gradient(135deg, #4a1d59, #d86a8d);
+    background: linear-gradient(135deg, #5b2d91, #8a63d2);
     color: #fff;
     font-size: 1.8rem;
     font-weight: 900;
@@ -742,7 +746,7 @@ const styles = `
   .company-profile-kpis svg,
   .company-values svg,
   .company-contact-list svg {
-    color: #4a1d59;
+    color: #5b2d91;
   }
 
   .company-profile-kpis {
@@ -816,7 +820,7 @@ const styles = `
     padding: 9px 11px;
     border-radius: 999px;
     background: rgba(74, 29, 89, 0.08);
-    color: #4a1d59;
+    color: #5b2d91;
     font-size: 0.8rem;
     font-weight: 800;
   }
@@ -835,7 +839,7 @@ const styles = `
     display: grid;
     place-items: center;
     border-radius: 14px;
-    background: linear-gradient(135deg, #4a1d59, #d86a8d);
+    background: linear-gradient(135deg, #5b2d91, #8a63d2);
     color: #fff;
     font-weight: 900;
   }

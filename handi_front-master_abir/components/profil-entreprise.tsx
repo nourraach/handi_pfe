@@ -1,9 +1,8 @@
 "use client";
 
 import { useEffect, useEffectEvent, useMemo, useState, type ReactNode } from "react";
+import { Building2, Globe2, Mail, MapPin, Phone, ShieldCheck, Users } from "lucide-react";
 import { useI18n } from "@/components/i18n-provider";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { construireUrlApi } from "@/lib/config";
 import { UtilisateurConnecte } from "@/types/api";
 
@@ -120,9 +119,7 @@ export function ProfilEntreprise({ utilisateur, lectureSeule = false }: ProfilEn
   async function chargerProfil() {
     try {
       const token = localStorage.getItem("token_auth");
-      if (!token) {
-        return;
-      }
+      if (!token) return;
 
       const response = await fetch(construireUrlApi(`/api/entreprises/profil/${utilisateur.id_utilisateur}`), {
         headers: {
@@ -190,219 +187,272 @@ export function ProfilEntreprise({ utilisateur, lectureSeule = false }: ProfilEn
   const nomEntreprise = profil.nom_entreprise || utilisateur.nom || valeurParDefaut;
   const secteur = resolveOptionLabel(profil.secteur_activite, secteurs) || valeurParDefaut;
   const taille = resolveOptionLabel(profil.taille_entreprise, tailles) || valeurParDefaut;
+  const editionAutorisee = !lectureSeule && modeEdition;
+  const completionPercent = Math.round(
+    ([
+      profil.nom,
+      profil.email,
+      profil.telephone,
+      profil.addresse,
+      profil.nom_entreprise,
+      profil.secteur_activite,
+      profil.taille_entreprise,
+      profil.site_web,
+      profil.description,
+      profil.politique_handicap,
+      profil.contact_rh_nom,
+      profil.contact_rh_email,
+    ].filter((value) => value && value.trim().length > 0).length /
+      12) *
+      100,
+  );
+  const initials = nomEntreprise
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() || "")
+    .join("");
 
   return (
-    <div className="stack-lg">
-      <Card tone="accent" padding="lg" className="profile-overview-card">
-        <div className="profile-surface-head">
-          <div className="page-header-copy">
-            <p className="badge">{t("profile.company.title")}</p>
-            <h2 className="page-title page-title-sm">{nomEntreprise}</h2>
-            <p className="page-description">
-              {secteur} • {taille}
-            </p>
+    <section className="candidate-profile-medical">
+      <div className="candidate-profile-topbar">
+        <div>
+          <p className="candidate-profile-kicker">{t("profile.company.title")}</p>
+          <h2>{t("profile.company.companyTitle")}</h2>
+        </div>
+        {!lectureSeule ? (
+          <div className="candidate-profile-actions">
+            <button
+              type="button"
+              className="candidate-profile-button candidate-profile-button-secondary"
+              onClick={() => setModeEdition((courant) => !courant)}
+            >
+              {modeEdition ? t("profile.candidate.exitEdit") : t("common.actions.edit")}
+            </button>
+            <button
+              type="button"
+              className="candidate-profile-button candidate-profile-button-primary"
+              onClick={() => void sauvegarderProfil()}
+              disabled={chargement}
+            >
+              {chargement ? t("profile.candidate.saving") : t("common.actions.save")}
+            </button>
           </div>
-          {!lectureSeule ? (
-            <div className="profile-surface-actions">
-              <Button variant="secondary" onClick={() => setModeEdition((courant) => !courant)}>
-                {modeEdition ? t("profile.candidate.exitEdit") : t("common.actions.edit")}
-              </Button>
-            </div>
-          ) : null}
-        </div>
-
-        <div className="details-grid">
-          <OverviewFact label={t("profile.company.fields.email")} value={profil.email || utilisateur.email || valeurParDefaut} />
-          <OverviewFact label={t("profile.company.fields.phone")} value={profil.telephone || valeurParDefaut} />
-          <OverviewFact label={t("profile.company.fields.website")} value={profil.site_web || valeurParDefaut} />
-          <OverviewFact label={t("profile.company.fields.siret")} value={profil.siret || valeurParDefaut} />
-        </div>
-      </Card>
+        ) : null}
+      </div>
 
       {message ? <div className="message message-info">{message}</div> : null}
       {erreur ? <div className="message message-erreur">{erreur}</div> : null}
 
-      <Card className="profile-surface">
-        <div className="profile-surface-head">
-          <div>
+      <article className="candidate-profile-card candidate-profile-hero">
+        <div className="candidate-profile-hero-main">
+          <div className="candidate-profile-photo-shell">
+            <div className="candidate-profile-photo-fallback">{initials || "E"}</div>
+          </div>
+          <div className="candidate-profile-identity-copy">
+            <strong>{nomEntreprise}</strong>
+            <span>
+              <Mail size={14} /> {profil.email || utilisateur.email || valeurParDefaut}
+            </span>
+            <span>
+              <Phone size={14} /> {profil.telephone || valeurParDefaut}
+            </span>
+            <span>
+              <MapPin size={14} /> {profil.addresse || valeurParDefaut}
+            </span>
+          </div>
+        </div>
+        <div className="candidate-profile-hero-stats">
+          <div className="candidate-profile-mini-stat">
+            <div className="candidate-profile-ring" style={{ ["--completion" as string]: `${completionPercent}%` }} aria-label={`${completionPercent}%`}>
+              <span>{completionPercent}%</span>
+            </div>
+            <span>Profil complet</span>
+            <strong>{completionPercent}%</strong>
+          </div>
+          <div className="candidate-profile-mini-stat">
+            <Building2 size={18} />
+            <span>Secteur</span>
+            <strong>{secteur}</strong>
+          </div>
+          <div className="candidate-profile-mini-stat">
+            <Users size={18} />
+            <span>Taille</span>
+            <strong>{taille}</strong>
+          </div>
+          <div className="candidate-profile-mini-stat">
+            <Globe2 size={18} />
+            <span>Site web</span>
+            <strong>{profil.site_web || valeurParDefaut}</strong>
+          </div>
+        </div>
+      </article>
+
+      <div className="candidate-profile-grid">
+        <article className="candidate-profile-card candidate-profile-section candidate-profile-general">
+          <div className="candidate-profile-card-head">
             <strong>{t("profile.company.contactTitle")}</strong>
           </div>
-        </div>
+          <div className="candidate-profile-info-compact">
+            <EditableProfileField
+              label={t("profile.company.fields.contactName")}
+              value={profil.nom}
+              edit={editionAutorisee}
+              emptyValue={valeurParDefaut}
+              onChange={(value) => setProfil((courant) => ({ ...courant, nom: value }))}
+            />
+            <EditableProfileField
+              label={t("profile.company.fields.email")}
+              value={profil.email}
+              edit={editionAutorisee}
+              type="email"
+              emptyValue={valeurParDefaut}
+              onChange={(value) => setProfil((courant) => ({ ...courant, email: value }))}
+            />
+            <EditableProfileField
+              label={t("profile.company.fields.phone")}
+              value={profil.telephone}
+              edit={editionAutorisee}
+              emptyValue={valeurParDefaut}
+              onChange={(value) => setProfil((courant) => ({ ...courant, telephone: value }))}
+            />
+            <EditableProfileField
+              label={t("profile.company.fields.address")}
+              value={profil.addresse}
+              edit={editionAutorisee}
+              textarea
+              emptyValue={valeurParDefaut}
+              onChange={(value) => setProfil((courant) => ({ ...courant, addresse: value }))}
+            />
+          </div>
+        </article>
 
-        <div className="surface-grid surface-grid-2">
-          <EditableField
-            label={t("profile.company.fields.contactName")}
-            value={profil.nom}
-            edit={modeEdition}
-            emptyValue={valeurParDefaut}
-            onChange={(value) => setProfil((courant) => ({ ...courant, nom: value }))}
-          />
-          <EditableField
-            label={t("profile.company.fields.email")}
-            value={profil.email}
-            edit={modeEdition}
-            type="email"
-            emptyValue={valeurParDefaut}
-            onChange={(value) => setProfil((courant) => ({ ...courant, email: value }))}
-          />
-          <EditableField
-            label={t("profile.company.fields.phone")}
-            value={profil.telephone}
-            edit={modeEdition}
-            emptyValue={valeurParDefaut}
-            onChange={(value) => setProfil((courant) => ({ ...courant, telephone: value }))}
-          />
-          <EditableField
-            label={t("profile.company.fields.address")}
-            value={profil.addresse}
-            edit={modeEdition}
-            textarea
-            emptyValue={valeurParDefaut}
-            onChange={(value) => setProfil((courant) => ({ ...courant, addresse: value }))}
-          />
-        </div>
-      </Card>
-
-      <Card className="profile-surface">
-        <div className="profile-surface-head">
-          <div>
+        <article className="candidate-profile-card candidate-profile-section candidate-profile-accessibility">
+          <div className="candidate-profile-card-head">
             <strong>{t("profile.company.companyTitle")}</strong>
           </div>
-        </div>
+          <div className="candidate-profile-stack">
+            <div className="candidate-profile-support-chip">
+              <Building2 size={14} />
+              <span>{nomEntreprise}</span>
+            </div>
+            <div className="candidate-profile-support-chip">
+              <ShieldCheck size={14} />
+              <span>{profil.politique_handicap || valeurParDefaut}</span>
+            </div>
+            <div className="candidate-profile-accessibility-grid">
+              <EditableProfileField
+                label={t("profile.company.fields.companyName")}
+                value={profil.nom_entreprise}
+                edit={editionAutorisee}
+                emptyValue={valeurParDefaut}
+                onChange={(value) => setProfil((courant) => ({ ...courant, nom_entreprise: value }))}
+              />
+              <EditableProfileField
+                label={t("profile.company.fields.siret")}
+                value={profil.siret}
+                edit={editionAutorisee}
+                placeholder={t("profile.company.placeholders.siret")}
+                emptyValue={valeurParDefaut}
+                onChange={(value) => setProfil((courant) => ({ ...courant, siret: value }))}
+              />
+              <EditableProfileSelect
+                label={t("profile.company.fields.sector")}
+                value={profil.secteur_activite}
+                edit={editionAutorisee}
+                options={secteurs}
+                placeholder={t("profile.company.placeholders.selectSector")}
+                emptyValue={valeurParDefaut}
+                onChange={(value) => setProfil((courant) => ({ ...courant, secteur_activite: value }))}
+              />
+              <EditableProfileSelect
+                label={t("profile.company.fields.size")}
+                value={profil.taille_entreprise}
+                edit={editionAutorisee}
+                options={tailles}
+                placeholder={t("profile.company.placeholders.selectSize")}
+                emptyValue={valeurParDefaut}
+                onChange={(value) => setProfil((courant) => ({ ...courant, taille_entreprise: value }))}
+              />
+            </div>
+          </div>
+        </article>
 
-        <div className="surface-grid surface-grid-2">
-          <EditableField
-            label={t("profile.company.fields.companyName")}
-            value={profil.nom_entreprise}
-            edit={modeEdition}
-            emptyValue={valeurParDefaut}
-            onChange={(value) => setProfil((courant) => ({ ...courant, nom_entreprise: value }))}
-          />
-          <EditableField
-            label={t("profile.company.fields.siret")}
-            value={profil.siret}
-            edit={modeEdition}
-            placeholder={t("profile.company.placeholders.siret")}
-            emptyValue={valeurParDefaut}
-            onChange={(value) => setProfil((courant) => ({ ...courant, siret: value }))}
-          />
-          <EditableSelect
-            label={t("profile.company.fields.sector")}
-            value={profil.secteur_activite}
-            edit={modeEdition}
-            options={secteurs}
-            placeholder={t("profile.company.placeholders.selectSector")}
-            emptyValue={valeurParDefaut}
-            onChange={(value) => setProfil((courant) => ({ ...courant, secteur_activite: value }))}
-          />
-          <EditableSelect
-            label={t("profile.company.fields.size")}
-            value={profil.taille_entreprise}
-            edit={modeEdition}
-            options={tailles}
-            placeholder={t("profile.company.placeholders.selectSize")}
-            emptyValue={valeurParDefaut}
-            onChange={(value) => setProfil((courant) => ({ ...courant, taille_entreprise: value }))}
-          />
-          <EditableField
-            label={t("profile.company.fields.website")}
-            value={profil.site_web}
-            edit={modeEdition}
-            type="url"
-            placeholder={t("profile.company.placeholders.website")}
-            fullWidth
-            emptyValue={valeurParDefaut}
-            onChange={(value) => setProfil((courant) => ({ ...courant, site_web: value }))}
-            renderValue={
-              profil.site_web ? (
-                <a href={profil.site_web} target="_blank" rel="noreferrer">
-                  {profil.site_web}
-                </a>
-              ) : undefined
-            }
-          />
-          <EditableField
-            label={t("profile.company.fields.description")}
-            value={profil.description}
-            edit={modeEdition}
-            textarea
-            fullWidth
-            placeholder={t("profile.company.placeholders.description")}
-            emptyValue={valeurParDefaut}
-            onChange={(value) => setProfil((courant) => ({ ...courant, description: value }))}
-          />
-          <EditableField
-            label={t("profile.company.fields.inclusionPolicy")}
-            value={profil.politique_handicap}
-            edit={modeEdition}
-            textarea
-            fullWidth
-            placeholder={t("profile.company.placeholders.policy")}
-            emptyValue={valeurParDefaut}
-            onChange={(value) => setProfil((courant) => ({ ...courant, politique_handicap: value }))}
-          />
-        </div>
-      </Card>
+        <article className="candidate-profile-card candidate-profile-section candidate-profile-skills">
+          <div className="candidate-profile-card-head">
+            <strong>{t("profile.company.fields.description")}</strong>
+          </div>
+          <div className="candidate-profile-stack">
+            <EditableProfileField
+              label={t("profile.company.fields.website")}
+              value={profil.site_web}
+              edit={editionAutorisee}
+              type="url"
+              placeholder={t("profile.company.placeholders.website")}
+              emptyValue={valeurParDefaut}
+              onChange={(value) => setProfil((courant) => ({ ...courant, site_web: value }))}
+              renderValue={
+                profil.site_web ? (
+                  <a href={profil.site_web} target="_blank" rel="noreferrer">
+                    {profil.site_web}
+                  </a>
+                ) : undefined
+              }
+            />
+            <EditableProfileField
+              label={t("profile.company.fields.description")}
+              value={profil.description}
+              edit={editionAutorisee}
+              textarea
+              emptyValue={valeurParDefaut}
+              onChange={(value) => setProfil((courant) => ({ ...courant, description: value }))}
+            />
+            <EditableProfileField
+              label={t("profile.company.fields.inclusionPolicy")}
+              value={profil.politique_handicap}
+              edit={editionAutorisee}
+              textarea
+              emptyValue={valeurParDefaut}
+              onChange={(value) => setProfil((courant) => ({ ...courant, politique_handicap: value }))}
+            />
+          </div>
+        </article>
 
-      <Card className="profile-surface">
-        <div className="profile-surface-head">
-          <div>
+        <article className="candidate-profile-card candidate-profile-section candidate-profile-upload-block">
+          <div className="candidate-profile-card-head">
             <strong>{t("profile.company.hrTitle")}</strong>
           </div>
-        </div>
-
-        <div className="surface-grid surface-grid-3">
-          <EditableField
-            label={t("profile.company.fields.hrName")}
-            value={profil.contact_rh_nom}
-            edit={modeEdition}
-            emptyValue={valeurParDefaut}
-            onChange={(value) => setProfil((courant) => ({ ...courant, contact_rh_nom: value }))}
-          />
-          <EditableField
-            label={t("profile.company.fields.hrEmail")}
-            value={profil.contact_rh_email}
-            edit={modeEdition}
-            type="email"
-            emptyValue={valeurParDefaut}
-            onChange={(value) => setProfil((courant) => ({ ...courant, contact_rh_email: value }))}
-          />
-          <EditableField
-            label={t("profile.company.fields.hrPhone")}
-            value={profil.contact_rh_telephone}
-            edit={modeEdition}
-            emptyValue={valeurParDefaut}
-            onChange={(value) => setProfil((courant) => ({ ...courant, contact_rh_telephone: value }))}
-          />
-        </div>
-      </Card>
-
-      {modeEdition && !lectureSeule ? (
-        <Card className="profile-surface">
-          <div className="profile-surface-actions" style={{ justifyContent: "flex-end" }}>
-            <Button variant="ghost" onClick={() => setModeEdition(false)}>
-              {t("common.actions.cancel")}
-            </Button>
-            <Button onClick={sauvegarderProfil} disabled={chargement}>
-              {chargement ? t("profile.candidate.saving") : t("common.actions.save")}
-            </Button>
+          <div className="candidate-profile-documents">
+            <EditableDocumentRow
+              label={t("profile.company.fields.hrName")}
+              value={profil.contact_rh_nom}
+              edit={editionAutorisee}
+              emptyValue={valeurParDefaut}
+              onChange={(value) => setProfil((courant) => ({ ...courant, contact_rh_nom: value }))}
+            />
+            <EditableDocumentRow
+              label={t("profile.company.fields.hrEmail")}
+              value={profil.contact_rh_email}
+              edit={editionAutorisee}
+              type="email"
+              emptyValue={valeurParDefaut}
+              onChange={(value) => setProfil((courant) => ({ ...courant, contact_rh_email: value }))}
+            />
+            <EditableDocumentRow
+              label={t("profile.company.fields.hrPhone")}
+              value={profil.contact_rh_telephone}
+              edit={editionAutorisee}
+              emptyValue={valeurParDefaut}
+              onChange={(value) => setProfil((courant) => ({ ...courant, contact_rh_telephone: value }))}
+            />
           </div>
-        </Card>
-      ) : null}
-    </div>
+        </article>
+      </div>
+    </section>
   );
 }
 
-function OverviewFact({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="detail-box">
-      <strong>{label}</strong>
-      <span>{value}</span>
-    </div>
-  );
-}
-
-function EditableField({
+function EditableProfileField({
   label,
   value,
   onChange,
@@ -426,8 +476,8 @@ function EditableField({
   renderValue?: ReactNode;
 }) {
   return (
-    <div className={`groupe-champ ${fullWidth ? "profile-field-span-full" : ""}`.trim()}>
-      <label>{label}</label>
+    <div className={`candidate-profile-field ${fullWidth ? "profile-field-span-full" : ""}`.trim()}>
+      <span className="candidate-profile-label">{label}</span>
       {edit ? (
         textarea ? (
           <textarea
@@ -435,7 +485,7 @@ function EditableField({
             onChange={(event) => onChange(event.target.value)}
             rows={4}
             placeholder={placeholder}
-            className="champ-zone"
+            className="candidate-profile-input candidate-profile-input-area"
           />
         ) : (
           <input
@@ -443,17 +493,17 @@ function EditableField({
             value={value}
             onChange={(event) => onChange(event.target.value)}
             placeholder={placeholder}
-            className="champ"
+            className="candidate-profile-input"
           />
         )
       ) : (
-        <div className="profile-field-value">{(renderValue ?? value) || emptyValue}</div>
+        <p>{(renderValue ?? value) || emptyValue}</p>
       )}
     </div>
   );
 }
 
-function EditableSelect({
+function EditableProfileSelect({
   label,
   value,
   onChange,
@@ -473,10 +523,10 @@ function EditableSelect({
   emptyValue: string;
 }) {
   return (
-    <div className={`groupe-champ ${fullWidth ? "profile-field-span-full" : ""}`.trim()}>
-      <label>{label}</label>
+    <div className={`candidate-profile-field ${fullWidth ? "profile-field-span-full" : ""}`.trim()}>
+      <span className="candidate-profile-label">{label}</span>
       {edit ? (
-        <select value={value} onChange={(event) => onChange(event.target.value)} className="champ-select">
+        <select value={value} onChange={(event) => onChange(event.target.value)} className="candidate-profile-input">
           <option value="">{placeholder}</option>
           {options.map((option) => (
             <option key={option.value} value={option.value}>
@@ -485,8 +535,37 @@ function EditableSelect({
           ))}
         </select>
       ) : (
-        <div className="profile-field-value">{resolveOptionLabel(value, options) || emptyValue}</div>
+        <p>{resolveOptionLabel(value, options) || emptyValue}</p>
       )}
+    </div>
+  );
+}
+
+function EditableDocumentRow({
+  label,
+  value,
+  onChange,
+  edit,
+  emptyValue,
+  type = "text",
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  edit: boolean;
+  emptyValue: string;
+  type?: string;
+}) {
+  return (
+    <div className="candidate-profile-doc-row">
+      <div>
+        <strong>{label}</strong>
+        {edit ? (
+          <input type={type} value={value} onChange={(event) => onChange(event.target.value)} className="candidate-profile-input" />
+        ) : (
+          <p>{value || emptyValue}</p>
+        )}
+      </div>
     </div>
   );
 }

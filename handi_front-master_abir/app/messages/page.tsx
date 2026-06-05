@@ -749,11 +749,6 @@ function MessagesPage() {
     <div className="msg-v4">
       <section className="msg-shell">
         <header className="msg-header">
-          <div className="msg-header-copy">
-            <Heading as="h1" variant="page">{t("messages.badge")}</Heading>
-            <p>{t("messages.headerSubtitle")}</p>
-          </div>
-
           <label className="msg-top-search ht-search-control">
             <span aria-hidden="true">
               <SearchIcon />
@@ -767,10 +762,6 @@ function MessagesPage() {
           </label>
 
           <div className="msg-header-actions">
-            <span className="msg-live-pill">
-              <i aria-hidden="true" />
-              {t("messages.activeNow")}
-            </span>
             <div className="msg-user-chip" aria-label={utilisateur?.nom || t("messages.messagingSpace")}>
               <span>{utilisateur?.nom?.slice(0, 2).toUpperCase() || "U"}</span>
             </div>
@@ -1168,7 +1159,7 @@ function MessagesPage() {
           block-size: 100%;
           min-block-size: 0;
           overflow: hidden;
-          font-family: Inter, sans-serif;
+          font-family: var(--app-body);
         }
 
         .msg-shell {
@@ -1273,29 +1264,6 @@ function MessagesPage() {
           display: inline-flex;
           align-items: center;
           gap: 10px;
-        }
-
-        .msg-live-pill {
-          min-height: 34px;
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          padding: 0 12px;
-          border-radius: 999px;
-          background: #f0fbf5;
-          color: #087d49;
-          border: 1px solid rgba(25, 181, 107, 0.16);
-          font-size: 0.78rem;
-          font-weight: 700;
-          white-space: nowrap;
-        }
-
-        .msg-live-pill i {
-          inline-size: 8px;
-          block-size: 8px;
-          border-radius: 999px;
-          background: var(--online);
-          box-shadow: 0 0 0 4px rgba(25, 181, 107, 0.13);
         }
 
         .msg-icon-btn {
@@ -2119,8 +2087,7 @@ function MessagesPage() {
             font-size: 28px;
           }
 
-          .msg-header-copy p,
-          .msg-live-pill {
+          .msg-header-copy p {
             display: none;
           }
 

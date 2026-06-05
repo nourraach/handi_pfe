@@ -102,16 +102,9 @@ export function EnterpriseReportsRequestsHub() {
 
   return (
     <main className="reports-requests-page">
-      <section className="rr-header">
-        <div>
-          <p className="rr-eyebrow">Rapports et demandes</p>
-          <h1>Générez vos documents de conformité et gérez vos brouillons</h1>
-        </div>
-        <div className="rr-hero-art" aria-hidden="true" />
-      </section>
-
       {error ? <div className="message message-erreur">{error}</div> : null}
 
+      {false ? (
       <section className="rr-stepper">
         <article className="rr-step">
           <span className="rr-step-icon">📄</span>
@@ -145,6 +138,8 @@ export function EnterpriseReportsRequestsHub() {
           </div>
         </article>
       </section>
+
+      ) : null}
 
       <section className="rr-actions-grid">
         <article className="rr-action-card rr-action-primary">
@@ -637,4 +632,3 @@ export function EnterpriseReportsRequestsHub() {
     </main>
   );
 }
-

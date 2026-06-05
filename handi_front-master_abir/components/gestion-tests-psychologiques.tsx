@@ -67,33 +67,6 @@ export function GestionTestsPsychologiques() {
     void chargerTests();
   }, [chargerTests]);
 
-  const supprimerTest = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this test?")) {
-      return;
-    }
-
-    try {
-      const token = localStorage.getItem("token_auth");
-      const response = await fetch(construireUrlApi(`/api/tests-psychologiques/admin/tests/${id}`), {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (response.ok) {
-        setMessage("Test deleted successfully.");
-        await chargerTests();
-      } else {
-        const resultat = await response.json();
-        setErreur(resultat.message || "Unable to delete the test.");
-      }
-    } catch {
-      setErreur("Connection error.");
-    }
-  };
-
   const changerStatut = async (id: string, nouveauStatut: string) => {
     try {
       const token = localStorage.getItem("token_auth");
@@ -279,12 +252,6 @@ export function GestionTestsPsychologiques() {
                       Activate
                     </button>
                   )}
-                  <button 
-                    onClick={() => void supprimerTest(test.id_test)} 
-                    className="action-btn delete-btn"
-                  >
-                    Delete
-                  </button>
                 </div>
               </div>
             ))}
@@ -334,8 +301,6 @@ export function GestionTestsPsychologiques() {
           display: flex;
           flex-direction: column;
           gap: 1.5rem;
-          max-height: calc(100vh - 200px);
-          overflow: hidden;
         }
 
         .message {
@@ -383,8 +348,6 @@ export function GestionTestsPsychologiques() {
           box-shadow: 0 24px 58px rgba(0,0,0,0.34), inset 0 1px 0 rgba(255,255,255,0.03);
           display: flex;
           flex-direction: column;
-          min-height: 0;
-          flex: 1;
         }
 
         .tests-header {
@@ -565,8 +528,6 @@ export function GestionTestsPsychologiques() {
           display: grid;
           grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
           gap: 1rem;
-          overflow-y: auto;
-          padding-right: 0.5rem;
         }
 
         .test-card {

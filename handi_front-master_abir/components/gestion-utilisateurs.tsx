@@ -846,7 +846,7 @@ function ModalUtilisateur({ utilisateur, modeCreation, onSave, onCancel }: Modal
             </button>
             <button
               type="submit"
-              className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-[#3d0456] bg-[#3f005b] px-6 text-[16px] font-semibold text-white shadow-[0_12px_24px_rgba(63,0,91,0.22)] transition hover:bg-[#320049]"
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-[#5b2d91] bg-[#5b2d91] px-6 text-[16px] font-semibold text-white shadow-[0_12px_24px_rgba(91,45,145,0.22)] transition hover:bg-[#4f2780]"
             >
               <UserPlus className="h-4 w-4" />
               {modeCreation ? "Creer l'utilisateur" : "Enregistrer les modifications"}

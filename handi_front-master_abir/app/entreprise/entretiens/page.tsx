@@ -1,12 +1,12 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Button, ButtonLink } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { LoadingState } from "@/components/ui/layout";
 import { authenticatedFetch } from "@/lib/auth-utils";
 import { construireUrlApi } from "@/lib/config";
-import { CalendarDays, CheckCircle2, Clock, ExternalLink, MapPin, Phone, RotateCw, UserPlus, Video, XCircle } from "lucide-react";
+import { CalendarDays, CheckCircle2, Clock, ExternalLink, MapPin, Phone, RotateCw, Video, XCircle } from "lucide-react";
 import {
   construireLienGoogleCalendar,
   extraireDureeMinutes,
@@ -272,37 +272,29 @@ export default function EntretiensEntreprisePage() {
 
   const prochainEntretien = useMemo(() => prochainesEntretiens[0] || entretiensFiltres[0] || null, [entretiensFiltres, prochainesEntretiens]);
 
+  const entretiensJourSelectionne = useMemo(
+    () => entretiensParJour.get(selectedDay) || [],
+    [entretiensParJour, selectedDay],
+  );
+
   useEffect(() => {
-    if (entretiensFiltres.length === 0) {
+    if (entretiensJourSelectionne.length === 0) {
       setEntretienSelectionneId(null);
       return;
     }
 
     const existing = entretienSelectionneId
-      ? entretiensFiltres.find((item) => item.entretien.id === entretienSelectionneId)
+      ? entretiensJourSelectionne.find((item) => item.entretien.id === entretienSelectionneId)
       : null;
 
-    if (existing) {
-      return;
+    if (!existing) {
+      setEntretienSelectionneId(entretiensJourSelectionne[0].entretien.id);
     }
-
-    const first = prochainEntretien || entretiensFiltres[0];
-    setEntretienSelectionneId(first.entretien.id);
-    const firstDate = new Date(first.entretien.date_heure);
-    if (!Number.isNaN(firstDate.getTime())) {
-      setSelectedDay(dayKey(firstDate));
-      setCalendarMonth(new Date(firstDate.getFullYear(), firstDate.getMonth(), 1));
-    }
-  }, [entretiensFiltres, entretienSelectionneId, prochainEntretien]);
+  }, [entretiensJourSelectionne, entretienSelectionneId]);
 
   const entretienSelectionne = useMemo(
-    () => entretiensFiltres.find((item) => item.entretien.id === entretienSelectionneId) || null,
-    [entretiensFiltres, entretienSelectionneId],
-  );
-
-  const entretiensJourSelectionne = useMemo(
-    () => entretiensParJour.get(selectedDay) || [],
-    [entretiensParJour, selectedDay],
+    () => entretiensJourSelectionne.find((item) => item.entretien.id === entretienSelectionneId) || null,
+    [entretiensJourSelectionne, entretienSelectionneId],
   );
 
   const selectedDayDate = useMemo(() => {
@@ -457,7 +449,7 @@ export default function EntretiensEntreprisePage() {
         throw new Error(data.message || "Impossible de terminer cette action.");
       }
 
-      setInfo(data.message || "Action terminée avec succès.");
+      setInfo(data.message || "Action terminÃ©e avec succÃ¨s.");
       fermerEdition();
       await Promise.all([charger(), chargerCandidateuresPlanifiables()]);
     } catch (error: unknown) {
@@ -467,40 +459,114 @@ export default function EntretiensEntreprisePage() {
     }
   };
 
-  const renderInterviewCard = (item: EntretienEntreprise, variant: "agenda" | "timeline" = "agenda") => {
+
+  const renderSelectedDayInterviewCard = (item: EntretienEntreprise) => {
     const date = formaterDateEntretien(item.entretien.date_heure);
     const statut = getEntretienStatutConfig(item.entretien.statut);
     const selected = entretienSelectionneId === item.entretien.id;
     const duration = item.entretien.duree_prevue || "60 min";
+    const actionEnCours = entretienEnAction === item.entretien.id;
     const TypeIcon =
       item.entretien.type === "visio" ? Video : item.entretien.type === "presentiel" ? MapPin : Phone;
+    const googleCalendarLink = construireLienGoogleCalendar({
+      titre: `Interview - ${item.candidat?.nom || "Candidate"}`,
+      dateHeure: item.entretien.date_heure,
+      dureeMinutes: extraireDureeMinutes(item.entretien.duree_prevue || undefined),
+      details: `${item.offre?.titre || "Role"} - ${item.candidat?.email || ""}`,
+      location:
+        item.entretien.type === "visio"
+          ? item.entretien.lieu_visio || ""
+          : item.entretien.type === "presentiel"
+            ? item.entretien.lieu || ""
+            : item.entretien.contact_entreprise || item.candidat?.telephone || "",
+    });
 
     return (
-      <button
-        key={item.entretien.id}
-        type="button"
-        className={`interview-card interview-card-${variant} ${selected ? "interview-card-active" : ""}`}
-        onClick={() => {
-          setEntretienSelectionneId(item.entretien.id);
-          if (date.raw) {
-            setSelectedDay(dayKey(date.raw));
-          }
-        }}
-      >
-        <span className="avatar">{initials(item.candidat?.nom)}</span>
-        <span className="interview-card-main">
-          <strong>{item.candidat?.nom || "Candidat"}</strong>
-          <small>{item.offre?.titre || "Poste"}</small>
-          <em>
-            <Clock size={13} />
-            {date.time} · {duration}
-          </em>
-        </span>
-        <span className="interview-card-meta" data-time={`${date.time} · ${duration}`}>
-          <span className={`status-pill ${statusClass(item.entretien.statut)}`}>{statut.label}</span>
-          <small><TypeIcon size={13} /> {getEntretienTypeLabel(item.entretien.type)}</small>
-        </span>
-      </button>
+      <article className={`selected-event-card ${selected ? "selected-event-card-active" : ""}`} key={item.entretien.id}>
+        <div
+          role="button"
+          tabIndex={0}
+          className="selected-event-main"
+          onClick={() => {
+            setEntretienSelectionneId(item.entretien.id);
+            if (date.raw) {
+              setSelectedDay(dayKey(date.raw));
+            }
+          }}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              setEntretienSelectionneId(item.entretien.id);
+              if (date.raw) {
+                setSelectedDay(dayKey(date.raw));
+              }
+            }
+          }}
+        >
+          <div className="selected-event-candidate">
+            <span className="selected-event-avatar">{initials(item.candidat?.nom)}</span>
+            <div className="selected-event-copy">
+              <div className="selected-event-titleline">
+                <div>
+                  <strong>{item.candidat?.nom || "Candidat"}</strong>
+                  <small>{item.offre?.titre || "Poste"}</small>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="selected-event-meta">
+            <div className="selected-event-meta-item selected-event-meta-box">
+              <Clock size={14} />
+              <span>{date.time}</span>
+            </div>
+            <div className="selected-event-meta-item selected-event-meta-box">
+              <span>{duration}</span>
+            </div>
+            <div className="selected-event-meta-item selected-event-meta-box">
+              <TypeIcon size={14} />
+              <span>{getEntretienTypeLabel(item.entretien.type)}</span>
+            </div>
+            <div className="selected-event-meta-status selected-event-meta-box">
+              <span className={`status-pill ${statusClass(item.entretien.statut)}`}>{statut.label}</span>
+            </div>
+          </div>
+        </div>
+
+        {item.entretien.notes || googleCalendarLink ? (
+          <div className="selected-event-notes">
+            <div className="selected-event-notes-copy">
+              {item.entretien.notes ? <p>{item.entretien.notes}</p> : <p>No notes added for this interview yet.</p>}
+            </div>
+            {googleCalendarLink ? (
+              <a className="selected-event-calendar" href={googleCalendarLink} target="_blank" rel="noopener noreferrer">
+                <ExternalLink size={14} /> Ajouter au calendrier
+              </a>
+            ) : null}
+          </div>
+        ) : null}
+
+        <div className="selected-event-actions">
+          <Button variant="secondary" onClick={() => ouvrirEdition(item)} disabled={actionEnCours}>
+            <RotateCw size={15} /> Replanifier
+          </Button>
+          <Button variant="secondary" onClick={() => lancerAction(item.entretien.id, "terminer")} disabled={actionEnCours}>
+            <CheckCircle2 size={15} /> Marquer comme termine
+          </Button>
+          <Button
+            variant="secondary"
+            className="cancel-soft"
+            onClick={() => {
+              if (confirm("Confirmer l'annulation de cet entretien ?")) {
+                void lancerAction(item.entretien.id, "annuler");
+              }
+            }}
+            disabled={actionEnCours}
+          >
+            <XCircle size={15} /> Annuler l&apos;entretien
+          </Button>
+        </div>
+      </article>
     );
   };
 
@@ -537,21 +603,6 @@ export default function EntretiensEntreprisePage() {
 
   return (
     <div className="app-page interviews-dashboard" aria-live="polite">
-      <div className="interviews-header">
-        <div>
-          <p className="section-eyebrow">ENTRETIENS</p>
-          <h1>Entretiens a venir avec les candidats</h1>
-        </div>
-        <div className="interviews-header-actions">
-          <Button onClick={ouvrirPlanification} disabled={candidaturesPlanifiables.length === 0}>
-            <UserPlus size={16} /> Planifier un entretien
-          </Button>
-          <ButtonLink href="/entreprise/candidatures" variant="secondary">
-            Voir les candidatures
-          </ButtonLink>
-        </div>
-      </div>
-
       {erreur ? <div className="message message-erreur" role="alert">{erreur}</div> : null}
       {info ? <div className="message message-info" role="status">{info}</div> : null}
 
@@ -561,13 +612,13 @@ export default function EntretiensEntreprisePage() {
             <div>
               <strong className="form-section-title">Inviter un candidat a un entretien</strong>
               <p className="texte-secondaire form-section-subtitle">
-                Selectionnez une candidature, renseignez les details et publiez l'entretien dans les deux espaces.
+                Selectionnez une candidature, renseignez les details et publiez l&apos;entretien dans les deux espaces.
               </p>
             </div>
 
             {candidaturesPlanifiables.length === 0 ? (
               <div className="message message-neutre">
-                Aucune candidature n'est prete pour un entretien. Faites d'abord avancer les candidatures en preselection.
+                Aucune candidature n&apos;est prete pour un entretien. Faites d&apos;abord avancer les candidatures en preselection.
               </div>
             ) : (
               <>
@@ -688,7 +739,7 @@ export default function EntretiensEntreprisePage() {
                 Planifier un entretien
               </Button>
               <Button variant="ghost" onClick={fermerPlanification} aria-label="Fermer">
-                ✕
+                âœ•
               </Button>
             </div>
           </div>
@@ -783,26 +834,26 @@ export default function EntretiensEntreprisePage() {
           <section className="interview-controls" aria-label="Filtres des entretiens">
             <div>
               <strong>{entretiensFiltres.length}</strong>
-              <span>entretien(s) affiché(s)</span>
+              <span>entretien(s) affichÃ©(s)</span>
             </div>
             <label>
               <span>Type</span>
               <select className="champ-select" value={filtreType} onChange={(event) => setFiltreType(event.target.value)}>
                 <option value="">Tous les entretiens</option>
                 <option value="visio">Visio</option>
-                <option value="presentiel">Présentiel</option>
-                <option value="telephonique">Téléphone</option>
+                <option value="presentiel">PrÃ©sentiel</option>
+                <option value="telephonique">TÃ©lÃ©phone</option>
               </select>
             </label>
             <label>
               <span>Statut</span>
               <select className="champ-select" value={filtreStatut} onChange={(event) => setFiltreStatut(event.target.value)}>
                 <option value="">Tous les statuts</option>
-                <option value="planifie">Planifié</option>
-                <option value="confirme">Confirmé</option>
-                <option value="reporte">Reprogrammé</option>
-                <option value="annule">Annulé</option>
-                <option value="termine">Terminé</option>
+                <option value="planifie">PlanifiÃ©</option>
+                <option value="confirme">ConfirmÃ©</option>
+                <option value="reporte">ReprogrammÃ©</option>
+                <option value="annule">AnnulÃ©</option>
+                <option value="termine">TerminÃ©</option>
               </select>
             </label>
           </section>
@@ -814,10 +865,10 @@ export default function EntretiensEntreprisePage() {
               <h3>{calendarMonth.toLocaleDateString("en-US", { month: "long", year: "numeric" })}</h3>
               <div className="calendar-nav">
                 <button type="button" onClick={() => setCalendarMonth((m) => new Date(m.getFullYear(), m.getMonth() - 1, 1))}>
-                  ‹
+                  â€¹
                 </button>
                 <button type="button" onClick={() => setCalendarMonth((m) => new Date(m.getFullYear(), m.getMonth() + 1, 1))}>
-                  ›
+                  â€º
                 </button>
               </div>
             </div>
@@ -912,6 +963,8 @@ export default function EntretiensEntreprisePage() {
                       const first = entretiensParJour.get(cell.key)?.[0];
                       if (first) {
                         setEntretienSelectionneId(first.entretien.id);
+                      } else {
+                        setEntretienSelectionneId(null);
                       }
                     }}
                     aria-label={`${cell.dayNumber} ${count} interview(s)`}
@@ -932,15 +985,15 @@ export default function EntretiensEntreprisePage() {
               <header>
                 <div>
                   <p className="panel-eyebrow">Selected day</p>
-                  <h3>{selectedDayDate.toLocaleDateString("en-US", { weekday: "long", day: "numeric", month: "long" })}</h3>
+                  <h3>{selectedDayDate.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</h3>
                 </div>
-                {entretiensJourSelectionne.length > 0 ? <span>{entretiensJourSelectionne.length} interview(s)</span> : null}
+                {entretiensJourSelectionne.length > 0 ? <span><CalendarDays size={13} /> {entretiensJourSelectionne.length} entretien{entretiensJourSelectionne.length > 1 ? "s" : ""}</span> : null}
               </header>
               {entretiensJourSelectionne.length === 0 ? (
                 <p className="selected-day-empty">No interviews scheduled for this day.</p>
               ) : (
                 <div className="selected-day-list">
-                  {entretiensJourSelectionne.map((item) => renderInterviewCard(item, "agenda"))}
+                  {entretiensJourSelectionne.map((item) => renderSelectedDayInterviewCard(item))}
                 </div>
               )}
             </section>
@@ -1142,7 +1195,7 @@ export default function EntretiensEntreprisePage() {
                               Save changes
                             </Button>
                             <Button variant="ghost" onClick={fermerEdition} disabled={actionEnCours} aria-label="Close">
-                              ✕
+                              âœ•
                             </Button>
                           </div>
                         </div>
@@ -1165,14 +1218,14 @@ export default function EntretiensEntreprisePage() {
         .interviews-dashboard {
           background: var(--color-bg, #fbfafc);
           border-radius: 24px;
-          padding: 16px;
+          padding: 14px;
         }
         .interviews-header {
           display: flex;
           justify-content: space-between;
-          gap: 16px;
+          gap: 14px;
           align-items: flex-start;
-          margin-bottom: 16px;
+          margin-bottom: 14px;
         }
         .section-eyebrow {
           margin: 0 0 6px;
@@ -1183,7 +1236,7 @@ export default function EntretiensEntreprisePage() {
         }
         .interviews-header h1 {
           margin: 0;
-          font-size: clamp(2rem, 3.4vw, 2.5rem);
+          font-size: clamp(1.7rem, 3vw, 2.15rem);
           line-height: 1.05;
           color: #14111a;
           font-weight: 800;
@@ -1200,8 +1253,8 @@ export default function EntretiensEntreprisePage() {
         }
         .main-grid {
           display: grid;
-          grid-template-columns: 320px minmax(0, 1fr) 320px;
-          gap: 12px;
+          grid-template-columns: 300px minmax(0, 1fr) 280px;
+          gap: 10px;
           align-items: start;
         }
         .calendar-panel,
@@ -1210,7 +1263,7 @@ export default function EntretiensEntreprisePage() {
           background: #fff;
           border: 1px solid #ece4f9;
           border-radius: 20px;
-          padding: 14px;
+          padding: 12px;
           box-shadow: 0 1px 3px rgba(20, 17, 26, 0.06), 0 1px 2px rgba(20, 17, 26, 0.04);
           transition: box-shadow 150ms ease, transform 150ms ease, border-color 150ms ease;
         }
@@ -1225,21 +1278,21 @@ export default function EntretiensEntreprisePage() {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          margin-bottom: 10px;
+          margin-bottom: 8px;
         }
         .calendar-header h3 {
           margin: 0;
           color: #2a1843;
-          font-size: 1.15rem;
+          font-size: 1rem;
         }
         .calendar-nav {
           display: flex;
-          gap: 6px;
+          gap: 5px;
         }
         .calendar-nav button {
-          width: 28px;
-          height: 28px;
-          border-radius: 10px;
+          width: 24px;
+          height: 24px;
+          border-radius: 8px;
           border: 1px solid #e7def5;
           background: #fff;
           color: #5f2ac8;
@@ -1272,13 +1325,13 @@ export default function EntretiensEntreprisePage() {
           border: 1px solid transparent;
           background: transparent;
           border-radius: 10px;
-          min-height: 40px;
+          min-height: 33px;
           cursor: pointer;
           display: grid;
           place-items: center;
           color: #2f1f4d;
-          padding: 4px 0;
-          font-size: 0.8rem;
+          padding: 3px 0;
+          font-size: 0.72rem;
           transition: background-color 150ms ease, border-color 150ms ease, transform 150ms ease, box-shadow 150ms ease;
         }
         .day-cell:hover {
@@ -1301,9 +1354,9 @@ export default function EntretiensEntreprisePage() {
           color: #fff;
         }
         .calendar-filters {
-          margin-top: 14px;
+          margin-top: 10px;
           display: grid;
-          gap: 8px;
+          gap: 6px;
         }
         .calendar-filters strong {
           color: #4a3d66;
@@ -1311,7 +1364,7 @@ export default function EntretiensEntreprisePage() {
         }
         .timeline-panel {
           display: grid;
-          gap: 12px;
+          gap: 10px;
         }
         .timeline-group header {
           display: flex;
@@ -1330,18 +1383,18 @@ export default function EntretiensEntreprisePage() {
         }
         .timeline-list {
           display: grid;
-          gap: 8px;
+          gap: 7px;
         }
         .timeline-item {
           width: 100%;
           border: 1px solid #ece4f9;
           background: #fcfbff;
-          border-radius: 14px;
-          padding: 10px;
+          border-radius: 13px;
+          padding: 8px;
           display: grid;
-          grid-template-columns: 72px 38px 1fr auto;
+          grid-template-columns: 64px 32px 1fr auto;
           align-items: center;
-          gap: 10px;
+          gap: 8px;
           text-align: left;
           cursor: pointer;
           transition: border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease, background-color 150ms ease;
@@ -1357,17 +1410,17 @@ export default function EntretiensEntreprisePage() {
         }
         .timeline-time strong {
           color: #2a1843;
-          font-size: 0.86rem;
+          font-size: 0.78rem;
         }
         .avatar {
-          width: 36px;
-          height: 36px;
+          width: 30px;
+          height: 30px;
           border-radius: 50%;
           background: linear-gradient(135deg, #35063e, #7f43aa);
           color: #fff;
           display: grid;
           place-items: center;
-          font-size: 0.72rem;
+          font-size: 0.65rem;
           font-weight: 800;
         }
         .timeline-copy {
@@ -1376,11 +1429,11 @@ export default function EntretiensEntreprisePage() {
         }
         .timeline-copy strong {
           color: #2a1843;
-          font-size: 0.88rem;
+          font-size: 0.8rem;
         }
         .timeline-copy small {
           color: #847e9b;
-          font-size: 0.75rem;
+          font-size: 0.7rem;
         }
         .timeline-empty {
           border: 1px dashed #dfd2f4;
@@ -1398,8 +1451,8 @@ export default function EntretiensEntreprisePage() {
         }
         .status-pill {
           border-radius: 999px;
-          padding: 5px 10px;
-          font-size: 0.72rem;
+          padding: 4px 8px;
+          font-size: 0.68rem;
           font-weight: 700;
           white-space: nowrap;
           animation: fadeIn 220ms ease;
@@ -1514,7 +1567,7 @@ export default function EntretiensEntreprisePage() {
         }
         .interviews-workspace-layout {
           display: grid;
-          gap: 12px;
+          gap: 10px;
         }
         .next-interview-hero {
           display: grid;
@@ -1629,7 +1682,7 @@ export default function EntretiensEntreprisePage() {
           font-size: 0.82rem;
         }
         .main-grid {
-          grid-template-columns: minmax(0, 1.25fr) minmax(330px, 0.75fr);
+          grid-template-columns: minmax(0, 1.28fr) minmax(285px, 0.72fr);
         }
         .calendar-panel {
           display: none;
@@ -1638,7 +1691,7 @@ export default function EntretiensEntreprisePage() {
         .details-panel {
           min-height: 0;
           border-radius: 18px;
-          padding: 13px;
+          padding: 11px;
         }
         .timeline-panel {
           display: grid;
@@ -1649,14 +1702,14 @@ export default function EntretiensEntreprisePage() {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          gap: 12px;
-          padding: 2px 2px 4px;
+          gap: 10px;
+          padding: 2px 2px 2px;
         }
         .panel-head h3,
         .details-head h3 {
           margin: 0;
           color: #2a1843;
-          font-size: 1rem;
+          font-size: 0.92rem;
         }
         .panel-eyebrow {
           margin: 0 0 3px;
@@ -1668,15 +1721,15 @@ export default function EntretiensEntreprisePage() {
         }
         .week-agenda {
           display: grid;
-          gap: 7px;
+          gap: 6px;
           margin-bottom: 4px;
         }
         .agenda-day {
           display: grid;
-          grid-template-columns: 82px minmax(0, 1fr);
-          gap: 8px;
+          grid-template-columns: 72px minmax(0, 1fr);
+          gap: 7px;
           align-items: start;
-          padding: 8px;
+          padding: 7px;
           border: 1px solid #f0e9fb;
           border-radius: 14px;
           background: #fff;
@@ -1721,8 +1774,8 @@ export default function EntretiensEntreprisePage() {
           display: grid;
           grid-template-columns: auto minmax(0, 1fr) auto;
           align-items: center;
-          gap: 10px;
-          padding: 10px;
+          gap: 8px;
+          padding: 8px;
           border: 1px solid #ece4f9;
           border-radius: 14px;
           background: linear-gradient(180deg, #fff, #fdfbff);
@@ -1744,7 +1797,7 @@ export default function EntretiensEntreprisePage() {
         .interview-card-main strong {
           overflow: hidden;
           color: #241735;
-          font-size: 0.9rem;
+          font-size: 0.82rem;
           text-overflow: ellipsis;
           white-space: nowrap;
         }
@@ -1752,7 +1805,7 @@ export default function EntretiensEntreprisePage() {
         .interview-card-main em,
         .interview-card-meta small {
           color: #746d86;
-          font-size: 0.74rem;
+          font-size: 0.69rem;
           font-style: normal;
         }
         .interview-card-meta {
@@ -1761,15 +1814,15 @@ export default function EntretiensEntreprisePage() {
           gap: 5px;
         }
         .candidate-profile-card {
-          padding: 12px;
+          padding: 10px;
           border: 1px solid rgba(95, 42, 200, 0.1);
           border-radius: 16px;
           background: linear-gradient(135deg, rgba(95, 42, 200, 0.07), rgba(255, 255, 255, 0.96));
         }
         .avatar.large {
-          width: 48px;
-          height: 48px;
-          font-size: 0.86rem;
+          width: 40px;
+          height: 40px;
+          font-size: 0.76rem;
         }
         .candidate-contact {
           grid-column: 1 / -1;
@@ -1780,7 +1833,7 @@ export default function EntretiensEntreprisePage() {
         }
         .details-list {
           grid-template-columns: 1fr;
-          padding: 12px;
+          padding: 10px;
           border: 1px solid #ece4f9;
           border-radius: 15px;
           background: #fff;
@@ -1803,9 +1856,9 @@ export default function EntretiensEntreprisePage() {
         }
         .candidate-interview-card {
           display: grid;
-          gap: 10px;
+          gap: 8px;
           margin-bottom: 10px;
-          padding: 12px;
+          padding: 10px;
           border: 1px solid #ece4f9;
           border-radius: 16px;
           background: #fff;
@@ -1822,18 +1875,18 @@ export default function EntretiensEntreprisePage() {
         .interview-brief-chips {
           display: flex;
           flex-wrap: wrap;
-          gap: 7px;
+          gap: 6px;
         }
         .interview-brief-chips span {
           display: inline-flex;
           align-items: center;
           gap: 6px;
-          min-height: 28px;
-          padding: 5px 9px;
+          min-height: 24px;
+          padding: 4px 8px;
           border-radius: 999px;
           background: rgba(95, 42, 200, 0.07);
           color: #4f4266;
-          font-size: 0.76rem;
+          font-size: 0.7rem;
           font-weight: 750;
         }
         .candidate-interview-card blockquote {
@@ -1857,6 +1910,7 @@ export default function EntretiensEntreprisePage() {
           align-items: center;
           justify-content: center;
           gap: 7px;
+          min-height: 40px;
         }
         .cancel-soft {
           color: #9f4a57 !important;
@@ -1880,28 +1934,28 @@ export default function EntretiensEntreprisePage() {
           box-shadow: 0 10px 24px rgba(31, 18, 49, 0.05);
         }
         .timeline-panel {
-          padding: 12px;
+          padding: 10px;
         }
         .details-panel {
-          padding: 14px;
+          padding: 12px;
         }
         .compact-calendar-header {
           display: grid;
-          grid-template-columns: 36px minmax(0, 1fr) 36px;
+          grid-template-columns: 30px minmax(0, 1fr) 30px;
           align-items: center;
           gap: 8px;
-          margin-bottom: 10px;
+          margin-bottom: 8px;
         }
         .compact-calendar-header h3 {
           margin: 0;
           text-align: center;
           color: #201135;
-          font-size: 1rem;
+          font-size: 0.92rem;
           font-weight: 850;
         }
         .compact-calendar-header button {
-          width: 36px;
-          height: 34px;
+          width: 30px;
+          height: 30px;
           border: 1px solid #e5daf7;
           border-radius: 10px;
           background: #fff;
@@ -1925,12 +1979,12 @@ export default function EntretiensEntreprisePage() {
           text-align: center;
         }
         .compact-day {
-          min-height: 54px;
+          min-height: 45px;
           display: grid;
           align-content: center;
           justify-items: center;
-          gap: 4px;
-          padding: 6px 3px;
+          gap: 3px;
+          padding: 5px 2px;
           border: 1px solid #f0e9fb;
           border-radius: 10px;
           background: #fff;
@@ -1942,7 +1996,7 @@ export default function EntretiensEntreprisePage() {
           background: rgba(var(--app-primary-rgb), 0.04);
         }
         .compact-day span {
-          font-size: 0.78rem;
+          font-size: 0.72rem;
           font-weight: 850;
         }
         .compact-day-muted {
@@ -1985,8 +2039,8 @@ export default function EntretiensEntreprisePage() {
           font-style: normal;
         }
         .selected-day-panel {
-          margin-top: 12px;
-          padding-top: 12px;
+          margin-top: 10px;
+          padding-top: 10px;
           border-top: 1px solid #f0e9fb;
         }
         .selected-day-panel > header {
@@ -2002,6 +2056,9 @@ export default function EntretiensEntreprisePage() {
           font-size: 0.98rem;
         }
         .selected-day-panel header > span {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
           padding: 5px 9px;
           border-radius: 999px;
           background: #ede9fe;
@@ -2012,73 +2069,169 @@ export default function EntretiensEntreprisePage() {
         }
         .selected-day-list {
           display: grid;
-          gap: 7px;
-        }
-        .selected-day-list .interview-card {
-          min-height: 82px;
-          display: grid;
-          grid-template-columns: 38px minmax(0, 1fr) auto;
-          grid-template-areas: "avatar main meta";
-          align-items: center;
           gap: 10px;
-          padding: 10px 12px;
-          text-align: left;
-          border-radius: 14px;
         }
-        .selected-day-list .interview-card .avatar {
-          grid-area: avatar;
-          width: 36px;
-          height: 36px;
-          align-self: start;
-          margin-top: 2px;
-        }
-        .selected-day-list .interview-card-main {
-          grid-area: main;
-          min-width: 0;
+        .selected-event-card {
           display: grid;
-          gap: 3px;
+          gap: 12px;
+          padding: 14px;
+          border: 1px solid #ece4f9;
+          border-radius: 18px;
+          background: linear-gradient(180deg, #ffffff, #fcfbff);
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
         }
-        .selected-day-list .interview-card-main strong {
+        .selected-event-card-active {
+          border-color: #cdb8f0;
+          box-shadow: 0 0 0 1px rgba(95, 42, 200, 0.12), 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+        .selected-event-main {
+          display: grid;
+          gap: 12px;
+          width: 100%;
+          padding: 0;
+          border: 0;
+          background: transparent;
+          text-align: left;
+          cursor: pointer;
+        }
+        .selected-event-candidate {
+          display: grid;
+          grid-template-columns: 48px minmax(0, 1fr);
+          align-items: center;
+          gap: 14px;
+        }
+        .selected-event-avatar {
+          width: 48px;
+          height: 48px;
+          border-radius: 16px;
+          background: linear-gradient(135deg, #35063e, #7f43aa);
+          color: #fff;
+          display: grid;
+          place-items: center;
+          font-size: 0.92rem;
+          font-weight: 800;
+        }
+        .selected-event-copy {
+          display: grid;
+          gap: 8px;
+          min-width: 0;
+        }
+        .selected-event-titleline {
           display: block;
+        }
+        .selected-event-titleline > div {
+          min-width: 0;
+        }
+        .selected-event-titleline strong {
+          display: block;
+          color: #201135;
+          font-size: 0.98rem;
+          line-height: 1.2;
+          white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
+        }
+        .selected-event-titleline small {
+          display: block;
+          margin-top: 4px;
+          color: #6f6484;
+          font-size: 0.78rem;
+          line-height: 1.4;
+        }
+        .selected-event-meta {
+          display: flex;
+          align-items: stretch;
+          gap: 10px;
+          flex-wrap: nowrap;
+          overflow-x: auto;
+          overscroll-behavior-x: contain;
+          scrollbar-width: none;
+        }
+        .selected-event-meta::-webkit-scrollbar {
+          display: none;
+        }
+        .selected-event-meta-item,
+        .selected-event-meta-status {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+          min-height: 42px;
+          padding: 0 14px;
+          flex: 1 0 132px;
+          color: #4f4266;
+          font-size: 0.78rem;
+          font-weight: 700;
           white-space: nowrap;
         }
-        .selected-day-list .interview-card-main strong {
-          color: #201135;
-          font-size: 0.88rem;
-          line-height: 1.2;
+        .selected-event-meta-box {
+          border-radius: 12px;
+          border: 1px solid #e8def8;
+          background: #fff;
+          box-shadow: 0 1px 2px rgba(31, 23, 53, 0.03);
         }
-        .selected-day-list .interview-card-main small {
-          color: #6f6484;
-          font-size: 0.72rem;
-        }
-        .selected-day-list .interview-card-main em {
-          margin-top: 3px;
-          color: #2b2138;
-          font-size: 0.76rem;
-          font-weight: 850;
-        }
-        .selected-day-list .interview-card-meta {
-          grid-area: meta;
-          display: grid;
-          align-items: center;
-          justify-items: end;
-          gap: 7px;
-          min-width: 0;
-          align-self: center;
-        }
-        .selected-day-list .interview-card-meta .status-pill {
-          padding: 5px 9px;
-          font-size: 0.68rem;
-        }
-        .selected-day-list .interview-card-meta small {
+        .selected-event-meta-item span,
+        .selected-event-meta-status span {
           display: inline-flex;
           align-items: center;
-          gap: 4px;
-          color: #5b5168;
-          font-size: 0.72rem;
           white-space: nowrap;
+        }
+        .selected-event-meta-status {
+          justify-content: flex-end;
+        }
+        .selected-event-meta-status .status-pill {
+          min-height: 34px;
+          padding: 0 14px;
+          font-size: 0.72rem;
+        }
+        .selected-event-notes {
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) auto;
+          align-items: center;
+          gap: 12px;
+          padding-top: 2px;
+          border-top: 1px solid #f2ecfb;
+          padding-top: 12px;
+        }
+        .selected-event-notes-copy {
+          min-width: 0;
+          flex: 1 1 auto;
+        }
+        .selected-event-notes-copy p {
+          margin: 0;
+          color: #5d536f;
+          font-size: 0.8rem;
+          line-height: 1.5;
+        }
+        .selected-event-calendar {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+          min-height: 38px;
+          padding: 0 14px;
+          border-radius: 12px;
+          border: 1px solid rgba(95, 42, 200, 0.22);
+          color: #5b21b6;
+          background: #fff;
+          font-size: 0.78rem;
+          font-weight: 800;
+          text-decoration: none;
+          white-space: nowrap;
+        }
+        .selected-event-actions {
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 8px;
+          border-top: 1px solid #f2ecfb;
+          padding-top: 12px;
+        }
+        .selected-event-actions :global(.ui-button) {
+          min-height: 38px;
+          padding-inline: 10px;
+          border-radius: 12px;
+          font-size: 0.78rem;
+          width: 100%;
         }
         .selected-day-empty {
           margin: 0;
@@ -2179,6 +2332,28 @@ export default function EntretiensEntreprisePage() {
           }
           .details-extra-actions {
             grid-template-columns: 1fr;
+          }
+          .selected-event-titleline,
+          .selected-event-notes,
+          .selected-event-actions {
+            grid-template-columns: 1fr;
+            display: grid;
+          }
+          .selected-event-titleline {
+            justify-content: start;
+          }
+          .selected-event-meta-item,
+          .selected-event-meta-status {
+            justify-content: center;
+          }
+        }
+        @media (max-width: 560px) {
+          .selected-event-meta-item,
+          .selected-event-meta-status {
+            justify-content: flex-start;
+          }
+          .selected-event-calendar {
+            width: 100%;
           }
           .calendar-nav button,
           .day-cell,

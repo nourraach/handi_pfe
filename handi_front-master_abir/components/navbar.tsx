@@ -9,7 +9,7 @@ import { triggerAccessibilityPanel } from "@/components/accessibility-widget";
 import { useI18n } from "@/components/i18n-provider";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { ButtonLink } from "@/components/ui/button";
-import { authenticatedFetch } from "@/lib/auth-utils";
+import { authenticatedFetch, clearAuth } from "@/lib/auth-utils";
 import { construireUrlApi } from "@/lib/config";
 import {
   countUnreadIncomingMessages,
@@ -319,20 +319,19 @@ export function Navbar({
           id: "entreprise-applications",
           label: t("navbar.applications"),
           items: [
-            { href: "/entreprise/candidatures", label: "All applicants" },
+            { href: "/entreprise/candidatures", label: "Tous les candidats" },
             { href: "/entreprise/candidatures?status=shortlisted", label: "Preselection" },
             { href: "/entreprise/entretiens", label: "Planifier les entretiens" },
-            { href: "/entreprise/candidatures?status=interview_scheduled", label: "Interviews planifies" },
-            { href: "/entreprise/candidatures?status=accepted", label: "Hired" },
+            { href: "/entreprise/candidatures?status=interview_scheduled", label: "Entretiens planifies" },
+            { href: "/entreprise/candidatures?status=accepted", label: "Recrutements finalises" },
             { href: "/entreprise/offres", label: t("navbar.manageRoles") },
           ],
         },
         {
           id: "entreprise-job-listings",
-          label: "Job listings",
+          label: "Offres d'emploi",
           items: [
-            { href: "/entreprise/offres", label: "All roles" },
-            { href: "/entreprise/shortlist", label: "IA shortlisting" },
+            { href: "/entreprise/offres", label: "Tous les postes" },
           ],
         },
         {
@@ -415,7 +414,6 @@ export function Navbar({
       { id: "ent-offers", label: "Offres d'emploi", subtitle: "Gestion des postes", icon: "cv", href: "/entreprise/offres" },
       { id: "ent-applications", label: "Candidatures", subtitle: "Suivi candidats", icon: "applications", href: "/entreprise/candidatures" },
       { id: "ent-interviews", label: "Entretiens", subtitle: "Planning et suivi", icon: "tests", href: "/entreprise/entretiens" },
-      { id: "ent-shortlist", label: "Présélection IA", subtitle: "Candidatures", icon: "tests", href: "/entreprise/shortlist" },
       { id: "ent-reports-requests", label: "Demandes de rapport", subtitle: "Conformite", icon: "achievements", href: "/entreprise/reports-requests" },
       { id: "ent-messages", label: "Messagerie", subtitle: "Boîte de réception", icon: "messages", href: "/messages", badgeCount: messagesNonLus },
     ],
@@ -783,8 +781,7 @@ export function Navbar({
   };
 
   const deconnexion = () => {
-    localStorage.removeItem("token_auth");
-    localStorage.removeItem("utilisateur_connecte");
+    clearAuth();
     router.push("/");
   };
 
@@ -1276,4 +1273,3 @@ return (
     </header>
   );
 }
-

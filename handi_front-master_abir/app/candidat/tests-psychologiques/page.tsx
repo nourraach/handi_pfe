@@ -487,10 +487,6 @@ function CandidateAssessmentsPage() {
                   placeholder="Rechercher un test..."
                 />
               </label>
-              <button type="button" className="tests-page__ghost">
-                <AppIcon name="filter" size={14} />
-                Filtrer
-              </button>
             </div>
           </div>
 

@@ -963,11 +963,6 @@ function MesCandidaturesPage() {
     <>
       <div className="app-page">
         <section className="applications-hub-shell" aria-live="polite">
-          <header className="applications-hub-titleblock">
-            <h1 className="applications-hub-title">{copy.title}</h1>
-            <p className="applications-hub-subtitle">{copy.subtitle}</p>
-          </header>
-
           <Card padding="md" className="applications-hub-controls">
             <div className="applications-hub-searchbox">
               <SearchIcon className="applications-hub-searchicon" />

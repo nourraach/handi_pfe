@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { clearAuth, persistAuth } from '@/lib/auth-utils';
 import { UtilisateurConnecte } from '@/types/api';
 
 export function useAuth() {
@@ -33,23 +34,20 @@ export function useAuth() {
       setUtilisateur(null);
       setEstConnecte(false);
       // Nettoyer le localStorage en cas d'erreur
-      localStorage.removeItem('token_auth');
-      localStorage.removeItem('utilisateur_connecte');
+      clearAuth();
     } finally {
       setChargement(false);
     }
   };
 
   const connexion = (token: string, utilisateurData: UtilisateurConnecte) => {
-    localStorage.setItem('token_auth', token);
-    localStorage.setItem('utilisateur_connecte', JSON.stringify(utilisateurData));
+    persistAuth(token, utilisateurData);
     setUtilisateur(utilisateurData);
     setEstConnecte(true);
   };
 
   const deconnexion = () => {
-    localStorage.removeItem('token_auth');
-    localStorage.removeItem('utilisateur_connecte');
+    clearAuth();
     setUtilisateur(null);
     setEstConnecte(false);
     router.push('/');

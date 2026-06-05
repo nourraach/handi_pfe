@@ -3,6 +3,7 @@
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useI18n } from "@/components/i18n-provider";
+import { persistAuth } from "@/lib/auth-utils";
 import { construireUrlApi } from "@/lib/config";
 import { ReponseApi, UtilisateurConnecte } from "@/types/api";
 
@@ -40,8 +41,7 @@ export function FormulaireConnexion() {
       }
 
       if (typeof window !== "undefined" && resultat.donnees?.token) {
-        localStorage.setItem("token_auth", resultat.donnees.token);
-        localStorage.setItem("utilisateur_connecte", JSON.stringify(resultat.donnees.utilisateur ?? null));
+        persistAuth(resultat.donnees.token, resultat.donnees.utilisateur ?? null);
 
         const role = resultat.donnees.utilisateur?.role;
         const destination = role === "inspecteur" || role === "aneti" ? "/supervision" : "/home";

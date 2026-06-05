@@ -2,10 +2,10 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { Button, ButtonLink } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { LoadingState } from "@/components/ui/layout";
-import { Heading, Stat, Text } from "@/components/ui/typography";
+import { Heading, Stat } from "@/components/ui/typography";
 import { authenticatedFetch } from "@/lib/auth-utils";
 import { construireUrlApi } from "@/lib/config";
 import { CalendarDays, CheckCircle2, Eye, FileText, Mail, Phone, ShieldCheck, X } from "lucide-react";
@@ -834,24 +834,6 @@ export default function CandidaturesCompanyPage() {
   );
   return (
     <div className="app-page applicants-dashboard" aria-busy={loading} aria-live="polite">
-      <div className="applicants-header">
-        <div>
-          <Heading as="h1" variant="page">Gestion des candidatures</Heading>
-        </div>
-        <div className="applicants-header-actions">
-          <ButtonLink href="/entreprise/entretiens" variant="secondary">
-            Ouvrir les entretiens
-          </ButtonLink>
-          <Button
-            onClick={() =>
-              setInfo("Utilisez les profils candidats et la planification d'entretien pour ajouter des notes de recrutement.")
-            }
-          >
-            Ajouter une note
-          </Button>
-        </div>
-      </div>
-
       {erreur ? <div className="message message-erreur" role="alert">{erreur}</div> : null}
       {info ? <div className="message message-info" aria-live="polite">{info}</div> : null}
 

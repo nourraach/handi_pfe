@@ -420,11 +420,6 @@ export default function MesEntretiensPage() {
       {info ? <div className="message message-info">{info}</div> : null}
 
       <section className="candidate-interviews-hero">
-        <div className="candidate-interviews-hero-copy">
-          <p className="candidate-interviews-kicker">Entretiens planifiés</p>
-          <h1>Entretiens planifiés</h1>
-        </div>
-
         <div className="candidate-interviews-hero-actions">
           <ButtonLink
             href={featuredCalendarLink}

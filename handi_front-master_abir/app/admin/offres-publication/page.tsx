@@ -112,13 +112,9 @@ function AdminPublicationOffersPage() {
   }
 
   return (
-    <section style={{ display: "grid", gap: 16 }}>
-      <header>
-        <h1 style={{ margin: 0, fontSize: "1.6rem", fontWeight: 800 }}>Validation des offres</h1>
-      </header>
-
+    <>
       {message ? (
-        <div role="status" style={{ border: "1px solid #d9d0f0", borderRadius: 10, background: "#f7f3ff", padding: 12 }}>
+        <div role="status" className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-md mb-4">
           {message}
         </div>
       ) : null}
@@ -130,38 +126,150 @@ function AdminPublicationOffersPage() {
           action={<Button onClick={() => void loadPending()}>Actualiser</Button>}
         />
       ) : (
-        <div style={{ display: "grid", gap: 12 }}>
-          {offers.map((offer) => {
-            const busy = processingId === offer.id_offre;
-            return (
-              <article key={offer.id_offre} style={{ border: "1px solid #ebe4f8", borderRadius: 14, background: "#fff", padding: 14 }}>
-                <h2 style={{ margin: 0, fontSize: "1.08rem" }}>{offer.titre}</h2>
-                <p style={{ margin: "6px 0 0", color: "#6a607f" }}>
-                  {offer.entreprise_nom} · {offer.localisation} · {offer.type_poste.toUpperCase()} · {formatDate(offer.created_at)}
-                </p>
-                <p style={{ margin: "10px 0", color: "#2e2245" }}>{offer.description}</p>
-                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                  <Button disabled={busy} onClick={() => void approve(offer.id_offre)}>
-                    Approuver et publier
-                  </Button>
-                  <Button disabled={busy} variant="danger" onClick={() => void reject(offer.id_offre)}>
-                    Refuser avec motif
-                  </Button>
-                </div>
-              </article>
-            );
-          })}
+        <div className="carte bloc-principal">
+          <div className="tableau">
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead>
+                <tr>
+                  <th style={{ padding: "14px 16px", textAlign: "left" }}>Offre</th>
+                  <th style={{ padding: "14px 16px", textAlign: "left" }}>Entreprise</th>
+                  <th style={{ padding: "14px 16px", textAlign: "left" }}>Type</th>
+                  <th style={{ padding: "14px 16px", textAlign: "left" }}>Date</th>
+                  <th style={{ padding: "14px 16px", textAlign: "left" }}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {offers.map((offer) => {
+                  const busy = processingId === offer.id_offre;
+                  return (
+                    <tr key={offer.id_offre}>
+                      <td style={{ padding: "16px" }}>
+                        <div>
+                          <strong style={{ display: "block", marginBottom: "4px" }}>{offer.titre}</strong>
+                          <p style={{ margin: 0, fontSize: "0.9em", color: "#666" }}>{offer.description}</p>
+                        </div>
+                      </td>
+                      <td style={{ padding: "16px" }}>
+                        <div>
+                          <div>{offer.entreprise_nom}</div>
+                          <div style={{ fontSize: "0.85em", color: "#666" }}>{offer.localisation}</div>
+                        </div>
+                      </td>
+                      <td style={{ padding: "16px" }}>
+                        <span style={{ 
+                          display: "inline-block",
+                          padding: "4px 12px",
+                          borderRadius: "8px",
+                          backgroundColor: "#f0e6ff",
+                          color: "#5a3a8f",
+                          fontSize: "0.85em",
+                          fontWeight: "600"
+                        }}>
+                          {offer.type_poste.toUpperCase()}
+                        </span>
+                      </td>
+                      <td style={{ padding: "16px", fontSize: "0.9em" }}>
+                        {formatDate(offer.created_at)}
+                      </td>
+                      <td style={{ padding: "16px" }}>
+                        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                          <span style={{ display: "inline-block" }}>
+                            <button 
+                              className="offer-publication-action offer-publication-action--approve"
+                              disabled={busy} 
+                              onClick={() => void approve(offer.id_offre)}
+                              style={{ 
+                                all: "unset",
+                                display: "inline-flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                color: "white",
+                                minWidth: "220px",
+                                padding: "10px 20px",
+                                borderRadius: "12px",
+                                fontWeight: "600",
+                                fontSize: "14px",
+                                cursor: busy ? "not-allowed" : "pointer",
+                                opacity: busy ? 0.5 : 1,
+                                boxSizing: "border-box"
+                              }}
+                            >
+                              Approuver et publier
+                            </button>
+                          </span>
+                          <span style={{ display: "inline-block" }}>
+                            <button 
+                              className="offer-publication-action offer-publication-action--reject"
+                              disabled={busy} 
+                              onClick={() => void reject(offer.id_offre)}
+                              style={{ 
+                                all: "unset",
+                                display: "inline-flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                color: "white",
+                                minWidth: "220px",
+                                padding: "10px 20px",
+                                borderRadius: "12px",
+                                fontWeight: "600",
+                                fontSize: "14px",
+                                cursor: busy ? "not-allowed" : "pointer",
+                                opacity: busy ? 0.5 : 1,
+                                boxSizing: "border-box"
+                              }}
+                            >
+                              Refuser avec motif
+                            </button>
+                          </span>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
-    </section>
+      <style jsx>{`
+        .offer-publication-action {
+          border-width: 2px;
+          border-style: solid;
+          box-shadow: none;
+          transition: filter 0.18s ease, transform 0.18s ease;
+        }
+
+        .offer-publication-action:hover:not(:disabled) {
+          filter: brightness(1.03);
+          transform: translateY(-1px);
+        }
+
+        .offer-publication-action--approve {
+          background: #16a34a !important;
+          background-color: #16a34a !important;
+          border-color: #16a34a !important;
+          color: #ffffff !important;
+        }
+
+        .offer-publication-action--reject {
+          background: #dc2626 !important;
+          background-color: #dc2626 !important;
+          border-color: #dc2626 !important;
+          color: #ffffff !important;
+        }
+      `}</style>
+    </>
   );
 }
 
 export default function AdminPublicationOffersPageProtected() {
   return (
     <RouteProtegee rolesAutorises={["admin"]}>
-      <AdminPublicationOffersPage />
+      <main className="page-centree section-page app-theme">
+        <div className="admin-queue-page">
+          <AdminPublicationOffersPage />
+        </div>
+      </main>
     </RouteProtegee>
   );
 }
-
