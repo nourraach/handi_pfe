@@ -142,6 +142,7 @@ CREATE TABLE IF NOT EXISTS offre_emploi (
   competences_requises TEXT,
   experience_requise TEXT,
   niveau_etude TEXT,
+  ai_shortlist_min_score INTEGER NOT NULL DEFAULT 60,
   statut statut_offre NOT NULL DEFAULT 'inactive',
   date_limite TIMESTAMP,
   accessibilite_handicap BOOLEAN DEFAULT TRUE,

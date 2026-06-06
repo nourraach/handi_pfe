@@ -1158,7 +1158,14 @@ function AdminCompaniesPage() {
       setModalLoading(true);
       setFormError(null);
       setSelectedId(employer.id_utilisateur);
-      setSelectedCompany(await loadCompanyProfile(employer.id_utilisateur));
+      const profile = await loadCompanyProfile(employer.id_utilisateur);
+      setSelectedCompany({
+        ...employer,
+        ...profile,
+        statut: profile.statut || employer.statut,
+        created_at: profile.created_at || employer.created_at,
+        updated_at: profile.updated_at || employer.updated_at,
+      });
     } catch (cause) {
       setViewError(cause instanceof Error ? cause.message : "Impossible de charger le profil de l'entreprise.");
     } finally {
@@ -1441,7 +1448,7 @@ function AdminCompaniesPage() {
                   const companyName = selectedCompany.nom_entreprise || selectedCompany.nom || "Entreprise";
                   const logoUrl = resolveCompanyLogoUrl(selectedCompany.logo_url);
                   const location = compactCompanyLocation(selectedCompany);
-                  const activeStatus = selectedCompany.statut_validation || selectedCompany.statut || "en_attente";
+                  const activeStatus = selectedCompany.statut || "en_attente";
                   const website = selectedCompany.site_web || selectedCompany.url_site;
                   const employeeCount = selectedCompany.nbr_employe ?? null;
                   const disabledEmployees = selectedCompany.nbr_employe_handicape ?? null;

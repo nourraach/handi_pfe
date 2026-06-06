@@ -21,6 +21,10 @@ interface Utilisateur {
   updated_at: string;
 }
 
+type UtilisateurEditable = Partial<
+  Pick<Utilisateur, "nom" | "email" | "role" | "statut" | "telephone" | "addresse" | "region" | "gouvernorat" | "delegation">
+>;
+
 interface FiltresUtilisateurs {
   role: string;
   statut: string;
@@ -55,6 +59,100 @@ const STATUS_LABELS: Record<string, string> = {
   en_attente: "En attente",
   suspendu: "Suspendu",
 };
+
+function nettoyerPayloadUtilisateur(utilisateur: UtilisateurEditable): UtilisateurEditable {
+  return {
+    nom: utilisateur.nom?.trim() || "",
+    email: utilisateur.email?.trim() || "",
+    role: utilisateur.role,
+    statut: utilisateur.statut,
+    telephone: utilisateur.telephone?.trim() || "",
+    addresse: utilisateur.addresse?.trim() || "",
+    region: utilisateur.region?.trim() || "",
+    gouvernorat: utilisateur.gouvernorat?.trim() || "",
+    delegation: utilisateur.delegation?.trim() || "",
+  };
+}
+
+function escapeSpreadsheetXml(value: unknown): string {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;");
+}
+
+function construireWorkbookExcel(utilisateurs: Utilisateur[]) {
+  const lignes = utilisateurs
+    .map((utilisateur) => {
+      const cellules = [
+        utilisateur.nom,
+        utilisateur.email,
+        getRoleLabelStatic(utilisateur.role),
+        getStatusLabelStatic(utilisateur.statut),
+        utilisateur.telephone || "",
+        utilisateur.addresse || "",
+        utilisateur.gouvernorat || "",
+        utilisateur.delegation || utilisateur.region || "",
+        new Date(utilisateur.created_at).toLocaleDateString("fr-FR"),
+      ]
+        .map(
+          (valeur) =>
+            `<Cell><Data ss:Type="String">${escapeSpreadsheetXml(valeur)}</Data></Cell>`,
+        )
+        .join("");
+
+      return `<Row>${cellules}</Row>`;
+    })
+    .join("");
+
+  return `<?xml version="1.0"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:o="urn:schemas-microsoft-com:office:office"
+ xmlns:x="urn:schemas-microsoft-com:office:excel"
+ xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
+  <Worksheet ss:Name="Utilisateurs">
+    <Table>
+      <Row>
+        <Cell><Data ss:Type="String">Nom</Data></Cell>
+        <Cell><Data ss:Type="String">Email</Data></Cell>
+        <Cell><Data ss:Type="String">Role</Data></Cell>
+        <Cell><Data ss:Type="String">Statut</Data></Cell>
+        <Cell><Data ss:Type="String">Telephone</Data></Cell>
+        <Cell><Data ss:Type="String">Adresse</Data></Cell>
+        <Cell><Data ss:Type="String">Gouvernorat</Data></Cell>
+        <Cell><Data ss:Type="String">Delegation</Data></Cell>
+        <Cell><Data ss:Type="String">Cree le</Data></Cell>
+      </Row>
+      ${lignes}
+    </Table>
+  </Worksheet>
+</Workbook>`;
+}
+
+function telechargerExcelUtilisateurs(utilisateurs: Utilisateur[]) {
+  const workbook = construireWorkbookExcel(utilisateurs);
+  const blob = new Blob([workbook], {
+    type: "application/vnd.ms-excel;charset=utf-8;",
+  });
+  const url = window.URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = `utilisateurs_${new Date().toISOString().split("T")[0]}.xls`;
+  document.body.appendChild(anchor);
+  anchor.click();
+  window.URL.revokeObjectURL(url);
+  document.body.removeChild(anchor);
+}
+
+function getStatusLabelStatic(statut: string) {
+  return STATUS_LABELS[statut] || statut;
+}
+
+function getRoleLabelStatic(role: string) {
+  return ROLE_LABELS[role] || role;
+}
 
 export function GestionUtilisateurs() {
   const [utilisateurs, setUtilisateurs] = useState<Utilisateur[]>([]);
@@ -166,16 +264,17 @@ export function GestionUtilisateurs() {
     }
   };
 
-  const modifierUtilisateur = async (utilisateurModifie: Utilisateur) => {
+  const modifierUtilisateur = async (utilisateurModifie: UtilisateurEditable & { id_utilisateur: string }) => {
     try {
       const token = localStorage.getItem("token_auth");
+      const payload = nettoyerPayloadUtilisateur(utilisateurModifie);
       const response = await fetch(construireUrlApi(`/api/admin/utilisateurs/${utilisateurModifie.id_utilisateur}`), {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(utilisateurModifie),
+        body: JSON.stringify(payload),
       });
 
       const resultat = await response.json();
@@ -188,34 +287,6 @@ export function GestionUtilisateurs() {
         void chargerUtilisateurs();
       } else {
         setErreur(resultat.message || "Impossible de mettre a jour l'utilisateur.");
-      }
-    } catch {
-      setErreur("Erreur de connexion.");
-    }
-  };
-
-  const supprimerUtilisateur = async (id: string) => {
-    if (!confirm("Voulez-vous vraiment archiver cet utilisateur ?")) {
-      return;
-    }
-
-    try {
-      const token = localStorage.getItem("token_auth");
-      const response = await fetch(construireUrlApi(`/api/admin/utilisateurs/${id}`), {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      const resultat = await response.json();
-
-      if (response.ok) {
-        setMessage("Utilisateur archive avec succes.");
-        void chargerUtilisateurs();
-      } else {
-        setErreur(resultat.message || "Impossible d'archiver l'utilisateur.");
       }
     } catch {
       setErreur("Erreur de connexion.");
@@ -280,6 +351,7 @@ export function GestionUtilisateurs() {
       const params = new URLSearchParams({
         ...(filtres.role && { role: filtres.role }),
         ...(filtres.statut && { statut: filtres.statut }),
+        format: "xlsx",
       });
 
       const response = await fetch(construireUrlApi(`/api/admin/utilisateurs/export?${params}`), {
@@ -289,15 +361,13 @@ export function GestionUtilisateurs() {
       });
 
       if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const anchor = document.createElement("a");
-        anchor.href = url;
-        anchor.download = `utilisateurs_${new Date().toISOString().split("T")[0]}.csv`;
-        document.body.appendChild(anchor);
-        anchor.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(anchor);
+        const resultat = await response.json();
+        const utilisateursExportes = Array.isArray(resultat?.donnees?.utilisateurs)
+          ? (resultat.donnees.utilisateurs as Utilisateur[])
+          : Array.isArray(resultat?.donnees)
+            ? (resultat.donnees as Utilisateur[])
+            : [];
+        telechargerExcelUtilisateurs(utilisateursExportes);
         setMessage("Export termine avec succes.");
       } else {
         setErreur("Impossible d'exporter les utilisateurs.");
@@ -309,8 +379,8 @@ export function GestionUtilisateurs() {
 
   const getStatutBadge = (statut: string) => STATUS_STYLES[statut] || "bg-gray-100 text-gray-800";
   const getRoleBadge = (role: string) => ROLE_STYLES[role] || "bg-gray-100 text-gray-800";
-  const getStatusLabel = (statut: string) => STATUS_LABELS[statut] || statut;
-  const getRoleLabel = (role: string) => ROLE_LABELS[role] || role;
+  const getStatusLabel = (statut: string) => getStatusLabelStatic(statut);
+  const getRoleLabel = (role: string) => getRoleLabelStatic(role);
 
   const utilisateursAffiches = recherche ? utilisateursFiltres : utilisateurs;
   const filtresActifs = Boolean(recherche.trim() || filtres.role || filtres.statut);
@@ -358,7 +428,7 @@ export function GestionUtilisateurs() {
               onClick={exporterUtilisateurs}
               className="inline-flex h-10 items-center rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-purple-200 hover:text-purple-950"
             >
-              Exporter
+              Exporter en Excel
             </button>
             {filtresActifs ? (
               <button
@@ -504,7 +574,7 @@ export function GestionUtilisateurs() {
                           setUtilisateurSelectionne(utilisateur);
                           setModeEdition(true);
                         }}
-                        className="inline-flex min-h-8 items-center rounded-md border border-[#d8caef] bg-[#f7f1ff] px-3 text-xs font-semibold text-[#4a154b] transition hover:border-[#bfa7e8] hover:bg-[#f0e6ff]"
+                        className="inline-flex min-h-8 items-center rounded-md border border-orange-300 bg-orange-50 px-3 text-xs font-semibold text-orange-800 transition hover:border-orange-400 hover:bg-orange-100"
                       >
                         Modifier
                       </button>
@@ -529,12 +599,6 @@ export function GestionUtilisateurs() {
                           Activer
                         </button>
                       )}
-                      <button
-                        onClick={() => supprimerUtilisateur(utilisateur.id_utilisateur)}
-                        className="inline-flex min-h-8 items-center rounded-md border border-orange-300 bg-orange-50 px-3 text-xs font-semibold text-orange-800 transition hover:border-orange-400 hover:bg-orange-100"
-                      >
-                        Archiver
-                      </button>
                       </div>
                     </td>
                   </tr>
@@ -571,6 +635,7 @@ export function GestionUtilisateurs() {
 
       {(modeCreation || modeEdition) && (
         <ModalUtilisateur
+          key={modeCreation ? "creation" : `edition-${utilisateurSelectionne?.id_utilisateur || "none"}`}
           utilisateur={utilisateurSelectionne}
           modeCreation={modeCreation}
           onSave={(utilisateur) => {
@@ -641,7 +706,8 @@ function ModalUtilisateur({ utilisateur, modeCreation, onSave, onCancel }: Modal
   const inputClass =
     "h-11 w-full rounded-xl border border-[#ddd7ef] bg-white px-10 pr-4 text-[14px] text-[#1f173f] outline-none transition placeholder:text-[#7b7397] focus:border-[#7c3aed] focus:ring-4 focus:ring-[#7c3aed1f]";
   const selectClass =
-    "h-11 w-full appearance-none rounded-xl border border-[#ddd7ef] bg-white px-10 pr-9 text-[14px] font-semibold text-[#1f173f] outline-none transition focus:border-[#7c3aed] focus:ring-4 focus:ring-[#7c3aed1f]";
+    "h-11 w-full appearance-none rounded-xl border border-[#4a3a78] bg-[#1c1630] px-10 pr-9 text-[14px] font-semibold text-[#f4efff] outline-none transition focus:border-[#8b5cf6] focus:ring-4 focus:ring-[#7c3aed33]";
+  const optionStyle = { backgroundColor: "#1c1630", color: "#f4efff" };
 
   return (
       <div
@@ -732,12 +798,13 @@ function ModalUtilisateur({ utilisateur, modeCreation, onSave, onCancel }: Modal
                       }));
                     }}
                     className={selectClass}
+                    style={{ colorScheme: "dark" }}
                   >
-                    <option value="candidat">Candidat</option>
-                    <option value="entreprise">Entreprise</option>
-                    <option value="admin">Admin</option>
-                    <option value="inspecteur">Inspecteur</option>
-                    <option value="aneti">ANETI</option>
+                    <option value="candidat" style={optionStyle}>Candidat</option>
+                    <option value="entreprise" style={optionStyle}>Entreprise</option>
+                    <option value="admin" style={optionStyle}>Admin</option>
+                    <option value="inspecteur" style={optionStyle}>Inspecteur</option>
+                    <option value="aneti" style={optionStyle}>ANETI</option>
                   </select>
                   <ChevronDown className="pointer-events-none absolute right-3.5 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-[#5f587f]" />
                 </div>
@@ -766,11 +833,12 @@ function ModalUtilisateur({ utilisateur, modeCreation, onSave, onCancel }: Modal
                         }))
                       }
                       className={selectClass}
+                      style={{ colorScheme: "dark" }}
                       required={roleInterne}
                     >
-                      <option value="">Selectionnez un gouvernorat</option>
+                      <option value="" style={optionStyle}>Selectionnez un gouvernorat</option>
                       {TUNISIAN_GOVERNORATE_OPTIONS.map((gouvernorat) => (
-                        <option key={gouvernorat} value={gouvernorat}>
+                        <option key={gouvernorat} value={gouvernorat} style={optionStyle}>
                           {gouvernorat}
                         </option>
                       ))}
@@ -788,11 +856,12 @@ function ModalUtilisateur({ utilisateur, modeCreation, onSave, onCancel }: Modal
                         value={formData.delegation}
                         onChange={(event) => setFormData((prev) => ({ ...prev, delegation: event.target.value }))}
                         className={selectClass}
+                        style={{ colorScheme: "dark" }}
                         required={roleInterne}
                       >
-                      <option value="">Selectionnez une delegation</option>
+                      <option value="" style={optionStyle}>Selectionnez une delegation</option>
                         {delegationOptions.map((delegation) => (
-                          <option key={delegation} value={delegation}>
+                          <option key={delegation} value={delegation} style={optionStyle}>
                             {delegation}
                           </option>
                         ))}

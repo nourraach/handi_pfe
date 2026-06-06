@@ -3,6 +3,7 @@ import { CandidatureRepository } from "../repositories/candidature.repository";
 import { OffreEmploiRepository } from "../repositories/offre-emploi.repository";
 import { OffreEmploiService } from "./offre-emploi.service";
 import { NotificationService } from "./notification.service";
+import { AiShortlistingService } from "./ai-shortlisting.service";
 import { interviewQuestionsService } from "./interview-questions/interview-questions.service";
 import { PostulerDto, ModifierStatutCandidatureDto, FiltreCandidatureDto } from "../dto/candidature.dto";
 import { ErreurApi } from "../utils/erreur-api";
@@ -15,6 +16,7 @@ export class CandidatureService {
   private offreRepository = new OffreEmploiRepository();
   private offreService = new OffreEmploiService();
   private notificationService = new NotificationService();
+  private aiShortlistingService = new AiShortlistingService();
 
   private async resolveCandidatId(idUtilisateur: string): Promise<string> {
     const rows = await db.select({ id: candidatTable.id }).from(candidatTable).where(eq(candidatTable.id_utilisateur, idUtilisateur)).limit(1);
@@ -79,6 +81,8 @@ export class CandidatureService {
       }
 
       // Envoyer notification à l'entreprise (utilisateur propriétaire de l'offre)
+      candidature = await this.appliquerDecisionIa(candidature, donnees.cv_url, offre);
+
       await this.notificationService.notifierNouvelleCandidat(
         idUtilisateurEntreprise,
         candidature.id,
@@ -96,7 +100,7 @@ export class CandidatureService {
       if (idUtilisateurCandidat) {
         await this.notificationService.notifierChangementStatut(
           idUtilisateurCandidat,
-          "pending",
+          candidature.statut,
           offre.titre || "Offre"
         );
       }
@@ -246,5 +250,41 @@ export class CandidatureService {
     // Vérifier le profil complet du candidat
     // Vérifier les critères spécifiques de l'offre
     return true;
+  }
+
+  private async appliquerDecisionIa(candidature: any, cvUrl: string | undefined, offre: any) {
+    try {
+      const decision = await this.aiShortlistingService.evaluerCandidature(cvUrl, offre);
+
+      if (
+        decision.statut === "pending" &&
+        typeof decision.score_test !== "number" &&
+        !decision.motif_refus
+      ) {
+        return candidature;
+      }
+
+      const candidatureMiseAJour = await this.candidatureRepository.modifierStatutCandidature(String(candidature.id), {
+        statut: decision.statut,
+        motif_refus: decision.motif_refus,
+        score_test: decision.score_test,
+      });
+
+      if (decision.statut === "shortlisted") {
+        void interviewQuestionsService.scheduleGeneration(String(candidature.id)).catch((err) => {
+          console.error("[interview-prep] scheduleGeneration failed", { id: candidature.id, err: err?.message });
+        });
+      }
+
+      return candidatureMiseAJour;
+    } catch (error) {
+      console.error("[ai-shortlisting] automatic evaluation failed", {
+        candidatureId: candidature?.id,
+        offreId: offre?.id,
+        message: error instanceof Error ? error.message : String(error),
+      });
+
+      return candidature;
+    }
   }
 }

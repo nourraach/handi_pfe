@@ -8,6 +8,7 @@ export interface ModifierStatutCandidatureDto {
   statut: "pending" | "shortlisted" | "interview_scheduled" | "rejected" | "accepted";
   motif_refus?: string;
   notes_entreprise?: string;
+  score_test?: number;
 }
 
 export interface FiltreCandidatureDto {

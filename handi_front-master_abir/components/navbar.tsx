@@ -385,15 +385,15 @@ export function Navbar({
 
   const candidateSidebarItems = useMemo<CandidateSidebarItem[]>(
     () => [
-      { id: "jobs", label: "Offres d'emploi", subtitle: "Recherche", icon: "applications", href: "/offres" },
-      { id: "applications", label: "Candidatures", subtitle: "Suivi", icon: "applications", href: "/candidat/candidatures" },
+      { id: "jobs", label: "Explorer les offres", subtitle: "Recherche et filtres", icon: "applications", href: "/offres" },
+      { id: "applications", label: "Mes candidatures", subtitle: "Statuts et retours", icon: "applications", href: "/candidat/candidatures" },
       { id: "interviews", label: "Entretiens", subtitle: "Planning candidat", icon: "tests", href: "/candidat/entretiens" },
       { id: "tests", label: "Tests et évaluations", subtitle: "Progression", icon: "tests", href: "/candidat/tests-psychologiques" },
       { id: "messages", label: "Messagerie", subtitle: "Boîte de réception", icon: "messages", href: "/messages", badgeCount: messagesNonLus },
-      { id: "favorites", label: t("navbar.favorites"), subtitle: "Offres enregistrees", icon: "favorites", href: "/favoris" },
-      { id: "cv", label: "CV", subtitle: "Documents", icon: "cv", href: "/candidat/cv" },
+      { id: "favorites", label: "Offres sauvegardées", subtitle: "À revoir plus tard", icon: "favorites", href: "/favoris" },
+      { id: "cv", label: "Mon CV", subtitle: "Profil et documents", icon: "cv", href: "/candidat/cv" },
     ],
-    [messagesNonLus, t],
+    [messagesNonLus],
   );
 
   const adminSidebarItems: CandidateSidebarItem[] = [

@@ -463,6 +463,7 @@ export class GestionUtilisateursService {
       ].join("\n");
 
       return {
+        format: "csv" as const,
         content: csvContent,
         filename: `utilisateurs_${new Date().toISOString().split("T")[0]}.csv`,
         contentType: "text/csv",
@@ -470,7 +471,8 @@ export class GestionUtilisateursService {
     }
 
     return {
-      data: utilisateurs,
+      format: "xlsx" as const,
+      utilisateurs,
       filename: `utilisateurs_${new Date().toISOString().split("T")[0]}.xlsx`,
       contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     };

@@ -276,6 +276,20 @@ const formatPublishedDate = (value?: string) => {
   });
 };
 
+const inferWorkMode = (offre: OffreEmploi) => {
+  const source = `${offre.titre} ${offre.description} ${offre.localisation}`.toLowerCase();
+
+  if (/(hybrid|hybride)/.test(source)) {
+    return "Hybride";
+  }
+
+  if (/(remote|distanciel|teletravail|à distance|a distance)/.test(source)) {
+    return "Remote";
+  }
+
+  return "Sur site";
+};
+
 const normalizeMatchToken = (value: string) =>
   value
     .normalize("NFD")
@@ -1231,209 +1245,230 @@ const jobsStudioScopedStyles = `
     color: var(--app-primary);
   }
 
+  .jobs-studio-grid.is-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+
   .jobs-simple-card {
-    display: grid;
-    grid-template-columns: minmax(0, 2.4fr) minmax(84px, 0.85fr) minmax(0, 1.5fr) minmax(150px, 1fr);
-    align-items: center;
-    gap: 22px;
-    padding: 18px 20px;
-    border: 1px solid var(--app-border);
-    background: var(--app-surface-strong);
-    box-shadow: var(--shadow-1);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 320px;
+    height: auto;
+    padding: 16px;
+    border: 1px solid rgba(85, 60, 145, 0.08);
+    border-radius: 22px;
+    background:
+      radial-gradient(circle at 100% 0%, rgba(126, 92, 211, 0.08), transparent 24%),
+      linear-gradient(180deg, rgba(255, 255, 255, 1), rgba(251, 249, 255, 0.98));
+    box-shadow: 0 12px 28px rgba(33, 21, 60, 0.07);
     overflow: hidden;
-    transition: transform 150ms ease, box-shadow 150ms ease, border-color 150ms ease;
+    transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease;
+    text-align: left;
   }
 
   .jobs-simple-card:hover {
     transform: translateY(-2px);
-    border-color: rgba(var(--app-secondary-rgb), 0.9);
-    box-shadow: var(--shadow-2);
+    box-shadow: 0 18px 42px rgba(43, 24, 79, 0.11);
   }
 
   .jobs-simple-card:focus-visible {
     outline: none;
-    box-shadow: var(--ring-focus);
+    box-shadow: var(--ring-focus), 0 18px 42px rgba(43, 24, 79, 0.11);
   }
 
-  .jobs-simple-card__left {
-    display: grid;
-    grid-template-columns: 56px minmax(0, 1fr);
-    gap: 14px;
-    align-items: center;
+  .jobs-simple-card__top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    text-align: left;
+  }
+
+  .jobs-simple-card__topMain {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
     min-width: 0;
+    flex: 1 1 auto;
+    text-align: left;
   }
 
   .jobs-simple-card__avatar {
-    width: 52px;
-    height: 52px;
-    border-radius: 12px;
+    flex: 0 0 auto;
+    width: 48px;
+    height: 48px;
+    border-radius: 16px;
     display: grid;
     place-items: center;
-    background: rgba(216, 202, 246, 0.52);
-    color: #4d1ca1;
+    background: linear-gradient(135deg, rgba(111, 61, 214, 0.16), rgba(193, 172, 255, 0.32));
+    color: #5b1db7;
     font-family: var(--app-heading);
-    font-size: 24px;
-    font-weight: 700;
-    letter-spacing: 0.03em;
+    font-size: 1rem;
+    font-weight: 800;
+    box-shadow: inset 0 0 0 1px rgba(111, 61, 214, 0.08);
   }
 
-  .jobs-simple-card__identity {
+  .jobs-simple-card__headerText {
     display: grid;
-    gap: 8px;
+    gap: 6px;
     min-width: 0;
+    flex: 1 1 auto;
+    text-align: left;
+  }
+
+  .jobs-simple-card__main {
+    display: grid;
+    align-content: start;
+    gap: 12px;
+    min-width: 0;
+    flex: 1 1 auto;
+    text-align: left;
+  }
+
+  .jobs-simple-card__title,
+  .jobs-simple-card__company,
+  .jobs-simple-card__location,
+  .jobs-simple-card__missingText {
+    margin: 0;
   }
 
   .jobs-simple-card__title {
-    margin: 0;
-    font-size: 20px;
-    line-height: 1.15;
-    font-weight: 700;
     color: var(--app-text);
+    font-family: var(--font-geist-sans, var(--app-heading));
+    font-size: 20px;
+    line-height: 1.2;
+    font-weight: 700;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .jobs-simple-card__company {
+    color: #726784;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.35;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
 
-  .jobs-simple-card__companyline {
-    margin: 0;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: var(--app-muted);
+  .jobs-simple-card__location {
+    color: #5f5674;
     font-size: 13px;
-    line-height: 20px;
-    min-width: 0;
-  }
-
-  .jobs-simple-card__companyline span {
+    line-height: 1.4;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
 
-  .jobs-simple-card__dot {
-    color: rgba(117, 110, 139, 0.8);
-  }
-
-  .jobs-simple-card__badges {
+  .jobs-simple-card__metaRow {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
+    align-items: flex-start;
+    justify-content: flex-start;
   }
 
+  .jobs-simple-card__metaPill,
   .jobs-simple-card__pill {
     display: inline-flex;
     align-items: center;
-    min-height: 24px;
+    min-height: 28px;
     padding: 0 10px;
     border-radius: 999px;
-    background: rgba(90, 66, 191, 0.1);
-    color: #5a42bf;
     font-size: 12px;
     font-weight: 700;
     white-space: nowrap;
   }
 
-  .jobs-simple-card__scoreblock {
-    display: grid;
-    justify-items: center;
-    gap: 8px;
-    min-width: 0;
-  }
-
-  .jobs-simple-card__scorelabel {
-    margin: 0;
-    color: #54506c;
-    font-size: 12px;
-    font-weight: 700;
-    text-transform: none;
-  }
-
-  .jobs-simple-card__scorehint {
-    margin: 0;
-    color: rgba(84, 80, 108, 0.78);
-    font-size: 11px;
-    line-height: 1.35;
-    text-align: center;
-  }
-
-  .jobs-simple-card__scorecircle {
-    width: 76px;
-    height: 76px;
-    border-radius: 999px;
-    border: 4px solid #2bbf6c;
-    display: grid;
-    place-items: center;
-    background: #fff;
-    color: #1ea85d;
-    font-size: 24px;
-    font-weight: 800;
-  }
-
-  .jobs-simple-card__matchblock {
-    display: grid;
-    gap: 8px;
-    align-content: center;
-    min-width: 0;
-  }
-
-  .jobs-simple-card__matchtitle {
-    margin: 0;
-    color: #1ea85d;
-    font-size: 14px;
-    font-weight: 700;
-  }
-
-  .jobs-simple-card__matchskills,
-  .jobs-simple-card__matchmissing {
-    color: var(--app-muted);
+  .jobs-simple-card__metaPill {
+    background: rgba(88, 68, 152, 0.07);
+    color: #605674;
     font-size: 13px;
-    line-height: 20px;
-    margin: 0;
+    font-weight: 600;
   }
 
-  .jobs-simple-card__matchmissing {
-    color: #d97706;
+  .jobs-simple-card__metaPill--contract {
+    background: rgba(109, 88, 186, 0.1);
+    color: #6a52bc;
   }
 
-  .jobs-simple-card__salary {
-    margin: 0;
-    color: #1f1538;
-    font-size: 20px;
-    line-height: 1.1;
-    font-weight: 800;
-    text-align: right;
+  .jobs-simple-card__metaPill--mode {
+    background: rgba(94, 109, 166, 0.08);
+    color: #5b6480;
   }
 
-  .jobs-simple-card__right {
+  .jobs-simple-card__metaPill--salary {
+    background: rgba(255, 255, 255, 0.92);
+    color: #23183f;
+    box-shadow: inset 0 0 0 1px rgba(93, 61, 176, 0.08);
+    font-weight: 700;
+  }
+
+  .jobs-simple-card__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: flex-start;
+    justify-content: flex-start;
+  }
+
+  .jobs-simple-card__pill {
+    background: rgba(90, 66, 191, 0.1);
+    color: #5a42bf;
+  }
+
+  .jobs-simple-card__pill--access {
+    background: rgba(34, 176, 110, 0.11);
+    color: #168753;
+  }
+
+  .jobs-simple-card__pill--experience {
+    background: rgba(97, 91, 193, 0.1);
+    color: #5c56bf;
+  }
+
+  .jobs-simple-card__pill--match {
+    background: rgba(34, 176, 110, 0.1);
+    color: #1a8c59;
+  }
+
+  .jobs-simple-card__missingText {
+    color: #766c8c;
+    font-size: 0.8rem;
+    line-height: 1.35;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .jobs-simple-card__missingLabel {
+    color: #31284a;
+    font-weight: 700;
+  }
+
+  .jobs-simple-card__footer {
     display: grid;
-    justify-items: end;
-    gap: 12px;
-    align-content: center;
-    min-width: 0;
-  }
-
-  @media (max-width: 1420px) {
-    .jobs-simple-card {
-      grid-template-columns: minmax(0, 2fr) minmax(84px, 0.75fr) minmax(0, 1.3fr) minmax(138px, 0.95fr);
-      gap: 16px;
-    }
-
-    .jobs-simple-card__title {
-      font-size: 18px;
-    }
-
-    .jobs-simple-card__salary {
-      font-size: 18px;
-    }
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: end;
+    justify-items: stretch;
+    gap: 10px;
+    margin-top: auto;
+    padding-top: 4px;
   }
 
   .jobs-simple-card__save,
   .jobs-simple-card__apply,
   .jobs-simple-card__ghost {
     min-height: 40px;
-    border-radius: 10px;
-    transition: transform 150ms ease, background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+    border-radius: 12px;
+    transition: transform 150ms ease, background-color 150ms ease, color 150ms ease, box-shadow 150ms ease;
   }
 
   .jobs-simple-card__save:active,
@@ -1443,26 +1478,27 @@ const jobsStudioScopedStyles = `
   }
 
   .jobs-simple-card__save {
+    width: 38px;
+    min-width: 38px;
+    height: 38px;
+    flex: 0 0 auto;
+    padding: 0;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    min-width: 112px;
-    border: 1px solid #ddd4ee;
-    background: #fff;
-    color: #5f5784;
-    font-size: 14px;
-    font-weight: 800;
+    border: 0;
+    background: rgba(96, 67, 173, 0.08);
+    color: #7059ae;
+    box-shadow: inset 0 0 0 1px rgba(96, 67, 173, 0.08);
   }
 
   .jobs-simple-card__save:hover {
-    border-color: #c9bcdf;
-    color: #4e3a74;
+    background: rgba(96, 67, 173, 0.13);
+    color: #5a35b0;
   }
 
   .jobs-simple-card__save.is-active {
-    border-color: rgba(90, 66, 191, 0.24);
-    background: rgba(90, 66, 191, 0.1);
+    background: rgba(96, 67, 173, 0.16);
     color: #4d1ca1;
   }
 
@@ -1471,44 +1507,40 @@ const jobsStudioScopedStyles = `
     height: 15px;
   }
 
-  .jobs-simple-card__apply {
-    min-width: 112px;
-    background: #35063e;
-    color: #fff;
-    font-size: 15px;
-    font-weight: 700;
-  }
-
-  .jobs-simple-card__apply:hover {
-    background: #4e0b59;
-  }
-
   .jobs-simple-card__ghost {
-    border: 0;
-    background: transparent;
+    border: 1px solid rgba(96, 67, 173, 0.12);
+    background: rgba(255, 255, 255, 0.92);
     color: #5f5784;
-    padding: 0;
-    font-weight: 700;
-    min-height: 24px;
+    padding: 0 16px;
+    font-size: 14px;
+    font-weight: 600;
+    justify-content: center;
   }
 
   .jobs-simple-card__ghost:hover {
-    color: var(--app-primary);
+    background: rgba(96, 67, 173, 0.06);
+    color: #472f79;
   }
 
-  .jobs-simple-card__deadline {
-    margin: 0;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    color: #5b5676;
-    font-size: 13px;
-    line-height: 20px;
+  .jobs-simple-card__apply {
+    border: 0;
+    padding: 0 18px;
+    background: linear-gradient(135deg, #5124a7, #35063e);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    box-shadow: 0 12px 24px rgba(53, 6, 62, 0.18);
   }
 
-  .jobs-simple-card__deadline .jobs-studio-icon {
-    width: 15px;
-    height: 15px;
+  .jobs-simple-card__apply:hover:not(:disabled) {
+    box-shadow: 0 14px 28px rgba(53, 6, 62, 0.24);
+    filter: brightness(1.03);
+  }
+
+  .jobs-simple-card__apply:disabled {
+    cursor: default;
+    opacity: 0.78;
+    box-shadow: none;
   }
 
   .jobs-pagination {
@@ -2054,33 +2086,24 @@ const jobsStudioScopedStyles = `
     }
   }
 
+  @media (max-width: 980px) {
+    .jobs-studio-grid.is-list {
+      grid-template-columns: 1fr;
+    }
+
+    .jobs-simple-card {
+      min-height: 320px;
+      height: auto;
+    }
+  }
+
   @media (max-width: 640px) {
     .jobs-simple-card {
+      min-height: 280px;
+    }
+
+    .jobs-simple-card__footer {
       grid-template-columns: 1fr;
-      gap: 16px;
-    }
-
-    .jobs-simple-card__right {
-      justify-items: stretch;
-    }
-
-    .jobs-simple-card__salary {
-      text-align: left;
-      font-size: 24px;
-    }
-
-    .jobs-simple-card__apply {
-      min-height: 48px;
-      width: 100%;
-    }
-
-    .jobs-simple-card__save {
-      min-height: 44px;
-      width: 100%;
-    }
-
-    .jobs-simple-card__ghost {
-      justify-self: start;
     }
 
     .jobs-modal-overlay {
@@ -2695,61 +2718,24 @@ export default function OffresPage() {
                   };
               const matchPercentLabel = matchDetails.percent === null ? "—" : `${matchDetails.percent}%`;
               const estFavori = favoris.has(offre.id_offre);
+              const dejaPostule = candidatures.has(offre.id_offre);
 
               return (
                 <article key={offre.id_offre} className="jobs-simple-card" tabIndex={0}>
-                  <div className="jobs-simple-card__left">
-                    <div className="jobs-simple-card__avatar" aria-hidden="true">
-                      {(offre.titre.match(/[A-Za-zÀ-ÖØ-öø-ÿ]/g) || ["U", "X"]).slice(0, 2).join("").toUpperCase()}
-                    </div>
-                    <div className="jobs-simple-card__identity">
-                      <h2 className="jobs-simple-card__title" title={offre.titre}>
-                        {offre.titre}
-                      </h2>
-                      <p className="jobs-simple-card__companyline">
-                        <span>{(offre.nom_entreprise || "Entreprise de test").trim()}</span>
-                        <span className="jobs-simple-card__dot">•</span>
-                        <LocationIcon className="jobs-studio-icon" />
-                        <span>{offre.localisation || "Tunis"}</span>
-                      </p>
-                      <div className="jobs-simple-card__badges">
-                        <span className="jobs-simple-card__pill">{formatContractLabel(offre.type_poste)}</span>
-                        <span className="jobs-simple-card__pill">Temps plein</span>
-                        <span className="jobs-simple-card__pill">Exp. {formatExperienceLabel(offre.experience_requise)}</span>
+                  <div className="jobs-simple-card__top">
+                    <div className="jobs-simple-card__topMain">
+                      <div className="jobs-simple-card__avatar" aria-hidden="true">
+                        {(offre.titre.match(/[A-Za-zÀ-ÖØ-öø-ÿ]/g) || ["U", "X"]).slice(0, 2).join("").toUpperCase()}
+                      </div>
+                      <div className="jobs-simple-card__headerText">
+                        <h2 className="jobs-simple-card__title" title={offre.titre}>
+                          {offre.titre}
+                        </h2>
+                        <p className="jobs-simple-card__company" title={(offre.nom_entreprise || "Entreprise de test").trim()}>
+                          {(offre.nom_entreprise || "Entreprise de test").trim()}
+                        </p>
                       </div>
                     </div>
-                  </div>
-
-                  <div className="jobs-simple-card__scoreblock">
-                    <p className="jobs-simple-card__scorelabel">Correspondance</p>
-                    <div
-                      className="jobs-simple-card__scorecircle"
-                      aria-label={matchDetails.percent === null ? "Correspondance en cours" : `Match ${matchPercentLabel}`}
-                    >
-                      <span>{matchPercentLabel}</span>
-                    </div>
-                    <p className="jobs-simple-card__scorehint">
-                      {profilCorrespondanceCharge ? "Basée sur votre profil" : "Chargement du profil..."}
-                    </p>
-                  </div>
-
-                  <div className="jobs-simple-card__matchblock">
-                    <p className="jobs-simple-card__matchtitle">{matchDetails.title}</p>
-                    <p className="jobs-simple-card__matchskills">
-                      {matchDetails.skills.length > 0
-                        ? matchDetails.skills.slice(0, 2).join(", ")
-                        : offre.competences_requises || "Compétences non précisées"}
-                    </p>
-                    <p className="jobs-simple-card__matchmissing">
-                      Manque :{" "}
-                      {matchDetails.missingSkills.length > 0
-                        ? matchDetails.missingSkills.slice(0, 2).join(", ")
-                        : matchDetails.note}
-                    </p>
-                  </div>
-
-                  <div className="jobs-simple-card__right">
-                    <p className="jobs-simple-card__salary">{formatSalaryRange(offre)}</p>
                     <button
                       type="button"
                       className={`jobs-simple-card__save ${estFavori ? "is-active" : ""}`}
@@ -2758,27 +2744,58 @@ export default function OffresPage() {
                       aria-label={`${estFavori ? "Retirer" : "Sauvegarder"} l'offre ${offre.titre}`}
                     >
                       <BookmarkIcon />
-                      {estFavori ? "Saved" : "Save"}
                     </button>
-                    <button
-                      type="button"
-                      className="jobs-simple-card__apply"
-                      onClick={() => ouvrirFormulaireCandidature(offre)}
-                      aria-label={`Postuler a l'offre ${offre.titre}`}
-                    >
-                      Postuler
-                    </button>
-                    <p className="jobs-simple-card__deadline">
-                      <CalendarIcon className="jobs-studio-icon" />
-                      Deadline : {formatDeadline(offre.date_limite)}
+                  </div>
+
+                  <div className="jobs-simple-card__main">
+                    <p className="jobs-simple-card__location" title={offre.localisation || "Tunis"}>
+                      {offre.localisation || "Tunis"}
                     </p>
+
+                    <div className="jobs-simple-card__metaRow">
+                      <span className="jobs-simple-card__metaPill jobs-simple-card__metaPill--contract">{formatContractLabel(offre.type_poste)}</span>
+                      <span className="jobs-simple-card__metaPill jobs-simple-card__metaPill--mode">{inferWorkMode(offre)}</span>
+                      <span className="jobs-simple-card__metaPill jobs-simple-card__metaPill--salary">{formatSalaryRange(offre)}</span>
+                    </div>
+
+                    <div className="jobs-simple-card__tags">
+                      <span className="jobs-simple-card__pill jobs-simple-card__pill--access">Accessibilite adaptee</span>
+                      <span className="jobs-simple-card__pill jobs-simple-card__pill--experience">
+                        Exp. {formatExperienceLabel(offre.experience_requise)}
+                      </span>
+                      <span
+                        className="jobs-simple-card__pill jobs-simple-card__pill--match"
+                        aria-label={matchDetails.percent === null ? "Correspondance en cours" : `Match IA ${matchPercentLabel}`}
+                      >
+                        Match IA {matchPercentLabel}
+                      </span>
+                    </div>
+
+                    <p className="jobs-simple-card__missingText" title={matchDetails.missingSkills.join(" • ") || "Profil bien aligne avec cette opportunite"}>
+                      <span className="jobs-simple-card__missingLabel">Competences a renforcer :</span>{" "}
+                      {matchDetails.missingSkills.length > 0
+                        ? matchDetails.missingSkills.slice(0, 4).join(" • ")
+                        : "Profil bien aligne avec cette opportunite"}
+                    </p>
+                  </div>
+
+                  <div className="jobs-simple-card__footer">
                     <button
                       type="button"
                       className="jobs-simple-card__ghost"
                       onClick={() => ouvrirDetailsOffre(offre)}
                       aria-label={`Voir les details de l'offre ${offre.titre}`}
                     >
-                      Voir details
+                      Voir les details
+                    </button>
+                    <button
+                      type="button"
+                      className="jobs-simple-card__apply"
+                      onClick={() => ouvrirFormulaireCandidature(offre)}
+                      aria-label={`Postuler a l'offre ${offre.titre}`}
+                      disabled={dejaPostule}
+                    >
+                      {dejaPostule ? "Deja postule" : "Postuler"}
                     </button>
                   </div>
                 </article>

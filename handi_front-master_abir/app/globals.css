@@ -3042,7 +3042,7 @@ body.app-theme:not([data-bold-text="true"]) :is(.font-extrabold, .font-black) {
   width: auto;
   min-width: 0;
   margin: 0;
-  padding: var(--shell-content-top) 0 var(--shell-content-bottom);
+  padding: var(--shell-content-top) clamp(18px, 2vw, 28px) var(--shell-content-bottom);
 }
 
 .app-shell-admin .page-centree,
@@ -3428,17 +3428,17 @@ body:has(.app-shell-admin)::-webkit-scrollbar,
     overflow-y: auto;
     overflow-x: hidden;
     overscroll-behavior: contain;
-    padding: var(--shell-content-top) 0 var(--shell-content-bottom);
+    padding: var(--shell-content-top) clamp(18px, 2vw, 28px) var(--shell-content-bottom);
   }
 
   .app-shell-candidat .app-main {
-    padding: var(--shell-content-top) 0 var(--shell-content-bottom);
+    padding: var(--shell-content-top) clamp(18px, 2vw, 28px) var(--shell-content-bottom);
     scrollbar-width: none;
     -ms-overflow-style: none;
   }
 
   .app-shell-admin .app-main {
-    padding: var(--shell-content-top) 0 var(--shell-content-bottom);
+    padding: var(--shell-content-top) clamp(18px, 2vw, 28px) var(--shell-content-bottom);
     scrollbar-width: none;
     -ms-overflow-style: none;
   }
@@ -17785,7 +17785,7 @@ body:has(.app-shell-admin) {
 }
 
 .app-shell-admin .app-main {
-  padding: var(--shell-content-top) 0 var(--shell-content-bottom);
+  padding: var(--shell-content-top) clamp(18px, 2vw, 28px) var(--shell-content-bottom);
   color: var(--admin-text);
 }
 
@@ -18019,8 +18019,14 @@ body:has(.app-shell-admin) {
 .app-shell-admin .admin-command__hero {
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: start;
-  min-height: 218px;
-  padding: 28px 30px;
+  min-height: 0;
+  padding: 22px 30px 18px;
+  gap: 10px;
+}
+
+.app-shell-admin .admin-command__hero-copy {
+  align-content: start;
+  gap: 6px;
 }
 
 .app-shell-admin .admin-command__hello {
@@ -19277,6 +19283,7 @@ body:has(.app-shell-admin) {
 
   .app-shell-admin .app-main {
     padding-top: 0;
+    padding-inline: clamp(16px, 2vw, 22px);
   }
 
   .app-shell-admin .admin-command__hero {

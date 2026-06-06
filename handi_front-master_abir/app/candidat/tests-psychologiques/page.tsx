@@ -1055,12 +1055,9 @@ function TestCard({
               ? "Voir les resultats"
               : isBlockedByWindow
                 ? "Indisponible (6 mois)"
-                : isInProgress
+              : isInProgress
                   ? "Continuer le test"
                   : "Commencer le test"}
-        </button>
-        <button type="button" className="test-card__bookmark" aria-label="Plus d'actions">
-          <AppIcon name="more" size={15} />
         </button>
       </div>
 
@@ -1178,18 +1175,6 @@ function TestCard({
           display: flex;
           align-items: center;
           justify-content: flex-end;
-          gap: 8px;
-        }
-
-        .test-card__bookmark {
-          width: 34px;
-          height: 34px;
-          border-radius: 10px;
-          border: 1px solid #ded4f7;
-          background: #fff;
-          color: #6a4ac5;
-          display: grid;
-          place-items: center;
         }
 
         .test-card__btn {

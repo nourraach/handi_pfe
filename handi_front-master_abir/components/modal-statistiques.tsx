@@ -46,6 +46,21 @@ interface Resultat {
   est_visible: boolean;
 }
 
+const toFiniteNumber = (value: unknown, fallback = 0) => {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+
+  if (typeof value === "string") {
+    const normalized = value.replace(",", ".").trim();
+    if (!normalized) return fallback;
+    const parsed = Number(normalized);
+    if (Number.isFinite(parsed)) return parsed;
+  }
+
+  return fallback;
+};
+
 interface ModalStatistiquesProps {
   test: TestPsychologique;
   onClose: () => void;
@@ -101,7 +116,17 @@ export function ModalStatistiques({ test, onClose }: ModalStatistiquesProps) {
 
       if (response.ok) {
         const data = await response.json();
-        setResultats(data.donnees.resultats || []);
+        const resultatsNormalises = Array.isArray(data.donnees?.resultats)
+          ? data.donnees.resultats.map(
+              (resultat: Resultat & { pourcentage?: unknown; score_obtenu?: unknown; temps_passe_minutes?: unknown }) => ({
+                ...resultat,
+                score_obtenu: toFiniteNumber(resultat.score_obtenu),
+                pourcentage: toFiniteNumber(resultat.pourcentage),
+                temps_passe_minutes: toFiniteNumber(resultat.temps_passe_minutes),
+              }),
+            )
+          : [];
+        setResultats(resultatsNormalises);
       } else {
         setErreur("Unable to load results.");
       }
@@ -113,9 +138,9 @@ export function ModalStatistiques({ test, onClose }: ModalStatistiquesProps) {
   };
 
   const getScoreColor = (pourcentage: number) => {
-    if (pourcentage >= 80) return "text-green-600";
-    if (pourcentage >= 60) return "text-yellow-600";
-    return "text-red-600";
+    if (pourcentage >= 80) return "text-emerald-300";
+    if (pourcentage >= 60) return "text-amber-300";
+    return "text-rose-300";
   };
 
   const exporterResultats = () => {
@@ -127,7 +152,7 @@ export function ModalStatistiques({ test, onClose }: ModalStatistiquesProps) {
         resultat.candidat.nom,
         resultat.candidat.email,
         resultat.score_obtenu.toString(),
-        `${resultat.pourcentage.toFixed(2)}%`,
+        `${toFiniteNumber(resultat.pourcentage).toFixed(2)}%`,
         resultat.temps_passe_minutes.toString(),
         new Date(resultat.date_passage).toLocaleDateString("en-US"),
         resultat.est_visible ? "Yes" : "No",
@@ -151,38 +176,38 @@ export function ModalStatistiques({ test, onClose }: ModalStatistiquesProps) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg w-full max-w-6xl max-h-[90vh] overflow-y-auto">
-        <div className="p-6 border-b border-gray-200">
-          <div className="flex justify-between items-center">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
+      <div className="max-h-[90vh] w-full max-w-6xl overflow-y-auto rounded-[24px] border border-[#3a215f] bg-[#120b1f] text-white shadow-[0_30px_100px_rgba(0,0,0,0.6)]">
+        <div className="border-b border-white/10 p-6">
+          <div className="flex items-start justify-between gap-4">
             <div>
-              <h3 className="text-lg font-semibold">Statistics - {test.titre}</h3>
-              <p className="text-sm text-gray-600">Review results and performance for this assessment.</p>
+              <h3 className="text-lg font-semibold text-white">Statistics - {test.titre}</h3>
+              <p className="text-sm text-white/60">Review results and performance for this assessment.</p>
             </div>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-              x
+            <button onClick={onClose} className="text-white/50 transition hover:text-white" aria-label="Close">
+              ×
             </button>
           </div>
         </div>
 
-        <div className="border-b border-gray-200">
-          <nav className="flex space-x-8 px-6">
+        <div className="border-b border-white/10">
+          <nav className="flex gap-4 px-6">
             <button
               onClick={() => setOngletActif("stats")}
-              className={`py-4 px-1 border-b-2 font-medium text-sm ${
+              className={`py-4 px-1 border-b-2 text-sm font-medium transition ${
                 ongletActif === "stats"
-                  ? "border-blue-500 text-blue-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  ? "border-violet-400 text-white"
+                  : "border-transparent text-white/55 hover:border-white/20 hover:text-white"
               }`}
             >
               Statistics
             </button>
             <button
               onClick={() => setOngletActif("resultats")}
-              className={`py-4 px-1 border-b-2 font-medium text-sm ${
+              className={`py-4 px-1 border-b-2 text-sm font-medium transition ${
                 ongletActif === "resultats"
-                  ? "border-blue-500 text-blue-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  ? "border-violet-400 text-white"
+                  : "border-transparent text-white/55 hover:border-white/20 hover:text-white"
               }`}
             >
               Results ({resultats.length})
@@ -192,15 +217,15 @@ export function ModalStatistiques({ test, onClose }: ModalStatistiquesProps) {
 
         <div className="p-6">
           {chargement ? (
-            <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="mt-2 text-gray-600">Loading...</p>
+            <div className="py-10 text-center">
+              <div className="mx-auto h-8 w-8 animate-spin rounded-full border-b-2 border-violet-400" />
+              <p className="mt-3 text-white/65">Loading...</p>
             </div>
           ) : erreur ? (
-            <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-md">{erreur}</div>
+            <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-rose-100">{erreur}</div>
           ) : ongletActif === "stats" && statistiques ? (
             <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
                 <MetricCard tone="blue" value={statistiques.statistiques.nombre_participants} label="Participants" />
                 <MetricCard
                   tone="green"
@@ -223,11 +248,11 @@ export function ModalStatistiques({ test, onClose }: ModalStatistiquesProps) {
                 <MetricCard tone="emerald" value={statistiques.statistiques.score_max} label="Maximum score" />
               </div>
 
-              <div className="bg-gray-50 rounded-lg p-6">
-                <h4 className="text-lg font-medium text-gray-900 mb-4">Score distribution</h4>
-                <div className="space-y-2">
+              <div className="rounded-[22px] border border-white/10 bg-white/5 p-6">
+                <h4 className="mb-4 text-lg font-medium text-white">Score distribution</h4>
+                <div className="space-y-3">
                   {[
-                    { range: "0-20%", count: resultats.filter((r) => r.pourcentage < 20).length, color: "bg-red-500" },
+                    { range: "0-20%", count: resultats.filter((r) => r.pourcentage < 20).length, color: "bg-rose-500" },
                     {
                       range: "20-40%",
                       count: resultats.filter((r) => r.pourcentage >= 20 && r.pourcentage < 40).length,
@@ -236,26 +261,26 @@ export function ModalStatistiques({ test, onClose }: ModalStatistiquesProps) {
                     {
                       range: "40-60%",
                       count: resultats.filter((r) => r.pourcentage >= 40 && r.pourcentage < 60).length,
-                      color: "bg-yellow-500",
+                      color: "bg-amber-500",
                     },
                     {
                       range: "60-80%",
                       count: resultats.filter((r) => r.pourcentage >= 60 && r.pourcentage < 80).length,
-                      color: "bg-blue-500",
+                      color: "bg-violet-500",
                     },
-                    { range: "80-100%", count: resultats.filter((r) => r.pourcentage >= 80).length, color: "bg-green-500" },
+                    { range: "80-100%", count: resultats.filter((r) => r.pourcentage >= 80).length, color: "bg-emerald-500" },
                   ].map((item) => (
                     <div key={item.range} className="flex items-center">
-                      <div className="w-16 text-sm text-gray-600">{item.range}</div>
-                      <div className="flex-1 bg-gray-200 rounded-full h-6 mx-3">
+                      <div className="w-16 text-sm text-white/55">{item.range}</div>
+                      <div className="mx-3 h-6 flex-1 rounded-full bg-white/10">
                         <div
-                          className={`${item.color} h-6 rounded-full flex items-center justify-end pr-2`}
+                          className={`${item.color} flex h-6 items-center justify-end rounded-full pr-2`}
                           style={{ width: `${resultats.length > 0 ? (item.count / resultats.length) * 100 : 0}%` }}
                         >
-                          {item.count > 0 && <span className="text-white text-xs font-medium">{item.count}</span>}
+                          {item.count > 0 && <span className="text-xs font-medium text-white">{item.count}</span>}
                         </div>
                       </div>
-                      <div className="w-12 text-sm text-gray-600 text-right">{item.count}</div>
+                      <div className="w-12 text-right text-sm text-white/55">{item.count}</div>
                     </div>
                   ))}
                 </div>
@@ -263,75 +288,75 @@ export function ModalStatistiques({ test, onClose }: ModalStatistiquesProps) {
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <h4 className="text-lg font-medium text-gray-900">Detailed results ({resultats.length})</h4>
+              <div className="flex items-center justify-between gap-4">
+                <h4 className="text-lg font-medium text-white">Detailed results ({resultats.length})</h4>
                 <button
                   onClick={exporterResultats}
-                  className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 text-sm"
+                  className="rounded-xl bg-violet-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-violet-500"
                 >
                   Export CSV
                 </button>
               </div>
 
               {resultats.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
-                  <div className="text-4xl mb-4">Results</div>
+                <div className="py-10 text-center text-white/55">
+                  <div className="mb-4 text-4xl">Results</div>
                   <p>No results available for this test yet.</p>
                 </div>
               ) : (
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
+                <div className="overflow-x-auto rounded-[20px] border border-white/10">
+                  <table className="min-w-full divide-y divide-white/10">
+                    <thead className="bg-white/5">
                       <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-white/50">
                           Candidate
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-white/50">
                           Score
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-white/50">
                           Percentage
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-white/50">
                           Time
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-white/50">
                           Date
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-white/50">
                           Visibility
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
+                    <tbody className="divide-y divide-white/10 bg-transparent">
                       {resultats.map((resultat) => (
-                        <tr key={resultat.id_resultat} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 whitespace-nowrap">
+                        <tr key={resultat.id_resultat} className="hover:bg-white/5">
+                          <td className="whitespace-nowrap px-6 py-4">
                             <div>
-                              <div className="text-sm font-medium text-gray-900">{resultat.candidat.nom}</div>
-                              <div className="text-sm text-gray-500">{resultat.candidat.email}</div>
+                              <div className="text-sm font-medium text-white">{resultat.candidat.nom}</div>
+                              <div className="text-sm text-white/55">{resultat.candidat.email}</div>
                             </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm font-medium text-gray-900">
+                          <td className="whitespace-nowrap px-6 py-4">
+                            <div className="text-sm font-medium text-white">
                               {resultat.score_obtenu} / {test.score_total}
                             </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className={`text-sm font-medium ${getScoreColor(resultat.pourcentage)}`}>
-                              {resultat.pourcentage.toFixed(1)}%
+                          <td className="whitespace-nowrap px-6 py-4">
+                            <div className={`text-sm font-medium ${getScoreColor(toFiniteNumber(resultat.pourcentage))}`}>
+                              {toFiniteNumber(resultat.pourcentage).toFixed(1)}%
                             </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          <td className="whitespace-nowrap px-6 py-4 text-sm text-white/55">
                             {resultat.temps_passe_minutes} min
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          <td className="whitespace-nowrap px-6 py-4 text-sm text-white/55">
                             {new Date(resultat.date_passage).toLocaleDateString("en-US")}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
+                          <td className="whitespace-nowrap px-6 py-4">
                             <span
-                              className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                                resultat.est_visible ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"
+                              className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
+                                resultat.est_visible ? "bg-emerald-500/15 text-emerald-200" : "bg-white/10 text-white/70"
                               }`}
                             >
                               {resultat.est_visible ? "Visible" : "Hidden"}
@@ -347,9 +372,13 @@ export function ModalStatistiques({ test, onClose }: ModalStatistiquesProps) {
           )}
         </div>
 
-        <div className="px-6 py-4 border-t border-gray-200 flex justify-end">
-          <button onClick={onClose} className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50" aria-label="Close">
-            ✕
+        <div className="flex justify-end border-t border-white/10 px-6 py-4">
+          <button
+            onClick={onClose}
+            className="rounded-xl border border-white/15 px-4 py-2 text-white/80 transition hover:bg-white/5"
+            aria-label="Close"
+          >
+            ×
           </button>
         </div>
       </div>
@@ -369,18 +398,18 @@ function MetricCard({
   detail?: string;
 }) {
   const styles = {
-    blue: "bg-blue-50 text-blue-600 text-blue-800",
-    green: "bg-green-50 text-green-600 text-green-800",
-    purple: "bg-purple-50 text-purple-600 text-purple-800",
-    orange: "bg-orange-50 text-orange-600 text-orange-800",
-    red: "bg-red-50 text-red-600 text-red-800",
-    emerald: "bg-emerald-50 text-emerald-600 text-emerald-800",
+    blue: "bg-violet-500/12 text-violet-100 border-violet-400/20",
+    green: "bg-emerald-500/12 text-emerald-100 border-emerald-400/20",
+    purple: "bg-fuchsia-500/12 text-fuchsia-100 border-fuchsia-400/20",
+    orange: "bg-amber-500/12 text-amber-100 border-amber-400/20",
+    red: "bg-rose-500/12 text-rose-100 border-rose-400/20",
+    emerald: "bg-cyan-500/12 text-cyan-100 border-cyan-400/20",
   }[tone].split(" ");
 
   return (
-    <div className={`${styles[0]} rounded-lg p-6 text-center`}>
+    <div className={`${styles[0]} rounded-[20px] border p-6 text-center shadow-[0_12px_30px_rgba(0,0,0,0.18)]`}>
       <div className={`text-3xl font-bold ${styles[1]}`}>{value}</div>
-      <div className={`font-medium ${styles[2]}`}>{label}</div>
+      <div className={`font-medium ${styles[1]}`}>{label}</div>
       {detail ? <div className={`text-sm ${styles[1]}`}>{detail}</div> : null}
     </div>
   );

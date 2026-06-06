@@ -23,6 +23,7 @@ type OffreEntreprise = {
   competences_requises?: string;
   experience_requise?: string;
   niveau_etude?: string;
+  ai_shortlist_min_score?: number;
   created_at: string;
   candidatures_count: number;
   vues_count: number;
@@ -43,6 +44,7 @@ type OffreFormulaire = {
   competences_requises: string;
   experience_requise: string;
   niveau_etude: string;
+  ai_shortlist_min_score: string;
 };
 
 const PAGE_SIZE = 12;
@@ -195,6 +197,7 @@ function mapOffreToFormulaire(offre: OffreEntreprise): OffreFormulaire {
     competences_requises: offre.competences_requises || "",
     experience_requise: offre.experience_requise || "",
     niveau_etude: offre.niveau_etude || "",
+    ai_shortlist_min_score: typeof offre.ai_shortlist_min_score === "number" ? String(offre.ai_shortlist_min_score) : "",
   };
 }
 
@@ -331,6 +334,7 @@ function MesOffresPage() {
         type_poste: typePosteNormalise,
         salaire_min: salaireMin === null ? "" : String(salaireMin),
         salaire_max: salaireMax === null ? "" : String(salaireMax),
+        ai_shortlist_min_score: aiThresholdValue === null ? "60" : String(aiThresholdValue),
       };
 
       const response = await authenticatedFetch(construireUrlApi("/api/entreprise/offres"), {
@@ -388,6 +392,7 @@ function MesOffresPage() {
         type_poste: typePosteNormalise,
         salaire_min: salaireMin === null ? "" : String(salaireMin),
         salaire_max: salaireMax === null ? "" : String(salaireMax),
+        ai_shortlist_min_score: aiThresholdValue === null ? "60" : String(aiThresholdValue),
       };
       const response = await authenticatedFetch(construireUrlApi(`/api/entreprise/offres/${id}`), {
         method: "PUT",
@@ -1773,6 +1778,7 @@ function ModalCreationOffre({
       competences_requises: "",
       experience_requise: "",
       niveau_etude: "",
+      ai_shortlist_min_score: "60",
     },
   );
 
@@ -1786,8 +1792,12 @@ function ModalCreationOffre({
   );
   const salaireMinValue = parseNonNegativeSalary(formData.salaire_min);
   const salaireMaxValue = parseNonNegativeSalary(formData.salaire_max);
+  const aiThresholdValue = parseNonNegativeSalary(formData.ai_shortlist_min_score);
   const salaireMinInvalide = formData.salaire_min.trim() !== "" && salaireMinValue === null;
   const salaireMaxInvalide = formData.salaire_max.trim() !== "" && salaireMaxValue === null;
+  const aiThresholdInvalide =
+    formData.ai_shortlist_min_score.trim() !== "" &&
+    (aiThresholdValue === null || aiThresholdValue < 0 || aiThresholdValue > 100);
   const salaireRangeInvalide =
     salaireMinValue !== null && salaireMaxValue !== null && salaireMaxValue < salaireMinValue;
 
@@ -1838,6 +1848,10 @@ function ModalCreationOffre({
 
     if (salaireRangeInvalide) {
       erreurs.push("La valeur du salaire maximum doit etre superieure ou egale a la valeur du salaire minimum.");
+    }
+
+    if (aiThresholdInvalide) {
+      erreurs.push("Le seuil IA doit etre un nombre valide entre 0 et 100.");
     }
 
     if (!formData.date_limite || formData.date_limite < minimumDeadlineDate) {
@@ -1898,6 +1912,7 @@ function ModalCreationOffre({
     !formData.localisation ||
     salaireMinInvalide ||
     salaireMaxInvalide ||
+    aiThresholdInvalide ||
     salaireRangeInvalide ||
     !formData.date_limite ||
     formData.date_limite < minimumDeadlineDate ||
@@ -2126,10 +2141,26 @@ function ModalCreationOffre({
             </option>
             {educationOptions.map((option) => (
               <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </select>
+              {option}
+            </option>
+          ))}
+        </select>
+      </div>
+
+        <div>
+          <label className={labelClass}>Seuil IA (%)</label>
+          <input
+            type="number"
+            min="0"
+            max="100"
+            step="1"
+            name="ai_shortlist_min_score"
+            value={formData.ai_shortlist_min_score}
+            onChange={handleChange}
+            className={`${fieldBaseClass} ${aiThresholdInvalide ? "!border-red-300 bg-red-50" : formData.ai_shortlist_min_score ? "!border-green-300 bg-green-50" : ""}`}
+            placeholder="60"
+          />
+          <p className="mt-1 text-xs text-[#7c748f]">Score minimum pour shortlist automatique.</p>
         </div>
       </div>
 

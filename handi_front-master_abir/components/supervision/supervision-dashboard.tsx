@@ -1,11 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import {
-  BriefcaseBusiness,
-  Building2,
-  FileClock,
-  ShieldAlert,
+  ArrowUpRight,
 } from "lucide-react";
 import {
   CartesianGrid,
@@ -36,6 +32,8 @@ interface TableRow {
   company: string;
   location: string;
   status: "conforme" | "a-ameliorer" | "non-conforme";
+  offers: number;
+  applications: number;
 }
 
 const DONUT_COLORS = ["#26B36A", "#F4A22D", "#E0414D"];
@@ -76,6 +74,8 @@ function monitoredRows(companies: SupervisedCompaniesMapResponse["companies"]): 
       company: entry.company_name,
       location: entry.region || "Non renseigne",
       status,
+      offers: entry.offers_count,
+      applications: entry.applications_count,
     };
   });
 }
@@ -85,7 +85,6 @@ export function SupervisionDashboard() {
   const overviewQuery = useSupervisionQuery<SupervisionOverview>("/statistics/overview");
   const pipelineQuery = useSupervisionQuery<PipelineResponse>("/pipeline");
   const mapQuery = useSupervisionQuery<SupervisedCompaniesMapResponse>("/companies-map");
-  const [delegationFilter, setDelegationFilter] = useState("");
 
   const safeOverview: SupervisionOverview = overviewQuery.data ?? {
     scope: { role: "inspecteur", region: null, visibility: "territorial" },
@@ -110,14 +109,17 @@ export function SupervisionDashboard() {
   };
 
   const allCompanies = mapQuery.data?.companies ?? [];
-  const availableDelegations = Array.from(new Set(allCompanies.map((company) => company.region).filter(Boolean))).sort((a, b) =>
-    a.localeCompare(b),
-  );
-  const defaultDelegation = mapQuery.data?.scope.region || "";
-  const effectiveDelegation = delegationFilter || defaultDelegation;
-  const filteredCompanies = effectiveDelegation
-    ? allCompanies.filter((company) => company.region === effectiveDelegation)
-    : allCompanies;
+  const safePipeline = pipelineQuery.data ?? {
+    totals: {
+      offers_count: 0,
+      applications_count: 0,
+      shortlisted_count: 0,
+      interviews_count: 0,
+      hired_count: 0,
+      rejected_count: 0,
+    },
+    by_company: [],
+  };
 
   const lineData = lineSeriesFromOverview(safeOverview);
   const donutData = [
@@ -126,9 +128,18 @@ export function SupervisionDashboard() {
     { label: "Non conformes", value: safeOverview.totals.rejected_reports },
   ];
   const donutTotal = Math.max(1, donutData.reduce((sum, item) => sum + item.value, 0));
-  const tableRows = monitoredRows(filteredCompanies.length ? filteredCompanies : allCompanies);
-  const mapEmbedUrl = `https://maps.google.com/maps?q=${encodeURIComponent(buildMapEmbedQuery(filteredCompanies[0]))}&z=10&output=embed`;
-  const mapMarkers = (filteredCompanies.length ? filteredCompanies : allCompanies).slice(0, 6);
+  const tableRows = monitoredRows(allCompanies);
+  const mapEmbedUrl = `https://maps.google.com/maps?q=${encodeURIComponent(buildMapEmbedQuery(allCompanies[0]))}&z=10&output=embed`;
+  const topAttentionRows = tableRows.filter((row) => row.status !== "conforme");
+  const recentActivity = safePipeline.by_company
+    .slice()
+    .sort((a, b) => b.applications_count - a.applications_count)
+    .slice(0, 4);
+  const overviewActions = (
+    <ButtonLink href="/supervision/reports" variant="secondary" size="sm">
+      Revoir les rapports
+    </ButtonLink>
+  );
 
   if (overviewQuery.loading || pipelineQuery.loading) {
     return (
@@ -154,89 +165,62 @@ export function SupervisionDashboard() {
   }
 
   return (
-    <SupervisionShell>
-      <section className={styles.kpiGrid} aria-label="Indicateurs cles">
-        <article className={styles.kpiCard}>
-          <span className={styles.kpiIcon}><Building2 size={18} /></span>
-          <h2>Entreprises supervisees</h2>
-          <strong>{safeOverview.totals.total_companies || 42}</strong>
-          <small className={styles.positiveTrend}>+5 ce mois</small>
-        </article>
-        <article className={styles.kpiCard}>
-          <span className={styles.kpiIcon}><BriefcaseBusiness size={18} /></span>
-          <h2>Offres ouvertes</h2>
-          <strong>{safeOverview.totals.total_offers || 18}</strong>
-          <small className={styles.positiveTrend}>+3 ce mois</small>
-        </article>
-        <article className={styles.kpiCard}>
-          <span className={styles.kpiIcon}><FileClock size={18} /></span>
-          <h2>Rapports en attente</h2>
-          <strong>{safeOverview.totals.submitted_reports || 12}</strong>
-          <small className={styles.neutralTrend}>-2 ce mois</small>
-        </article>
-        <article className={styles.kpiCard}>
-          <span className={styles.kpiIcon}><ShieldAlert size={18} /></span>
-          <h2>Alertes conformite</h2>
-          <strong>{safeOverview.totals.rejected_reports || 3}</strong>
-          <small className={styles.negativeTrend}>+1 critique</small>
-        </article>
-      </section>
-
-      <section className={styles.dashboardGrid} aria-label="Vue supervision principale">
-        <article className={`${styles.panelCard} ${styles.mapPanel} ${styles.spanAll}`}>
-          <header className={styles.panelHeader}>
-            <h3>Carte regionale</h3>
-          </header>
-          <div className={styles.mapFrame}>
-            <iframe title="Carte regionale supervision" src={mapEmbedUrl} loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
-            <div className={styles.mapPins} aria-hidden="true">
-              {mapMarkers.map((company, index) => (
-                <span key={company.company_id} style={{ left: `${18 + index * 13}%`, top: `${18 + (index % 3) * 22}%` }}>
-                  {index + 2}
-                </span>
-              ))}
+    <SupervisionShell
+      badge="Espace inspecteur"
+      actions={overviewActions}
+    >
+      <section className={styles.heroStrip} aria-label="Resume executive">
+        <article className={styles.heroCard}>
+          <div className={styles.sectionHeading}>
+            <div>
+              <h2>Carte regionale</h2>
+              <p>
+                Visualisez les zones actives et les entreprises a accompagner en priorite.
+              </p>
             </div>
           </div>
 
-          <div className={styles.tableHeader}>
-            <h4>Entreprises a surveiller</h4>
-            <label htmlFor="delegation-select">Delegation</label>
-            <select
-              id="delegation-select"
-              value={delegationFilter}
-              onChange={(event) => setDelegationFilter(event.target.value)}
-            >
-              <option value="">Toutes les delegations</option>
-              {availableDelegations.map((entry) => (
-                <option key={entry} value={entry}>{entry}</option>
-              ))}
-            </select>
+          <div className={styles.mapFrame}>
+            <iframe title="Carte regionale supervision" src={mapEmbedUrl} loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
           </div>
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th>Entreprise</th>
-                <th>Localisation</th>
-                <th>Conformite</th>
-              </tr>
-            </thead>
-            <tbody>
-              {tableRows.map((row) => (
-                <tr key={row.id}>
-                  <td>{row.company}</td>
-                  <td>{row.location}</td>
-                  <td>
-                    <span className={row.status === "conforme" ? styles.badgeGood : row.status === "non-conforme" ? styles.badgeCritical : styles.badgeWarning}>
-                      {row.status === "conforme" ? "Conforme" : row.status === "non-conforme" ? "Non conforme" : "A surveiller"}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
         </article>
 
-        <article className={`${styles.panelCard} ${styles.spanTwo}`}>
+        <div className={styles.insightsRail}>
+          <article className={`${styles.panelCard} ${styles.complianceSplitCard}`}>
+            <header className={styles.panelHeader}>
+              <h3>Repartition par niveau de conformite</h3>
+            </header>
+            <div className={styles.donutWrap}>
+              <div className={styles.donutChart}>
+                <ResponsiveContainer width="100%" height={220}>
+                  <PieChart>
+                    <Pie data={donutData} dataKey="value" innerRadius={52} outerRadius={78} paddingAngle={2}>
+                      {donutData.map((entry, index) => (
+                        <Cell key={entry.label} fill={DONUT_COLORS[index]} />
+                      ))}
+                    </Pie>
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              <ul className={styles.donutLegend}>
+                {donutData.map((entry, index) => {
+                  const percent = Math.round((entry.value / donutTotal) * 100);
+                  return (
+                    <li key={entry.label}>
+                      <span style={{ backgroundColor: DONUT_COLORS[index] }} aria-hidden="true" />
+                      <p>{entry.label}</p>
+                      <strong>{entry.value} ({percent}%)</strong>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section className={styles.dashboardGrid} aria-label="Vue supervision principale">
+        <article className={styles.panelCard}>
           <header className={styles.panelHeader}>
             <h3>Evolution de la conformite</h3>
             <span className={styles.panelMeta}>6 derniers mois</span>
@@ -262,33 +246,44 @@ export function SupervisionDashboard() {
 
         <article className={styles.panelCard}>
           <header className={styles.panelHeader}>
-            <h3>Repartition par niveau de conformite</h3>
+            <h3>Activite recente</h3>
+            <ButtonLink href="/supervision/pipeline" variant="secondary" size="sm">
+              Voir le detail
+            </ButtonLink>
           </header>
-          <div className={styles.donutWrap}>
-            <div className={styles.donutChart}>
-              <ResponsiveContainer width="100%" height={220}>
-                <PieChart>
-                  <Pie data={donutData} dataKey="value" innerRadius={52} outerRadius={78} paddingAngle={2}>
-                    {donutData.map((entry, index) => (
-                      <Cell key={entry.label} fill={DONUT_COLORS[index]} />
-                    ))}
-                  </Pie>
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-            <ul className={styles.donutLegend}>
-              {donutData.map((entry, index) => {
-                const percent = Math.round((entry.value / donutTotal) * 100);
-                return (
-                  <li key={entry.label}>
-                    <span style={{ backgroundColor: DONUT_COLORS[index] }} aria-hidden="true" />
-                    <p>{entry.label}</p>
-                    <strong>{entry.value} ({percent}%)</strong>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
+          <ul className={styles.activityList}>
+            {recentActivity.map((company) => (
+              <li key={company.company_id} className={styles.activityRow}>
+                <strong>{company.company_name}</strong>
+                <p>{company.region} · {company.offers_count} offres actives</p>
+                <div className={styles.activityRowMeta}>
+                  <span>{company.applications_count} candidatures</span>
+                  <span>{company.shortlisted_count} preselectionnes</span>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </article>
+
+        <article className={styles.panelCard}>
+          <header className={styles.panelHeader}>
+            <h3>Entreprises requierant une attention</h3>
+            <span className={styles.panelMeta}>Priorisation terrain</span>
+          </header>
+          <ul className={styles.attentionList}>
+            {(topAttentionRows.length ? topAttentionRows : tableRows).map((row) => (
+              <li key={row.id} className={styles.attentionRow}>
+                <strong>{row.company}</strong>
+                <p>{row.location} · {row.offers} offres · {row.applications} candidatures</p>
+                <div className={styles.attentionRowMeta}>
+                  <span className={row.status === "non-conforme" ? styles.tagCritical : row.status === "a-ameliorer" ? styles.tagWarning : styles.tagSuccess}>
+                    {row.status === "non-conforme" ? "Non conforme" : row.status === "a-ameliorer" ? "A surveiller" : "Conforme"}
+                  </span>
+                  <span><ArrowUpRight size={14} /> Action recommandee</span>
+                </div>
+              </li>
+            ))}
+          </ul>
         </article>
       </section>
 

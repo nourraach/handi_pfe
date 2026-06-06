@@ -619,6 +619,10 @@ export default function CandidaturesCompanyPage() {
   const candidaturesFiltrees = useMemo(
     () =>
       candidatures.filter((candidature) => {
+        if (!filtreStatus && candidature.statut === "rejected") {
+          return false;
+        }
+
         if (!filtreOffre) {
           return true;
         }

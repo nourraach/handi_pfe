@@ -1092,9 +1092,19 @@ function MesCandidaturesPage() {
 
                       {candidature.uiStatut === "shortlist" || candidature.uiStatut === "rejected" ? (
                         <div className="applications-hub-cardactions">
-                          <Button className="applications-hub-detailsbutton" onClick={() => ouvrirDetails(candidature)}>
-                            {copy.viewDetails}
-                          </Button>
+                          {candidature.uiStatut === "shortlist" ? (
+                            <Button
+                              className="applications-hub-detailsbutton"
+                              onClick={() => ouvrirDetails(candidature)}
+                              aria-label={`Préparez-vous pour ${candidature.offre.titre}`}
+                            >
+                              Préparez-vous
+                            </Button>
+                          ) : (
+                            <Button className="applications-hub-detailsbutton" onClick={() => ouvrirDetails(candidature)}>
+                              {copy.viewDetails}
+                            </Button>
+                          )}
                         </div>
                       ) : null}
                     </Card>

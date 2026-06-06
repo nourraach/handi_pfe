@@ -41,10 +41,19 @@ const uploadEntrepriseDocuments = multer({
   storage: stockageEntreprise,
   limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: (_req, file, cb) => {
-    if (file.fieldname === "logo") {
-      const allowed = new Set(["image/png", "image/jpeg", "image/jpg", "image/webp", "image/svg+xml"]);
+    if (file.fieldname === "logo" || file.fieldname === "patente") {
+      const allowed =
+        file.fieldname === "logo"
+          ? new Set(["image/png", "image/jpeg", "image/jpg", "image/webp", "image/svg+xml"])
+          : new Set(["image/png", "image/jpeg", "image/jpg", "image/webp"]);
       if (!allowed.has(file.mimetype)) {
-        return cb(new Error("Format logo invalide. Utilisez PNG, JPG, WEBP ou SVG."));
+        return cb(
+          new Error(
+            file.fieldname === "logo"
+              ? "Format logo invalide. Utilisez PNG, JPG, WEBP ou SVG."
+              : "La patente doit etre une image (PNG, JPG ou WEBP)."
+          )
+        );
       }
     }
     cb(null, true);

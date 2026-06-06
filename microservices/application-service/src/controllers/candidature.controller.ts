@@ -1,6 +1,8 @@
 // @ts-nocheck
 import { Request, Response } from "express";
 import { CandidatureService } from "../services/candidature.service";
+import { canAccessApplications } from "../services/authorization.service";
+import { logAuthorizationAttempt } from "../services/audit-logger.service";
 import { reponseSucces, reponseErreur } from "../utils/reponse";
 import { asString } from "../utils/request-helpers";
 import { ErreurApi } from "../utils/erreur-api";
@@ -147,6 +149,52 @@ export class CandidatureController {
   // GET /api/candidatures/offre/:idOffre
   obtenirCandidaturesParOffre = async (req: Request, res: Response) => {
     try {
+      const idOffre = asString(req.params.idOffre);
+      const userId = (req.headers["x-user-id"] as string) || req.utilisateur?.id_utilisateur;
+      const userRole = (req.headers["x-user-role"] as string) || req.utilisateur?.role || "";
+      const requestId = req.headers["x-request-id"] as string;
+      
+      // Check authorization using the new authorization service
+      const authResult = await canAccessApplications(userId!, userRole, idOffre);
+      
+      // Log authorization attempt
+      await logAuthorizationAttempt({
+        requestId,
+        userId: userId!,
+        userRole,
+        serviceName: "application-service",
+        actionType: "APPLICATION_ACCESS",
+        resourceType: "APPLICATION",
+        resourceId: idOffre,
+        authorizationResult: authResult.allowed ? "ALLOWED" : "DENIED",
+        denialReason: authResult.reason,
+        httpMethod: req.method,
+        httpPath: req.path,
+        ipAddress: (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() || req.socket.remoteAddress,
+        userAgent: req.headers["user-agent"],
+        additionalContext: {
+          filterByCandidateId: authResult.filterByCandidateId,
+        },
+      });
+      
+      // If authorization failed, return 403
+      if (!authResult.allowed) {
+        return reponseErreur(res, 403, authResult.reason || "Accès non autorisé");
+      }
+      
+      // Authorization passed - fetch applications
+      // For candidates, use filterByCandidateId to restrict to own applications
+      if (authResult.filterByCandidateId) {
+        // Candidate: show only their own applications
+        const idCandidat = await this.obtenirIdCandidatDepuisRequete(req);
+        if (!idCandidat) {
+          return reponseErreur(res, 403, "Acces reserve aux candidats");
+        }
+        const candidatures = await this.candidatureService.obtenirCandidaturesCandidat(idCandidat);
+        return reponseSucces(res, candidatures, "Candidatures recuperees avec succes");
+      }
+
+      // Enterprise: verify ownership and fetch all applications for the offer
       const idEntreprise = req.utilisateur?.entreprise?.id;
       if (!idEntreprise || req.utilisateur.role !== "entreprise") {
         return reponseErreur(res, 403, "Acces reserve aux entreprises");
@@ -164,7 +212,7 @@ export class CandidatureController {
       };
 
       const candidatures = await this.candidatureService.obtenirCandidaturesParOffre(
-        asString(req.params.idOffre),
+        idOffre,
         idEntreprise,
         filtres
       );

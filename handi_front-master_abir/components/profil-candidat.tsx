@@ -172,12 +172,12 @@ export function ProfilCandidat({ utilisateur, lectureSeule = false }: ProfilCand
   );
 
   useEffect(() => {
-    if (!recommendedMode || settings.activeQuickMode === recommendedMode) {
+    if (lectureSeule || !recommendedMode || settings.activeQuickMode === recommendedMode) {
       return;
     }
 
     applyMode(recommendedMode);
-  }, [applyMode, recommendedMode, settings.activeQuickMode]);
+  }, [applyMode, lectureSeule, recommendedMode, settings.activeQuickMode]);
 
   useEffect(() => {
     if (!photoFile) {

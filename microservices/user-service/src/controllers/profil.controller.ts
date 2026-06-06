@@ -1,10 +1,23 @@
 import { Request, Response, NextFunction } from "express";
+import fs from "fs/promises";
 import { ProfilService } from "../services/profil.service";
+import { canAccessCv } from "../services/cv-authorization.service";
+import { logAuthorizationAttempt } from "../services/audit-logger.service";
 import { reponseSucces } from "../utils/reponse";
 import { ErreurApi } from "../utils/erreur-api";
 
 const estDemandeSuppression = (valeur: unknown) =>
   typeof valeur === "string" ? ["1", "true", "yes", "on"].includes(valeur.toLowerCase()) : valeur === true;
+
+async function convertirImageEnDataUrl(fichier?: Express.Multer.File) {
+  if (!fichier?.path || !fichier.mimetype?.startsWith("image/")) {
+    return undefined;
+  }
+
+  const contenu = await fs.readFile(fichier.path);
+  await fs.unlink(fichier.path).catch(() => undefined);
+  return `data:${fichier.mimetype};base64,${contenu.toString("base64")}`;
+}
 
 export class ProfilController {
   constructor(private readonly profilService = new ProfilService()) {}
@@ -19,12 +32,40 @@ export class ProfilController {
         throw new ErreurApi("ID utilisateur manquant.", 400);
       }
 
-      // Vérifier que l'utilisateur peut accéder à ce profil
-      const estAdmin = utilisateurConnecte?.role === "admin";
-      if (utilisateurConnecte?.id_utilisateur !== id_utilisateur && !estAdmin) {
-        throw new ErreurApi("Accès non autorisé à ce profil.", 403);
+      // Extract user context from API Gateway headers (X-User-Id, X-User-Role)
+      const requesterId = (requete.headers["x-user-id"] as string) || utilisateurConnecte?.id_utilisateur;
+      const requesterRole = (requete.headers["x-user-role"] as string) || utilisateurConnecte?.role || "";
+      const requestId = requete.headers["x-request-id"] as string;
+      
+      // Check CV access authorization using the new authorization service
+      const authResult = await canAccessCv(requesterId!, requesterRole, id_utilisateur);
+
+      // Log the authorization attempt (success or failure)
+      await logAuthorizationAttempt({
+        requestId,
+        userId: requesterId!,
+        userRole: requesterRole,
+        serviceName: "user-service",
+        actionType: "CV_ACCESS",
+        resourceType: "CV",
+        resourceId: id_utilisateur,
+        authorizationResult: authResult.allowed ? "ALLOWED" : "DENIED",
+        denialReason: authResult.reason,
+        httpMethod: requete.method,
+        httpPath: requete.path,
+        ipAddress: (requete.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() || requete.socket.remoteAddress,
+        userAgent: requete.headers["user-agent"],
+        additionalContext: {
+          requiresApplication: authResult.requiresApplication,
+        },
+      });
+
+      // If authorization failed, return 403 error
+      if (!authResult.allowed) {
+        throw new ErreurApi(authResult.reason || "Accès non autorisé à ce profil.", 403);
       }
 
+      // Authorization passed - fetch and return the profile
       const resultat = await this.profilService.obtenirProfilCandidat(id_utilisateur);
       return reponseSucces(reponse, 200, resultat.message, resultat.donnees);
     } catch (erreur) {
@@ -110,7 +151,8 @@ export class ProfilController {
       }
 
       // Vérifier que l'utilisateur peut accéder à ce profil
-      if (utilisateurConnecte?.id_utilisateur !== id_utilisateur && utilisateurConnecte?.role !== "admin") {
+      const rolesLectureEntreprise = new Set(["admin", "inspecteur", "aneti"]);
+      if (utilisateurConnecte?.id_utilisateur !== id_utilisateur && !rolesLectureEntreprise.has(utilisateurConnecte?.role || "")) {
         throw new ErreurApi("Accès non autorisé à ce profil.", 403);
       }
 
@@ -150,9 +192,10 @@ export class ProfilController {
       const rneFile = (requete as any).files?.rne?.[0];
       const logoFile = (requete as any).files?.logo?.[0];
       const removeLogo = estDemandeSuppression(requete.body?.remove_logo);
+      const patenteDataUrl = await convertirImageEnDataUrl(patenteFile);
 
       const resultat = await this.profilService.mettreAJourDocumentsEntreprise(utilisateurConnecte.id_utilisateur, {
-        patente: patenteFile?.path ? patenteFile.path.replace(/^.*public[\\/]/, "/") : undefined,
+        patente: patenteDataUrl,
         rne: rneFile?.path ? rneFile.path.replace(/^.*public[\\/]/, "/") : undefined,
         logo_url: logoFile?.path ? logoFile.path.replace(/^.*public[\\/]/, "/") : removeLogo ? "" : undefined,
       });

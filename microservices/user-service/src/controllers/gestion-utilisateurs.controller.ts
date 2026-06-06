@@ -7,7 +7,6 @@ import { StatistiquesQueryDto } from "../dto/gestion-utilisateurs.dto";
 export class GestionUtilisateursController {
   constructor(private readonly service = new GestionUtilisateursService()) {}
 
-  // Lister les utilisateurs
   listerUtilisateurs = async (requete: Request, reponse: Response, suivant: NextFunction) => {
     try {
       const query = {
@@ -27,7 +26,6 @@ export class GestionUtilisateursController {
     }
   };
 
-  // Récupérer un utilisateur spécifique
   obtenirUtilisateur = async (requete: Request, reponse: Response, suivant: NextFunction) => {
     try {
       const id_utilisateur = requete.params.id_utilisateur as string;
@@ -43,12 +41,11 @@ export class GestionUtilisateursController {
     }
   };
 
-  // Créer un nouvel utilisateur
   creerUtilisateur = async (requete: Request, reponse: Response, suivant: NextFunction) => {
     try {
       const adminId = requete.utilisateur?.id_utilisateur;
       if (!adminId) {
-        throw new ErreurApi("Utilisateur non authentifié", 401);
+        throw new ErreurApi("Utilisateur non authentifie", 401);
       }
 
       const resultat = await this.service.creerUtilisateur(requete.body, adminId);
@@ -58,7 +55,6 @@ export class GestionUtilisateursController {
     }
   };
 
-  // Modifier un utilisateur
   modifierUtilisateur = async (requete: Request, reponse: Response, suivant: NextFunction) => {
     try {
       const id_utilisateur = requete.params.id_utilisateur as string;
@@ -68,7 +64,7 @@ export class GestionUtilisateursController {
         throw new ErreurApi("ID utilisateur manquant", 400);
       }
       if (!adminId) {
-        throw new ErreurApi("Utilisateur non authentifié", 401);
+        throw new ErreurApi("Utilisateur non authentifie", 401);
       }
 
       const resultat = await this.service.modifierUtilisateur(id_utilisateur, requete.body, adminId);
@@ -78,7 +74,6 @@ export class GestionUtilisateursController {
     }
   };
 
-  // Supprimer un utilisateur
   supprimerUtilisateur = async (requete: Request, reponse: Response, suivant: NextFunction) => {
     try {
       const id_utilisateur = requete.params.id_utilisateur as string;
@@ -88,7 +83,7 @@ export class GestionUtilisateursController {
         throw new ErreurApi("ID utilisateur manquant", 400);
       }
       if (!adminId) {
-        throw new ErreurApi("Utilisateur non authentifié", 401);
+        throw new ErreurApi("Utilisateur non authentifie", 401);
       }
 
       const resultat = await this.service.supprimerUtilisateur(id_utilisateur, adminId);
@@ -98,7 +93,6 @@ export class GestionUtilisateursController {
     }
   };
 
-  // Changer le statut d'un utilisateur
   changerStatut = async (requete: Request, reponse: Response, suivant: NextFunction) => {
     try {
       const id_utilisateur = requete.params.id_utilisateur as string;
@@ -108,7 +102,7 @@ export class GestionUtilisateursController {
         throw new ErreurApi("ID utilisateur manquant", 400);
       }
       if (!adminId) {
-        throw new ErreurApi("Utilisateur non authentifié", 401);
+        throw new ErreurApi("Utilisateur non authentifie", 401);
       }
 
       const resultat = await this.service.changerStatut(id_utilisateur, requete.body, adminId);
@@ -118,7 +112,6 @@ export class GestionUtilisateursController {
     }
   };
 
-  // Réinitialiser le mot de passe
   reinitialiserMotDePasse = async (requete: Request, reponse: Response, suivant: NextFunction) => {
     try {
       const id_utilisateur = requete.params.id_utilisateur as string;
@@ -128,7 +121,7 @@ export class GestionUtilisateursController {
         throw new ErreurApi("ID utilisateur manquant", 400);
       }
       if (!adminId) {
-        throw new ErreurApi("Utilisateur non authentifié", 401);
+        throw new ErreurApi("Utilisateur non authentifie", 401);
       }
 
       const resultat = await this.service.reinitialiserMotDePasse(id_utilisateur, adminId);
@@ -138,7 +131,6 @@ export class GestionUtilisateursController {
     }
   };
 
-  // Recherche avancée
   rechercheAvancee = async (requete: Request, reponse: Response, suivant: NextFunction) => {
     try {
       const resultat = await this.service.rechercheAvancee(requete.body);
@@ -148,7 +140,6 @@ export class GestionUtilisateursController {
     }
   };
 
-  // Obtenir les statistiques détaillées
   obtenirStatistiques = async (requete: Request, reponse: Response, suivant: NextFunction) => {
     try {
       const periode = requete.query.periode as string;
@@ -157,8 +148,8 @@ export class GestionUtilisateursController {
         dateFin: requete.query.dateFin as string,
       };
 
-      if (periode && ['jour', 'semaine', 'mois', 'annee'].includes(periode)) {
-        query.periode = periode as 'jour' | 'semaine' | 'mois' | 'annee';
+      if (periode && ["jour", "semaine", "mois", "annee"].includes(periode)) {
+        query.periode = periode as "jour" | "semaine" | "mois" | "annee";
       }
 
       const resultat = await this.service.obtenirStatistiquesDetaillees(query);
@@ -168,7 +159,6 @@ export class GestionUtilisateursController {
     }
   };
 
-  // Obtenir l'historique des actions
   obtenirHistorique = async (requete: Request, reponse: Response, suivant: NextFunction) => {
     try {
       const id_utilisateur = requete.params.id_utilisateur as string;
@@ -184,7 +174,6 @@ export class GestionUtilisateursController {
     }
   };
 
-  // Exporter les utilisateurs
   exporterUtilisateurs = async (requete: Request, reponse: Response, suivant: NextFunction) => {
     try {
       const query = {
@@ -192,19 +181,18 @@ export class GestionUtilisateursController {
         statut: requete.query.statut as string,
         dateDebut: requete.query.dateDebut as string,
         dateFin: requete.query.dateFin as string,
-        format: (requete.query.format as string || 'csv') as 'csv' | 'xlsx',
+        format: ((requete.query.format as string) || "csv") as "csv" | "xlsx",
       };
 
       const resultat = await this.service.exporterUtilisateurs(query);
 
-      if (query.format === 'csv') {
-        reponse.setHeader('Content-Type', 'text/csv');
-        reponse.setHeader('Content-Disposition', `attachment; filename="${resultat.filename}"`);
+      if (query.format === "csv") {
+        reponse.setHeader("Content-Type", "text/csv");
+        reponse.setHeader("Content-Disposition", `attachment; filename="${resultat.filename}"`);
         return reponse.send(resultat.content);
       }
 
-      // Pour d'autres formats, retourner les données JSON
-      return reponseSucces(reponse, 200, "Export généré avec succès", resultat);
+      return reponseSucces(reponse, 200, "Export Excel genere avec succes", resultat);
     } catch (erreur) {
       return suivant(erreur);
     }

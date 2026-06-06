@@ -17,6 +17,21 @@ export class OffreEmploiService {
     }
     return row.id;
   }
+
+  private normaliserSeuilIa(valeur: unknown, defaut = 60): number {
+    const brut =
+      typeof valeur === "number"
+        ? valeur
+        : typeof valeur === "string"
+          ? Number.parseFloat(valeur.replace(",", "."))
+          : defaut;
+
+    if (!Number.isFinite(brut)) {
+      return defaut;
+    }
+
+    return Math.max(0, Math.min(100, Math.round(brut)));
+  }
   
   async obtenirOffresParEntreprise(idEntreprise: string): Promise<OffreAvecStatistiquesDto[]> {
     try {
@@ -34,6 +49,7 @@ export class OffreEmploiService {
           competences_requises: offreEmploiTable.competences_requises,
           experience_requise: offreEmploiTable.experience_requise,
           niveau_etude: offreEmploiTable.niveau_etude,
+          ai_shortlist_min_score: offreEmploiTable.ai_shortlist_min_score,
           statut: offreEmploiTable.statut,
           date_limite: offreEmploiTable.date_limite,
           accessibilite_handicap: offreEmploiTable.accessibilite_handicap,
@@ -59,6 +75,7 @@ export class OffreEmploiService {
         competences_requises: offre.competences_requises || undefined,
         experience_requise: offre.experience_requise || undefined,
         niveau_etude: offre.niveau_etude || undefined,
+        ai_shortlist_min_score: offre.ai_shortlist_min_score ?? 60,
         amenagements_possibles: offre.amenagements_possibles || undefined,
         accessibilite_handicap: offre.accessibilite_handicap ?? true,
         vues_count: offre.vues_count || 0,
@@ -89,6 +106,7 @@ export class OffreEmploiService {
             competences_requises: donnees.competences_requises,
             experience_requise: donnees.experience_requise,
             niveau_etude: donnees.niveau_etude,
+            ai_shortlist_min_score: this.normaliserSeuilIa(donnees.ai_shortlist_min_score, 60),
             date_limite: donnees.date_limite ? new Date(donnees.date_limite) : null,
             accessibilite_handicap: donnees.accessibilite_handicap ?? true,
             amenagements_possibles: donnees.amenagements_possibles,
@@ -125,6 +143,7 @@ export class OffreEmploiService {
         competences_requises: nouvelleOffre.competences_requises || undefined,
         experience_requise: nouvelleOffre.experience_requise || undefined,
         niveau_etude: nouvelleOffre.niveau_etude || undefined,
+        ai_shortlist_min_score: nouvelleOffre.ai_shortlist_min_score ?? 60,
         statut: nouvelleOffre.statut,
         date_limite: nouvelleOffre.date_limite?.toISOString(),
         date_expiration: nouvelleOffre.date_limite?.toISOString(),
@@ -147,6 +166,10 @@ export class OffreEmploiService {
         .update(offreEmploiTable)
         .set({
           ...donnees,
+          ai_shortlist_min_score:
+            donnees.ai_shortlist_min_score !== undefined
+              ? this.normaliserSeuilIa(donnees.ai_shortlist_min_score, 60)
+              : undefined,
           date_limite: donnees.date_limite ? new Date(donnees.date_limite) : undefined,
           updated_at: new Date(),
         })
@@ -179,6 +202,7 @@ export class OffreEmploiService {
         competences_requises: offre.competences_requises || undefined,
         experience_requise: offre.experience_requise || undefined,
         niveau_etude: offre.niveau_etude || undefined,
+        ai_shortlist_min_score: offre.ai_shortlist_min_score ?? 60,
         statut: offre.statut,
         date_limite: offre.date_limite?.toISOString(),
         date_expiration: offre.date_limite?.toISOString(),
@@ -249,6 +273,7 @@ export class OffreEmploiService {
         competences_requises: offre.competences_requises || undefined,
         experience_requise: offre.experience_requise || undefined,
         niveau_etude: offre.niveau_etude || undefined,
+        ai_shortlist_min_score: offre.ai_shortlist_min_score ?? 60,
         statut: offre.statut,
         date_limite: offre.date_limite?.toISOString(),
         date_expiration: offre.date_limite?.toISOString(),

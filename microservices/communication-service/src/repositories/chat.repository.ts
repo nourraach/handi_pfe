@@ -188,4 +188,18 @@ export class ChatRepository {
       )
       .limit(12);
   }
+
+  async obtenirRolesUtilisateurs(userIds: string[]) {
+    if (userIds.length === 0) return [];
+    
+    const result = await db
+      .select({
+        id: utilisateurTable.id_utilisateur,
+        role: utilisateurTable.role,
+      })
+      .from(utilisateurTable)
+      .where(inArray(utilisateurTable.id_utilisateur, userIds));
+    
+    return result;
+  }
 }

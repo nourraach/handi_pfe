@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { FormEvent, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useI18n } from "@/components/i18n-provider";
 import { persistAuth } from "@/lib/auth-utils";
@@ -81,6 +82,19 @@ export function FormulaireConnexion() {
             onChange={(event) => setMdp(event.target.value)}
             required
           />
+          <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 8 }}>
+            <Link
+              href="/reset/demander"
+              style={{
+                color: "var(--lg-primary)",
+                fontWeight: 700,
+                fontSize: "0.94rem",
+                textDecoration: "none",
+              }}
+            >
+              Mot de passe oublié ?
+            </Link>
+          </div>
         </div>
       </div>
 

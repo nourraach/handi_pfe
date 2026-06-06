@@ -851,11 +851,10 @@ function MessagesPage() {
                 </button>
                 <div className="msg-thread-avatar msg-chat-avatar">
                   <span>{activeConversationInitial}</span>
-                  <i className="msg-presence-dot" aria-hidden="true" />
                 </div>
                 <div>
                   <h2>{activeConversationName}</h2>
-                  <p>{hasActiveConversation ? t("messages.activeNow") : t("messages.workspaceDescription")}</p>
+                  <p>{t("messages.workspaceDescription")}</p>
                 </div>
               </div>
 

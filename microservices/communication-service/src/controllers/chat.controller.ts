@@ -9,7 +9,22 @@ export class ChatController {
   creerConversation = async (req: Request, res: Response) => {
     try {
       if (!req.utilisateur) return reponseErreur(res, 401, "Authentification requise");
-      const conv = await this.chatService.creerConversation(req.utilisateur.id_utilisateur, req.utilisateur.role, req.body);
+      
+      // Extract request context for audit logging
+      const requestContext = {
+        requestId: req.headers["x-request-id"] as string,
+        httpMethod: req.method,
+        httpPath: req.path,
+        ipAddress: (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() || req.socket.remoteAddress,
+        userAgent: req.headers["user-agent"],
+      };
+      
+      const conv = await this.chatService.creerConversation(
+        req.utilisateur.id_utilisateur, 
+        req.utilisateur.role, 
+        req.body,
+        requestContext
+      );
       return reponseSucces(res, 201, "Conversation créée", conv);
     } catch (error: any) {
       return reponseErreur(res, error.statusCode || 500, error.message);
@@ -32,8 +47,13 @@ export class ChatController {
       const q = Array.isArray(req.query.q) ? req.query.q[0] : req.query.q;
       const role = Array.isArray(req.query.role) ? req.query.role[0] : req.query.role;
       const roleFilter = role === "admin" || role === "entreprise" ? role : undefined;
+      
+      // Pass user role from X-User-Role header for filtering
+      const userRole = (req.headers["x-user-role"] as string) || req.utilisateur.role;
+      
       const destinataires = await this.chatService.rechercherDestinataires(
         req.utilisateur.id_utilisateur,
+        userRole,
         q ? String(q) : undefined,
         roleFilter,
       );

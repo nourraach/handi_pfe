@@ -1,12 +1,13 @@
 "use client";
 
-import { Fragment, useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState, type ReactNode } from "react";
 import { construireUrlApi } from "@/lib/config";
 import { DemandeEnAttente, ReponseApi } from "@/types/api";
 
 interface LigneDetail {
   label: string;
   value: string;
+  imageSrc?: string;
 }
 
 function lireDemandesLocales() {
@@ -144,17 +145,45 @@ function lireChamp(objet: Record<string, unknown> | null | undefined, cle: strin
   return transformerValeur(objet[cle]);
 }
 
+function estImageDataUrl(valeur: string) {
+  return /^data:image\/(png|jpe?g|webp);base64,/i.test(valeur);
+}
+
+function afficherValeurDetail(item: LigneDetail): ReactNode {
+  if (!item.imageSrc) return item.value;
+
+  return (
+    <span style={{ display: "grid", gap: 8, marginTop: 6 }}>
+      <img
+        src={item.imageSrc}
+        alt="Patente de l'entreprise"
+        style={{
+          width: "min(100%, 420px)",
+          maxHeight: 260,
+          objectFit: "contain",
+          border: "1px solid #e5dcfb",
+          borderRadius: 8,
+          background: "#ffffff",
+        }}
+      />
+      <span className="texte-secondaire">Image stockee en base</span>
+    </span>
+  );
+}
+
 function construireDetailsEntreprise(demande: DemandeEnAttente) {
   const profil =
     demande.profil_entreprise && typeof demande.profil_entreprise === "object"
       ? demande.profil_entreprise
       : null;
+  const patente = lireChamp(profil, "patente");
+  const patenteImage = estImageDataUrl(patente) ? patente : undefined;
 
   return [
     { label: "Id", value: lireChamp(profil, "id") },
     { label: "Id Utilisateur", value: demande.id_utilisateur || lireChamp(profil, "id_utilisateur") },
     { label: "Nom Entreprise", value: lireChamp(profil, "nom_entreprise") },
-    { label: "Patente", value: lireChamp(profil, "patente") },
+    { label: "Patente", value: patenteImage ? "Image stockee en base" : patente, imageSrc: patenteImage },
     { label: "Rne", value: lireChamp(profil, "rne") },
     { label: "Statut Validation", value: lireChamp(profil, "statut_validation") },
     { label: "Profil Publique", value: lireChamp(profil, "profil_publique") },
@@ -359,12 +388,6 @@ export function TableauDemandesAdmin() {
 
   return (
     <div className="carte bloc-principal">
-      <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", marginBottom: 16 }}>
-        <p className="texte-secondaire" style={{ margin: 0 }}>
-          Examinez chaque demande en attente et validez-la seulement après vérification complète des informations candidat ou entreprise.
-        </p>
-      </div>
-
       {message ? <p className="message message-info">{message}</p> : null}
       {erreur ? <p className="message message-erreur">{erreur}</p> : null}
 
@@ -432,7 +455,7 @@ export function TableauDemandesAdmin() {
                             <ul style={{ margin: 0, paddingLeft: 16, lineHeight: 1.55 }}>
                               {details.infosGenerales.map((item) => (
                                 <li key={item.label}>
-                                  <strong>{item.label}:</strong> {item.value}
+                                    <strong>{item.label}:</strong> {afficherValeurDetail(item)}
                                 </li>
                               ))}
                             </ul>
@@ -444,7 +467,7 @@ export function TableauDemandesAdmin() {
                               <ul style={{ margin: 0, paddingLeft: 16, lineHeight: 1.55 }}>
                                 {details.profilCandidat.map((item) => (
                                   <li key={`c-${item.label}`}>
-                                    <strong>{item.label}:</strong> {item.value}
+                                    <strong>{item.label}:</strong> {afficherValeurDetail(item)}
                                   </li>
                                 ))}
                               </ul>
@@ -457,7 +480,7 @@ export function TableauDemandesAdmin() {
                               <ul style={{ margin: 0, paddingLeft: 16, lineHeight: 1.55 }}>
                                 {details.profilEntreprise.map((item) => (
                                   <li key={`e-${item.label}`}>
-                                    <strong>{item.label}:</strong> {item.value}
+                                    <strong>{item.label}:</strong> {afficherValeurDetail(item)}
                                   </li>
                                 ))}
                               </ul>

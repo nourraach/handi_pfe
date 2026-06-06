@@ -6,6 +6,7 @@ import adminCandidatureRoutes from "./routes/admin-candidature.routes";
 import candidatureRoutes from "./routes/candidature.routes";
 import entrepriseCandidatsRoutes from "./routes/entreprise-candidats.routes";
 import { entrepriseCandidatureExportRoutes } from "./routes/entreprise-candidature-export.routes";
+import internalRoutes from "./routes/internal.routes";
 import { gestionErreursMiddleware } from "./middleware/gestion-erreurs.middleware";
 
 const port = Number(process.env.PORT || 4104);
@@ -35,6 +36,7 @@ app.use("/api/entreprise/candidatures", candidatureRoutes);
 app.use("/api/entreprise/candidatures/export", entrepriseCandidatureExportRoutes);
 app.use("/api/entreprise/candidats", entrepriseCandidatsRoutes);
 app.use("/api/admin", adminCandidatureRoutes);
+app.use("/internal", internalRoutes); // Internal routes for inter-service communication
 app.use(gestionErreursMiddleware);
 
 app.listen(port, () => {

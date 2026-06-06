@@ -10,6 +10,10 @@ export class EntretienService {
   private candidatureRepository = new CandidatureRepository();
   private notificationService = new NotificationService();
 
+  private async synchroniserEntretiensPasses() {
+    await this.entretienRepository.marquerEntretiensPassesTermines();
+  }
+
   private convertirDateFuture(valeur: Date | string | undefined, messageChamp: string) {
     if (!valeur) {
       throw new ErreurApi(400, messageChamp);
@@ -80,6 +84,7 @@ export class EntretienService {
 
   async obtenirEntretiensEntreprise(idEntreprise: string) {
     try {
+      await this.synchroniserEntretiensPasses();
       return await this.entretienRepository.obtenirEntretiensEntreprise(idEntreprise);
     } catch (error) {
       throw new ErreurApi(500, `Erreur lors de la recuperation des entretiens: ${error.message}`);
@@ -88,6 +93,7 @@ export class EntretienService {
 
   async obtenirEntretiensCandidat(idCandidat: string) {
     try {
+      await this.synchroniserEntretiensPasses();
       return await this.entretienRepository.obtenirEntretiensCandidat(idCandidat);
     } catch (error) {
       throw new ErreurApi(500, `Erreur lors de la recuperation des entretiens: ${error.message}`);
@@ -105,14 +111,21 @@ export class EntretienService {
         throw new ErreurApi(403, "Vous n'etes pas autorise a modifier cet entretien");
       }
 
+      const nouvelleDate = donnees.date_heure
+        ? this.convertirDateFuture(donnees.date_heure, "La date de l'entretien est invalide")
+        : undefined;
+      const dateActuelle = new Date(entretien.entretien.date_heure);
+      const dateChangee = Boolean(nouvelleDate && nouvelleDate.getTime() !== dateActuelle.getTime());
+
       const chargeUtile = {
         ...donnees,
-        ...(donnees.date_heure ? { date_heure: this.convertirDateFuture(donnees.date_heure, "La date de l'entretien est invalide") } : {}),
+        ...(nouvelleDate ? { date_heure: nouvelleDate } : {}),
+        ...(dateChangee && !donnees.statut ? { statut: "reporte" } : {}),
       };
 
       const entretienModifie = await this.entretienRepository.modifierEntretien(id, chargeUtile);
 
-      if (chargeUtile.date_heure) {
+      if (dateChangee && chargeUtile.date_heure) {
         await this.notificationService.notifierModificationEntretien(
           entretien.candidat.id_utilisateur,
           id,
@@ -209,6 +222,7 @@ export class EntretienService {
 
   async obtenirTousEntretiensAdmin(region?: string) {
     try {
+      await this.synchroniserEntretiensPasses();
       return await this.entretienRepository.obtenirTous(region);
     } catch (error) {
       if (error instanceof ErreurApi) {

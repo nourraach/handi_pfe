@@ -30,6 +30,7 @@ export interface SupervisionOverview {
 
 export interface PipelineCompany {
   company_id: string;
+  company_user_id: string;
   company_name: string;
   region: string;
   offers_count: number;
@@ -127,7 +128,9 @@ export interface OfferPerformance {
 
 export interface VisibleCandidate {
   candidate_reference: string;
+  candidate_name: string;
   application_id: string;
+  candidate_user_id: string;
   stage: "shortlisted" | "hired";
   company_name: string;
   offer_title: string;

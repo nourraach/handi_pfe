@@ -2,6 +2,9 @@ import cors from "cors";
 import "dotenv/config";
 import express, { NextFunction, Request, Response } from "express";
 import { createProxyMiddleware } from "http-proxy-middleware";
+import { jwtValidationMiddleware } from "./middleware/jwt-validation.middleware";
+import { roleGuardMiddleware } from "./middleware/role-guard.middleware";
+import { auditLogMiddleware } from "./middleware/audit-log.middleware";
 
 const port = Number(process.env.PORT || 4000);
 const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
@@ -72,6 +75,25 @@ app.use(
     credentials: true,
   }),
 );
+
+// Apply audit logging middleware first to intercept all responses
+// This middleware logs all 401/403 errors for security monitoring
+app.use(auditLogMiddleware);
+
+// Apply JWT validation middleware to all routes
+// This middleware will:
+// 1. Strip any X-User-* headers from incoming requests (security)
+// 2. Validate JWT tokens from Authorization headers
+// 3. Inject validated user context (X-User-Id, X-User-Role, X-User-Entity-Id, X-Request-Id) into headers
+// 4. Skip validation for public routes (/health, /api/auth)
+app.use(jwtValidationMiddleware);
+
+// Apply role-based route guard middleware after JWT validation
+// This middleware will:
+// 1. Block inspector access to /api/chat routes
+// 2. Block non-inspector access to /api/supervision routes
+// 3. Return 403 errors with descriptive messages for role violations
+app.use(roleGuardMiddleware);
 
 app.get("/health", (_req, res) => {
   res.json({

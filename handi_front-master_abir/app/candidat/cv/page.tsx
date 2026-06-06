@@ -782,7 +782,7 @@ function buildCvPdfBlob(cv: CvFormState, theme: CvTheme) {
 
     addSection(section.title);
     for (const item of section.items) {
-      addWrappedParagraph(`• ${item}`);
+      addWrappedParagraph(`- ${item}`);
     }
     y -= 4;
   }

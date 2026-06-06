@@ -9,6 +9,7 @@ export interface CreerOffreDto {
   competences_requises?: string;
   experience_requise?: string;
   niveau_etude?: string;
+  ai_shortlist_min_score?: number;
   date_limite?: string;
   accessibilite_handicap?: boolean;
   amenagements_possibles?: string;
@@ -24,6 +25,7 @@ export interface ModifierOffreDto {
   competences_requises?: string;
   experience_requise?: string;
   niveau_etude?: string;
+  ai_shortlist_min_score?: number;
   date_limite?: string;
   accessibilite_handicap?: boolean;
   amenagements_possibles?: string;
@@ -45,6 +47,7 @@ export interface OffreAvecStatistiquesDto {
   competences_requises?: string | null;
   experience_requise?: string | null;
   niveau_etude?: string | null;
+  ai_shortlist_min_score: number;
   statut: string;
   date_limite?: string;
   date_expiration?: string;

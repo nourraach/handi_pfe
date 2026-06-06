@@ -1,4 +1,4 @@
-import { boolean, pgEnum, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { boolean, integer, pgEnum, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { entrepriseTable } from "./entreprise.schema";
 
 export const statutOffreEnum = pgEnum("statut_offre", ["active", "inactive", "pourvue", "expiree"]);
@@ -18,6 +18,7 @@ export const offreEmploiTable = pgTable("offre_emploi", {
   competences_requises: text("competences_requises"),
   experience_requise: text("experience_requise"),
   niveau_etude: text("niveau_etude"),
+  ai_shortlist_min_score: integer("ai_shortlist_min_score").notNull().default(60),
   statut: statutOffreEnum("statut").notNull().default("active"),
   date_limite: timestamp("date_limite", { withTimezone: false }),
   accessibilite_handicap: boolean("accessibilite_handicap").default(true),

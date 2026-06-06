@@ -8,16 +8,10 @@ import { motion } from "framer-motion";
 import {
   ArrowRight,
   Bookmark,
-  BrainCircuit,
-  BriefcaseBusiness,
   CalendarClock,
   CheckCircle2,
-  FileText,
   MessageCircle,
-  ShieldCheck,
   Sparkles,
-  UserRoundCheck,
-  WandSparkles,
 } from "lucide-react";
 import { AuthenticatedWorkspace } from "@/components/authenticated-workspace";
 import { useI18n } from "@/components/i18n-provider";
@@ -1019,10 +1013,6 @@ function AdminDashboardHome({
       value: percentage(activeCompanies, totalCompanies),
     },
   ];
-  const accessibilityScore = Math.round(
-    statusItems.reduce((total, item) => total + item.value, 0) / Math.max(statusItems.length, 1),
-  );
-
   const metricIcon = (name: "candidates" | "jobs" | "applications" | "accessibility" | "clipboard" | "hire" | "shield" | "inclusion" | "target" | "user" | "eye" | "report") => {
     if (name === "candidates") {
       return (
@@ -1121,13 +1111,6 @@ function AdminDashboardHome({
       </svg>
     );
   };
-
-  const accessibilityItems = [
-    { ...statusItems[0], icon: metricIcon("clipboard"), tone: "purple" },
-    { ...statusItems[1], icon: metricIcon("hire"), tone: "green" },
-    { ...statusItems[2], icon: metricIcon("shield"), tone: "blue" },
-    { ...statusItems[3], icon: metricIcon("inclusion"), tone: "orange" },
-  ];
 
   const focusItems = [
     { label: "En attente de revue", value: pendingApplications, total: Math.max(totalApplications, 1), tone: "purple" },
@@ -1250,39 +1233,6 @@ function AdminDashboardHome({
                   </i>
                 </div>
               ))}
-            </div>
-
-            <div className="admin-command__spotlight">
-              <span aria-hidden="true">{metricIcon("shield")}</span>
-              <div>
-                <strong>Gardez les decisions en mouvement avec des controles de recrutement accessibles.</strong>
-                <p>Priorisez les revues en attente et les retours de conformite avant qu'ils ne s'accumulent.</p>
-              </div>
-            </div>
-          </article>
-
-          <article className="admin-command__card admin-command__card--access">
-            <header className="admin-command__card-head">
-              <div>
-                <p className="admin-command__section-label">Qualite</p>
-                <h2>Signaux d'accessibilite</h2>
-              </div>
-              <Link href="/home#admin-stats">Details</Link>
-            </header>
-
-            <div className="admin-command__score">
-              <div className="admin-command__ring" style={{ ["--progress" as string]: `${accessibilityScore}%` }}>
-                <strong>{accessibilityScore}%</strong>
-                <span>Score</span>
-              </div>
-              <ul>
-                {accessibilityItems.map((item) => (
-                  <li key={item.label}>
-                    <span>{item.label}</span>
-                    <strong>{item.value}%</strong>
-                  </li>
-                ))}
-              </ul>
             </div>
           </article>
 
@@ -1695,18 +1645,6 @@ function CandidateHome({
       .slice(0, 3);
   })();
 
-  const profileCompletion = Math.min(
-    98,
-    Math.max(52, Math.round(58 + Math.min(applicationsValue, 10) * 2 + Math.min(interviewsValue, 4) * 5 + Math.min(favoritesValue, 6))),
-  );
-
-  const skillSignals = [
-    { label: "Design UI/UX", level: "Avance", value: 86 },
-    { label: "Analyse de donnees", level: "Intermediaire", value: 68 },
-    { label: "Communication", level: "Avance", value: 78 },
-    { label: "Prototypage", level: "Intermediaire", value: 61 },
-  ];
-
   return (
     <main className="relative mx-auto w-full max-w-[1400px] px-4 pb-10 pt-0 sm:px-6 lg:px-8" aria-label="Tableau de bord candidat">
       <motion.section
@@ -1770,48 +1708,6 @@ function CandidateHome({
             </div>
           </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45, delay: 0.45 }}
-            className="absolute left-[50%] top-6 rounded-2xl border border-white/50 bg-white/60 px-4 py-3 text-[#2b1a43] shadow-[0_14px_35px_-22px_rgba(53,6,62,0.8)] backdrop-blur-xl"
-          >
-            <p className="text-[10px] uppercase tracking-[0.08em] text-[#6c5c89]">Entretiens à venir</p>
-            <p className="text-[25px] font-semibold leading-none">2</p>
-            <p className="mt-1 text-[11px] text-[#74668e]">Voir le calendrier</p>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45, delay: 0.52 }}
-            className="absolute right-6 top-16 rounded-2xl border border-white/50 bg-white/65 px-4 py-3 text-[#2b1a43] shadow-[0_14px_35px_-22px_rgba(53,6,62,0.8)] backdrop-blur-xl"
-          >
-            <p className="text-[10px] uppercase tracking-[0.08em] text-[#6c5c89]">Profil complété</p>
-            <p className="text-[26px] font-semibold leading-none">92%</p>
-            <p className="mt-1 text-[11px] text-[#74668e]">Excellent</p>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45, delay: 0.6 }}
-            className="absolute left-[50%] top-[46%] rounded-2xl border border-white/50 bg-white/60 px-4 py-3 text-[#2b1a43] shadow-[0_14px_35px_-22px_rgba(53,6,62,0.8)] backdrop-blur-xl"
-          >
-            <p className="text-[10px] uppercase tracking-[0.08em] text-[#6c5c89]">Offres adaptées</p>
-            <p className="text-[25px] font-semibold leading-none">24</p>
-            <p className="mt-1 text-[11px] text-[#74668e]">Nouvelles offres</p>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45, delay: 0.66 }}
-            className="absolute bottom-10 right-7 flex items-center gap-2 rounded-2xl border border-white/50 bg-white/62 px-4 py-2.5 text-[#2b1a43] shadow-[0_14px_35px_-22px_rgba(53,6,62,0.8)] backdrop-blur-xl"
-          >
-            <ShieldCheck className="h-4 w-4 text-[#6f4bb6]" />
-            <p className="text-sm font-semibold">Accessibilité activée</p>
-          </motion.div>
         </div>
       </motion.section>
 
@@ -1820,7 +1716,7 @@ function CandidateHome({
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45, delay: 0.2 }}
-          className="rounded-[28px] border border-[#e8ddfb] bg-white/90 p-5 shadow-[0_16px_42px_-28px_rgba(53,6,62,0.45)] lg:col-span-8"
+          className="h-fit self-start rounded-[28px] border border-[#e8ddfb] bg-white/90 p-5 shadow-[0_16px_42px_-28px_rgba(53,6,62,0.45)] lg:col-span-8 lg:self-start"
         >
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-lg font-semibold text-[#23143a]" style={{ fontFamily: "var(--app-heading)" }}>
@@ -1841,7 +1737,7 @@ function CandidateHome({
               Aucune offre suggérée disponible pour le moment.
             </div>
           ) : (
-            <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <ul className="grid items-start gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {recommendationItems.map((item, index) => (
                 <motion.li
                   key={item.id}
@@ -1939,117 +1835,6 @@ function CandidateHome({
             </p>
           )}
         </motion.article>
-      </section>
-
-      <section className="mt-6 grid gap-6 lg:grid-cols-12">
-        <motion.article
-          initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.45, delay: 0.3 }}
-          className="rounded-[28px] bg-gradient-to-br from-[#35063E] via-[#4d1b67] to-[#6f38a6] p-5 text-white shadow-[0_20px_44px_-20px_rgba(53,6,62,0.8)] lg:col-span-4"
-        >
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-semibold" style={{ fontFamily: "var(--app-heading)" }}>
-              Suivi de votre profil
-            </h2>
-            <WandSparkles className="h-5 w-5 text-[#d9c9fb]" />
-          </div>
-          <div className="flex items-center gap-5">
-            <div
-              className="grid h-28 w-28 place-items-center rounded-full"
-              style={{ background: `conic-gradient(#e8d9ff ${profileCompletion * 3.6}deg, rgba(255,255,255,0.18) 0deg)` }}
-              aria-label={`Progression du profil ${profileCompletion}%`}
-            >
-              <div className="grid h-20 w-20 place-items-center rounded-full bg-[#2a0534] text-center">
-                <strong className="text-2xl">{profileCompletion}%</strong>
-              </div>
-            </div>
-            <div className="space-y-2 text-sm text-[#f0e6ff]">
-              <p>Votre profil est presque prêt pour capter les meilleures opportunités.</p>
-              <ButtonLink href="/candidat/cv" variant="secondary" size="sm" className="border-white/30 bg-white/10 text-white hover:bg-white/20">
-                Continuer maintenant
-              </ButtonLink>
-            </div>
-          </div>
-        </motion.article>
-
-        <div className="grid gap-6 lg:col-span-8 lg:grid-cols-2">
-          <motion.article
-            initial={{ opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45, delay: 0.34 }}
-            className="rounded-[28px] border border-[#e8ddfb] bg-white/90 p-5 shadow-[0_16px_42px_-28px_rgba(53,6,62,0.45)]"
-          >
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-[#23143a]" style={{ fontFamily: "var(--app-heading)" }}>
-                Ressources premium
-              </h2>
-              <Link href="/candidat/cv" className="text-sm font-medium text-[#5f31ac] hover:underline">
-                Voir tout
-              </Link>
-            </div>
-
-            <div className="space-y-3">
-              <Link href="/candidat/cv" className="group flex items-center gap-3 rounded-2xl border border-[#eee7fc] bg-[#fbf9ff] p-3 transition hover:-translate-y-0.5">
-                <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#efe4ff] text-[#5c33a7]">
-                  <FileText className="h-5 w-5" />
-                </span>
-                <div>
-                  <p className="text-sm font-semibold text-[#2a1a43]">Améliorer mon CV</p>
-                  <p className="text-xs text-[#6d6283]">Optimisez votre profil pour être mieux recommandé.</p>
-                </div>
-              </Link>
-
-              <Link href="/candidat/candidatures" className="group flex items-center gap-3 rounded-2xl border border-[#eee7fc] bg-[#fbf9ff] p-3 transition hover:-translate-y-0.5">
-                <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#efe4ff] text-[#5c33a7]">
-                  <BrainCircuit className="h-5 w-5" />
-                </span>
-                <div>
-                  <p className="text-sm font-semibold text-[#2a1a43]">Préparer un entretien</p>
-                  <p className="text-xs text-[#6d6283]">Travaillez vos questions et vos réponses en confiance.</p>
-                </div>
-              </Link>
-
-              <Link href="/messages" className="group flex items-center gap-3 rounded-2xl border border-[#eee7fc] bg-[#fbf9ff] p-3 transition hover:-translate-y-0.5">
-                <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#efe4ff] text-[#5c33a7]">
-                  <BriefcaseBusiness className="h-5 w-5" />
-                </span>
-                <div>
-                  <p className="text-sm font-semibold text-[#2a1a43]">Renforcer ma posture</p>
-                  <p className="text-xs text-[#6d6283]">Messages clés pour valoriser vos compétences avec clarté.</p>
-                </div>
-              </Link>
-            </div>
-          </motion.article>
-
-          <motion.article
-            initial={{ opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45, delay: 0.38 }}
-            className="rounded-[28px] border border-[#e8ddfb] bg-white/90 p-5 shadow-[0_16px_42px_-28px_rgba(53,6,62,0.45)]"
-          >
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-[#23143a]" style={{ fontFamily: "var(--app-heading)" }}>
-                Vos compétences clés
-              </h2>
-              <UserRoundCheck className="h-5 w-5 text-[#7047ba]" />
-            </div>
-
-            <ul className="space-y-3">
-              {skillSignals.map((skill) => (
-                <li key={skill.label} className="space-y-1.5">
-                  <div className="flex items-center justify-between text-xs text-[#695d82]">
-                    <span className="font-medium text-[#2d1b48]">{skill.label}</span>
-                    <span>{skill.level}</span>
-                  </div>
-                  <div className="h-2 rounded-full bg-[#efe7fc]">
-                    <div className="h-full rounded-full bg-gradient-to-r from-[#6a3abb] to-[#a67bff]" style={{ width: `${skill.value}%` }} />
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </motion.article>
-        </div>
       </section>
 
       {dashboardErrorMessage ? <div className="mt-6 message message-erreur">{dashboardErrorMessage}</div> : null}

@@ -72,9 +72,12 @@ export function SupervisionShell({
           <span className={styles.rolePill}>{roleLabel}</span>
         </div>
 
+        <p className={styles.sidebarSectionLabel}>Navigation</p>
         <nav className={styles.sidebarNav}>
           {sidebarItems.map((item) => {
-            const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+            const active = item.href === "/supervision"
+              ? pathname === item.href
+              : pathname === item.href || pathname.startsWith(`${item.href}/`);
             const Icon = item.icon;
             return (
               <Link key={item.href} href={item.href} className={classes(styles.sidebarNavItem, active && styles.sidebarNavItemActive)}>

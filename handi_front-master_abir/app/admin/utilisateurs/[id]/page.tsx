@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import { ProfilAdmin } from "@/components/profil-admin";
-import { ProfilCandidat } from "@/components/profil-candidat";
+import { ProfilCandidatPublic } from "@/components/profil-candidat-public";
 import { ProfilEntreprise } from "@/components/profil-entreprise";
 import { ProfilInspecteurAneti } from "@/components/profil-inspecteur-aneti";
 import { useI18n } from "@/components/i18n-provider";
@@ -96,7 +96,7 @@ export default function AdminUtilisateurProfilPage() {
 
     switch (utilisateurCible.role) {
       case "candidat":
-        return <ProfilCandidat utilisateur={utilisateurCible} lectureSeule />;
+        return <ProfilCandidatPublic utilisateur={utilisateurCible} />;
       case "entreprise":
         return <ProfilEntreprise utilisateur={utilisateurCible} lectureSeule />;
       case "admin":

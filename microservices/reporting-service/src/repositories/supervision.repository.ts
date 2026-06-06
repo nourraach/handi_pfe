@@ -139,6 +139,7 @@ export class SupervisionRepository {
     const query = `
       SELECT
         e.id AS company_id,
+        e.id_utilisateur AS company_user_id,
         e.nom_entreprise AS company_name,
         COALESCE(NULLIF(company_user.region, ''), company_user.addresse, '') AS region,
         COUNT(DISTINCT o.id) AS offers_count,
@@ -152,13 +153,14 @@ export class SupervisionRepository {
       LEFT JOIN offre_emploi o ON o.id_entreprise = e.id
       LEFT JOIN candidature c ON c.id_offre = o.id
       ${this.buildWhere(conditions)}
-      GROUP BY e.id, e.nom_entreprise, company_user.region, company_user.addresse
+      GROUP BY e.id, e.id_utilisateur, e.nom_entreprise, company_user.region, company_user.addresse
       ORDER BY hired_count DESC, shortlisted_count DESC, applications_count DESC, e.nom_entreprise ASC
     `;
 
     const result = await pool.query(query, params);
     return result.rows.map((row) => ({
       company_id: row.company_id,
+      company_user_id: row.company_user_id,
       company_name: row.company_name,
       region: row.region,
       offers_count: asInt(row.offers_count),
@@ -478,6 +480,8 @@ export class SupervisionRepository {
       SELECT
         c.id AS application_id,
         cand.id AS candidate_id,
+        cand.id_utilisateur AS candidate_user_id,
+        candidate_user.nom AS candidate_name,
         c.statut,
         c.date_postulation,
         c.updated_at,
@@ -486,6 +490,7 @@ export class SupervisionRepository {
         COALESCE(NULLIF(company_user.region, ''), company_user.addresse, '') AS region
       FROM candidature c
       INNER JOIN candidat cand ON cand.id = c.id_candidat
+      INNER JOIN utilisateur candidate_user ON candidate_user.id_utilisateur = cand.id_utilisateur
       INNER JOIN offre_emploi o ON o.id = c.id_offre
       INNER JOIN entreprise e ON e.id = o.id_entreprise
       INNER JOIN utilisateur company_user ON company_user.id_utilisateur = e.id_utilisateur

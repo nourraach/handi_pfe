@@ -1,6 +1,17 @@
 import { Request, Response, NextFunction } from "express";
+import fs from "fs/promises";
 import { AuthService } from "../services/auth.service";
 import { reponseSucces } from "../utils/reponse";
+
+async function convertirImageEnDataUrl(fichier?: Express.Multer.File) {
+  if (!fichier?.path || !fichier.mimetype?.startsWith("image/")) {
+    return undefined;
+  }
+
+  const contenu = await fs.readFile(fichier.path);
+  await fs.unlink(fichier.path).catch(() => undefined);
+  return `data:${fichier.mimetype};base64,${contenu.toString("base64")}`;
+}
 
 export class AuthController {
   constructor(private readonly authService = new AuthService()) {}
@@ -21,9 +32,10 @@ export class AuthController {
   inscriptionEntreprise = async (requete: Request, reponse: Response, suivant: NextFunction) => {
     try {
       const patenteFile = (requete as any).file;
+      const patenteDataUrl = await convertirImageEnDataUrl(patenteFile);
       const resultat = await this.authService.inscrireEntreprise({
         ...requete.body,
-        patente: patenteFile?.path ? patenteFile.path.replace(/^.*public[\\/]/, "/") : undefined,
+        patente: patenteDataUrl,
         profil_publique:
           typeof requete.body?.profil_publique === "string"
             ? requete.body.profil_publique === "true"

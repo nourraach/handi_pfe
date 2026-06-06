@@ -1,0 +1,2 @@
+ALTER TABLE offre_emploi
+  ADD COLUMN IF NOT EXISTS ai_shortlist_min_score INTEGER NOT NULL DEFAULT 60;

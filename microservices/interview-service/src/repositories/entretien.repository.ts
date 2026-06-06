@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, ilike } from "drizzle-orm";
+import { and, desc, eq, inArray, ilike, lt } from "drizzle-orm";
 import { db } from "../db";
 import { candidatureTable, candidatTable, entrepriseTable, entretienTable, offreEmploiTable, utilisateurTable } from "../db/schema";
 import { ModifierEntretienDto, PlanifierEntretienDto } from "../dto/entretien.dto";
@@ -112,6 +112,22 @@ export class EntretienRepository {
       : baseQuery;
 
     return await query.orderBy(desc(entretienTable.date_heure));
+  }
+
+  async marquerEntretiensPassesTermines(dateReference = new Date()) {
+    return await db
+      .update(entretienTable)
+      .set({
+        statut: "termine",
+        updated_at: new Date(),
+      })
+      .where(
+        and(
+          lt(entretienTable.date_heure, dateReference),
+          inArray(entretienTable.statut, ["planifie", "confirme", "reporte"])
+        )
+      )
+      .returning();
   }
 
   async modifierEntretien(id: string, donnees: ModifierEntretienDto) {

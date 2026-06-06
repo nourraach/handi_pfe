@@ -35,4 +35,10 @@ export const env = {
   geminiInterviewModel: process.env.GEMINI_INTERVIEW_MODEL ?? "gemini-2.5-flash",
   interviewPrepTimeoutMs: Number(process.env.INTERVIEW_PREP_GENERATION_TIMEOUT_MS ?? 30000),
   interviewPrepCacheTtlDays: Number(process.env.INTERVIEW_PREP_CACHE_TTL_DAYS ?? 30),
+  aiServiceUrls: (process.env.AI_SERVICE_URLS ?? "http://host.docker.internal:8000,http://localhost:8000")
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean),
+  aiShortlistMinScore: Number(process.env.AI_SHORTLIST_MIN_SCORE ?? 60),
+  aiRequestTimeoutMs: Number(process.env.AI_REQUEST_TIMEOUT_MS ?? 30000),
 };

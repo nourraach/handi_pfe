@@ -380,7 +380,9 @@ export class SupervisionService {
       message: "Candidats visibles recuperes avec succes",
       donnees: candidates.map((candidate) => ({
         candidate_reference: `CAND-${String(candidate.candidate_id).slice(0, 8).toUpperCase()}`,
+        candidate_name: candidate.candidate_name,
         application_id: candidate.application_id,
+        candidate_user_id: candidate.candidate_user_id,
         stage: candidate.statut === "accepted" ? "hired" : "shortlisted",
         company_name: candidate.company_name,
         offer_title: candidate.offer_title,

@@ -4,6 +4,7 @@ import express from "express";
 import avisEntrepriseRoutes from "./routes/avis-entreprise.routes";
 import { enterpriseReportingRoutes } from "./routes/enterprise-reporting.routes";
 import { supervisionRoutes } from "./routes/supervision.routes";
+import auditLogRoutes from "./routes/audit-log.routes";
 import { gestionErreursMiddleware } from "./middleware/gestion-erreurs.middleware";
 
 const port = Number(process.env.PORT || 4106);
@@ -30,6 +31,7 @@ app.get("/health", (_req, res) => {
 app.use("/api/supervision", supervisionRoutes);
 app.use("/api/entreprise/reports-requests", enterpriseReportingRoutes);
 app.use("/api/avis-entreprises", avisEntrepriseRoutes);
+app.use("/api/audit-logs", auditLogRoutes); // Audit log query API (admin only)
 app.use(gestionErreursMiddleware);
 
 app.listen(port, () => {
