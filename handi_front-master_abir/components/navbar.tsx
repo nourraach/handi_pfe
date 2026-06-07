@@ -60,6 +60,7 @@ type CandidateIconName =
   | "favorites"
   | "applications"
   | "messages"
+  | "chatbot"
   | "profile"
   | "settings"
   | "accessibility";
@@ -67,6 +68,8 @@ type CandidateIconName =
 type CandidateProfilePayload = {
   photo_profil_url?: string | null;
 };
+
+const ADMIN_AVATAR_SRC = "/avatar-admin.jpg";
 
 function CandidateSidebarIcon({ name }: { name: CandidateIconName }) {
   const props = {
@@ -134,6 +137,17 @@ function CandidateSidebarIcon({ name }: { name: CandidateIconName }) {
       return (
         <svg {...props}>
           <path d="M20 12a8 8 0 0 1-8 8H5l2-3.5A8 8 0 1 1 20 12Z" />
+        </svg>
+      );
+    case "chatbot":
+      return (
+        <svg {...props}>
+          <rect x="4" y="5" width="16" height="12" rx="4" />
+          <path d="M9 21h6" />
+          <path d="M12 17v4" />
+          <circle cx="9" cy="11" r=".8" fill="currentColor" stroke="none" />
+          <circle cx="15" cy="11" r=".8" fill="currentColor" stroke="none" />
+          <path d="M9 14c.8.7 1.8 1 3 1s2.2-.3 3-1" />
         </svg>
       );
     case "profile":
@@ -374,6 +388,7 @@ export function Navbar({
   const profilHref = utilisateur.role === "entreprise" ? "/entreprise/profil" : "/profil";
   const roleChipLabel = utilisateur.role === "admin" ? "Super Admin" : t(`common.roles.${utilisateur.role}`);
   const roleBrandSubtitle = utilisateur.role === "admin" ? "Inclusive Hiring Platform" : roleChipLabel;
+  const sidebarProfileImage = isAdmin ? ADMIN_AVATAR_SRC : candidateProfilePhoto || "/uploads/photo1.png";
   type CandidateSidebarItem = {
     id: string;
     label: string;
@@ -390,6 +405,7 @@ export function Navbar({
       { id: "interviews", label: "Entretiens", subtitle: "Planning candidat", icon: "tests", href: "/candidat/entretiens" },
       { id: "tests", label: "Tests et évaluations", subtitle: "Progression", icon: "tests", href: "/candidat/tests-psychologiques" },
       { id: "messages", label: "Messagerie", subtitle: "Boîte de réception", icon: "messages", href: "/messages", badgeCount: messagesNonLus },
+      { id: "chatbot", label: "Chatbot IA", subtitle: "Aide contextuelle", icon: "chatbot", href: "/candidat/chatbot" },
       { id: "favorites", label: "Offres sauvegardées", subtitle: "À revoir plus tard", icon: "favorites", href: "/favoris" },
       { id: "cv", label: "Mon CV", subtitle: "Profil et documents", icon: "cv", href: "/candidat/cv" },
     ],
@@ -931,12 +947,12 @@ export function Navbar({
 
               <div className={classes("candidate-sidebar-ref__profile-card", candidateSidebarCollapsed && "is-collapsed")}>
                 <Image
-                  src={candidateProfilePhoto || "/uploads/photo1.png"}
+                  src={sidebarProfileImage}
                   alt={utilisateur.nom}
                   width={44}
                   height={44}
                   className="candidate-sidebar-ref__profile-image"
-                  unoptimized={!!candidateProfilePhoto?.startsWith("data:")}
+                  unoptimized={!isAdmin && !!candidateProfilePhoto?.startsWith("data:")}
                 />
                 <div className={classes("candidate-sidebar-ref__profile-copy", candidateSidebarCollapsed && "is-collapsed")}>
                   <strong>{utilisateur.nom}</strong>

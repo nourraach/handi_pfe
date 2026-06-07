@@ -156,7 +156,7 @@ export class ProfilController {
         throw new ErreurApi("Accès non autorisé à ce profil.", 403);
       }
 
-      const resultat = await this.profilService.obtenirProfilEntreprise(id_utilisateur);
+      const resultat = await this.profilService.obtenirProfilEntreprise(id_utilisateur, utilisateurConnecte?.role);
       return reponseSucces(reponse, 200, resultat.message, resultat.donnees);
     } catch (erreur) {
       return suivant(erreur);

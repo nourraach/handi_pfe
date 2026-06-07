@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useEffectEvent, useMemo, useState } from "react";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { Mail, Phone, ShieldCheck } from "lucide-react";
 import { useI18n } from "@/components/i18n-provider";
@@ -23,6 +24,8 @@ interface ProfilAdminData {
   notifications_email: boolean;
   notifications_sms: boolean;
 }
+
+const ADMIN_AVATAR_SRC = "/avatar-admin.jpg";
 
 type Option = {
   value: string;
@@ -165,13 +168,6 @@ export function ProfilAdmin({ utilisateur, lectureSeule = false }: ProfilAdminPr
   const roleLabel = t(`common.roles.${utilisateur.role}`);
   const departement = resolveOptionLabel(profil.departement, departements) || valeurParDefaut;
   const dateEmbauche = formatDateValue(profil.date_embauche, dateFormatter, valeurParDefaut);
-  const initials = (profil.nom || utilisateur.nom || "AD")
-    .split(" ")
-    .map((part) => part[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
-
   return (
     <section className="candidate-profile-medical admin-profile-medical">
       <div className="candidate-profile-topbar">
@@ -210,7 +206,13 @@ export function ProfilAdmin({ utilisateur, lectureSeule = false }: ProfilAdminPr
       >
         <div className="candidate-profile-hero-main">
           <div className="candidate-profile-photo-shell">
-            <div className="candidate-profile-photo-fallback">{initials || "A"}</div>
+            <Image
+              src={ADMIN_AVATAR_SRC}
+              alt={profil.nom || utilisateur.nom || "Admin"}
+              width={112}
+              height={112}
+              className="candidate-profile-photo"
+            />
           </div>
           <div className="candidate-profile-identity-copy">
             <strong>{profil.nom || utilisateur.nom || valeurParDefaut}</strong>

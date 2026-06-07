@@ -6,6 +6,7 @@ import { createPortal } from "react-dom";
 import { RouteProtegee } from "@/components/route-protegee";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { useAuth } from "@/hooks/useAuth";
 import { authenticatedFetch } from "@/lib/auth-utils";
 import { construireUrlApi } from "@/lib/config";
 
@@ -100,10 +101,10 @@ type CompanyFormState = {
 type ModalMode = "create" | "edit" | "view" | null;
 
 const STATUS_LABELS: Record<string, string> = {
-  actif: "Active",
-  en_attente: "Pending",
-  suspendu: "Suspended",
-  inactif: "Inactive",
+  actif: "Actif",
+  en_attente: "En attente",
+  suspendu: "Suspendu",
+  inactif: "Inactif",
 };
 
 const ITEMS_PER_PAGE = 50;
@@ -1032,7 +1033,9 @@ function normalizeCompany(profile: CompanyProfile): CompanyProfile {
 }
 
 function AdminCompaniesPage() {
+  const { utilisateur } = useAuth();
   const [employers, setEmployers] = useState<EmployerAccount[]>([]);
+    const masquerDetailsInspecteur = utilisateur?.role === "inspecteur";
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
@@ -1262,17 +1265,17 @@ function AdminCompaniesPage() {
                 type="search"
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                placeholder="Search company name or email..."
+                placeholder="Rechercher nom d'entreprise ou email..."
                 aria-label="Search companies"
               />
             </label>
             <label className="companies-select-wrap">
               <select value={status} onChange={(event) => setStatus(event.target.value)} aria-label="Filter companies by status">
-                <option value="">All statuses</option>
-                <option value="actif">Active</option>
-                <option value="en_attente">Pending</option>
-                <option value="suspendu">Suspended</option>
-                <option value="inactif">Inactive</option>
+                <option value="">Tous les statuts</option>
+                <option value="actif">Actif</option>
+                <option value="en_attente">En attente</option>
+                <option value="suspendu">Suspendu</option>
+                <option value="inactif">Inactif</option>
               </select>
               <span aria-hidden="true">
                 <svg viewBox="0 0 20 20" fill="none">
@@ -1285,7 +1288,7 @@ function AdminCompaniesPage() {
                 type="text"
                 value={region}
                 onChange={(event) => setRegion(event.target.value)}
-                placeholder="Region"
+                placeholder="Région"
                 aria-label="Filter companies by region"
               />
             </label>
@@ -1371,7 +1374,7 @@ function AdminCompaniesPage() {
                           <div className="companies-actions">
                             <button className="companies-action-btn companies-action-btn--view" onClick={() => void openView(employer)} disabled={isBusy} type="button">
                               <Eye aria-hidden="true" />
-                              <span>View</span>
+                              <span>Voir</span>
                             </button>
                             <button
                               className="companies-action-btn companies-action-btn--suspend"
@@ -1380,7 +1383,7 @@ function AdminCompaniesPage() {
                               type="button"
                             >
                               <Ban aria-hidden="true" />
-                              <span>{employer.statut === "suspendu" ? "Suspended" : "Suspend"}</span>
+                              <span>{employer.statut === "suspendu" ? "Suspendu" : "Suspendre"}</span>
                             </button>
                           </div>
                         </td>
@@ -1497,21 +1500,23 @@ function AdminCompaniesPage() {
                           <p>{selectedCompany.politique_handicap || "Politique handicap a completer dans le profil entreprise."}</p>
                         </article>
 
-                        <article className="company-profile-panel">
-                          <h3>Equipe recrutement</h3>
-                          <div className="company-team-card">
-                            <span>{companyInitials(selectedCompany.contact_rh_nom || selectedCompany.nom)}</span>
-                            <div>
-                              <strong>{selectedCompany.contact_rh_nom || selectedCompany.nom || "Contact RH"}</strong>
-                              <small>{selectedCompany.contact_rh_email || selectedCompany.email || "Email non renseigne"}</small>
+                        {!masquerDetailsInspecteur ? (
+                          <article className="company-profile-panel">
+                            <h3>Equipe recrutement</h3>
+                            <div className="company-team-card">
+                              <span>{companyInitials(selectedCompany.contact_rh_nom || selectedCompany.nom)}</span>
+                              <div>
+                                <strong>{selectedCompany.contact_rh_nom || selectedCompany.nom || "Contact RH"}</strong>
+                                <small>{selectedCompany.contact_rh_email || selectedCompany.email || "Email non renseigne"}</small>
+                              </div>
                             </div>
-                          </div>
-                          <div className="company-contact-list">
-                            <span><Mail size={15} /> {selectedCompany.contact_rh_email || selectedCompany.email || "-"}</span>
-                            <span><Phone size={15} /> {selectedCompany.contact_rh_telephone || selectedCompany.telephone || "-"}</span>
-                            <span><Globe2 size={15} /> {website || "Site web non renseigne"}</span>
-                          </div>
-                        </article>
+                            <div className="company-contact-list">
+                              <span><Mail size={15} /> {selectedCompany.contact_rh_email || selectedCompany.email || "-"}</span>
+                              <span><Phone size={15} /> {selectedCompany.contact_rh_telephone || selectedCompany.telephone || "-"}</span>
+                              <span><Globe2 size={15} /> {website || "Site web non renseigne"}</span>
+                            </div>
+                          </article>
+                        ) : null}
 
                         <article className="company-profile-panel">
                           <h3>Postes ouverts</h3>
@@ -1522,15 +1527,17 @@ function AdminCompaniesPage() {
                           </div>
                         </article>
 
-                        <article className="company-profile-panel company-profile-panel-wide">
-                          <h3>Informations administratives</h3>
-                          <div className="company-admin-strip">
-                            <span>Patente <b>{selectedCompany.patente || "-"}</b></span>
-                            <span>RNE <b>{selectedCompany.rne || "-"}</b></span>
-                            <span>SIRET <b>{selectedCompany.siret || "-"}</b></span>
-                            <span>Profil public <b>{selectedCompany.profil_publique ? "Oui" : "Non"}</b></span>
-                          </div>
-                        </article>
+                        {!masquerDetailsInspecteur ? (
+                          <article className="company-profile-panel company-profile-panel-wide">
+                            <h3>Informations administratives</h3>
+                            <div className="company-admin-strip">
+                              <span>Patente <b>{selectedCompany.patente || "-"}</b></span>
+                              <span>RNE <b>{selectedCompany.rne || "-"}</b></span>
+                              <span>SIRET <b>{selectedCompany.siret || "-"}</b></span>
+                              <span>Profil public <b>{selectedCompany.profil_publique ? "Oui" : "Non"}</b></span>
+                            </div>
+                          </article>
+                        ) : null}
                       </section>
                     </div>
                   );
@@ -1540,9 +1547,9 @@ function AdminCompaniesPage() {
               <div>
                 <div className="companies-modal-header">
                   <div>
-                    <p className="companies-kicker">{modalMode === "create" ? "Nouvelle entreprise" : "Modifier l'entreprise"}</p>
+                    <p className="companies-kicker">{modalMode === "create" ? "Nouvelle entreprise" : <>Modifier l&apos;entreprise</>}</p>
                     <h2 className="companies-modal-title">{modalMode === "create" ? "Creer un compte entreprise" : "Mettre a jour le compte entreprise"}</h2>
-                    <p className="texte-secondaire">Renseignez les informations du compte et de l'entreprise dans un seul formulaire.</p>
+                    <p className="texte-secondaire">Renseignez les informations du compte et de l&apos;entreprise dans un seul formulaire.</p>
                   </div>
                   <button className="companies-modal-close" type="button" onClick={closeModal} aria-label="Fermer">
                     <X aria-hidden="true" />
@@ -1579,7 +1586,7 @@ function AdminCompaniesPage() {
                         <input id="company-address" value={form.addresse} onChange={(event) => setForm((current) => ({ ...current, addresse: event.target.value }))} />
                       </div>
                       <div className="company-form-field">
-                        <label htmlFor="company-name">Nom de l'entreprise</label>
+                        <label htmlFor="company-name">Nom de l&apos;entreprise</label>
                         <input id="company-name" value={form.nom_entreprise} onChange={(event) => setForm((current) => ({ ...current, nom_entreprise: event.target.value }))} />
                       </div>
                       <div className="company-form-field">
@@ -1599,7 +1606,7 @@ function AdminCompaniesPage() {
                         <input id="company-sector" value={form.secteur_activite} onChange={(event) => setForm((current) => ({ ...current, secteur_activite: event.target.value }))} />
                       </div>
                       <div className="company-form-field">
-                        <label htmlFor="company-size">Taille de l'entreprise</label>
+                        <label htmlFor="company-size">Taille de l&apos;entreprise</label>
                         <input id="company-size" value={form.taille_entreprise} onChange={(event) => setForm((current) => ({ ...current, taille_entreprise: event.target.value }))} />
                       </div>
                       <div className="company-form-field">

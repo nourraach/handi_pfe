@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { Button } from "@/components/ui/button";
 import { EmptyState, LoadingState } from "@/components/ui/layout";
-import { getEnterpriseGeneratedReport, type EnterpriseGeneratedReportDetail } from "@/lib/enterprise-reports";
+import { downloadEnterpriseReportPdf, getEnterpriseGeneratedReport, type EnterpriseGeneratedReportDetail } from "@/lib/enterprise-reports";
 
 function extractReportBody(report: EnterpriseGeneratedReportDetail) {
   const raw = String(report.accommodation_actions ?? "").trim();
@@ -19,6 +20,23 @@ export function EnterpriseGeneratedReportDetailView({ reportId }: { reportId: st
   const [report, setReport] = useState<EnterpriseGeneratedReportDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
+
+  const downloadPdf = async () => {
+    if (!report) {
+      return;
+    }
+
+    try {
+      setDownloadingPdf(true);
+      setError(null);
+      await downloadEnterpriseReportPdf(report.id, report.report_pdf_filename || `${report.summary}.pdf`);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Impossible de télécharger le PDF du rapport.");
+    } finally {
+      setDownloadingPdf(false);
+    }
+  };
 
   useEffect(() => {
     const load = async () => {
@@ -57,6 +75,11 @@ export function EnterpriseGeneratedReportDetailView({ reportId }: { reportId: st
 
   return (
     <main className="app-page compliance-report-page">
+      <section className="report-actions">
+        <Button onClick={() => void downloadPdf()} disabled={downloadingPdf} variant="secondary">
+          {downloadingPdf ? "Téléchargement..." : "Télécharger le PDF envoyé"}
+        </Button>
+      </section>
       <section className="report-body-only">
         <pre>{reportBody}</pre>
       </section>
@@ -69,6 +92,14 @@ export function EnterpriseGeneratedReportDetailView({ reportId }: { reportId: st
           max-width: 920px;
           margin: 0 auto;
           padding: 20px;
+        }
+
+        .report-actions {
+          max-width: 920px;
+          margin: 0 auto 12px;
+          display: flex;
+          justify-content: flex-end;
+          padding: 0 20px;
         }
 
         .report-body-only pre {

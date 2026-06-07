@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { AxiosResponse } from "axios";
 
 /**
  * CV Access Authorization Service
@@ -25,6 +25,51 @@ interface ApplicationRelationshipResult {
 }
 
 const APPLICATION_SERVICE_URL = process.env.APPLICATION_SERVICE_URL || "http://application-service:4104";
+
+/**
+ * Retry helper with exponential backoff for inter-service calls
+ * Implements graceful degradation pattern for service dependencies
+ * 
+ * @param fn - Async function to retry
+ * @param maxRetries - Maximum number of retry attempts
+ * @param initialDelay - Initial delay in milliseconds (doubles each retry)
+ * @returns Result of successful function execution
+ * @throws Error from last attempt if all retries fail
+ */
+async function retryWithExponentialBackoff<T>(
+  fn: () => Promise<AxiosResponse<T>>,
+  maxRetries: number = 3,
+  initialDelay: number = 100
+): Promise<AxiosResponse<T>> {
+  let lastError: Error;
+  
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error as Error;
+      
+      // Don't retry on last attempt
+      if (attempt === maxRetries) {
+        break;
+      }
+      
+      // Calculate exponential backoff delay
+      const delay = initialDelay * Math.pow(2, attempt);
+      
+      console.warn(
+        `[CV Authorization] Attempt ${attempt + 1}/${maxRetries + 1} failed. ` +
+        `Retrying in ${delay}ms...`,
+        error instanceof Error ? error.message : error
+      );
+      
+      // Wait before next retry
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+  
+  throw lastError!;
+}
 
 /**
  * Check if a user can access a candidate's CV

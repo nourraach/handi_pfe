@@ -47,6 +47,7 @@ const jobServicePrefixes = [
   "/api/recommandations",
 ];
 const applicationServicePrefixes = [
+  "/uploads",
   "/api/candidatures",
   "/api/entreprise/candidatures",
   "/api/entreprise/candidats",

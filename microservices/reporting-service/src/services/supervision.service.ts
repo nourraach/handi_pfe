@@ -1,8 +1,13 @@
 import crypto from "crypto";
+import fs from "fs";
+import path from "path";
 import { SupervisionRepository, SupervisionScope } from "../repositories/supervision.repository";
 import { JwtPayloadUtilisateur } from "../types/authentification.types";
 import { RoleUtilisateur } from "../types/enums";
 import { ErreurApi } from "../utils/erreur-api";
+import { buildSimplePdfBufferFromText } from "../utils/pdf";
+
+const REPORTS_UPLOAD_DIR = path.join(__dirname, "..", "..", "public", "uploads", "compliance-reports");
 
 export class SupervisionService {
   constructor(private readonly repository = new SupervisionRepository()) {}
@@ -37,6 +42,41 @@ export class SupervisionService {
       author_role: utilisateur.role,
       created_at: new Date().toISOString(),
     };
+  }
+
+  private ensureReportsUploadDir() {
+    if (!fs.existsSync(REPORTS_UPLOAD_DIR)) {
+      fs.mkdirSync(REPORTS_UPLOAD_DIR, { recursive: true });
+    }
+  }
+
+  private sanitizeFilenamePart(value: string) {
+    return value
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-zA-Z0-9-_ ]/g, "")
+      .trim()
+      .replace(/\s+/g, "-")
+      .slice(0, 80)
+      .toLowerCase();
+  }
+
+  private writeReportPdf(reportId: string, summary: string, content: string) {
+    this.ensureReportsUploadDir();
+    const safeSummary = this.sanitizeFilenamePart(summary) || "rapport-conformite";
+    const filename = `${safeSummary}-${reportId.slice(0, 8)}.pdf`;
+    const filePath = path.join(REPORTS_UPLOAD_DIR, filename);
+    fs.writeFileSync(filePath, buildSimplePdfBufferFromText(content));
+    return { filePath, filename };
+  }
+
+  private assertPdfFilePath(filePath: string) {
+    const resolved = path.resolve(filePath);
+    const root = path.resolve(REPORTS_UPLOAD_DIR);
+    if (!resolved.startsWith(root) || !fs.existsSync(resolved)) {
+      throw new ErreurApi("Le fichier PDF du rapport est introuvable", 404);
+    }
+    return resolved;
   }
 
   private toPercent(value: number, total: number) {
@@ -223,6 +263,24 @@ export class SupervisionService {
     };
   }
 
+  async getReportPdf(utilisateur: JwtPayloadUtilisateur, reportId: string) {
+    this.assertSupervisionRole(utilisateur);
+    const report = await this.repository.getReportById(this.buildScope(utilisateur), reportId);
+
+    if (!report) {
+      throw new ErreurApi("Rapport de conformite introuvable", 404);
+    }
+
+    if (!report.report_pdf_path) {
+      throw new ErreurApi("Aucun PDF n'est rattache a ce rapport", 404);
+    }
+
+    return {
+      filePath: this.assertPdfFilePath(String(report.report_pdf_path)),
+      filename: String(report.report_pdf_filename || `rapport-conformite-${report.id}.pdf`),
+    };
+  }
+
   async createReport(utilisateur: JwtPayloadUtilisateur, payload: Record<string, unknown>) {
     if (utilisateur.role !== RoleUtilisateur.ENTREPRISE) {
       throw new ErreurApi("Seules les entreprises peuvent soumettre un rapport", 403);
@@ -250,7 +308,12 @@ export class SupervisionService {
       throw new ErreurApi("Entreprise introuvable pour ce rapport", 404);
     }
 
+    const reportId = crypto.randomUUID();
+    const reportContent = String(payload.generated_body ?? payload.accommodation_actions ?? summary).trim() || summary;
+    const pdf = this.writeReportPdf(reportId, summary, reportContent);
+
     const created = await this.repository.createReport({
+      id: reportId,
       id_entreprise: enterprise.id,
       submitted_by_user_id: utilisateur.id_utilisateur,
       region: String(enterprise.region || "National").trim() || "National",
@@ -264,6 +327,8 @@ export class SupervisionService {
       shortlisted_count: Number(payload.shortlisted_count ?? 0),
       hired_count: Number(payload.hired_count ?? 0),
       accommodation_actions: payload.accommodation_actions ? String(payload.accommodation_actions) : undefined,
+      report_pdf_path: pdf.filePath,
+      report_pdf_filename: pdf.filename,
       evidence_urls: Array.isArray(payload.evidence_urls) ? payload.evidence_urls.map((item) => String(item)) : [],
       recommendations: [],
     });

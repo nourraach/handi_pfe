@@ -739,7 +739,7 @@ export default function CandidaturesCompanyPage() {
     setCandidatureEnPlanification(candidature.id);
     setFormulaire({
       ...formulaireInitial,
-      notes: candidature.lettre_motivation ? `Contexte de la candidature : ${candidature.lettre_motivation}` : "",
+      notes: "",
     });
     setErreur(null);
     setInfo(null);
@@ -840,13 +840,6 @@ export default function CandidaturesCompanyPage() {
     <div className="app-page applicants-dashboard" aria-busy={loading} aria-live="polite">
       {erreur ? <div className="message message-erreur" role="alert">{erreur}</div> : null}
       {info ? <div className="message message-info" aria-live="polite">{info}</div> : null}
-
-      <section className="recruitment-insights" aria-label="Resume du pipeline">
-        <Stat size="compact" value={statistiques.total} label="candidats" />
-        <Stat size="compact" value={statistiques.interview_scheduled} label="entretiens" />
-        <Stat size="compact" value={statistiques.accepted} label="acceptes" />
-        <Stat size="compact" value={statistiques.shortlisted} label="shortlistes" />
-      </section>
 
       <div className="dashboard-layout">
         <div className="dashboard-main">
@@ -988,6 +981,20 @@ export default function CandidaturesCompanyPage() {
                                 >
                                   {detailsEnCours ? "..." : "Profil"}
                                 </button>
+                                {candidature.cv_url || candidature.candidat.cv_url ? (
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      void openPreview({
+                                        title: `CV - ${candidature.candidat.nom}`,
+                                        path: candidature.cv_url || candidature.candidat.cv_url || "",
+                                        kindHint: "pdf",
+                                      })
+                                    }
+                                  >
+                                    Voir CV
+                                  </button>
+                                ) : null}
                                 {candidature.statut === "pending" ? (
                                   <button
                                     type="button"
@@ -1413,7 +1420,7 @@ export default function CandidaturesCompanyPage() {
                       })
                     }
                   >
-                    <Eye size={16} /> Open CV
+                    <Eye size={16} /> Voir CV
                   </Button>
                 ) : null}
 

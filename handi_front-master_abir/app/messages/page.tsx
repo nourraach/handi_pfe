@@ -267,6 +267,7 @@ function MessagesPage() {
   const { utilisateur } = useAuth();
   const { t, locale } = useI18n();
   const isCandidate = utilisateur?.role === "candidat";
+  const isEnterprise = utilisateur?.role === "entreprise";
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
   const [convId, setConvId] = useState<string | null>(null);
@@ -333,6 +334,8 @@ function MessagesPage() {
 
   const translateRole = (role?: string | null) =>
     role ? t(`common.roles.${role}`) : t("messages.messagingSpace");
+
+  const isForbiddenRecipient = (recipient: Recipient) => isEnterprise && recipient.role === "entreprise";
 
   const cleanupAudioRecorder = () => {
     if (recordingTimerRef.current) {
@@ -540,7 +543,8 @@ function MessagesPage() {
       const res = await authenticatedFetch(construireUrlApi(`/api/chat/destinataires?${params.toString()}`));
       const data = await res.json();
       if (res.ok) {
-        setRecipientSuggestions(Array.isArray(data.donnees) ? data.donnees : []);
+        const suggestions: Recipient[] = Array.isArray(data.donnees) ? (data.donnees as Recipient[]) : [];
+        setRecipientSuggestions(suggestions.filter((recipient: Recipient) => !isForbiddenRecipient(recipient)));
       }
     } catch {}
   };
@@ -556,6 +560,12 @@ function MessagesPage() {
   };
 
   const selectionnerDestinataire = (recipient: Recipient) => {
+    if (isForbiddenRecipient(recipient)) {
+      setStatus("Une entreprise ne peut pas contacter une autre entreprise.");
+      setSelectedRecipient(null);
+      return;
+    }
+
     setSelectedRecipient(recipient);
     if (recipient.role === "entreprise") {
       setRecipientQuery(recipient.nom);
@@ -624,6 +634,11 @@ function MessagesPage() {
   const creerConversation = async () => {
     if (!selectedRecipient) {
       setStatus(isCandidate ? t("messages.chooseRecipientCandidate") : t("messages.chooseRecipientGeneric"));
+      return;
+    }
+
+    if (isForbiddenRecipient(selectedRecipient)) {
+      setStatus("Une entreprise ne peut pas contacter une autre entreprise.");
       return;
     }
 

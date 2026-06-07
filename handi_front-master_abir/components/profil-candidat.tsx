@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import {
-  CalendarClock,
   FileText,
   Eye,
   EyeOff,
@@ -11,7 +10,6 @@ import {
   Phone,
   ShieldCheck,
   Upload,
-  Wallet,
   X,
 } from "lucide-react";
 import { useAccessibility, type AccessibilityMode } from "@/components/accessibility-provider";
@@ -480,12 +478,6 @@ export function ProfilCandidat({ utilisateur, lectureSeule = false }: ProfilCand
         ? profil.photo_profil_url
         : construireUrlApi(profil.photo_profil_url)
       : null);
-  const documentsReadyCount = [
-    !!profil.cv_url,
-    !!profil.carte_handicap_url,
-    !!profil.video_cv_url,
-    !!photoFile || !!profil.photo_profil_url,
-  ].filter(Boolean).length;
   const infoRows = [
     { label: t("profile.candidate.fields.name"), key: "nom" as const },
     { label: t("profile.candidate.fields.email"), key: "email" as const },
@@ -577,21 +569,6 @@ export function ProfilCandidat({ utilisateur, lectureSeule = false }: ProfilCand
             </div>
             <span>{t("profile.candidate.completion")}</span>
             <strong>{completionPercent}%</strong>
-          </div>
-          <div className="candidate-profile-mini-stat">
-            <CalendarClock size={18} />
-            <span>{t("profile.candidate.availability")}</span>
-            <strong>{profil.disponibilite || t("profile.candidate.notProvided")}</strong>
-          </div>
-          <div className="candidate-profile-mini-stat">
-            <FileText size={18} />
-            <span>{t("profile.candidate.documentsReady")}</span>
-            <strong>{documentsReadyCount}/4</strong>
-          </div>
-          <div className="candidate-profile-mini-stat">
-            <Wallet size={18} />
-            <span>{t("profile.candidate.expectedSalary")}</span>
-            <strong>{profil.salaire_souhaite || t("profile.candidate.notProvided")}</strong>
           </div>
         </div>
       </motion.article>

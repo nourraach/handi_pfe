@@ -32,16 +32,19 @@ export function canInitiateContact(
   recipientId: string,
   recipientRole: string
 ): AuthorizationResult {
+  const normalizedSenderRole = senderRole.toLowerCase();
+  const normalizedRecipientRole = recipientRole.toLowerCase();
+
   // Rule 1: Enterprise cannot contact another Enterprise
-  if (senderRole === "ENTREPRISE" && recipientRole === "ENTREPRISE") {
+  if (normalizedSenderRole === "entreprise" && normalizedRecipientRole === "entreprise") {
     return {
       allowed: false,
-      reason: "Business-to-business contact forbidden",
+      reason: "Une entreprise ne peut pas contacter une autre entreprise.",
     };
   }
 
   // Rule 2: Inspector cannot contact anyone
-  if (senderRole === "INSPECTEUR") {
+  if (normalizedSenderRole === "inspecteur") {
     return {
       allowed: false,
       reason: "Inspectors use read-only reporting interface",
@@ -49,7 +52,7 @@ export function canInitiateContact(
   }
 
   // Rule 3: Admin can contact anyone
-  if (senderRole === "ADMIN") {
+  if (normalizedSenderRole === "admin") {
     return {
       allowed: true,
       reason: "Admin can communicate with anyone",
@@ -57,7 +60,7 @@ export function canInitiateContact(
   }
 
   // Rule 4: Candidate can contact anyone
-  if (senderRole === "CANDIDAT") {
+  if (normalizedSenderRole === "candidat") {
     return {
       allowed: true,
       reason: "Candidate can communicate freely",
@@ -65,7 +68,7 @@ export function canInitiateContact(
   }
 
   // Rule 5: Enterprise can contact Candidate
-  if (senderRole === "ENTREPRISE" && recipientRole === "CANDIDAT") {
+  if (normalizedSenderRole === "entreprise" && normalizedRecipientRole === "candidat") {
     return {
       allowed: true,
       reason: "Recruitment communication allowed",
@@ -73,7 +76,7 @@ export function canInitiateContact(
   }
 
   // Rule 6: Enterprise can contact Admin
-  if (senderRole === "ENTREPRISE" && recipientRole === "ADMIN") {
+  if (normalizedSenderRole === "entreprise" && normalizedRecipientRole === "admin") {
     return {
       allowed: true,
       reason: "Support communication allowed",

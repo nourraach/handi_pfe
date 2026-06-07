@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowRight, BriefcaseBusiness, CircleCheckBig, MoveRight, Plus, Search, Sparkles, WandSparkles } from "lucide-react";
+import { ArrowRight, BriefcaseBusiness, CircleCheckBig, Sparkles, WandSparkles } from "lucide-react";
 import { ButtonLink } from "@/components/ui/button";
 import { LoadingState } from "@/components/ui/layout";
 import { authenticatedFetch } from "@/lib/auth-utils";
@@ -12,14 +12,6 @@ type WorkspaceStatCard = {
   label: string;
   value: number | string;
   hint?: string;
-};
-
-type NotificationItem = {
-  id: string;
-  type?: string;
-  titre?: string;
-  message?: string;
-  created_at?: string;
 };
 
 type CandidateApplication = {
@@ -90,15 +82,6 @@ type InterviewPayload = {
   donnees?: InterviewItem[];
 };
 
-type ActivityEvent = {
-  id: string;
-  title: string;
-  description: string;
-  timeLabel: string;
-  dateValue?: string;
-  tone: "candidate" | "interview" | "offer" | "default";
-};
-
 interface EntrepriseHomeProps {
   utilisateurNom: string;
   stats: WorkspaceStatCard[];
@@ -149,22 +132,6 @@ function initials(name?: string) {
 
 function pluralize(count: number, singular: string, plural = `${singular}s`) {
   return `${count} ${count > 1 ? plural : singular}`;
-}
-
-function getRelativeTimeFr(dateValue?: string) {
-  if (!dateValue) return "Recemment";
-
-  const date = new Date(dateValue);
-  if (Number.isNaN(date.getTime())) return "Recemment";
-
-  const minutes = Math.max(1, Math.floor((Date.now() - date.getTime()) / 60000));
-  if (minutes < 60) return `Il y a ${minutes} min`;
-
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `Il y a ${hours} h`;
-
-  const days = Math.floor(hours / 24);
-  return `Il y a ${days} j`;
 }
 
 function formatInterviewDay(dateValue?: string) {
@@ -242,21 +209,12 @@ function getInterviewStatusMeta(status?: InterviewItem["entretien"]["statut"]) {
   }
 }
 
-function getActivityTone(type?: string): ActivityEvent["tone"] {
-  const value = normalizeStatus(type);
-  if (value.includes("interview") || value.includes("entretien")) return "interview";
-  if (value.includes("offre") || value.includes("offer")) return "offer";
-  if (value.includes("candidate") || value.includes("candidature") || value.includes("shortlisted")) return "candidate";
-  return "default";
-}
-
 function isFutureInterview(item: InterviewItem, now: number) {
   const date = new Date(item.entretien.date_heure);
   return !Number.isNaN(date.getTime()) && date.getTime() >= now && item.entretien.statut !== "annule";
 }
 
 export function EntrepriseHome({ utilisateurNom, stats, loadingStats, erreurStats }: EntrepriseHomeProps) {
-  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [applications, setApplications] = useState<CandidateApplication[]>([]);
   const [interviews, setInterviews] = useState<InterviewItem[]>([]);
   const [referenceNow] = useState(() => Date.now());
@@ -268,7 +226,6 @@ export function EntrepriseHome({ utilisateurNom, stats, loadingStats, erreurStat
 
     const loadWorkspace = async () => {
       const results = await Promise.allSettled([
-        authenticatedFetch(construireUrlApi("/api/notifications?limit=8")),
         authenticatedFetch(construireUrlApi("/api/candidatures/entreprise?limit=12")),
         authenticatedFetch(construireUrlApi("/api/entretiens/entreprise")),
       ]);
@@ -279,19 +236,7 @@ export function EntrepriseHome({ utilisateurNom, stats, loadingStats, erreurStat
 
       const failed: string[] = [];
 
-      const notificationsRes = results[0];
-      if (notificationsRes.status === "fulfilled") {
-        const payload = await notificationsRes.value.json().catch(() => ({}));
-        if (notificationsRes.value.ok) {
-          setNotifications(Array.isArray(payload?.donnees) ? payload.donnees : []);
-        } else {
-          failed.push("notifications");
-        }
-      } else {
-        failed.push("notifications");
-      }
-
-      const applicationsRes = results[1];
+      const applicationsRes = results[0];
       if (applicationsRes.status === "fulfilled") {
         const payload = await applicationsRes.value.json().catch(() => ({}));
         const raw: CandidateApplicationApiItem[] = Array.isArray(payload?.donnees) ? payload.donnees : [];
@@ -325,7 +270,7 @@ export function EntrepriseHome({ utilisateurNom, stats, loadingStats, erreurStat
         failed.push("candidatures");
       }
 
-      const interviewsRes = results[2];
+      const interviewsRes = results[1];
       if (interviewsRes.status === "fulfilled") {
         const payload = (await interviewsRes.value.json().catch(() => ({}))) as InterviewPayload;
         if (interviewsRes.value.ok) {
@@ -337,7 +282,7 @@ export function EntrepriseHome({ utilisateurNom, stats, loadingStats, erreurStat
         failed.push("entretiens");
       }
 
-      if (failed.length === 3) {
+      if (failed.length === 2) {
         setWorkspaceNotice("Impossible de charger les donnees live du recrutement pour le moment.");
       } else if (failed.length > 0) {
         setWorkspaceNotice("Certaines sections utilisent des donnees partielles pour le moment.");
@@ -517,132 +462,6 @@ export function EntrepriseHome({ utilisateurNom, stats, loadingStats, erreurStat
     };
   }, [activeOffers, recommendedCandidates, upcomingInterviews]);
 
-  const offersNeedingAction = useMemo(() => {
-    const offerMap = new Map<
-      string,
-      {
-        title: string;
-        pending: number;
-        shortlisted: number;
-        interviews: number;
-        toConfirm: number;
-      }
-    >();
-
-    const ensureEntry = (title?: string | null) => {
-      const safeTitle = title?.trim() || "Offre";
-      const current = offerMap.get(safeTitle);
-      if (current) {
-        return current;
-      }
-
-      const next = { title: safeTitle, pending: 0, shortlisted: 0, interviews: 0, toConfirm: 0 };
-      offerMap.set(safeTitle, next);
-      return next;
-    };
-
-    for (const application of applications) {
-      const entry = ensureEntry(application.offre.titre);
-      const status = normalizeStatus(application.statut);
-
-      if (status === "shortlisted") {
-        entry.shortlisted += 1;
-      } else if (status === "interview_scheduled") {
-        entry.interviews += 1;
-      } else if (status !== "accepted" && status !== "rejected") {
-        entry.pending += 1;
-      }
-    }
-
-    for (const interview of upcomingInterviews) {
-      const entry = ensureEntry(interview.offre?.titre);
-      entry.interviews += 1;
-      if (interview.entretien.statut !== "confirme") {
-        entry.toConfirm += 1;
-      }
-    }
-
-    return [...offerMap.values()]
-      .filter((item) => item.pending > 0 || item.shortlisted > 0 || item.interviews > 0 || item.toConfirm > 0)
-      .sort((left, right) => {
-        const leftWeight = left.toConfirm * 4 + left.pending * 3 + left.shortlisted * 2 + left.interviews;
-        const rightWeight = right.toConfirm * 4 + right.pending * 3 + right.shortlisted * 2 + right.interviews;
-        return rightWeight - leftWeight;
-      })
-      .slice(0, 4)
-      .map((item) => {
-        const parts: string[] = [];
-        if (item.pending > 0) parts.push(`${item.pending} a revoir`);
-        if (item.shortlisted > 0) parts.push(`${item.shortlisted} en preselection`);
-        if (item.toConfirm > 0) parts.push(`${item.toConfirm} entretien${item.toConfirm > 1 ? "s" : ""} a confirmer`);
-        if (parts.length === 0 && item.interviews > 0) {
-          parts.push(`${item.interviews} entretien${item.interviews > 1 ? "s" : ""} planifie${item.interviews > 1 ? "s" : ""}`);
-        }
-
-        return {
-          title: item.title,
-          summary: parts.join(" • "),
-          href: "/entreprise/offres",
-        };
-      });
-  }, [applications, upcomingInterviews]);
-
-  const activityFeed = useMemo(() => {
-    const events: Array<ActivityEvent & { timestamp: number }> = [];
-
-    for (const notification of notifications) {
-      const timestamp = new Date(notification.created_at || "").getTime();
-      events.push({
-        id: `notif-${notification.id}`,
-        title: notification.titre || "Activite recente",
-        description: notification.message || "Une mise a jour vient d etre enregistree dans votre espace recrutement.",
-        timeLabel: getRelativeTimeFr(notification.created_at),
-        dateValue: notification.created_at,
-        tone: getActivityTone(notification.type),
-        timestamp: Number.isFinite(timestamp) ? timestamp : 0,
-      });
-    }
-
-    for (const application of applications.slice(0, 6)) {
-      const timestamp = new Date(application.date_postulation || "").getTime();
-      const status = getCandidateStatusMeta(application.statut);
-      events.push({
-        id: `application-${application.id}`,
-        title: status.label === "Preselection" ? "Candidat shortlist" : "Nouvelle candidature",
-        description: `${application.candidat.nom} pour ${application.offre.titre}`,
-        timeLabel: getRelativeTimeFr(application.date_postulation),
-        dateValue: application.date_postulation,
-        tone: "candidate",
-        timestamp: Number.isFinite(timestamp) ? timestamp : 0,
-      });
-    }
-
-    for (const interview of interviews.slice(0, 4)) {
-      const timestamp = new Date(interview.entretien.date_heure || "").getTime();
-      events.push({
-        id: `interview-${interview.entretien.id}`,
-        title: interview.entretien.statut === "confirme" ? "Entretien confirme" : "Entretien planifie",
-        description: `${interview.candidat?.nom || "Candidat"} pour ${interview.offre?.titre || "votre offre"}`,
-        timeLabel: getRelativeTimeFr(interview.entretien.date_heure),
-        dateValue: interview.entretien.date_heure,
-        tone: "interview",
-        timestamp: Number.isFinite(timestamp) ? timestamp : 0,
-      });
-    }
-
-    return events
-      .sort((left, right) => right.timestamp - left.timestamp)
-      .slice(0, 6)
-      .map((event) => ({
-        id: event.id,
-        title: event.title,
-        description: event.description,
-        timeLabel: event.timeLabel,
-        dateValue: event.dateValue,
-        tone: event.tone,
-      }));
-  }, [applications, interviews, notifications]);
-
   const headerLead = loadingWorkspace
     ? "Nous actualisons les profils, entretiens et activites en direct."
     : recommendedCandidates.length > 0
@@ -707,21 +526,6 @@ export function EntrepriseHome({ utilisateurNom, stats, loadingStats, erreurStat
   return (
     <section className="enterprise-ops" aria-label={`Accueil recrutement ${companyName}`}>
       <header className="ops-hero">
-        <div className="ops-hero-toolbar">
-          <div className="ops-hero-search">
-            <Search size={15} />
-            <span>Rechercher...</span>
-            <MoveRight size={14} />
-          </div>
-          <button type="button" className="ops-toolbar-chip" aria-label="Outils IA">
-            <Sparkles size={15} />
-            <span className="ops-toolbar-badge">2</span>
-          </button>
-          <ButtonLink href="/entreprise/offres" size="lg" className="hero-primary-action">
-            <Plus size={16} /> Publier une offre
-          </ButtonLink>
-        </div>
-
         <div className="ops-hero-grid">
           <div className="ops-hero-copy">
             <span className="section-kicker">Cockpit recrutement</span>
@@ -731,17 +535,6 @@ export function EntrepriseHome({ utilisateurNom, stats, loadingStats, erreurStat
             </h1>
             <div className="ops-hero-wave" aria-hidden="true">👋</div>
             <p>{headerLead}</p>
-
-            <div className="ops-priority-card">
-              <span className="focus-kicker">A traiter aujourd hui</span>
-              <strong>{nextAction.label}</strong>
-              <p>{nextAction.description}</p>
-              <div className="ops-priority-tags">
-                {pendingReviewCount > 0 ? <span className="ops-priority-pill">{pendingReviewCount} a revoir</span> : null}
-                {todayInterviews.length > 0 ? <span className="ops-priority-pill">{todayInterviews.length} entretien{todayInterviews.length > 1 ? "s" : ""} aujourd hui</span> : null}
-                {interviewsNeedingConfirmation > 0 ? <span className="ops-priority-pill">{interviewsNeedingConfirmation} confirmation{interviewsNeedingConfirmation > 1 ? "s" : ""}</span> : null}
-              </div>
-            </div>
 
             <div className="ops-hero-actions">
               <ButtonLink href={discoverHref} size="lg" className="hero-discover">
@@ -759,11 +552,6 @@ export function EntrepriseHome({ utilisateurNom, stats, loadingStats, erreurStat
               <div className="orbital-ring orbital-ring-outer" />
               <div className="orbital-ring orbital-ring-mid" />
               <div className="orbital-ring orbital-ring-inner" />
-              <div className="orbital-core">
-                <small>Score d&apos;inclusion</small>
-                <strong>{inclusionScore}%</strong>
-                <span>+{Math.max(6, recommendedCandidates.length * 2)}% ce mois-ci</span>
-              </div>
               <div className="floating-tag floating-tag-top">
                 <WandSparkles size={14} />
                 <div>
@@ -943,85 +731,6 @@ export function EntrepriseHome({ utilisateurNom, stats, loadingStats, erreurStat
             <div className="empty-inline">
               <strong>Aucun entretien aujourd hui.</strong>
               <p>Le planning du jour est libre pour avancer sur les candidatures prioritaires.</p>
-            </div>
-          )}
-        </section>
-      </section>
-
-      <section className="ops-grid-two">
-        <section className="ops-section ops-section-compact">
-          <div className="section-heading">
-            <div>
-              <span className="section-kicker">Activite recente</span>
-              <h2>Ce qui sest passe recemment</h2>
-            </div>
-            <Link href="/notifications" className="section-link">
-              Tout afficher <ArrowRight size={16} />
-            </Link>
-          </div>
-
-          {activityFeed.length > 0 ? (
-            <div className="activity-feed" role="list" aria-label="Activite recente">
-              {activityFeed.map((event) => (
-                <article className="activity-item" key={event.id} role="listitem">
-                  <span className={`activity-dot activity-dot-${event.tone}`} aria-hidden="true" />
-                  <div>
-                    <strong>{event.title}</strong>
-                    <p>{event.description}</p>
-                  </div>
-                  <time dateTime={event.dateValue}>{event.timeLabel}</time>
-                </article>
-              ))}
-            </div>
-          ) : (
-            <div className="empty-inline">
-              <strong>Aucune activite recente.</strong>
-              <p>Les nouveaux evenements du recrutement apparaitront ici.</p>
-            </div>
-          )}
-        </section>
-
-        <section className="ops-section ops-section-compact">
-          <div className="section-heading">
-            <div>
-              <span className="section-kicker">Actions rapides</span>
-              <h2>Que faire ensuite</h2>
-            </div>
-            <Link href={nextAction.href} className="section-link">
-              Aller a la priorite <ArrowRight size={16} />
-            </Link>
-          </div>
-
-          {offersNeedingAction.length > 0 ? (
-            <div className="action-offer-list" role="list" aria-label="Actions rapides recrutement">
-              {offersNeedingAction.map((offer) => (
-                <article className="action-offer-row" key={offer.title} role="listitem">
-                  <div className="action-offer-copy">
-                    <span className="focus-kicker">Offre a suivre</span>
-                    <strong>{offer.title}</strong>
-                    <p>{offer.summary}</p>
-                  </div>
-                  <Link href={offer.href} className="section-link">
-                    Ouvrir <ArrowRight size={16} />
-                  </Link>
-                </article>
-              ))}
-
-              <article className="action-offer-row action-offer-row-focus" role="listitem">
-                <div className="action-offer-copy">
-                  <span className="focus-kicker">Prochaine action</span>
-                  <strong>{nextAction.label}</strong>
-                  <p>{nextAction.description}</p>
-                </div>
-                <Link href={nextAction.href} className="section-link">
-                  Traiter <ArrowRight size={16} />
-                </Link>
-              </article>
-            </div>
-          ) : (
-            <div className="empty-inline">
-              <strong>Aucune action urgente pour le moment.</strong>
-              <p>Vos offres actives sont a jour pour le moment.</p>
             </div>
           )}
         </section>
@@ -1327,33 +1036,6 @@ export function EntrepriseHome({ utilisateurNom, stats, loadingStats, erreurStat
           height: 142px;
           background: radial-gradient(circle at 48% 40%, #ffffff 0, #fff 62%, rgba(255, 255, 255, 0.8) 100%);
           box-shadow: 0 12px 40px rgba(84, 41, 101, 0.08);
-        }
-
-        .orbital-core {
-          position: relative;
-          z-index: 2;
-          display: grid;
-          justify-items: center;
-          gap: 4px;
-          width: 142px;
-          text-align: center;
-        }
-
-        .orbital-core small {
-          font-size: 11px;
-          color: #7f7191;
-        }
-
-        .orbital-core strong {
-          font-size: 54px;
-          line-height: 1;
-          letter-spacing: -0.05em;
-        }
-
-        .orbital-core span {
-          font-size: 13px;
-          font-weight: 700;
-          color: #0b8d58;
         }
 
         .floating-tag {

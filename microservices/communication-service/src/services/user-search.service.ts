@@ -27,11 +27,13 @@ export class UserSearchService {
     recherche?: string,
     roleFilter?: "admin" | "entreprise",
   ) {
+    const normalizedUserRole = userRole.toLowerCase();
+
     // If the user is an enterprise, never show other enterprises as recipients
     // This prevents business-to-business contact initiation
     let effectiveRoleFilter = roleFilter;
     
-    if (userRole === "ENTREPRISE") {
+    if (normalizedUserRole === "entreprise") {
       // Enterprise can only contact admin and candidates (not other enterprises)
       // Override the role filter to only show admins
       effectiveRoleFilter = "admin";

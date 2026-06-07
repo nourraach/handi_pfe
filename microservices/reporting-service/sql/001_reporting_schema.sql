@@ -165,6 +165,8 @@ CREATE TABLE IF NOT EXISTS compliance_report (
   shortlisted_count INTEGER NOT NULL DEFAULT 0,
   hired_count INTEGER NOT NULL DEFAULT 0,
   accommodation_actions TEXT,
+  report_pdf_path TEXT,
+  report_pdf_filename TEXT,
   evidence_urls JSON,
   status compliance_report_status NOT NULL DEFAULT 'submitted',
   review_comment TEXT,

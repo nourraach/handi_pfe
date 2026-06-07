@@ -34,6 +34,12 @@ router.get(
 );
 
 router.get(
+  "/reports/:id/pdf",
+  roleMiddleware([RoleUtilisateur.ADMIN, RoleUtilisateur.INSPECTEUR, RoleUtilisateur.ANETI]),
+  controller.getReportPdf
+);
+
+router.get(
   "/reports/:id",
   roleMiddleware([RoleUtilisateur.ADMIN, RoleUtilisateur.INSPECTEUR, RoleUtilisateur.ANETI]),
   controller.getReportDetail

@@ -3,6 +3,7 @@
 import { useEffect, useEffectEvent, useMemo, useState, type ReactNode } from "react";
 import { Building2, Globe2, Mail, MapPin, Phone, ShieldCheck, Users } from "lucide-react";
 import { useI18n } from "@/components/i18n-provider";
+import { useAuth } from "@/hooks/useAuth";
 import { construireUrlApi } from "@/lib/config";
 import { UtilisateurConnecte } from "@/types/api";
 
@@ -58,6 +59,7 @@ const tailleValues = [
 
 export function ProfilEntreprise({ utilisateur, lectureSeule = false }: ProfilEntrepriseProps) {
   const { t } = useI18n();
+  const { utilisateur: utilisateurConnecte } = useAuth();
   const [profil, setProfil] = useState<ProfilEntrepriseData>({
     nom: utilisateur.nom || "",
     email: utilisateur.email || "",
@@ -188,6 +190,7 @@ export function ProfilEntreprise({ utilisateur, lectureSeule = false }: ProfilEn
   const secteur = resolveOptionLabel(profil.secteur_activite, secteurs) || valeurParDefaut;
   const taille = resolveOptionLabel(profil.taille_entreprise, tailles) || valeurParDefaut;
   const editionAutorisee = !lectureSeule && modeEdition;
+  const masquerEquipeRecrutement = utilisateurConnecte?.role === "inspecteur";
   const completionPercent = Math.round(
     ([
       profil.nom,
@@ -418,35 +421,37 @@ export function ProfilEntreprise({ utilisateur, lectureSeule = false }: ProfilEn
           </div>
         </article>
 
-        <article className="candidate-profile-card candidate-profile-section candidate-profile-upload-block">
-          <div className="candidate-profile-card-head">
-            <strong>{t("profile.company.hrTitle")}</strong>
-          </div>
-          <div className="candidate-profile-documents">
-            <EditableDocumentRow
-              label={t("profile.company.fields.hrName")}
-              value={profil.contact_rh_nom}
-              edit={editionAutorisee}
-              emptyValue={valeurParDefaut}
-              onChange={(value) => setProfil((courant) => ({ ...courant, contact_rh_nom: value }))}
-            />
-            <EditableDocumentRow
-              label={t("profile.company.fields.hrEmail")}
-              value={profil.contact_rh_email}
-              edit={editionAutorisee}
-              type="email"
-              emptyValue={valeurParDefaut}
-              onChange={(value) => setProfil((courant) => ({ ...courant, contact_rh_email: value }))}
-            />
-            <EditableDocumentRow
-              label={t("profile.company.fields.hrPhone")}
-              value={profil.contact_rh_telephone}
-              edit={editionAutorisee}
-              emptyValue={valeurParDefaut}
-              onChange={(value) => setProfil((courant) => ({ ...courant, contact_rh_telephone: value }))}
-            />
-          </div>
-        </article>
+        {!masquerEquipeRecrutement ? (
+          <article className="candidate-profile-card candidate-profile-section candidate-profile-upload-block">
+            <div className="candidate-profile-card-head">
+              <strong>{t("profile.company.hrTitle")}</strong>
+            </div>
+            <div className="candidate-profile-documents">
+              <EditableDocumentRow
+                label={t("profile.company.fields.hrName")}
+                value={profil.contact_rh_nom}
+                edit={editionAutorisee}
+                emptyValue={valeurParDefaut}
+                onChange={(value) => setProfil((courant) => ({ ...courant, contact_rh_nom: value }))}
+              />
+              <EditableDocumentRow
+                label={t("profile.company.fields.hrEmail")}
+                value={profil.contact_rh_email}
+                edit={editionAutorisee}
+                type="email"
+                emptyValue={valeurParDefaut}
+                onChange={(value) => setProfil((courant) => ({ ...courant, contact_rh_email: value }))}
+              />
+              <EditableDocumentRow
+                label={t("profile.company.fields.hrPhone")}
+                value={profil.contact_rh_telephone}
+                edit={editionAutorisee}
+                emptyValue={valeurParDefaut}
+                onChange={(value) => setProfil((courant) => ({ ...courant, contact_rh_telephone: value }))}
+              />
+            </div>
+          </article>
+        ) : null}
       </div>
     </section>
   );

@@ -33,6 +33,8 @@ export const complianceReportTable = pgTable("compliance_report", {
   shortlisted_count: integer("shortlisted_count").notNull().default(0),
   hired_count: integer("hired_count").notNull().default(0),
   accommodation_actions: text("accommodation_actions"),
+  report_pdf_path: text("report_pdf_path"),
+  report_pdf_filename: text("report_pdf_filename"),
   evidence_urls: json("evidence_urls").$type<string[]>(),
   status: complianceReportStatusEnum("status").notNull().default("submitted"),
   review_comment: text("review_comment"),

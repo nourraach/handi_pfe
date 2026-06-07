@@ -104,6 +104,7 @@ export interface EnterpriseGeneratedReportSummary {
   applications_count: number;
   shortlisted_count: number;
   hired_count: number;
+  report_pdf_filename?: string | null;
   company_id: string;
   company_name: string;
   reviewed_by_name?: string | null;
@@ -120,6 +121,40 @@ export interface EnterpriseGeneratedReportSummary {
 export interface EnterpriseGeneratedReportDetail extends EnterpriseGeneratedReportSummary {
   accommodation_actions?: string | null;
   evidence_urls?: string[] | null;
+}
+
+function getFilenameFromDisposition(disposition: string | null, fallback: string) {
+  const match = disposition?.match(/filename="?([^";]+)"?/i);
+  return match?.[1] || fallback;
+}
+
+async function downloadAuthenticatedFile(url: string, fallbackFilename: string) {
+  const response = await authenticatedFetch(url);
+  if (!response.ok) {
+    const contentType = response.headers.get("content-type") || "";
+    const rawBody = await response.text().catch(() => "");
+
+    if (contentType.toLowerCase().includes("application/json")) {
+      try {
+        const payload = JSON.parse(rawBody) as { message?: string; error?: string };
+        throw new Error(payload.message || payload.error || "Impossible de télécharger le fichier.");
+      } catch {
+        throw new Error("Impossible de télécharger le fichier.");
+      }
+    }
+
+    throw new Error(rawBody.trim() || "Impossible de télécharger le fichier.");
+  }
+
+  const blob = await response.blob();
+  const objectUrl = window.URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = objectUrl;
+  link.download = getFilenameFromDisposition(response.headers.get("Content-Disposition"), fallbackFilename);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  window.URL.revokeObjectURL(objectUrl);
 }
 
 const DRAFTS_STORAGE_KEY = "handitalents_enterprise_drafts_v1";
@@ -158,6 +193,13 @@ export async function createEnterpriseComplianceReport(body: Record<string, unkn
   });
 
   return parseJsonResponse<{ id: string; status: string; submitted_at: string }>(response);
+}
+
+export async function downloadEnterpriseReportPdf(reportId: string, fallbackFilename = "rapport-conformite.pdf") {
+  await downloadAuthenticatedFile(
+    construireUrlApi(`/api/entreprise/reports-requests/reports/${reportId}/pdf`),
+    fallbackFilename,
+  );
 }
 
 function readDrafts(): EnterpriseDraftRecord[] {

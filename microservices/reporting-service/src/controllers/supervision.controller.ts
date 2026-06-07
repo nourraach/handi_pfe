@@ -5,7 +5,6 @@ import { sanitizeRecruitedCandidatesForInspector, RecruitedCandidateRaw } from "
 import { logAuthorizationAttempt } from "../services/audit-logger.service";
 import { ErreurApi } from "../utils/erreur-api";
 import { reponseSucces } from "../utils/reponse";
-import { ErrorResponses, HTTP_STATUS, createErrorResponse } from "../../../shared/error-response";
 
 export class SupervisionController {
   constructor(private readonly service = new SupervisionService()) {}
@@ -69,7 +68,7 @@ export class SupervisionController {
     // Return 403 if authorization failed
     if (!authResult.allowed) {
       throw {
-        statusCode: HTTP_STATUS.FORBIDDEN,
+        statusCode: 403,
         message: authResult.reason || "Accès refusé",
         code: "AUTHZ_ROLE_FORBIDDEN",
       };
@@ -124,6 +123,18 @@ export class SupervisionController {
       await this.checkAuthorizationAndLog(requete, "AGGREGATED_STATS", String(requete.params.id));
       const resultat = await this.service.getReportDetail(this.getUtilisateur(requete), String(requete.params.id));
       return reponseSucces(reponse, 200, resultat.message, resultat.donnees);
+    } catch (erreur) {
+      return suivant(erreur);
+    }
+  };
+
+  getReportPdf = async (requete: Request, reponse: Response, suivant: NextFunction) => {
+    try {
+      await this.checkAuthorizationAndLog(requete, "AGGREGATED_STATS", String(requete.params.id));
+      const resultat = await this.service.getReportPdf(this.getUtilisateur(requete), String(requete.params.id));
+      reponse.setHeader("Content-Type", "application/pdf");
+      reponse.setHeader("Content-Disposition", `attachment; filename="${resultat.filename}"`);
+      return reponse.status(200).sendFile(resultat.filePath);
     } catch (erreur) {
       return suivant(erreur);
     }

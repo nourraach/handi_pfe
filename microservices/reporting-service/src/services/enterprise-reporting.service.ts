@@ -1,8 +1,12 @@
-﻿import { EnterpriseReportingRepository } from "../repositories/enterprise-reporting.repository";
+﻿import fs from "fs";
+import path from "path";
+import { EnterpriseReportingRepository } from "../repositories/enterprise-reporting.repository";
 import { JwtPayloadUtilisateur } from "../types/authentification.types";
 import { RoleUtilisateur } from "../types/enums";
 import { ErreurApi } from "../utils/erreur-api";
 import { SupervisionService } from "./supervision.service";
+
+const REPORTS_UPLOAD_DIR = path.join(__dirname, "..", "..", "public", "uploads", "compliance-reports");
 
 const DEFAULT_PUBLICATION_CHANNELS = [
   {
@@ -42,6 +46,15 @@ export class EnterpriseReportingService {
     if (utilisateur.role !== RoleUtilisateur.ENTREPRISE) {
       throw new ErreurApi("Acces reserve aux entreprises.", 403);
     }
+  }
+
+  private assertPdfFilePath(filePath: string) {
+    const resolved = path.resolve(filePath);
+    const root = path.resolve(REPORTS_UPLOAD_DIR);
+    if (!resolved.startsWith(root) || !fs.existsSync(resolved)) {
+      throw new ErreurApi("Le fichier PDF du rapport est introuvable", 404);
+    }
+    return resolved;
   }
 
   private calculateRequiredReservedPositions(workforceTotal: number) {
@@ -134,6 +147,24 @@ export class EnterpriseReportingService {
     };
   }
 
+  async getReportPdf(utilisateur: JwtPayloadUtilisateur, reportId: string) {
+    this.assertEntreprise(utilisateur);
+    const report = await this.repository.getComplianceReportByIdForUser(utilisateur.id_utilisateur, reportId);
+
+    if (!report) {
+      throw new ErreurApi("Rapport introuvable.", 404);
+    }
+
+    if (!report.report_pdf_path) {
+      throw new ErreurApi("Aucun PDF n'est rattache a ce rapport.", 404);
+    }
+
+    return {
+      filePath: this.assertPdfFilePath(String(report.report_pdf_path)),
+      filename: String(report.report_pdf_filename || `rapport-conformite-${report.id}.pdf`),
+    };
+  }
+
   async createReport(utilisateur: JwtPayloadUtilisateur, payload: Record<string, unknown>) {
     this.assertEntreprise(utilisateur);
 
@@ -154,4 +185,6 @@ export class EnterpriseReportingService {
     return this.supervisionService.createReport(utilisateur, finalPayload);
   }
 }
+
+
 

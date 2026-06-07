@@ -41,6 +41,17 @@ export class EnterpriseReportingController {
     }
   };
 
+  getReportPdf = async (requete: Request, reponse: Response, suivant: NextFunction) => {
+    try {
+      const resultat = await this.service.getReportPdf(this.getUtilisateur(requete), String(requete.params.id));
+      reponse.setHeader("Content-Type", "application/pdf");
+      reponse.setHeader("Content-Disposition", `attachment; filename="${resultat.filename}"`);
+      return reponse.status(200).sendFile(resultat.filePath);
+    } catch (erreur) {
+      return suivant(erreur);
+    }
+  };
+
   createReport = async (requete: Request, reponse: Response, suivant: NextFunction) => {
     try {
       const resultat = await this.service.createReport(this.getUtilisateur(requete), requete.body);

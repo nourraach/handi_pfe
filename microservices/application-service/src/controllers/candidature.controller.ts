@@ -60,7 +60,7 @@ export class CandidatureController {
     const donnees = {
       id_offre: req.body?.id_offre,
       lettre_motivation: req.body?.lettre_motivation ?? req.body?.message_motivation,
-      cv_url: cvFile?.path ? cvFile.path.replace(/^.*public[\\/]/, "/") : req.body?.cv_url,
+      cv_url: cvFile?.path ? cvFile.path.replace(/^.*public[\\/]/, "/") : undefined,
     };
 
     try {
@@ -73,8 +73,8 @@ export class CandidatureController {
         return reponseErreur(res, 400, "Le champ id_offre est requis");
       }
 
-      if (!donnees.cv_url) {
-        return reponseErreur(res, 400, "Le CV est obligatoire pour postuler a cette offre");
+      if (!cvFile || !donnees.cv_url) {
+        return reponseErreur(res, 400, "Le CV PDF est obligatoire pour postuler a cette offre");
       }
 
       const candidature = await this.candidatureService.postuler(idCandidat, donnees);

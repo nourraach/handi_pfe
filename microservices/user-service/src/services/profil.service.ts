@@ -209,7 +209,7 @@ export class ProfilService {
   }
 
   // Entreprise
-  async obtenirProfilEntreprise(id_utilisateur: string): Promise<ReponseProfilDto> {
+  async obtenirProfilEntreprise(id_utilisateur: string, requesterRole?: string): Promise<ReponseProfilDto> {
     await this.ensureColumnsPromise;
     const profil = await this.profilRepository.obtenirProfilEntreprise(id_utilisateur);
 
@@ -221,6 +221,7 @@ export class ProfilService {
       throw new ErreurApi("L'utilisateur n'est pas une entreprise.", 403);
     }
 
+    const isInspectorView = requesterRole === RoleUtilisateur.INSPECTEUR;
     const donnees = {
       nom: profil.utilisateur.nom,
       email: profil.utilisateur.email,
@@ -230,21 +231,21 @@ export class ProfilService {
       gouvernorat: profil.utilisateur.gouvernorat,
       delegation: profil.utilisateur.delegation,
       nom_entreprise: profil.entreprise?.nom_entreprise || "",
-      patente: profil.entreprise?.patente || "",
-      rne: profil.entreprise?.rne || "",
+      patente: isInspectorView ? "" : profil.entreprise?.patente || "",
+      rne: isInspectorView ? "" : profil.entreprise?.rne || "",
       profil_publique: profil.entreprise?.profil_publique || false,
       date_fondation: profil.entreprise?.date_fondation?.toISOString?.() || "",
       secteur_activite: profil.entreprise?.secteur_activite || "",
       taille_entreprise: profil.entreprise?.taille_entreprise || "",
-      siret: profil.entreprise?.siret || profil.entreprise?.rne || "",
+      siret: isInspectorView ? "" : profil.entreprise?.siret || profil.entreprise?.rne || "",
       site_web: profil.entreprise?.site_web || profil.entreprise?.url_site || "",
       description: profil.entreprise?.description || "",
       nbr_employe: profil.entreprise?.nbr_employe ?? 0,
       nbr_employe_handicape: profil.entreprise?.nbr_employe_handicape ?? 0,
       politique_handicap: profil.entreprise?.politique_handicap || "",
-      contact_rh_nom: profil.entreprise?.contact_rh_nom || "",
-      contact_rh_email: profil.entreprise?.contact_rh_email || "",
-      contact_rh_telephone: profil.entreprise?.contact_rh_telephone || "",
+      contact_rh_nom: isInspectorView ? "" : profil.entreprise?.contact_rh_nom || "",
+      contact_rh_email: isInspectorView ? "" : profil.entreprise?.contact_rh_email || "",
+      contact_rh_telephone: isInspectorView ? "" : profil.entreprise?.contact_rh_telephone || "",
       logo_url: profil.entreprise?.logo_url || "",
       subscription_pack: profil.entreprise?.subscription_pack || "",
       subscription_status: profil.entreprise?.subscription_status || "inactive",

@@ -54,6 +54,13 @@ export type EnterpriseComplianceContextCandidate = {
 };
 
 export class EnterpriseReportingRepository {
+  private ensureComplianceReportColumnsPromise = this.ensureComplianceReportColumns();
+
+  private async ensureComplianceReportColumns() {
+    await pool.query("ALTER TABLE compliance_report ADD COLUMN IF NOT EXISTS report_pdf_path TEXT");
+    await pool.query("ALTER TABLE compliance_report ADD COLUMN IF NOT EXISTS report_pdf_filename TEXT");
+  }
+
   async getEnterpriseContextByUserId(userId: string) {
     const companyQuery = `
       SELECT
@@ -158,6 +165,7 @@ export class EnterpriseReportingRepository {
   }
 
   async listComplianceReportsByUserId(userId: string) {
+    await this.ensureComplianceReportColumnsPromise;
     const query = `
       SELECT
         cr.id,
@@ -176,6 +184,8 @@ export class EnterpriseReportingRepository {
         cr.applications_count,
         cr.shortlisted_count,
         cr.hired_count,
+        cr.report_pdf_path,
+        cr.report_pdf_filename,
         cr.recommendations,
         e.id AS company_id,
         e.nom_entreprise AS company_name,
@@ -201,6 +211,7 @@ export class EnterpriseReportingRepository {
   }
 
   async getComplianceReportByIdForUser(userId: string, reportId: string) {
+    await this.ensureComplianceReportColumnsPromise;
     const query = `
       SELECT
         cr.id,
@@ -220,6 +231,8 @@ export class EnterpriseReportingRepository {
         cr.shortlisted_count,
         cr.hired_count,
         cr.accommodation_actions,
+        cr.report_pdf_path,
+        cr.report_pdf_filename,
         cr.evidence_urls,
         cr.recommendations,
         e.id AS company_id,

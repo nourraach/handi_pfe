@@ -1215,7 +1215,7 @@ function AdminDashboardHome({
           <article className="admin-command__card admin-command__card--focus">
             <header className="admin-command__card-head">
               <div>
-                <p className="admin-command__section-label">Priorites</p>
+                <p className="admin-command__section-label">Priorités</p>
                 <h2>Flux de recrutement</h2>
               </div>
               <Link href="/admin/demandes-en-attente">Ouvrir la file</Link>
@@ -1240,7 +1240,7 @@ function AdminDashboardHome({
             <header className="admin-command__card-head">
               <div>
                 <p className="admin-command__section-label">Actions</p>
-              <h2>Quick actions</h2>
+              <h2>Actions rapides</h2>
               </div>
             </header>
             <nav className="admin-command__actions" aria-label="Quick admin actions">
@@ -1256,10 +1256,10 @@ function AdminDashboardHome({
           <article className="admin-command__card admin-command__card--activity">
             <header className="admin-command__card-head">
               <div>
-                <p className="admin-command__section-label">Live overview</p>
-                <h2>Platform activity</h2>
+                <p className="admin-command__section-label">Vue en direct</p>
+                <h2>Activité de la plateforme</h2>
               </div>
-              <Link href="/home#admin-stats">View all</Link>
+              <Link href="/home#admin-stats">Voir tout</Link>
             </header>
             <ul className="admin-command__activity">
               {platformActivity.map((item) => (
@@ -1593,17 +1593,6 @@ function CandidateHome({
     const sortedApplications = [...applications].sort((a, b) => {
       return new Date(b.datePostulation).getTime() - new Date(a.datePostulation).getTime();
     });
-
-    const latestSubmission = sortedApplications.find((item) => item.datePostulation);
-    if (latestSubmission) {
-      events.push({
-        key: `submission-${latestSubmission.id}`,
-        title: "Votre candidature a ete envoyee avec succes",
-        detail: `${latestSubmission.titre} chez ${latestSubmission.entreprise}`,
-        at: latestSubmission.datePostulation,
-        tone: "green",
-      });
-    }
 
     const latestProgress = sortedApplications.find((item) => normalizeStatus(item.statut) !== "pending" && item.datePostulation);
     if (latestProgress) {

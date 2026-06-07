@@ -2632,13 +2632,6 @@ export default function OffresPage() {
       {info ? <div className="message message-info" aria-live="polite">{info}</div> : null}
 
       <section className="jobs-studio-shell" aria-busy={loading} aria-live="polite">
-        <div className="jobs-studio-header">
-          <div className="jobs-studio-heading">
-            <h1>Offres d&apos;emploi accessibles</h1>
-            <p>Trouvez des opportunites adaptees a votre profil et postulez en quelques clics.</p>
-          </div>
-        </div>
-
         <div className="jobs-studio-toolbar">
           <label className="jobs-studio-search">
             <SearchIcon className="jobs-studio-icon jobs-studio-search-icon" />
@@ -2884,7 +2877,7 @@ export default function OffresPage() {
                     ref={cvInputRef}
                     id="application-cv"
                     type="file"
-                    accept=".pdf,.doc,.docx"
+                    accept="application/pdf,.pdf"
                     onChange={(event) => {
                       setCvFile(event.target.files?.[0] || null);
                       setCvFieldTouched(true);

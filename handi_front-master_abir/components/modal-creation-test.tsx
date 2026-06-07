@@ -351,11 +351,11 @@ export function ModalCreationTest({ onSave, onCancel }: ModalCreationTestProps) 
 
   const validerEtape1 = () => {
     if (!formData.titre || !formData.description) {
-      setErreur("The title and description are required.");
+      setErreur("Le titre et la description sont obligatoires.");
       return false;
     }
     if (new Date(formData.date_fin_validite) <= new Date(formData.date_debut_validite)) {
-      setErreur("The end date must be later than the start date.");
+      setErreur("La date de fin doit être postérieure à la date de début.");
       return false;
     }
     return true;
@@ -363,26 +363,26 @@ export function ModalCreationTest({ onSave, onCancel }: ModalCreationTestProps) 
 
   const validerEtape2 = () => {
     if (questions.length === 0) {
-      setErreur("Add at least one question.");
+      setErreur("Ajoutez au moins une question.");
       return false;
     }
 
     for (let i = 0; i < questions.length; i += 1) {
       const question = questions[i];
       if (!question.contenu_question) {
-        setErreur(`Question ${i + 1} must include content.`);
+        setErreur(`La question ${i + 1} doit avoir un contenu.`);
         return false;
       }
 
       if (["choix_multiple", "vrai_faux"].includes(question.type_question)) {
         if (question.options.length === 0) {
-          setErreur(`Question ${i + 1} must include at least one option.`);
+          setErreur(`La question ${i + 1} doit avoir au moins une option.`);
           return false;
         }
 
         const optionsCorrectes = question.options.filter((option) => option.est_correcte);
         if (optionsCorrectes.length === 0) {
-          setErreur(`Question ${i + 1} must include at least one correct option.`);
+          setErreur(`La question ${i + 1} doit avoir au moins une option correcte.`);
           return false;
         }
       }
@@ -419,10 +419,10 @@ export function ModalCreationTest({ onSave, onCancel }: ModalCreationTestProps) 
         onSave();
       } else {
         const resultat = await response.json();
-        setErreur(resultat.message || "Unable to create the test.");
+        setErreur(resultat.message || "Impossible de créer le test.");
       }
     } catch {
-      setErreur("Connection error.");
+      setErreur("Erreur de connexion.");
     } finally {
       setChargement(false);
     }
@@ -436,11 +436,11 @@ export function ModalCreationTest({ onSave, onCancel }: ModalCreationTestProps) 
       <section className="test-create-modal-card" onClick={(event) => event.stopPropagation()}>
         <header className="test-create-modal-header">
           <div>
-            <p className="test-create-kicker">Test creation</p>
-            <h3 className="test-create-title">Create a psychological test</h3>
-            <p className="test-create-subtitle">Step {etapeActuelle} of 2</p>
+            <p className="test-create-kicker">Création de test</p>
+            <h3 className="test-create-title">Créer un test psychologique</h3>
+            <p className="test-create-subtitle">Étape {etapeActuelle} sur 2</p>
           </div>
-          <button onClick={onCancel} className="test-create-close" type="button" aria-label="Close">
+          <button onClick={onCancel} className="test-create-close" type="button" aria-label="Fermer">
             ✕
           </button>
         </header>
@@ -451,7 +451,7 @@ export function ModalCreationTest({ onSave, onCancel }: ModalCreationTestProps) 
             <span className={etapeActuelle >= 2 ? "active" : ""}></span>
           </div>
           <span className="test-create-progress-label">
-            {etapeActuelle === 1 ? "General information" : "Questions and scoring"}
+            {etapeActuelle === 1 ? "Informations générales" : "Questions et notation"}
           </span>
         </div>
 
@@ -461,31 +461,31 @@ export function ModalCreationTest({ onSave, onCancel }: ModalCreationTestProps) 
           {etapeActuelle === 1 ? (
             <div className="test-create-form-grid">
               <div className="test-create-field">
-                <label htmlFor="test-title">Test title</label>
+                <label htmlFor="test-title">Titre du test</label>
                 <input
                   id="test-title"
                   type="text"
                   value={formData.titre}
                   onChange={(event) => setFormData((prev) => ({ ...prev, titre: event.target.value }))}
-                  placeholder="Example: Communication assessment"
+                  placeholder="Exemple : Évaluation de communication"
                 />
               </div>
 
               <div className="test-create-field">
-                <label htmlFor="test-type">Test type</label>
+                <label htmlFor="test-type">Type de test</label>
                 <select
                   id="test-type"
                   value={formData.type_test}
                   onChange={(event) => setFormData((prev) => ({ ...prev, type_test: event.target.value }))}
                 >
                   <option value="soft_skills">Soft skills</option>
-                  <option value="personnalite">Personality</option>
-                  <option value="competences">Skills</option>
+                  <option value="personnalite">Personnalité</option>
+                  <option value="competences">Compétences</option>
                 </select>
               </div>
 
               <div className="test-create-field">
-                <label htmlFor="test-duration">Duration (minutes)</label>
+                <label htmlFor="test-duration">Durée (minutes)</label>
                 <input
                   id="test-duration"
                   type="number"
@@ -497,7 +497,7 @@ export function ModalCreationTest({ onSave, onCancel }: ModalCreationTestProps) 
               </div>
 
               <div className="test-create-field">
-                <label htmlFor="test-start-date">Start date</label>
+                <label htmlFor="test-start-date">Date de début</label>
                 <input
                   id="test-start-date"
                   type="date"
@@ -507,7 +507,7 @@ export function ModalCreationTest({ onSave, onCancel }: ModalCreationTestProps) 
               </div>
 
               <div className="test-create-field">
-                <label htmlFor="test-end-date">End date</label>
+                <label htmlFor="test-end-date">Date de fin</label>
                 <input
                   id="test-end-date"
                   type="date"
@@ -523,7 +523,7 @@ export function ModalCreationTest({ onSave, onCancel }: ModalCreationTestProps) 
                   value={formData.description}
                   onChange={(event) => setFormData((prev) => ({ ...prev, description: event.target.value }))}
                   rows={4}
-                  placeholder="Describe the goal of this test..."
+                  placeholder="Décrivez l'objectif de ce test..."
                 />
               </div>
 
@@ -534,16 +534,16 @@ export function ModalCreationTest({ onSave, onCancel }: ModalCreationTestProps) 
                   value={formData.instructions}
                   onChange={(event) => setFormData((prev) => ({ ...prev, instructions: event.target.value }))}
                   rows={4}
-                  placeholder="Instructions for candidates..."
+                  placeholder="Instructions pour les candidats..."
                 />
               </div>
             </div>
           ) : (
             <div className="space-y-4">
               <div className="test-create-questions-top">
-                <h4 className="test-create-questions-title">Test questions</h4>
+                <h4 className="test-create-questions-title">Questions du test</h4>
                 <button onClick={ajouterQuestion} className="test-create-btn test-create-btn--soft" type="button">
-                  Add question
+                  Ajouter une question
                 </button>
               </div>
 
@@ -562,7 +562,7 @@ export function ModalCreationTest({ onSave, onCancel }: ModalCreationTestProps) 
 
               {questions.length === 0 ? (
                 <div className="test-create-empty">
-                  No questions added yet. Click &quot;Add question&quot; to begin.
+                  Aucune question ajoutée. Cliquez sur &quot;Ajouter une question&quot; pour commencer.
                 </div>
               ) : null}
             </div>
@@ -573,14 +573,14 @@ export function ModalCreationTest({ onSave, onCancel }: ModalCreationTestProps) 
           <div>
             {etapeActuelle === 2 ? (
               <button onClick={() => setEtapeActuelle(1)} className="test-create-btn" type="button">
-                Previous
+                Précédent
               </button>
             ) : null}
           </div>
 
           <div className="test-create-modal-footer-actions">
             <button onClick={onCancel} className="test-create-btn" type="button">
-              Cancel
+              Annuler
             </button>
 
             {etapeActuelle === 1 ? (
@@ -594,7 +594,7 @@ export function ModalCreationTest({ onSave, onCancel }: ModalCreationTestProps) 
                 className="test-create-btn test-create-btn--primary"
                 type="button"
               >
-                Next
+                Suivant
               </button>
             ) : (
               <button
@@ -603,7 +603,7 @@ export function ModalCreationTest({ onSave, onCancel }: ModalCreationTestProps) 
                 className="test-create-btn test-create-btn--primary"
                 type="button"
               >
-                {chargement ? "Creating..." : "Create test"}
+                {chargement ? "Création..." : "Créer le test"}
               </button>
             )}
           </div>

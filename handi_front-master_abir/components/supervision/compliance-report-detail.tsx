@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { EmptyState, LoadingState } from "@/components/ui/layout";
 import { SupervisionShell } from "@/components/supervision/supervision-shell";
 import { useSupervisionQuery } from "@/components/supervision/use-supervision-query";
-import { ComplianceReportDetail, mutateSupervisionResource } from "@/lib/supervision";
+import { ComplianceReportDetail, downloadSupervisionReportPdf, mutateSupervisionResource } from "@/lib/supervision";
 
 export function ComplianceReportDetailView({ reportId }: { reportId: string }) {
   const report = useSupervisionQuery<ComplianceReportDetail>(`/reports/${reportId}`);
@@ -15,6 +15,23 @@ export function ComplianceReportDetailView({ reportId }: { reportId: string }) {
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
+
+  const downloadPdf = async () => {
+    if (!report.data) {
+      return;
+    }
+
+    try {
+      setDownloadingPdf(true);
+      setError(null);
+      await downloadSupervisionReportPdf(reportId, report.data.report_pdf_filename || `${report.data.summary}.pdf`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Impossible de télécharger le PDF du rapport.");
+    } finally {
+      setDownloadingPdf(false);
+    }
+  };
 
   const submit = async (action: "validate" | "reject" | "recommend") => {
     setSaving(true);
@@ -74,6 +91,12 @@ export function ComplianceReportDetailView({ reportId }: { reportId: string }) {
               Période de référence : {new Date(data.reporting_period_start).toLocaleDateString("fr-FR")} au{" "}
               {new Date(data.reporting_period_end).toLocaleDateString("fr-FR")}
             </p>
+          </div>
+
+          <div className="flex justify-end">
+            <Button variant="secondary" onClick={() => void downloadPdf()} disabled={downloadingPdf}>
+              {downloadingPdf ? "Téléchargement..." : "Télécharger le PDF envoyé"}
+            </Button>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">

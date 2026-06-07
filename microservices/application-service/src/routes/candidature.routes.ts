@@ -21,12 +21,22 @@ const stockageCandidature = multer.diskStorage({
   destination: (_req, _file, cb) => cb(null, uploadDirCandidatures),
   filename: (_req, file, cb) => {
     const unique = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    const ext = path.extname(file.originalname);
-    cb(null, `cv-${unique}${ext}`);
+    cb(null, `cv-${unique}.pdf`);
   },
 });
 
-const uploadCandidature = multer({ storage: stockageCandidature });
+const uploadCandidature = multer({
+  storage: stockageCandidature,
+  fileFilter: (_req, file, cb) => {
+    const extension = path.extname(file.originalname).toLowerCase();
+    const isPdf = extension === ".pdf" && file.mimetype === "application/pdf";
+    if (!isPdf) {
+      cb(new Error("Le CV doit etre un fichier PDF valide."));
+      return;
+    }
+    cb(null, true);
+  },
+});
 
 router.use(authMiddleware);
 

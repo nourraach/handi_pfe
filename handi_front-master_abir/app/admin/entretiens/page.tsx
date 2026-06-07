@@ -623,12 +623,12 @@ export default function AdminEntretiensPage() {
               </colgroup>
               <thead>
                 <tr>
-                  <th><span className="interviews-board__sort">Schedule</span></th>
-                  <th>Candidate</th>
-                  <th>Company & role</th>
+                  <th><span className="interviews-board__sort">Planification</span></th>
+                  <th>Candidat</th>
+                  <th>Entreprise & poste</th>
                   <th>Type</th>
-                  <th>Status</th>
-                  <th>Location</th>
+                  <th>Statut</th>
+                  <th>Localisation</th>
                 </tr>
               </thead>
               <tbody>

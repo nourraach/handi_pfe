@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { Button, ButtonLink } from "@/components/ui/button";
@@ -7,7 +7,7 @@ import {
   EnterpriseDraftRecord,
   EnterpriseGeneratedReportSummary,
   deleteEnterpriseDraft,
-  downloadTextDocument,
+  downloadEnterpriseReportPdf,
   listEnterpriseDrafts,
   listEnterpriseGeneratedReports,
 } from "@/lib/enterprise-reports";
@@ -27,8 +27,8 @@ function formatDate(value?: string | null) {
 
 const STATUS_LABELS: Record<string, string> = {
   submitted: "Soumis",
-  validated: "Validé",
-  rejected: "Refusé",
+  validated: "Valide",
+  rejected: "Refuse",
 };
 
 const STATUS_CLASSES: Record<string, string> = {
@@ -68,17 +68,7 @@ export function EnterpriseReportsRequestsHub() {
   };
 
   const exportReport = (report: EnterpriseGeneratedReportSummary) => {
-    const content = [
-      `Rapport : ${report.summary}`,
-      `Période : ${formatDate(report.reporting_period_start)} - ${formatDate(report.reporting_period_end)}`,
-      `Statut : ${STATUS_LABELS[report.status] || report.status}`,
-      `Soumis le : ${formatDate(report.submitted_at)}`,
-      `Candidatures : ${report.applications_count}`,
-      `Présélection : ${report.shortlisted_count}`,
-      `Recrutements : ${report.hired_count}`,
-    ].join("\n");
-
-    downloadTextDocument(`compliance-report-${report.id}.txt`, content);
+    void downloadEnterpriseReportPdf(report.id, report.report_pdf_filename || `${report.summary}.pdf`);
   };
 
   const getSubmittedTo = (report: EnterpriseGeneratedReportSummary) => {
@@ -94,7 +84,7 @@ export function EnterpriseReportsRequestsHub() {
       <main className="reports-requests-page">
         <LoadingState
           title="Chargement des rapports et demandes"
-          description="Préparation de l'espace de reporting entreprise et de vos brouillons enregistrés."
+          description="Preparation de l'espace de reporting entreprise et de vos brouillons enregistres."
         />
       </main>
     );
@@ -107,15 +97,15 @@ export function EnterpriseReportsRequestsHub() {
       {false ? (
       <section className="rr-stepper">
         <article className="rr-step">
-          <span className="rr-step-icon">📄</span>
+          <span className="rr-step-icon">ðŸ“„</span>
           <div>
-            <strong>Générer le rapport</strong>
-            <p>Construisez votre rapport de conformité à partir des données en temps réel</p>
+            <strong>Generer le rapport</strong>
+            <p>Construisez votre rapport de conformite a partir des donnees en temps reel</p>
           </div>
         </article>
         <span className="rr-step-link" aria-hidden="true" />
         <article className="rr-step">
-          <span className="rr-step-icon">👁</span>
+          <span className="rr-step-icon">ðŸ‘</span>
           <div>
             <strong>Relire</strong>
             <p>Relisez et validez le rapport</p>
@@ -123,18 +113,18 @@ export function EnterpriseReportsRequestsHub() {
         </article>
         <span className="rr-step-link" aria-hidden="true" />
         <article className="rr-step">
-          <span className="rr-step-icon">✈</span>
+          <span className="rr-step-icon">âœˆ</span>
           <div>
             <strong>Soumettre</strong>
-            <p>Adressez le dossier à l&apos;inspection ou à l&apos;ANETI</p>
+            <p>Adressez le dossier a l&apos;inspection ou a l&apos;ANETI</p>
           </div>
         </article>
         <span className="rr-step-link" aria-hidden="true" />
         <article className="rr-step">
-          <span className="rr-step-icon">✓</span>
+          <span className="rr-step-icon">âœ“</span>
           <div>
             <strong>Suivi</strong>
-            <p>Suivez le statut et les actions à mener</p>
+            <p>Suivez le statut et les actions a mener</p>
           </div>
         </article>
       </section>
@@ -144,8 +134,8 @@ export function EnterpriseReportsRequestsHub() {
       <section className="rr-actions-grid">
         <article className="rr-action-card rr-action-primary">
           <div className="rr-action-copy">
-            <h2>Générer le rapport de conformité</h2>
-            <p>Construisez le rapport lié à la loi n°41-2016 à partir de vos données de recrutement.</p>
+            <h2>Generer le rapport de conformite</h2>
+            <p>Construisez le rapport lie a la loi ndeg 41-2016 a partir de vos donnees de recrutement.</p>
             <ButtonLink href="/entreprise/reports-requests/compliance">Commencer le rapport</ButtonLink>
           </div>
           <div className="rr-action-art" aria-hidden="true" />
@@ -153,8 +143,8 @@ export function EnterpriseReportsRequestsHub() {
 
         <article className="rr-action-card rr-action-secondary">
           <div className="rr-action-copy">
-            <h2>Créer une demande de transfert</h2>
-            <p>Préparez une demande structurée pour le suivi de votre politique d&apos;inclusion.</p>
+            <h2>Creer une demande de transfert</h2>
+            <p>Preparez une demande structuree pour le suivi de votre politique d&apos;inclusion.</p>
             <ButtonLink href="/entreprise/reports-requests/transfer" variant="secondary">
               Commencer la demande
             </ButtonLink>
@@ -167,15 +157,15 @@ export function EnterpriseReportsRequestsHub() {
         <section className="rr-panel">
           <header className="rr-panel-head">
             <h3>
-              Rapports publiés <span>{reports.length}</span>
+              Rapports publies <span>{reports.length}</span>
             </h3>
           </header>
 
           {reports.length === 0 ? (
             <div className="rr-empty">
               <strong>Aucun rapport pour le moment</strong>
-              <p>Commencez par générer votre premier rapport de conformité</p>
-              <ButtonLink href="/entreprise/reports-requests/compliance">Générer un rapport</ButtonLink>
+              <p>Commencez par generer votre premier rapport de conformite</p>
+              <ButtonLink href="/entreprise/reports-requests/compliance">Generer un rapport</ButtonLink>
             </div>
           ) : (
             <div className="rr-table-wrap">
@@ -183,7 +173,7 @@ export function EnterpriseReportsRequestsHub() {
                 <thead>
                   <tr>
                     <th>Nom du rapport</th>
-                    <th>Période</th>
+                    <th>Periode</th>
                     <th>Statut</th>
                     <th>Destinataire</th>
                     <th>Date</th>
@@ -210,7 +200,7 @@ export function EnterpriseReportsRequestsHub() {
                             Voir
                           </ButtonLink>
                           <Button onClick={() => exportReport(report)} variant="ghost" size="sm">
-                            Télécharger
+                            Telecharger
                           </Button>
                         </div>
                       </td>
@@ -225,15 +215,15 @@ export function EnterpriseReportsRequestsHub() {
         <section className="rr-panel">
           <header className="rr-panel-head">
             <h3>
-              Brouillons enregistrés <span>{drafts.length}</span>
+              Brouillons enregistres <span>{drafts.length}</span>
             </h3>
           </header>
 
           {drafts.length === 0 ? (
             <div className="rr-empty">
               <strong>Aucun brouillon pour le moment</strong>
-              <p>Commencez par générer votre premier rapport de conformité</p>
-              <ButtonLink href="/entreprise/reports-requests/compliance">Générer un rapport</ButtonLink>
+              <p>Commencez par generer votre premier rapport de conformite</p>
+              <ButtonLink href="/entreprise/reports-requests/compliance">Generer un rapport</ButtonLink>
             </div>
           ) : (
             <div className="rr-table-wrap">
@@ -242,7 +232,7 @@ export function EnterpriseReportsRequestsHub() {
                   <tr>
                     <th>Nom du brouillon</th>
                     <th>Type</th>
-                    <th>Dernière mise à jour</th>
+                    <th>Derniere mise a jour</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
@@ -632,3 +622,4 @@ export function EnterpriseReportsRequestsHub() {
     </main>
   );
 }
+

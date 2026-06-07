@@ -28,6 +28,7 @@ const ROUTE_TITLES: Record<string, string> = {
   "/candidat/entretiens": "Mes entretiens",
   "/candidat/tests-entretien": "Tests d'entretien",
   "/candidat/tests-psychologiques": "Tests psychologiques",
+  "/candidat/chatbot": "Chatbot IA",
   "/candidat/avis": "Avis candidat",
 
   "/entreprise/dashboard": "Tableau de bord entreprise",

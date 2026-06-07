@@ -141,6 +141,16 @@ function isFutureInterview(item: EntretienEntreprise, now = new Date()) {
   return !Number.isNaN(date.getTime()) && date.getTime() >= now.getTime() && item.entretien.statut !== "annule";
 }
 
+function canMarkInterviewComplete(item: EntretienEntreprise, now = new Date()) {
+  const date = new Date(item.entretien.date_heure);
+  return (
+    !Number.isNaN(date.getTime()) &&
+    date.getTime() < now.getTime() &&
+    item.entretien.statut !== "annule" &&
+    item.entretien.statut !== "termine"
+  );
+}
+
 const formulaireVide: EntretienFormulaire = {
   date_heure: "",
   type: "visio",
@@ -466,6 +476,7 @@ export default function EntretiensEntreprisePage() {
     const selected = entretienSelectionneId === item.entretien.id;
     const duration = item.entretien.duree_prevue || "60 min";
     const actionEnCours = entretienEnAction === item.entretien.id;
+    const peutTerminer = canMarkInterviewComplete(item);
     const TypeIcon =
       item.entretien.type === "visio" ? Video : item.entretien.type === "presentiel" ? MapPin : Phone;
     const googleCalendarLink = construireLienGoogleCalendar({
@@ -503,55 +514,47 @@ export default function EntretiensEntreprisePage() {
             }
           }}
         >
-          <div className="selected-event-candidate">
-            <span className="selected-event-avatar">{initials(item.candidat?.nom)}</span>
-            <div className="selected-event-copy">
-              <div className="selected-event-titleline">
-                <div>
+          <div className="selected-event-top">
+            <div className="selected-event-topline">
+              <div className="selected-event-date">{date.date}</div>
+              <span className="selected-event-count">1 entretien</span>
+            </div>
+
+            <div className="selected-event-mainrow">
+              <div className="selected-event-meta-item selected-event-meta-box selected-event-candidate">
+                <span className="selected-event-avatar">{initials(item.candidat?.nom)}</span>
+                <div className="selected-event-copy">
                   <strong>{item.candidat?.nom || "Candidat"}</strong>
                   <small>{item.offre?.titre || "Poste"}</small>
                 </div>
               </div>
-            </div>
-          </div>
 
-          <div className="selected-event-meta">
-            <div className="selected-event-meta-item selected-event-meta-box">
-              <Clock size={14} />
-              <span>{date.time}</span>
-            </div>
-            <div className="selected-event-meta-item selected-event-meta-box">
-              <span>{duration}</span>
-            </div>
-            <div className="selected-event-meta-item selected-event-meta-box">
-              <TypeIcon size={14} />
-              <span>{getEntretienTypeLabel(item.entretien.type)}</span>
-            </div>
-            <div className="selected-event-meta-status selected-event-meta-box">
-              <span className={`status-pill ${statusClass(item.entretien.statut)}`}>{statut.label}</span>
+              <div className="selected-event-meta-item selected-event-meta-box selected-event-meta-stack">
+                <Clock size={18} />
+                <strong>{date.time}</strong>
+                <span>{duration}</span>
+              </div>
+
+              <div className="selected-event-meta-item selected-event-meta-box selected-event-meta-stack">
+                <TypeIcon size={18} />
+                <strong>{getEntretienTypeLabel(item.entretien.type)}</strong>
+                <span className={`status-pill ${statusClass(item.entretien.statut)}`}>{statut.label}</span>
+              </div>
             </div>
           </div>
         </div>
 
-        {item.entretien.notes || googleCalendarLink ? (
-          <div className="selected-event-notes">
-            <div className="selected-event-notes-copy">
-              {item.entretien.notes ? <p>{item.entretien.notes}</p> : <p>No notes added for this interview yet.</p>}
-            </div>
-            {googleCalendarLink ? (
-              <a className="selected-event-calendar" href={googleCalendarLink} target="_blank" rel="noopener noreferrer">
-                <ExternalLink size={14} /> Ajouter au calendrier
-              </a>
-            ) : null}
-          </div>
-        ) : null}
+        <div className="selected-event-notes">
+          {googleCalendarLink ? (
+            <a className="selected-event-calendar" href={googleCalendarLink} target="_blank" rel="noopener noreferrer">
+              <ExternalLink size={18} /> Ajouter au calendrier
+            </a>
+          ) : null}
+        </div>
 
         <div className="selected-event-actions">
           <Button variant="secondary" onClick={() => ouvrirEdition(item)} disabled={actionEnCours}>
             <RotateCw size={15} /> Replanifier
-          </Button>
-          <Button variant="secondary" onClick={() => lancerAction(item.entretien.id, "terminer")} disabled={actionEnCours}>
-            <CheckCircle2 size={15} /> Marquer comme termine
           </Button>
           <Button
             variant="secondary"
@@ -774,6 +777,7 @@ export default function EntretiensEntreprisePage() {
               const date = formaterDateEntretien(prochainEntretien.entretien.date_heure);
               const statut = getEntretienStatutConfig(prochainEntretien.entretien.statut);
               const actionEnCours = entretienEnAction === prochainEntretien.entretien.id;
+              const peutTerminer = canMarkInterviewComplete(prochainEntretien);
 
               return (
                 <section className="next-interview-hero">
@@ -818,13 +822,15 @@ export default function EntretiensEntreprisePage() {
                     >
                       <XCircle size={15} /> Annuler
                     </Button>
-                    <Button
-                      variant="ghost"
-                      onClick={() => lancerAction(prochainEntretien.entretien.id, "terminer")}
-                      disabled={actionEnCours}
-                    >
-                      <CheckCircle2 size={15} /> Terminer
-                    </Button>
+                    {peutTerminer ? (
+                      <Button
+                        variant="ghost"
+                        onClick={() => lancerAction(prochainEntretien.entretien.id, "terminer")}
+                        disabled={actionEnCours}
+                      >
+                        <CheckCircle2 size={15} /> Terminer
+                      </Button>
+                    ) : null}
                   </div>
                 </section>
               );
@@ -1010,6 +1016,7 @@ export default function EntretiensEntreprisePage() {
                 const date = formaterDateEntretien(entretienSelectionne.entretien.date_heure);
                 const statut = getEntretienStatutConfig(entretienSelectionne.entretien.statut);
                 const actionEnCours = entretienEnAction === entretienSelectionne.entretien.id;
+                const peutTerminer = canMarkInterviewComplete(entretienSelectionne);
                 const googleCalendarLink = construireLienGoogleCalendar({
                   titre: `Interview - ${entretienSelectionne.candidat?.nom || "Candidate"}`,
                   dateHeure: entretienSelectionne.entretien.date_heure,
@@ -1071,13 +1078,15 @@ export default function EntretiensEntreprisePage() {
                       <Button variant="secondary" onClick={() => ouvrirEdition(entretienSelectionne)} disabled={actionEnCours}>
                         <RotateCw size={15} /> Reschedule
                       </Button>
-                      <Button
-                        variant="secondary"
-                        onClick={() => lancerAction(entretienSelectionne.entretien.id, "terminer")}
-                        disabled={actionEnCours}
-                      >
-                        <CheckCircle2 size={15} /> Mark Complete
-                      </Button>
+                      {peutTerminer ? (
+                        <Button
+                          variant="secondary"
+                          onClick={() => lancerAction(entretienSelectionne.entretien.id, "terminer")}
+                          disabled={actionEnCours}
+                        >
+                          <CheckCircle2 size={15} /> Mark Complete
+                        </Button>
+                      ) : null}
                       <Button
                         variant="secondary"
                         className="cancel-soft"
@@ -2094,143 +2103,179 @@ export default function EntretiensEntreprisePage() {
           text-align: left;
           cursor: pointer;
         }
+        .selected-event-top {
+          display: grid;
+          gap: 30px;
+        }
+        .selected-event-topline {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 16px;
+          flex-wrap: wrap;
+        }
+        .selected-event-date {
+          color: #0f1230;
+          font-size: 1.55rem;
+          line-height: 1.15;
+          font-weight: 900;
+          letter-spacing: -0.02em;
+        }
+        .selected-event-count {
+          display: inline-flex;
+          align-items: center;
+          min-height: 48px;
+          padding: 0 20px;
+          border-radius: 999px;
+          background: #e8defb;
+          color: #4b22cc;
+          font-size: 0.95rem;
+          font-weight: 800;
+          white-space: nowrap;
+        }
+        .selected-event-mainrow {
+          display: grid;
+          grid-template-columns: minmax(0, 1.2fr) minmax(220px, 0.9fr) minmax(220px, 0.9fr);
+          gap: 28px;
+          align-items: center;
+        }
         .selected-event-candidate {
           display: grid;
           grid-template-columns: 48px minmax(0, 1fr);
-          align-items: center;
-          gap: 14px;
+          align-items: start;
+          gap: 22px;
+          min-width: 0;
+          padding-right: 24px;
         }
         .selected-event-avatar {
-          width: 48px;
-          height: 48px;
-          border-radius: 16px;
-          background: linear-gradient(135deg, #35063e, #7f43aa);
-          color: #fff;
+          width: 96px;
+          height: 96px;
+          border-radius: 50%;
+          background: #e6dbfb;
+          color: #4b22cc;
           display: grid;
           place-items: center;
-          font-size: 0.92rem;
-          font-weight: 800;
+          font-size: 1.6rem;
+          font-weight: 900;
         }
         .selected-event-copy {
           display: grid;
-          gap: 8px;
+          gap: 10px;
           min-width: 0;
+          align-content: center;
         }
-        .selected-event-titleline {
+        .selected-event-copy strong {
           display: block;
-        }
-        .selected-event-titleline > div {
-          min-width: 0;
-        }
-        .selected-event-titleline strong {
-          display: block;
-          color: #201135;
-          font-size: 0.98rem;
-          line-height: 1.2;
+          color: #11162b;
+          font-size: 1.35rem;
+          line-height: 1.15;
+          font-weight: 900;
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
         }
-        .selected-event-titleline small {
+        .selected-event-copy small {
           display: block;
-          margin-top: 4px;
-          color: #6f6484;
-          font-size: 0.78rem;
-          line-height: 1.4;
-        }
-        .selected-event-meta {
-          display: flex;
-          align-items: stretch;
-          gap: 10px;
-          flex-wrap: nowrap;
-          overflow-x: auto;
-          overscroll-behavior-x: contain;
-          scrollbar-width: none;
-        }
-        .selected-event-meta::-webkit-scrollbar {
-          display: none;
+          color: #6d7288;
+          font-size: 1rem;
+          line-height: 1.35;
+          font-weight: 600;
         }
         .selected-event-meta-item,
         .selected-event-meta-status {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 6px;
-          min-height: 42px;
-          padding: 0 14px;
-          flex: 1 0 132px;
-          color: #4f4266;
-          font-size: 0.78rem;
+          display: grid;
+          align-content: center;
+          justify-items: start;
+          gap: 8px;
+          min-height: 124px;
+          padding: 18px 0 18px 24px;
+          color: #15182b;
+          font-size: 0.98rem;
           font-weight: 700;
-          white-space: nowrap;
+          white-space: normal;
+          min-width: 0;
+          position: relative;
         }
         .selected-event-meta-box {
-          border-radius: 12px;
-          border: 1px solid #e8def8;
-          background: #fff;
-          box-shadow: 0 1px 2px rgba(31, 23, 53, 0.03);
+          border-radius: 0;
+          border: 0;
+          background: transparent;
+          box-shadow: none;
         }
-        .selected-event-meta-item span,
-        .selected-event-meta-status span {
+        .selected-event-meta-stack {
+          display: grid;
+          grid-template-rows: auto auto auto;
+          align-items: start;
+          justify-items: start;
+          gap: 10px;
+        }
+        .selected-event-meta-stack strong {
+          display: block;
+          color: #10152b;
+          font-size: 1.1rem;
+          line-height: 1.2;
+          font-weight: 900;
+        }
+        .selected-event-meta-stack span {
           display: inline-flex;
           align-items: center;
           white-space: nowrap;
+          color: #495166;
+          font-size: 1rem;
+          line-height: 1.3;
         }
-        .selected-event-meta-status {
-          justify-content: flex-end;
+        .selected-event-meta-item:not(:first-child)::before {
+          content: "";
+          position: absolute;
+          left: 0;
+          top: 18%;
+          bottom: 18%;
+          width: 1px;
+          background: #ddd9f0;
         }
         .selected-event-meta-status .status-pill {
-          min-height: 34px;
-          padding: 0 14px;
-          font-size: 0.72rem;
+          min-height: 48px;
+          padding: 0 20px;
+          font-size: 0.9rem;
+          margin-top: 2px;
+          width: fit-content;
         }
         .selected-event-notes {
-          display: grid;
-          grid-template-columns: minmax(0, 1fr) auto;
+          display: flex;
           align-items: center;
-          gap: 12px;
-          padding-top: 2px;
-          border-top: 1px solid #f2ecfb;
-          padding-top: 12px;
-        }
-        .selected-event-notes-copy {
-          min-width: 0;
-          flex: 1 1 auto;
-        }
-        .selected-event-notes-copy p {
-          margin: 0;
-          color: #5d536f;
-          font-size: 0.8rem;
-          line-height: 1.5;
+          min-height: 88px;
+          border-top: 1px solid #ece7f8;
+          border-bottom: 1px solid #ece7f8;
+          padding: 0;
         }
         .selected-event-calendar {
           display: inline-flex;
           align-items: center;
-          justify-content: center;
-          gap: 6px;
-          min-height: 38px;
-          padding: 0 14px;
-          border-radius: 12px;
-          border: 1px solid rgba(95, 42, 200, 0.22);
-          color: #5b21b6;
-          background: #fff;
-          font-size: 0.78rem;
-          font-weight: 800;
+          justify-content: flex-start;
+          gap: 14px;
+          min-height: 48px;
+          padding: 0;
+          border-radius: 0;
+          border: 0;
+          color: #11162b;
+          background: transparent;
+          font-size: 1rem;
+          font-weight: 900;
           text-decoration: none;
           white-space: nowrap;
         }
         .selected-event-actions {
           display: grid;
-          grid-template-columns: repeat(3, minmax(0, 1fr));
-          gap: 8px;
-          border-top: 1px solid #f2ecfb;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 26px;
           padding-top: 12px;
         }
         .selected-event-actions :global(.ui-button) {
-          min-height: 38px;
-          padding-inline: 10px;
-          border-radius: 12px;
-          font-size: 0.78rem;
+          min-height: 66px;
+          padding-inline: 20px;
+          border-radius: 18px;
+          font-size: 1rem;
+          font-weight: 800;
           width: 100%;
         }
         .selected-day-empty {
@@ -2326,6 +2371,9 @@ export default function EntretiensEntreprisePage() {
           .interviews-header {
             flex-direction: column;
           }
+          .selected-event-mainrow {
+            grid-template-columns: 1fr;
+          }
           .timeline-item {
             grid-template-columns: 1fr;
             gap: 8px;
@@ -2333,24 +2381,13 @@ export default function EntretiensEntreprisePage() {
           .details-extra-actions {
             grid-template-columns: 1fr;
           }
-          .selected-event-titleline,
           .selected-event-notes,
           .selected-event-actions {
             grid-template-columns: 1fr;
             display: grid;
           }
-          .selected-event-titleline {
-            justify-content: start;
-          }
-          .selected-event-meta-item,
-          .selected-event-meta-status {
-            justify-content: center;
-          }
-        }
-        @media (max-width: 560px) {
-          .selected-event-meta-item,
-          .selected-event-meta-status {
-            justify-content: flex-start;
+          .selected-event-meta-item:not(:first-child)::before {
+            display: none;
           }
           .selected-event-calendar {
             width: 100%;

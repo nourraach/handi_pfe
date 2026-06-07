@@ -248,7 +248,7 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
       return () => window.removeEventListener("mousemove", updatePointer);
     }
 
-    setPointerY(-200);
+    queueMicrotask(() => setPointerY(-200));
     return undefined;
   }, [settings.readingLine, settings.readingMask]);
 

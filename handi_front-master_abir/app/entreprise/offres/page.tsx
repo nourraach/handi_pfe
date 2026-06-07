@@ -304,6 +304,7 @@ function MesOffresPage() {
       setErreur(null);
       const salaireMin = parseNonNegativeSalary(nouvelleOffre.salaire_min);
       const salaireMax = parseNonNegativeSalary(nouvelleOffre.salaire_max);
+      const aiThresholdValue = parseNonNegativeSalary(nouvelleOffre.ai_shortlist_min_score);
 
       if (salaireMin !== null && salaireMax !== null && salaireMax < salaireMin) {
         setErreur("Le salaire maximum doit etre superieur ou egal au salaire minimum.");
@@ -362,6 +363,7 @@ function MesOffresPage() {
       setErreur(null);
       const salaireMin = parseNonNegativeSalary(offreMiseAJour.salaire_min);
       const salaireMax = parseNonNegativeSalary(offreMiseAJour.salaire_max);
+      const aiThresholdValue = parseNonNegativeSalary(offreMiseAJour.ai_shortlist_min_score);
 
       if (salaireMin !== null && salaireMax !== null && salaireMax < salaireMin) {
         setErreur("Le salaire maximum doit etre superieur ou egal au salaire minimum.");

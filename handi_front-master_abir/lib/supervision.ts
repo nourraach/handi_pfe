@@ -98,6 +98,7 @@ export interface ComplianceReportSummary {
   applications_count: number;
   shortlisted_count: number;
   hired_count: number;
+  report_pdf_filename?: string | null;
   company_id: string;
   company_name: string;
   company_region: string;
@@ -190,6 +191,27 @@ export async function downloadSupervisionExport(dataset: string, format: "csv" |
   const fallback = `supervision_${dataset}.${format === "csv" ? "csv" : "xml"}`;
   const match = disposition?.match(/filename=\"?([^\";]+)\"?/i);
   const filename = match?.[1] || fallback;
+
+  const url = window.URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = filename;
+  document.body.appendChild(anchor);
+  anchor.click();
+  document.body.removeChild(anchor);
+  window.URL.revokeObjectURL(url);
+}
+
+export async function downloadSupervisionReportPdf(reportId: string, fallbackFilename = "rapport-conformite.pdf") {
+  const response = await authenticatedFetch(construireUrlApi(`/api/supervision/reports/${reportId}/pdf`));
+  if (!response.ok) {
+    throw new Error("Unable to download the compliance report PDF.");
+  }
+
+  const blob = await response.blob();
+  const disposition = response.headers.get("Content-Disposition");
+  const match = disposition?.match(/filename="?([^";]+)"?/i);
+  const filename = match?.[1] || fallbackFilename;
 
   const url = window.URL.createObjectURL(blob);
   const anchor = document.createElement("a");

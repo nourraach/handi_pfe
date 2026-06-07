@@ -9,6 +9,7 @@ export interface SupervisionScope {
 }
 
 export interface ComplianceReportInput {
+  id?: string;
   id_entreprise: string;
   submitted_by_user_id: string;
   region: string;
@@ -22,6 +23,8 @@ export interface ComplianceReportInput {
   shortlisted_count: number;
   hired_count: number;
   accommodation_actions?: string;
+  report_pdf_path?: string;
+  report_pdf_filename?: string;
   evidence_urls?: string[];
   recommendations: unknown[];
 }
@@ -41,6 +44,13 @@ function asInt(value: unknown): number {
 }
 
 export class SupervisionRepository {
+  private ensureComplianceReportColumnsPromise = this.ensureComplianceReportColumns();
+
+  private async ensureComplianceReportColumns() {
+    await pool.query("ALTER TABLE compliance_report ADD COLUMN IF NOT EXISTS report_pdf_path TEXT");
+    await pool.query("ALTER TABLE compliance_report ADD COLUMN IF NOT EXISTS report_pdf_filename TEXT");
+  }
+
   private buildScopeCondition(scope: SupervisionScope, params: unknown[], companyAlias = "company_user") {
     if (!scope.isInspector) {
       return "";
@@ -212,6 +222,7 @@ export class SupervisionRepository {
   }
 
   async listReports(scope: SupervisionScope, filters: { status?: string; companyId?: string }) {
+    await this.ensureComplianceReportColumnsPromise;
     const params: unknown[] = [];
     const conditions: string[] = [];
     const scopeCondition = this.buildScopeCondition(scope, params);
@@ -246,6 +257,8 @@ export class SupervisionRepository {
         cr.applications_count,
         cr.shortlisted_count,
         cr.hired_count,
+        cr.report_pdf_path,
+        cr.report_pdf_filename,
         cr.recommendations,
         e.id AS company_id,
         e.nom_entreprise AS company_name,
@@ -266,6 +279,7 @@ export class SupervisionRepository {
   }
 
   async getReportById(scope: SupervisionScope, reportId: string) {
+    await this.ensureComplianceReportColumnsPromise;
     const params: unknown[] = [reportId];
     const conditions: string[] = ["cr.id = $1"];
     const scopeCondition = this.buildScopeCondition(scope, params);
@@ -293,6 +307,8 @@ export class SupervisionRepository {
         cr.shortlisted_count,
         cr.hired_count,
         cr.accommodation_actions,
+        cr.report_pdf_path,
+        cr.report_pdf_filename,
         cr.evidence_urls,
         cr.recommendations,
         e.id AS company_id,
@@ -314,8 +330,10 @@ export class SupervisionRepository {
   }
 
   async createReport(input: ComplianceReportInput) {
+    await this.ensureComplianceReportColumnsPromise;
     const query = `
       INSERT INTO compliance_report (
+        id,
         id_entreprise,
         submitted_by_user_id,
         region,
@@ -329,18 +347,21 @@ export class SupervisionRepository {
         shortlisted_count,
         hired_count,
         accommodation_actions,
+        report_pdf_path,
+        report_pdf_filename,
         evidence_urls,
         recommendations,
         submitted_at,
         created_at,
         updated_at
       ) VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14::jsonb, $15::jsonb, NOW(), NOW(), NOW()
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17::jsonb, $18::jsonb, NOW(), NOW(), NOW()
       )
-      RETURNING id, status, submitted_at
+      RETURNING id, status, submitted_at, report_pdf_filename
     `;
 
     const result = await pool.query(query, [
+      input.id,
       input.id_entreprise,
       input.submitted_by_user_id,
       input.region,
@@ -354,6 +375,8 @@ export class SupervisionRepository {
       input.shortlisted_count,
       input.hired_count,
       input.accommodation_actions ?? null,
+      input.report_pdf_path ?? null,
+      input.report_pdf_filename ?? null,
       JSON.stringify(input.evidence_urls ?? []),
       JSON.stringify(input.recommendations ?? []),
     ]);

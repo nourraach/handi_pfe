@@ -56,7 +56,7 @@ type TestEnCours = {
   }>;
 };
 
-type FilterKey = "all" | "pending" | "in_progress" | "completed" | "recommended";
+type FilterKey = "all" | "pending" | "in_progress" | "completed";
 type Difficulty = "easy" | "medium" | "hard";
 type IconName =
   | "users"
@@ -223,7 +223,6 @@ function CandidateAssessmentsPage() {
       { key: "pending", label: "A passer" },
       { key: "in_progress", label: "En cours" },
       { key: "completed", label: "Terminés" },
-      { key: "recommended", label: "Recommandés" },
     ],
     [],
   );
@@ -376,7 +375,6 @@ function CandidateAssessmentsPage() {
       if (activeFilter === "pending") return !hasCompleted && !isInProgress;
       if (activeFilter === "in_progress") return isInProgress;
       if (activeFilter === "completed") return hasCompleted;
-      if (activeFilter === "recommended") return test.recommended;
       return true;
     });
   }, [activeFilter, latestResultByTestId, searchQuery, testDemarrageId, tests]);

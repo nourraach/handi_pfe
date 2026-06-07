@@ -43,8 +43,8 @@ export const jwtValidationMiddleware = (req: Request, res: Response, next: NextF
   const requestId = randomUUID();
   req.requestId = requestId;
 
-  // Skip JWT validation for public routes (health check, auth endpoints)
-  const publicRoutes = ["/health", "/api/auth"];
+  // Skip JWT validation for public routes (health check, auth endpoints, and public job listings)
+  const publicRoutes = ["/health", "/api/auth", "/api/offres/publiques"];
   if (publicRoutes.some((route) => req.path.startsWith(route))) {
     // Even for public routes, set the request ID header
     req.headers["x-request-id"] = requestId;

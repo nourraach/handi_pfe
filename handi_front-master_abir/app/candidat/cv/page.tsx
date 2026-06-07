@@ -6,7 +6,6 @@ import {
   ChevronDown,
   Download,
   Eye,
-  Sparkles,
 } from "lucide-react";
 
 type CvTemplate = "classic" | "modern" | "sidebar" | "creative";
@@ -1190,11 +1189,6 @@ export default function CandidateCvPage() {
                   <Eye size={16} strokeWidth={2.1} />
                   <span>Aperçu</span>
                 </button>
-                <button type="button" className="cvb__action cvb__action--ghost" onClick={() => setActiveStep("review")}>
-                  <Sparkles size={16} strokeWidth={2.1} />
-                  <span>Conseils IA</span>
-                  <span className="cvb__dot" aria-hidden="true" />
-                </button>
                 <button type="button" className="cvb__action cvb__action--primary" onClick={downloadPdf}>
                   <Download size={16} strokeWidth={2.1} />
                   <span>Télécharger le CV</span>
@@ -1459,11 +1453,6 @@ export default function CandidateCvPage() {
                   </div>
                 ) : null}
 
-                <div className="cvb__tip" role="note" aria-label="Tip">
-                  <strong>Conseil</strong>
-                  <p>{activeStepContent.tip}</p>
-                </div>
-
                 <div id="cvb-guide-actions" className="cvb__form-actions">
                   <button type="button" className="cvb__ghost" onClick={saveDraft}>
                     Enregistrer et quitter
@@ -1714,14 +1703,6 @@ export default function CandidateCvPage() {
 
         .cvb__action--primary:active {
           background: #3a103a;
-        }
-
-        .cvb__dot {
-          width: 8px;
-          height: 8px;
-          border-radius: 999px;
-          background: var(--app-primary);
-          flex: none;
         }
 
         .cvb__save-state {
@@ -1987,28 +1968,6 @@ export default function CandidateCvPage() {
           font-size: 0.95rem;
           font-weight: 700;
           color: #2b1f4f;
-        }
-
-        .cvb__tip {
-          margin-top: 14px;
-          border: 0;
-          border-top: 1px solid #f0edf5;
-          background: transparent;
-          border-radius: 0;
-          padding: 12px 0 0;
-        }
-
-        .cvb__tip strong {
-          display: block;
-          color: #5f2f87;
-          font-size: 0.86rem;
-        }
-
-        .cvb__tip p {
-          margin: 4px 0 0;
-          color: #6f668f;
-          font-size: 0.83rem;
-          line-height: 1.5;
         }
 
         .cvb__form-actions {

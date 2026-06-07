@@ -1,6 +1,6 @@
 "use client";
 
-import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useAccessibility } from "@/components/accessibility-provider";
 import { useI18n } from "@/components/i18n-provider";
@@ -217,6 +217,26 @@ function ColorPicker({ label, value, onChange }: { label: string; value: string;
   );
 }
 
+const normalizeVoiceText = (value: string) =>
+  value
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+const hasVoiceKeyword = (transcript: string, keywords: string[]) =>
+  keywords.some((keyword) => transcript.includes(normalizeVoiceText(keyword)));
+
+const getScrollableContainer = () => {
+  const appMain = document.querySelector<HTMLElement>("main.app-main");
+  if (appMain && appMain.scrollHeight > appMain.clientHeight) {
+    return appMain;
+  }
+  return document.scrollingElement as HTMLElement | null;
+};
+
 export function AccessibilityWidget() {
   const { t } = useI18n();
   const { settings, setFontScale, setLineHeight, toggleSetting, applyMode, setColorSetting, resetSettings } = useAccessibility();
@@ -279,7 +299,7 @@ export function AccessibilityWidget() {
     return "fr-FR";
   }, []);
 
-  const resolveHomeRoute = () => {
+  const resolveHomeRoute = useCallback(() => {
     if (!utilisateur) {
       return "/";
     }
@@ -295,21 +315,9 @@ export function AccessibilityWidget() {
     }
 
     return "/";
-  };
+  }, [utilisateur]);
 
-  const normalizeVoiceText = (value: string) =>
-    value
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/[^\p{L}\p{N}\s]/gu, " ")
-      .replace(/\s+/g, " ")
-      .trim();
-
-  const hasVoiceKeyword = (transcript: string, keywords: string[]) =>
-    keywords.some((keyword) => transcript.includes(normalizeVoiceText(keyword)));
-
-  const executeVoiceCommand = (rawTranscript: string) => {
+  const executeVoiceCommand = useCallback((rawTranscript: string) => {
     const transcript = normalizeVoiceText(rawTranscript);
     const scrollTarget = getScrollableContainer();
     const clickButtonByText = (labels: string[]) => {
@@ -458,15 +466,7 @@ export function AccessibilityWidget() {
 
     setVoiceStatus(matched ? `Commande reconnue: ${rawTranscript}` : `Commande non reconnue: ${rawTranscript}`);
     return matched;
-  };
-
-  const getScrollableContainer = () => {
-    const appMain = document.querySelector<HTMLElement>("main.app-main");
-    if (appMain && appMain.scrollHeight > appMain.clientHeight) {
-      return appMain;
-    }
-    return document.scrollingElement as HTMLElement | null;
-  };
+  }, [resolveHomeRoute]);
 
   const checkMicrophonePermission = async () => {
     if (typeof navigator === "undefined" || !("permissions" in navigator)) {
@@ -504,8 +504,10 @@ export function AccessibilityWidget() {
   };
 
   useEffect(() => {
-    setPortalReady(true);
-    void checkMicrophonePermission();
+    queueMicrotask(() => setPortalReady(true));
+    queueMicrotask(() => {
+      void checkMicrophonePermission();
+    });
   }, []);
 
   useEffect(() => {
@@ -549,13 +551,14 @@ export function AccessibilityWidget() {
       }
     }
 
-    setLinks(Array.from(uniqueAnchors.values()).slice(0, 150));
+    const nextLinks = Array.from(uniqueAnchors.values()).slice(0, 150);
+    queueMicrotask(() => setLinks(nextLinks));
   }, [open, pageSpeechText]);
 
   useEffect(() => {
     if (!open || !settings.virtualKeyboard) {
       virtualKeyboardTargetRef.current = null;
-      setKeyboardStatus("");
+      queueMicrotask(() => setKeyboardStatus(""));
       return;
     }
 
@@ -582,7 +585,7 @@ export function AccessibilityWidget() {
         }
         recognitionRef.current = null;
       }
-      setVoiceStatus("");
+      queueMicrotask(() => setVoiceStatus(""));
       return;
     }
     const maybeWindow = window as unknown as {
@@ -591,12 +594,14 @@ export function AccessibilityWidget() {
     };
     const SpeechRecognitionCtor = maybeWindow.SpeechRecognition || maybeWindow.webkitSpeechRecognition;
     if (!SpeechRecognitionCtor) {
-      setVoiceSupported(false);
-      setMicrophonePermission("unsupported");
-      setVoiceStatus("Voice navigation not supported in this browser.");
+      queueMicrotask(() => {
+        setVoiceSupported(false);
+        setMicrophonePermission("unsupported");
+        setVoiceStatus("Voice navigation not supported in this browser.");
+      });
       return;
     }
-    setVoiceSupported(true);
+    queueMicrotask(() => setVoiceSupported(true));
     const recognition = new SpeechRecognitionCtor();
     recognitionRef.current = recognition;
     recognition.lang = speechLang;
@@ -646,10 +651,12 @@ export function AccessibilityWidget() {
 
     try {
       recognition.start();
-      setVoiceStatus("Voice navigation starting...");
+      queueMicrotask(() => setVoiceStatus("Voice navigation starting..."));
     } catch {
-      setVoiceStatus("Unable to start voice navigation. Try again and allow microphone.");
-      setIsListening(false);
+      queueMicrotask(() => {
+        setVoiceStatus("Unable to start voice navigation. Try again and allow microphone.");
+        setIsListening(false);
+      });
     }
 
     return () => {
@@ -662,15 +669,34 @@ export function AccessibilityWidget() {
       }
       recognitionRef.current = null;
     };
-  }, [settings.voiceNavigation, speechLang, isListening]);
+  }, [executeVoiceCommand, settings.voiceNavigation, speechLang, isListening]);
 
   useEffect(() => {
     if (!settings.voiceNavigation) {
-      setIsListening(false);
+      queueMicrotask(() => setIsListening(false));
     }
   }, [settings.voiceNavigation]);
 
-  if (!open || !portalReady) return null;
+  if (!portalReady) return null;
+
+  if (!open) {
+    return createPortal(
+      <button
+        type="button"
+        className="accessibility-launcher"
+        onClick={() => setOpen(true)}
+        aria-label="Ouvrir les options d'accessibilite"
+        aria-controls="accessibility-panel"
+      >
+        <span className="accessibility-launcher-icon" aria-hidden="true">A</span>
+        <span className="accessibility-launcher-copy">
+          <strong>Accessibilite</strong>
+          <small>Adapter l&apos;affichage</small>
+        </span>
+      </button>,
+      document.body,
+    );
+  }
 
   const panel = (
     <>
@@ -704,15 +730,30 @@ export function AccessibilityWidget() {
           <span className="accessibility-panel-head-icon" aria-hidden="true">A</span>
           <div>
             <strong>Accessibilite</strong>
-            <p className="accessibility-panel-subtitle">Personnalisez votre experience</p>
+            <p className="accessibility-panel-subtitle">Personnalisez l&apos;affichage, la lecture et la navigation</p>
           </div>
         </div>
         <button type="button" className="accessibility-close" onClick={() => setOpen(false)} aria-label={t("common.actions.close")}>{"\u00d7"}</button>
       </div>
 
+      <div className="accessibility-summary" aria-label="Resume accessibilite">
+        <span>
+          <strong>{settings.activeQuickMode ? "Mode actif" : "Mode libre"}</strong>
+          <small>{settings.activeQuickMode ? "Profil adapte applique" : "Ajustez selon vos besoins"}</small>
+        </span>
+        <span>
+          <strong>{fontLabel}</strong>
+          <small>Texte</small>
+        </span>
+        <span>
+          <strong>{settings.voiceNavigation ? "Voix" : "Manuel"}</strong>
+          <small>Navigation</small>
+        </span>
+      </div>
+
       <section className="accessibility-module">
         <p className="accessibility-module-title">Modes rapides</p>
-        <p className="accessibility-module-subtitle">Activez un mode predefini pour adapter instantanement l interface.</p>
+        <p className="accessibility-module-subtitle">Activez un mode predefini pour adapter instantanement l&apos;interface.</p>
         <div className="accessibility-grid accessibility-grid-scroll">
           <FeatureToggle
             label="Epilepsie"
@@ -875,7 +916,7 @@ export function AccessibilityWidget() {
       </section>
 
       {settings.voiceNavigation ? (
-        <section className="accessibility-module">
+        <section className="accessibility-module accessibility-voice-module">
           <p className="accessibility-module-title">Voice controls</p>
           <div
             style={{
@@ -1029,6 +1070,11 @@ export function AccessibilityWidget() {
           State: {isListening ? "Listening" : "Stopped"}
         </p>
       ) : null}
+      {settings.voiceNavigation ? (
+        <p className="texte-secondaire" style={{ marginTop: 0 }}>
+          Microphone: {microphonePermission}
+        </p>
+      ) : null}
       {settings.voiceNavigation && !voiceSupported ? (
         <p className="texte-secondaire" style={{ marginTop: 0 }}>
           Use Chrome or Edge for voice commands.
@@ -1036,12 +1082,12 @@ export function AccessibilityWidget() {
       ) : null}
 
       {settings.virtualKeyboard ? (
-        <section className="accessibility-module">
+        <section className="accessibility-module accessibility-keyboard-module">
           <p className="accessibility-module-title">Virtual keyboard</p>
           <p className="texte-secondaire" style={{ marginTop: 0 }}>
             {keyboardStatus || "Focus an input or textarea first, then type with this keyboard."}
           </p>
-          <div style={{ display: "grid", gap: "8px", gridTemplateColumns: "repeat(10, minmax(0, 1fr))" }}>
+          <div className="accessibility-virtual-keyboard">
             {"1234567890QWERTYUIOPASDFGHJKLZXCVBNM".split("").map((key) => (
               <button
                 key={key}

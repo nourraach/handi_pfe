@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { authenticatedFetch } from "@/lib/auth-utils";
 import { construireUrlApi } from "@/lib/config";
+import { Eye, X } from "lucide-react";
 
 type ApplicationStatus = "pending" | "shortlisted" | "interview_scheduled" | "rejected" | "accepted";
 
@@ -20,6 +21,7 @@ type AdminApplicationApiItem = {
   created_at?: string | null;
   updated_at?: string | null;
   score_test?: number | null;
+  cv_url?: string | null;
   candidature?: {
     id?: string;
     statut?: string | null;
@@ -27,6 +29,7 @@ type AdminApplicationApiItem = {
     created_at?: string | null;
     updated_at?: string | null;
     score_test?: number | null;
+    cv_url?: string | null;
   };
   candidat?: {
     id?: string;
@@ -34,6 +37,7 @@ type AdminApplicationApiItem = {
     nom?: string | null;
     email?: string | null;
     telephone?: string | null;
+    cv_url?: string | null;
     utilisateur?: UserLite | null;
   } | null;
   offre?: {
@@ -71,6 +75,18 @@ type AdminApplication = {
   location: string;
   contractType: string;
   offerStatus: string;
+  cvUrl: string | null;
+};
+
+type PreviewKind = "pdf" | "unknown";
+
+type MediaPreviewState = {
+  open: boolean;
+  title: string;
+  kind: PreviewKind;
+  url: string | null;
+  loading: boolean;
+  error: string | null;
 };
 
 const ITEMS_PER_PAGE = 50;
@@ -138,6 +154,7 @@ function normalizeApplication(item: AdminApplicationApiItem, index: number): Adm
     location: item.offre?.localisation ?? candidateUser?.addresse ?? "-",
     contractType: item.offre?.type_poste ? item.offre.type_poste.replace("_", " ") : "-",
     offerStatus: item.offre?.statut ?? "-",
+    cvUrl: candidature.cv_url ?? item.cv_url ?? item.candidat?.cv_url ?? null,
   };
 }
 
@@ -149,6 +166,44 @@ export default function AdminApplicationsPage() {
   const [status, setStatus] = useState<"" | ApplicationStatus>("");
   const [company, setCompany] = useState("");
   const [page, setPage] = useState(1);
+  const [preview, setPreview] = useState<MediaPreviewState>({
+    open: false,
+    title: "",
+    kind: "unknown",
+    url: null,
+    loading: false,
+    error: null,
+  });
+
+  const closePreview = () => {
+    setPreview((current) => {
+      if (current.url) URL.revokeObjectURL(current.url);
+      return { open: false, title: "", kind: "unknown", url: null, loading: false, error: null };
+    });
+  };
+
+  const openPreview = async (opts: { title: string; path: string }) => {
+    const url = /^https?:\/\//i.test(opts.path) ? opts.path : construireUrlApi(opts.path.startsWith("/") ? opts.path : `/${opts.path}`);
+    setPreview({ open: true, title: opts.title, kind: "pdf", url: null, loading: true, error: null });
+    try {
+      const token = localStorage.getItem("token_auth");
+      const response = await fetch(url, { headers: token ? { Authorization: `Bearer ${token}` } : undefined });
+      if (!response.ok) throw new Error("Impossible d'ouvrir le CV.");
+      const blob = await response.blob();
+      const contentType = (blob.type || response.headers.get("content-type") || "").toLowerCase();
+      if (!contentType.includes("pdf")) {
+        throw new Error("Le fichier recu n'est pas un PDF.");
+      }
+      const objectUrl = URL.createObjectURL(blob);
+      setPreview({ open: true, title: opts.title, kind: "pdf", url: objectUrl, loading: false, error: null });
+    } catch (cause) {
+      setPreview((current) => ({
+        ...current,
+        loading: false,
+        error: cause instanceof Error ? cause.message : "Impossible d'ouvrir le CV.",
+      }));
+    }
+  };
 
   const loadApplications = async () => {
     try {
@@ -303,16 +358,17 @@ export default function AdminApplicationsPage() {
                   <th>Candidature envoyée</th>
                   <th>Score</th>
                   <th>Offre</th>
+                  <th>CV</th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={7}>Chargement des candidatures...</td>
+                    <td colSpan={8}>Chargement des candidatures...</td>
                   </tr>
                 ) : visibleApplications.length === 0 ? (
                   <tr>
-                    <td colSpan={7}>Aucune candidature ne correspond à ces filtres.</td>
+                    <td colSpan={8}>Aucune candidature ne correspond à ces filtres.</td>
                   </tr>
                 ) : (
                   visibleApplications.map((item) => (
@@ -340,6 +396,22 @@ export default function AdminApplicationsPage() {
                         <strong>{item.contractType}</strong>
                         <span>{item.offerStatus}</span>
                       </td>
+                      <td className="admin-applications-cell-cv">
+                        {item.cvUrl ? (
+                          <button
+                            type="button"
+                            className="admin-applications-icon-button"
+                            onClick={() => void openPreview({ title: `CV - ${item.candidateName}`, path: item.cvUrl || "" })}
+                            aria-label={`Voir le CV de ${item.candidateName}`}
+                            title={`Voir le CV de ${item.candidateName}`}
+                          >
+                            <Eye size={16} aria-hidden="true" />
+                            <span>Voir</span>
+                          </button>
+                        ) : (
+                          <span>-</span>
+                        )}
+                      </td>
                     </tr>
                   ))
                 )}
@@ -362,6 +434,136 @@ export default function AdminApplicationsPage() {
           </footer>
         </section>
       </section>
+
+      {preview.open ? (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={preview.title}
+          className="applicants-modal-overlay"
+          onClick={closePreview}
+        >
+          <section className="applicants-modal-card applicants-modal-card-lg" onClick={(event) => event.stopPropagation()}>
+            <div className="admin-preview-header">
+              <div>
+                <p>Apercu PDF</p>
+                <h2>{preview.title}</h2>
+              </div>
+              <button type="button" onClick={closePreview} aria-label="Fermer l'apercu">
+                <X size={18} aria-hidden="true" />
+              </button>
+            </div>
+            {preview.loading ? <p>Chargement...</p> : null}
+            {preview.error ? <p className="message message-erreur">{preview.error}</p> : null}
+            {!preview.loading && !preview.error && preview.url ? (
+              <iframe title={preview.title} src={preview.url} className="admin-preview-frame" />
+            ) : null}
+          </section>
+        </div>
+      ) : null}
+
+      <style jsx>{`
+        .applicants-modal-overlay {
+          position: fixed;
+          inset: 0;
+          z-index: 70;
+          display: grid;
+          place-items: center;
+          padding: 24px;
+          background: rgba(15, 23, 42, 0.52);
+          backdrop-filter: blur(6px);
+        }
+
+        .applicants-modal-card {
+          width: min(960px, 100%);
+          max-height: 88vh;
+          overflow: auto;
+          border: 1px solid rgba(148, 163, 184, 0.28);
+          border-radius: 8px;
+          background: #fff;
+          padding: 18px;
+          box-shadow: 0 24px 80px rgba(15, 23, 42, 0.22);
+        }
+
+        .applicants-modal-card-lg {
+          min-height: 76vh;
+        }
+
+        .admin-preview-header {
+          display: flex;
+          align-items: flex-start;
+          justify-content: space-between;
+          gap: 16px;
+          margin-bottom: 14px;
+        }
+
+        .admin-preview-header p {
+          margin: 0 0 4px;
+          color: #64748b;
+          font-size: 0.8rem;
+          font-weight: 700;
+          text-transform: uppercase;
+        }
+
+        .admin-preview-header h2 {
+          margin: 0;
+          color: #0f172a;
+          font-size: 1.15rem;
+        }
+
+        .admin-preview-header button,
+        .admin-applications-table button {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .admin-applications-table-wrap {
+          width: 100%;
+          overflow-x: auto;
+          overflow-y: hidden;
+        }
+
+        .admin-applications-table {
+          width: 100%;
+          table-layout: fixed;
+        }
+
+        .admin-applications-table :global(th),
+        .admin-applications-table :global(td) {
+          vertical-align: middle;
+        }
+
+        .admin-applications-table :global(td) {
+          overflow: hidden;
+        }
+
+        .admin-applications-table :global(td strong),
+        .admin-applications-table :global(td span) {
+          overflow-wrap: anywhere;
+        }
+
+        .admin-applications-cell-cv {
+          width: 92px;
+          text-align: center;
+        }
+
+        .admin-applications-icon-button {
+          min-width: 68px;
+          height: 34px;
+          padding: 0 10px;
+          justify-content: center;
+          border-radius: 999px;
+        }
+
+        .admin-preview-frame {
+          width: 100%;
+          height: 70vh;
+          border: 0;
+          border-radius: 8px;
+          background: #f8fafc;
+        }
+      `}</style>
     </main>
   );
 }

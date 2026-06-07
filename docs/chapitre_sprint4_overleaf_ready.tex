@@ -1040,6 +1040,61 @@ Le chatbot a été conçu comme un assistant transversal. Il accompagne l'utilis
 \end{table}
 \renewcommand{\arraystretch}{1}
 
+\subsubsection{Intégration technique du chatbot Ollama}
+
+Le chatbot d'assistance repose sur une architecture en trois couches : une interface React dans l'espace candidat, une route API intelligente chargée d'enrichir le message avec le contexte de navigation, puis un proxy local vers Ollama. Cette organisation permet de conserver une expérience fluide tout en gardant le moteur de génération en local, sur \texttt{localhost:11434}.
+
+\begin{itemize}
+  \item \textbf{Couche interface} : la page \texttt{/app/candidat/chatbot/page.tsx} gère les conversations, le message courant, l'indicateur de frappe et la persistance locale.
+  \item \textbf{Couche API intelligente} : \texttt{/app/api/chatbot/route.ts} détecte la langue, limite l'historique à quelques échanges et injecte le contexte de page avant l'appel au modèle.
+  \item \textbf{Couche proxy Ollama} : \texttt{/app/api/ollama/route.ts} relaie les requêtes de génération vers le moteur local et expose un point de contrôle simple pour tester la disponibilité du service.
+  \item \textbf{Persistance} : les conversations et l'identifiant de la conversation active sont sauvegardés dans \texttt{localStorage} avec les clés \texttt{chatbot\_conversations} et \texttt{chatbot\_current\_id}.
+\end{itemize}
+
+\renewcommand{\arraystretch}{1.25}
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{|L{3.8cm}|Y|L{3cm}|}
+\hline
+\tblhead{Composant} & \tblhead{Rôle} & \tblhead{Statut} \\
+\hline
+\tblleft{Page chatbot} & Afficher l'interface conversationnelle, gérer l'envoi de messages et la navigation entre conversations. & Implémenté \\
+\hline
+\tblleft{Route /api/chatbot} & Construire un prompt contextualisé à partir du message, de la langue et de la page consultée. & Implémenté \\
+\hline
+\tblleft{Route /api/ollama} & Servir de proxy vers Ollama pour éviter une dépendance directe du frontend au serveur local. & Implémenté \\
+\hline
+\tblleft{Ollama local} & Générer la réponse du modèle \texttt{llama3.2:3b} en environnement local. & Configuré \\
+\hline
+\tblleft{localStorage} & Conserver l'historique des conversations côté navigateur. & Implémenté \\
+\hline
+\end{tabularx}
+\caption{Architecture technique du chatbot Ollama}
+\label{tab:architecture-chatbot-ollama}
+\end{table}
+\renewcommand{\arraystretch}{1}
+
+\paragraph{Flux d'exécution}
+
+Le fonctionnement observé dans l'application suit les étapes suivantes :
+
+\begin{enumerate}
+  \item L'utilisateur ouvre le chatbot depuis la barre latérale.
+  \item La page recharge les conversations sauvegardées et restaure la conversation active si elle existe.
+  \item Le message saisi est envoyé à la route intelligente avec l'historique récent et le contexte de page.
+  \item La route proxy transmet la requête à Ollama et récupère la réponse générée.
+  \item La réponse est affichée dans l'interface, puis l'état est sauvegardé dans \texttt{localStorage}.
+\end{enumerate}
+
+\begin{infobox}[Paramètres de configuration]
+Deux variables d'environnement structurent l'intégration :
+\begin{itemize}
+  \item \texttt{OLLAMA\_BASE\_URL} : adresse du serveur Ollama, définie par défaut sur \texttt{http://localhost:11434}.
+  \item \texttt{OLLAMA\_MODEL} : modèle utilisé pour la génération, typiquement \texttt{llama3.2:3b}.
+\end{itemize}
+Cette configuration permet de déployer l'assistant sans dépendance au cloud, tout en gardant une logique extensible pour des modèles plus légers ou plus rapides.
+\end{infobox}
+
 \subsubsection{Module 3 - Accessibilité avancée}
 
 L'accessibilité représente l'un des axes majeurs du sprint. Le panneau d'accessibilité donne à l'utilisateur la possibilité d'adapter l'interface selon ses besoins : lecture vocale, contraste, taille de police, police plus lisible, espacement, curseur, réduction des animations et assistance à la navigation.
