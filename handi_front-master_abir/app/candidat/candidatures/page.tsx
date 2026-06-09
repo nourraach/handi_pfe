@@ -81,7 +81,6 @@ type PageCopy = {
   previousPage: string;
   nextPage: string;
   rejectionReason: string;
-  aiScore: string;
 };
 
 const PAGE_SIZE = 12;
@@ -140,7 +139,6 @@ const COPY: Record<"fr" | "en" | "ar", PageCopy> = {
     previousPage: "Precedent",
     nextPage: "Suivant",
     rejectionReason: "Motif de refus",
-    aiScore: "Score IA",
   },
   en: {
     title: "Mes candidatures",
@@ -171,7 +169,6 @@ const COPY: Record<"fr" | "en" | "ar", PageCopy> = {
     previousPage: "Précédent",
     nextPage: "Suivant",
     rejectionReason: "Motif de refus",
-    aiScore: "Score IA",
   },
   ar: {
     title: "Mes candidatures",
@@ -202,7 +199,6 @@ const COPY: Record<"fr" | "en" | "ar", PageCopy> = {
     previousPage: "Précédent",
     nextPage: "Suivant",
     rejectionReason: "Motif de refus",
-    aiScore: "Score IA",
   },
 } as const;
 
@@ -1055,11 +1051,6 @@ function MesCandidaturesPage() {
                             <CalendarIcon />
                             {copy.appliedOn} {formaterDate(candidature.date_postulation, locale)}
                           </span>
-                          {typeof candidature.score_test === "number" ? (
-                            <span>
-                              {copy.aiScore}: {candidature.score_test}/100
-                            </span>
-                          ) : null}
                         </div>
 
                       </div>

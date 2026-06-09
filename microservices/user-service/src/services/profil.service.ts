@@ -167,6 +167,7 @@ export class ProfilService {
 
     const donneesUtilisateur = {
       nom: donnees.nom,
+      email: donnees.email,
       telephone: donnees.telephone,
       addresse: donnees.addresse,
     };

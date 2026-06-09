@@ -476,7 +476,6 @@ export default function EntretiensEntreprisePage() {
     const selected = entretienSelectionneId === item.entretien.id;
     const duration = item.entretien.duree_prevue || "60 min";
     const actionEnCours = entretienEnAction === item.entretien.id;
-    const peutTerminer = canMarkInterviewComplete(item);
     const TypeIcon =
       item.entretien.type === "visio" ? Video : item.entretien.type === "presentiel" ? MapPin : Phone;
     const googleCalendarLink = construireLienGoogleCalendar({
@@ -2135,27 +2134,26 @@ export default function EntretiensEntreprisePage() {
         }
         .selected-event-mainrow {
           display: grid;
-          grid-template-columns: minmax(0, 1.2fr) minmax(220px, 0.9fr) minmax(220px, 0.9fr);
-          gap: 28px;
-          align-items: center;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 14px;
+          align-items: stretch;
         }
         .selected-event-candidate {
           display: grid;
           grid-template-columns: 48px minmax(0, 1fr);
-          align-items: start;
-          gap: 22px;
+          align-items: center;
+          gap: 12px;
           min-width: 0;
-          padding-right: 24px;
         }
         .selected-event-avatar {
-          width: 96px;
-          height: 96px;
+          width: 48px;
+          height: 48px;
           border-radius: 50%;
           background: #e6dbfb;
           color: #4b22cc;
           display: grid;
           place-items: center;
-          font-size: 1.6rem;
+          font-size: 0.95rem;
           font-weight: 900;
         }
         .selected-event-copy {
@@ -2167,7 +2165,7 @@ export default function EntretiensEntreprisePage() {
         .selected-event-copy strong {
           display: block;
           color: #11162b;
-          font-size: 1.35rem;
+          font-size: 1rem;
           line-height: 1.15;
           font-weight: 900;
           white-space: nowrap;
@@ -2177,9 +2175,13 @@ export default function EntretiensEntreprisePage() {
         .selected-event-copy small {
           display: block;
           color: #6d7288;
-          font-size: 1rem;
+          font-size: 0.82rem;
           line-height: 1.35;
           font-weight: 600;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
         }
         .selected-event-meta-item,
         .selected-event-meta-status {
@@ -2187,8 +2189,8 @@ export default function EntretiensEntreprisePage() {
           align-content: center;
           justify-items: start;
           gap: 8px;
-          min-height: 124px;
-          padding: 18px 0 18px 24px;
+          min-height: 104px;
+          padding: 16px;
           color: #15182b;
           font-size: 0.98rem;
           font-weight: 700;
@@ -2197,10 +2199,10 @@ export default function EntretiensEntreprisePage() {
           position: relative;
         }
         .selected-event-meta-box {
-          border-radius: 0;
-          border: 0;
-          background: transparent;
-          box-shadow: none;
+          border-radius: 16px;
+          border: 1px solid #ece4f9;
+          background: #ffffff;
+          box-shadow: 0 10px 24px rgba(47, 24, 88, 0.06);
         }
         .selected-event-meta-stack {
           display: grid;
@@ -2225,13 +2227,7 @@ export default function EntretiensEntreprisePage() {
           line-height: 1.3;
         }
         .selected-event-meta-item:not(:first-child)::before {
-          content: "";
-          position: absolute;
-          left: 0;
-          top: 18%;
-          bottom: 18%;
-          width: 1px;
-          background: #ddd9f0;
+          display: none;
         }
         .selected-event-meta-status .status-pill {
           min-height: 48px;

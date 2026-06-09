@@ -118,6 +118,18 @@ function buildSystemPrompt(language: "fr" | "en" | "ar") {
   ].join("\n");
 }
 
+function buildUnavailableReply(language: "fr" | "en" | "ar") {
+  if (language === "ar") {
+    return "المساعد المحلي غير متاح حاليا. تحقق من تشغيل Ollama ثم أعد المحاولة.";
+  }
+
+  if (language === "en") {
+    return "The local assistant is currently unavailable. Please check that Ollama is running, then try again.";
+  }
+
+  return "L'assistant local est indisponible pour le moment. Vérifiez qu'Ollama est lancé, puis réessayez.";
+}
+
 function buildPrompt(params: {
   language: "fr" | "en" | "ar";
   messages: Array<{ role: ChatRole; content: string }>;
@@ -197,10 +209,9 @@ export async function POST(request: Request) {
     });
 
     if (!ollamaResponse.ok) {
-      const errorText = await ollamaResponse.text();
       return NextResponse.json(
-        { error: "Ollama request failed.", details: errorText.slice(0, 500) },
-        { status: 502 },
+        { reply: buildUnavailableReply(language), language, unavailable: true },
+        { status: 200 },
       );
     }
 
@@ -208,20 +219,21 @@ export async function POST(request: Request) {
     const reply = typeof payload.response === "string" ? payload.response.trim() : "";
 
     if (!reply) {
-      return NextResponse.json({ error: "Empty response from Ollama." }, { status: 502 });
+      return NextResponse.json({ reply: buildUnavailableReply(language), language, unavailable: true }, { status: 200 });
     }
 
     return NextResponse.json({
       reply,
       language,
     });
-  } catch (error) {
-    const isAbort = error instanceof Error && error.name === "AbortError";
+  } catch {
     return NextResponse.json(
       {
-        error: isAbort ? "Ollama request timed out." : "Unable to reach Ollama.",
+        reply: buildUnavailableReply(language),
+        language,
+        unavailable: true,
       },
-      { status: 502 },
+      { status: 200 },
     );
   } finally {
     clearTimeout(timeoutId);

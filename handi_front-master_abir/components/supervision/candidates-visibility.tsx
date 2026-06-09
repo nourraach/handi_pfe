@@ -94,7 +94,7 @@ const modalStyles = `
 function buildReadonlyCandidateUser(candidate: VisibleCandidate): UtilisateurConnecte {
   return {
     id_utilisateur: candidate.candidate_user_id,
-    nom: candidate.candidate_name,
+    nom: candidateDisplayName(candidate),
     email: "",
     role: "candidat",
     statut: "actif",
@@ -108,11 +108,29 @@ function compactDate(value: string) {
   return date.toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" });
 }
 
-function candidateInitials(name: string) {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
+function candidateDisplayName(candidate: VisibleCandidate) {
+  return candidate.candidate_name?.trim() || candidate.candidate_reference?.trim() || "Candidat";
+}
+
+function candidateInitials(name?: string | null) {
+  const parts = (name || "").trim().split(/\s+/).filter(Boolean);
   if (parts.length === 0) return "CA";
   if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
   return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+}
+
+function candidateCardKey(candidate: VisibleCandidate, index: number) {
+  return [
+    candidate.application_id,
+    candidate.candidate_user_id,
+    candidate.candidate_reference,
+    candidate.offer_title,
+    candidate.company_name,
+    index,
+  ]
+    .map((value) => String(value || "").trim())
+    .filter(Boolean)
+    .join("-");
 }
 
 export function CandidatesVisibilityView() {
@@ -138,7 +156,7 @@ export function CandidatesVisibilityView() {
       const matchesStage = stageFilter ? candidate.stage === stageFilter : true;
       const matchesRegion = regionFilter ? candidate.region === regionFilter : true;
       const matchesSearch = query
-        ? [candidate.candidate_name, candidate.company_name, candidate.offer_title, candidate.region]
+        ? [candidateDisplayName(candidate), candidate.company_name, candidate.offer_title, candidate.region]
             .filter(Boolean)
             .some((value) => value.toLowerCase().includes(query))
         : true;
@@ -199,34 +217,38 @@ export function CandidatesVisibilityView() {
           </div>
         ) : (
           <div className={styles.spotlightGrid}>
-            {filteredCandidates.map((candidate) => (
-              <article key={candidate.application_id} className={styles.candidateCard}>
-                <div className={styles.cardTop}>
-                  <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
-                    <span className={styles.avatarTile}>{candidateInitials(candidate.candidate_name)}</span>
-                    <div className={styles.cardIdentity}>
-                      <h3>{candidate.candidate_name}</h3>
-                      <p>{candidate.offer_title}</p>
+            {filteredCandidates.map((candidate, index) => {
+              const displayName = candidateDisplayName(candidate);
+
+              return (
+                <article key={candidateCardKey(candidate, index)} className={styles.candidateCard}>
+                  <div className={styles.cardTop}>
+                    <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+                      <span className={styles.avatarTile}>{candidateInitials(displayName)}</span>
+                      <div className={styles.cardIdentity}>
+                        <h3>{displayName}</h3>
+                        <p>{candidate.offer_title}</p>
+                      </div>
                     </div>
+                    <span className={candidate.stage === "hired" ? styles.tagSuccess : styles.matchBadge}>
+                      <Sparkles size={14} /> {candidate.stage === "hired" ? "Recrute" : "Shortliste"}
+                    </span>
                   </div>
-                  <span className={candidate.stage === "hired" ? styles.tagSuccess : styles.matchBadge}>
-                    <Sparkles size={14} /> {candidate.stage === "hired" ? "Recrute" : "Shortliste"}
-                  </span>
-                </div>
 
-                <div className={styles.cardMetaLine}>
-                  <span className={styles.tag}><Building2 size={14} /> {candidate.company_name}</span>
-                  <span className={styles.tag}><MapPin size={14} /> {candidate.region}</span>
-                </div>
+                  <div className={styles.cardMetaLine}>
+                    <span className={styles.tag}><Building2 size={14} /> {candidate.company_name}</span>
+                    <span className={styles.tag}><MapPin size={14} /> {candidate.region}</span>
+                  </div>
 
-                <div className={styles.cardFooter}>
-                  <span className={styles.sectionSubtle}>Mise a jour le {compactDate(candidate.updated_at)}</span>
-                  <button type="button" className={styles.textButton} onClick={() => setSelectedCandidate(candidate)}>
-                    Voir le profil
-                  </button>
-                </div>
-              </article>
-            ))}
+                  <div className={styles.cardFooter}>
+                    <span className={styles.sectionSubtle}>Mise a jour le {compactDate(candidate.updated_at)}</span>
+                    <button type="button" className={styles.textButton} onClick={() => setSelectedCandidate(candidate)}>
+                      Voir le profil
+                    </button>
+                  </div>
+                </article>
+              );
+            })}
           </div>
         )}
       </section>
@@ -239,7 +261,7 @@ export function CandidatesVisibilityView() {
                 <div className="supervision-candidate-modal-header">
                   <div>
                     <p className="supervision-candidate-kicker">Profil candidat</p>
-                    <h2 className="supervision-candidate-modal-title">{selectedCandidate.candidate_name}</h2>
+                    <h2 className="supervision-candidate-modal-title">{candidateDisplayName(selectedCandidate)}</h2>
                     <p className="supervision-candidate-modal-subtitle">
                       {selectedCandidate.offer_title} · {selectedCandidate.company_name}
                     </p>

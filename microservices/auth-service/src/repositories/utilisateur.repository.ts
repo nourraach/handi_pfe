@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { db } from "../db";
 import { candidatTable, entrepriseTable, utilisateurTable } from "../db/schema";
 import { StatutUtilisateur } from "../types/enums";
@@ -10,7 +10,8 @@ export class UtilisateurRepository {
   }
 
   async trouverParEmail(email: string) {
-    const [utilisateur] = await db.select().from(utilisateurTable).where(eq(utilisateurTable.email, email));
+    const emailNormalise = email.trim().toLowerCase();
+    const [utilisateur] = await db.select().from(utilisateurTable).where(sql`lower(${utilisateurTable.email}) = ${emailNormalise}`);
     return utilisateur ?? null;
   }
 

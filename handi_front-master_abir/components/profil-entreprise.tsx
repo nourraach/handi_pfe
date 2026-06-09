@@ -217,38 +217,40 @@ export function ProfilEntreprise({ utilisateur, lectureSeule = false }: ProfilEn
     .join("");
 
   return (
-    <section className="candidate-profile-medical">
-      <div className="candidate-profile-topbar">
-        <div>
-          <p className="candidate-profile-kicker">{t("profile.company.title")}</p>
-          <h2>{t("profile.company.companyTitle")}</h2>
-        </div>
-        {!lectureSeule ? (
-          <div className="candidate-profile-actions">
-            <button
-              type="button"
-              className="candidate-profile-button candidate-profile-button-secondary"
-              onClick={() => setModeEdition((courant) => !courant)}
-            >
-              {modeEdition ? t("profile.candidate.exitEdit") : t("common.actions.edit")}
-            </button>
-            <button
-              type="button"
-              className="candidate-profile-button candidate-profile-button-primary"
-              onClick={() => void sauvegarderProfil()}
-              disabled={chargement}
-            >
-              {chargement ? t("profile.candidate.saving") : t("common.actions.save")}
-            </button>
-          </div>
-        ) : null}
-      </div>
+    <section className="candidate-profile-medical enterprise-profile-page">
 
       {message ? <div className="message message-info">{message}</div> : null}
       {erreur ? <div className="message message-erreur">{erreur}</div> : null}
 
-      <article className="candidate-profile-card candidate-profile-hero">
-        <div className="candidate-profile-hero-main">
+      <section className="candidate-profile-card enterprise-profile-overview">
+        <div className="candidate-profile-topbar enterprise-profile-topbar">
+          <div>
+            <p className="candidate-profile-kicker">{t("profile.company.title")}</p>
+            <h2>{t("profile.company.companyTitle")}</h2>
+          </div>
+          {!lectureSeule ? (
+            <div className="candidate-profile-actions">
+              <button
+                type="button"
+                className="candidate-profile-button candidate-profile-button-secondary"
+                onClick={() => setModeEdition((courant) => !courant)}
+              >
+                {modeEdition ? t("profile.candidate.exitEdit") : t("common.actions.edit")}
+              </button>
+              <button
+                type="button"
+                className="candidate-profile-button candidate-profile-button-primary"
+                onClick={() => void sauvegarderProfil()}
+                disabled={chargement || !modeEdition}
+              >
+                {chargement ? t("profile.candidate.saving") : t("common.actions.save")}
+              </button>
+            </div>
+          ) : null}
+        </div>
+
+        <article className="candidate-profile-hero enterprise-profile-hero">
+          <div className="candidate-profile-hero-main enterprise-profile-hero-main">
           <div className="candidate-profile-photo-shell">
             <div className="candidate-profile-photo-fallback">{initials || "E"}</div>
           </div>
@@ -264,32 +266,33 @@ export function ProfilEntreprise({ utilisateur, lectureSeule = false }: ProfilEn
               <MapPin size={14} /> {profil.addresse || valeurParDefaut}
             </span>
           </div>
-        </div>
-        <div className="candidate-profile-hero-stats">
-          <div className="candidate-profile-mini-stat">
-            <div className="candidate-profile-ring" style={{ ["--completion" as string]: `${completionPercent}%` }} aria-label={`${completionPercent}%`}>
-              <span>{completionPercent}%</span>
+          </div>
+          <div className="candidate-profile-hero-stats enterprise-profile-hero-stats">
+            <div className="candidate-profile-mini-stat enterprise-profile-mini-stat enterprise-profile-mini-stat--completion">
+              <div className="candidate-profile-ring" style={{ ["--completion" as string]: `${completionPercent}%` }} aria-label={`${completionPercent}%`}>
+                <span>{completionPercent}%</span>
+              </div>
+              <span>Profil complet</span>
+              <strong>{completionPercent}%</strong>
             </div>
-            <span>Profil complet</span>
-            <strong>{completionPercent}%</strong>
+            <div className="candidate-profile-mini-stat enterprise-profile-mini-stat">
+              <Building2 size={18} />
+              <span>Secteur</span>
+              <strong>{secteur}</strong>
+            </div>
+            <div className="candidate-profile-mini-stat enterprise-profile-mini-stat">
+              <Users size={18} />
+              <span>Taille</span>
+              <strong>{taille}</strong>
+            </div>
+            <div className="candidate-profile-mini-stat enterprise-profile-mini-stat">
+              <Globe2 size={18} />
+              <span>Site web</span>
+              <strong>{profil.site_web || valeurParDefaut}</strong>
+            </div>
           </div>
-          <div className="candidate-profile-mini-stat">
-            <Building2 size={18} />
-            <span>Secteur</span>
-            <strong>{secteur}</strong>
-          </div>
-          <div className="candidate-profile-mini-stat">
-            <Users size={18} />
-            <span>Taille</span>
-            <strong>{taille}</strong>
-          </div>
-          <div className="candidate-profile-mini-stat">
-            <Globe2 size={18} />
-            <span>Site web</span>
-            <strong>{profil.site_web || valeurParDefaut}</strong>
-          </div>
-        </div>
-      </article>
+        </article>
+      </section>
 
       <div className="candidate-profile-grid">
         <article className="candidate-profile-card candidate-profile-section candidate-profile-general">

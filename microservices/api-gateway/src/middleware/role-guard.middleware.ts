@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from "express";
+﻿import { NextFunction, Request, Response } from "express";
 import { RoleUtilisateur } from "../types/enums";
 
 /**
@@ -9,7 +9,7 @@ import { RoleUtilisateur } from "../types/enums";
  * 
  * Key Rules:
  * - Inspectors cannot access /api/chat routes (messaging is for candidates/enterprises only)
- * - Only Inspectors and Admins can access /api/supervision routes
+ * - Only Inspectors, ANETI users, and Admins can access /api/supervision routes
  * 
  * Requirements: 3.7, 4.4
  */
@@ -27,13 +27,13 @@ interface RouteGuard {
 const ROUTE_GUARDS: RouteGuard[] = [
   {
     pattern: /^\/api\/supervision/,
-    allowedRoles: [RoleUtilisateur.INSPECTEUR, RoleUtilisateur.ADMIN],
-    denyMessage: "Accès réservé aux inspecteurs et administrateurs",
+    allowedRoles: [RoleUtilisateur.INSPECTEUR, RoleUtilisateur.ANETI, RoleUtilisateur.ADMIN],
+    denyMessage: "Acces reserve aux inspecteurs, aux utilisateurs ANETI et aux administrateurs",
   },
   {
     pattern: /^\/api\/chat/,
     allowedRoles: [RoleUtilisateur.CANDIDAT, RoleUtilisateur.ENTREPRISE, RoleUtilisateur.ADMIN],
-    denyMessage: "Les inspecteurs ne peuvent pas accéder aux messageries",
+    denyMessage: "Les inspecteurs ne peuvent pas accÃ©der aux messageries",
   },
 ];
 
@@ -89,3 +89,4 @@ export const roleGuardMiddleware = (req: Request, res: Response, next: NextFunct
   // All guards passed (or no guards matched) - continue
   next();
 };
+

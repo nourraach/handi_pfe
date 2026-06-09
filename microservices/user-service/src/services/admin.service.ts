@@ -40,7 +40,21 @@ export class AdminService {
     `);
 
     const lien = `${env.frontendUrl}/reset?token=${token}`;
-    await this.courrielService.envoyerCourrielDefinitionMotDePasse(utilisateur.email, utilisateur.nom, lien);
+    if (!env.smtpHost) {
+      console.warn("[user-service] SMTP non configure: lien de finalisation genere en mode local", {
+        email: utilisateur.email,
+        lien,
+      });
+      return { emailEnvoye: false, lien_reset: lien, token };
+    }
+
+    try {
+      await this.courrielService.envoyerCourrielDefinitionMotDePasse(utilisateur.email, utilisateur.nom, lien);
+      return { emailEnvoye: true, lien_reset: lien, token };
+    } catch (erreur) {
+      console.error("[user-service] echec envoi email finalisation", { email: utilisateur.email, erreur });
+      return { emailEnvoye: false, lien_reset: lien, token };
+    }
   }
 
   async listerDemandesEnAttente(): Promise<DemandeEnAttenteDto[]> {
@@ -81,21 +95,24 @@ export class AdminService {
       await this.utilisateurRepository.validerEntreprise(id_utilisateur);
     }
 
-    try {
-      await this.envoyerLienDefinitionMotDePasse({
-        id_utilisateur: utilisateurMisAJour.id_utilisateur,
-        email: utilisateurMisAJour.email,
-        nom: utilisateurMisAJour.nom,
-      });
-    } catch (_erreur) {
+    const envoiFinalisation = await this.envoyerLienDefinitionMotDePasse({
+      id_utilisateur: utilisateurMisAJour.id_utilisateur,
+      email: utilisateurMisAJour.email,
+      nom: utilisateurMisAJour.nom,
+    });
+
+    if (!envoiFinalisation.emailEnvoye) {
       return {
         message:
-          "La demande a ete approuvee et le compte est actif, mais l'email de finalisation n'a pas pu etre envoye. Veuillez verifier la configuration email.",
+          "La demande a ete approuvee et le compte est actif. Email non envoye: utilisez le lien de finalisation ci-dessous.",
+        lien_reset: envoiFinalisation.lien_reset,
+        token: envoiFinalisation.token,
       };
     }
 
     return {
       message: "La demande a ete approuvee, le compte est maintenant actif et un email de finalisation a ete envoye.",
+      lien_reset: envoiFinalisation.lien_reset,
     };
   }
 

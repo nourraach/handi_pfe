@@ -4,7 +4,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
-import { useState } from "react";
 import type { ReactNode } from "react";
 import {
   BriefcaseBusiness,
@@ -34,7 +33,6 @@ export function SupervisionShell({
 }) {
   const pathname = usePathname();
   const { utilisateur, deconnexion } = useAuth();
-  const [profileOpen, setProfileOpen] = useState(false);
   const isSupervisionUser = utilisateur?.role === "inspecteur" || utilisateur?.role === "aneti";
   const navItems = [
     { href: "/supervision", label: "Supervision", icon: LayoutDashboard },
@@ -91,12 +89,10 @@ export function SupervisionShell({
         </nav>
 
         <div className={styles.sidebarProfileWrap}>
-          <button
-            type="button"
+          <Link
+            href="/profil"
             className={styles.sidebarProfile}
-            onClick={() => setProfileOpen((current) => !current)}
-            aria-expanded={profileOpen}
-            aria-controls="supervision-profile-actions"
+            aria-label="Ouvrir mon profil"
           >
             <span className={styles.sidebarAvatar} aria-hidden="true">
               {avatarLetter}
@@ -105,14 +101,12 @@ export function SupervisionShell({
               <strong>{profileName}</strong>
               <small>{profileSubtitle}</small>
             </div>
-          </button>
-          {profileOpen ? (
-            <div id="supervision-profile-actions" className={styles.sidebarProfileActions}>
-              <button type="button" className={styles.sidebarProfileActionLink} onClick={deconnexion}>
-                Deconnecter
-              </button>
-            </div>
-          ) : null}
+          </Link>
+          <div className={styles.sidebarProfileActions}>
+            <button type="button" className={styles.sidebarProfileActionLink} onClick={deconnexion}>
+              Deconnecter
+            </button>
+          </div>
         </div>
       </aside>
 

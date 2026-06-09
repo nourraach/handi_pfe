@@ -36,22 +36,22 @@ export function QuestionEditor({
   onSupprimerOption,
 }: QuestionEditorProps) {
   const typesQuestions = [
-    { value: "choix_multiple", label: "Multiple choice" },
-    { value: "vrai_faux", label: "True / False" },
-    { value: "echelle_likert", label: "Likert scale (1-5)" },
-    { value: "texte_libre", label: "Open text" },
+    { value: "choix_multiple", label: "Choix multiple" },
+    { value: "vrai_faux", label: "Vrai / Faux" },
+    { value: "echelle_likert", label: "Échelle de Likert (1-5)" },
+    { value: "texte_libre", label: "Texte libre" },
   ];
 
   const genererOptionsVraiFaux = () => {
     const options: Option[] = [
       {
-        texte_option: "True",
+        texte_option: "Vrai",
         est_correcte: true,
         score_option: question.score_question,
         ordre: 1,
       },
       {
-        texte_option: "False",
+        texte_option: "Faux",
         est_correcte: false,
         score_option: 0,
         ordre: 2,
@@ -62,11 +62,11 @@ export function QuestionEditor({
 
   const genererOptionsLikert = () => {
     const options: Option[] = [
-      { texte_option: "1 - Strongly disagree", est_correcte: false, score_option: 1, ordre: 1 },
-      { texte_option: "2 - Disagree", est_correcte: false, score_option: 2, ordre: 2 },
-      { texte_option: "3 - Neutral", est_correcte: false, score_option: 3, ordre: 3 },
-      { texte_option: "4 - Agree", est_correcte: false, score_option: 4, ordre: 4 },
-      { texte_option: "5 - Strongly agree", est_correcte: false, score_option: 5, ordre: 5 },
+      { texte_option: "1 - Pas du tout d'accord", est_correcte: false, score_option: 1, ordre: 1 },
+      { texte_option: "2 - Pas d'accord", est_correcte: false, score_option: 2, ordre: 2 },
+      { texte_option: "3 - Neutre", est_correcte: false, score_option: 3, ordre: 3 },
+      { texte_option: "4 - D'accord", est_correcte: false, score_option: 4, ordre: 4 },
+      { texte_option: "5 - Tout à fait d'accord", est_correcte: false, score_option: 5, ordre: 5 },
     ];
     onModifier({ options });
   };
@@ -88,25 +88,25 @@ export function QuestionEditor({
       <div className="flex justify-between items-start mb-4">
         <h5 className="font-medium text-gray-900">Question {questionIndex + 1}</h5>
         <button onClick={onSupprimer} className="text-red-600 hover:text-red-800 text-sm">
-          Delete
+          Supprimer
         </button>
       </div>
 
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Question content *</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Contenu de la question *</label>
           <textarea
             value={question.contenu_question}
             onChange={(event) => onModifier({ contenu_question: event.target.value })}
             rows={2}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Write your question..."
+            placeholder="Rédigez votre question..."
           />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Question type</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Type de question</label>
             <select
               value={question.type_question}
               onChange={(event) => handleTypeChange(event.target.value)}
@@ -121,7 +121,7 @@ export function QuestionEditor({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Maximum score</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Score maximum</label>
             <input
               type="number"
               value={question.score_question}
@@ -140,7 +140,7 @@ export function QuestionEditor({
                 onChange={(event) => onModifier({ obligatoire: event.target.checked })}
                 className="mr-2"
               />
-              <span className="text-sm">Required question</span>
+              <span className="text-sm">Question obligatoire</span>
             </label>
           </div>
         </div>
@@ -148,10 +148,10 @@ export function QuestionEditor({
         {["choix_multiple", "vrai_faux", "echelle_likert"].includes(question.type_question) && (
           <div>
             <div className="flex justify-between items-center mb-2">
-              <label className="block text-sm font-medium text-gray-700">Answer options</label>
+              <label className="block text-sm font-medium text-gray-700">Options de réponse</label>
               {question.type_question === "choix_multiple" && (
                 <button onClick={onAjouterOption} className="text-sm text-blue-600 hover:text-blue-800">
-                  Add option
+                  Ajouter une option
                 </button>
               )}
             </div>
@@ -164,7 +164,7 @@ export function QuestionEditor({
                     value={option.texte_option}
                     onChange={(event) => onModifierOption(optionIndex, { texte_option: event.target.value })}
                     className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm"
-                    placeholder="Option text"
+                    placeholder="Texte de l'option"
                     disabled={question.type_question === "echelle_likert"}
                   />
 
@@ -177,7 +177,7 @@ export function QuestionEditor({
                           onChange={(event) => onModifierOption(optionIndex, { est_correcte: event.target.checked })}
                           className="mr-1"
                         />
-                        Correct
+                        Correcte
                       </label>
 
                       <input
@@ -193,7 +193,7 @@ export function QuestionEditor({
 
                   {question.type_question === "choix_multiple" && (
                     <button onClick={() => onSupprimerOption(optionIndex)} className="text-red-600 hover:text-red-800 text-sm">
-                      Delete
+                      Supprimer
                     </button>
                   )}
                 </div>
@@ -202,7 +202,7 @@ export function QuestionEditor({
 
             {question.type_question === "vrai_faux" && question.options.length === 0 && (
               <button onClick={genererOptionsVraiFaux} className="text-sm text-blue-600 hover:text-blue-800">
-                Generate True / False options
+                Générer les options Vrai / Faux
               </button>
             )}
           </div>
@@ -211,8 +211,8 @@ export function QuestionEditor({
         {question.type_question === "texte_libre" && (
           <div className="bg-blue-50 p-3 rounded">
             <p className="text-sm text-blue-800">
-              Open-text questions automatically receive the full score ({question.score_question} points). You can adjust
-              the scoring manually later if needed.
+              Les questions à texte libre reçoivent automatiquement le score complet ({question.score_question} points). Vous pouvez
+              ajuster la notation manuellement plus tard si nécessaire.
             </p>
           </div>
         )}

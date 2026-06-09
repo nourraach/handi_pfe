@@ -403,7 +403,7 @@ function MesOffresPage() {
 
       if (response.ok) {
         setOffreEnEdition(null);
-        setMessage("Offer updated successfully.");
+        setMessage("Offre mise à jour avec succès.");
         void chargerOffres();
         return;
       }
@@ -420,12 +420,12 @@ function MesOffresPage() {
         );
         localStorage.setItem("offres_test", JSON.stringify(offresModifiees));
         setOffreEnEdition(null);
-        setMessage("Offer updated successfully. (Local mode)");
+        setMessage("Offre mise à jour avec succès. (mode local)");
         void chargerOffres();
         return;
       }
 
-      const errorData = await response.json().catch(() => ({ message: "Unknown error." }));
+      const errorData = await response.json().catch(() => ({ message: "Erreur inconnue." }));
       setErreur(`Impossible de mettre a jour l'offre : ${errorData.message || "Erreur inconnue."}`);
     } catch (error) {
       const detail = error instanceof Error ? error.message : "Erreur inconnue.";
@@ -445,6 +445,10 @@ function MesOffresPage() {
     }
   };
 
+  const messageStatutOffre = (statut: OffreEntreprise["statut"], suffixe = "") => {
+    return `Offre ${statut === "active" ? "activée" : "désactivée"} avec succès${suffixe}.`;
+  };
+
   const changerStatut = async (id: string, nouveauStatut: OffreEntreprise["statut"]) => {
     try {
       setErreur(null);
@@ -460,7 +464,7 @@ function MesOffresPage() {
       });
 
       if (response.ok) {
-        setMessage(`Role ${nouveauStatut === "active" ? "activated" : "paused"} successfully.`);
+        setMessage(messageStatutOffre(nouveauStatut));
         void chargerOffres();
         return;
       }
@@ -469,24 +473,24 @@ function MesOffresPage() {
         const offresTest = JSON.parse(localStorage.getItem("offres_test") || "[]") as OffreEntreprise[];
         const offresModifiees = offresTest.map((offre) => (offre.id_offre === id ? { ...offre, statut: nouveauStatut } : offre));
         localStorage.setItem("offres_test", JSON.stringify(offresModifiees));
-        setMessage(`Role ${nouveauStatut === "active" ? "activated" : "paused"} successfully. (Local mode)`);
+        setMessage(messageStatutOffre(nouveauStatut, " (mode local)"));
         void chargerOffres();
         return;
       }
 
-      const errorData = await response.json().catch(() => ({ message: "Unknown error." }));
+      const errorData = await response.json().catch(() => ({ message: "Erreur inconnue." }));
       setErreur(`Impossible de modifier le statut de l'offre : ${errorData.message}`);
     } catch {
       const offresTest = JSON.parse(localStorage.getItem("offres_test") || "[]") as OffreEntreprise[];
       const offresModifiees = offresTest.map((offre) => (offre.id_offre === id ? { ...offre, statut: nouveauStatut } : offre));
       localStorage.setItem("offres_test", JSON.stringify(offresModifiees));
-      setMessage(`Role ${nouveauStatut === "active" ? "activated" : "paused"} successfully. (Offline mode)`);
+      setMessage(messageStatutOffre(nouveauStatut, " (mode hors ligne)"));
       void chargerOffres();
     }
   };
 
   const supprimerOffre = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this role?")) {
+    if (!confirm("Voulez-vous vraiment supprimer cette offre ?")) {
       return;
     }
 
@@ -503,7 +507,7 @@ function MesOffresPage() {
       });
 
       if (response.ok) {
-        setMessage("Role deleted successfully.");
+        setMessage("Offre supprimée avec succès.");
         void chargerOffres();
         return;
       }
@@ -512,18 +516,18 @@ function MesOffresPage() {
         const offresTest = JSON.parse(localStorage.getItem("offres_test") || "[]") as OffreEntreprise[];
         const offresFiltered = offresTest.filter((offre) => offre.id_offre !== id);
         localStorage.setItem("offres_test", JSON.stringify(offresFiltered));
-        setMessage("Role deleted successfully. (Local mode)");
+        setMessage("Offre supprimée avec succès. (mode local)");
         void chargerOffres();
         return;
       }
 
-      const errorData = await response.json().catch(() => ({ message: "Unknown error." }));
+      const errorData = await response.json().catch(() => ({ message: "Erreur inconnue." }));
       setErreur(`Impossible de supprimer l'offre : ${errorData.message}`);
     } catch {
       const offresTest = JSON.parse(localStorage.getItem("offres_test") || "[]") as OffreEntreprise[];
       const offresFiltered = offresTest.filter((offre) => offre.id_offre !== id);
       localStorage.setItem("offres_test", JSON.stringify(offresFiltered));
-      setMessage("Role deleted successfully. (Offline mode)");
+      setMessage("Offre supprimée avec succès. (mode hors ligne)");
       void chargerOffres();
     }
   };

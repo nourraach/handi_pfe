@@ -10,6 +10,15 @@ interface LigneDetail {
   imageSrc?: string;
 }
 
+type ReponseActionAdmin = {
+  message?: string;
+  donnees?: {
+    message?: string;
+    lien_reset?: string;
+    token?: string;
+  };
+};
+
 function lireDemandesLocales() {
   return JSON.parse(localStorage.getItem("demandes_test") || "[]") as DemandeEnAttente[];
 }
@@ -218,6 +227,7 @@ function construireDetailsDemande(demande: DemandeEnAttente) {
 export function TableauDemandesAdmin() {
   const [demandes, setDemandes] = useState<DemandeEnAttente[]>([]);
   const [message, setMessage] = useState<string | null>(null);
+  const [lienAction, setLienAction] = useState<string | null>(null);
   const [erreur, setErreur] = useState<string | null>(null);
   const [chargement, setChargement] = useState(true);
   const [demandeOuverteId, setDemandeOuverteId] = useState<string | null>(null);
@@ -316,11 +326,13 @@ export function TableauDemandesAdmin() {
       });
 
       if (reponse.ok) {
-        const resultat = await reponse.json().catch(() => ({}));
-        setMessage(
-          (resultat as { message?: string }).message ??
-            (action === "approuver" ? "Request approved successfully." : "Request rejected successfully."),
-        );
+        const resultat = (await reponse.json().catch(() => ({}))) as ReponseActionAdmin;
+        const messageBase =
+          resultat.donnees?.message ??
+          resultat.message ??
+          (action === "approuver" ? "Demande approuvee avec succes." : "Demande refusee avec succes.");
+        setMessage(messageBase);
+        setLienAction(resultat.donnees?.lien_reset ?? null);
         setDemandeRefus(null);
         setMotifRefus("");
         setDemandeOuverteId(null);
@@ -336,6 +348,7 @@ export function TableauDemandesAdmin() {
             ? "Demande approuvée avec succès. (Mode local)"
             : "Demande refusée avec succès. (Mode local)",
         );
+        setLienAction(null);
         setDemandeRefus(null);
         setMotifRefus("");
         setDemandeOuverteId(null);
@@ -356,6 +369,7 @@ export function TableauDemandesAdmin() {
             ? "Demande approuvée avec succès. (Mode hors ligne)"
             : "Demande refusée avec succès. (Mode hors ligne)",
         );
+        setLienAction(null);
         setDemandeRefus(null);
         setMotifRefus("");
         setDemandeOuverteId(null);
@@ -388,7 +402,16 @@ export function TableauDemandesAdmin() {
 
   return (
     <div className="carte bloc-principal">
-      {message ? <p className="message message-info">{message}</p> : null}
+      {message ? (
+        <div className="message message-info">
+          <p>{message}</p>
+          {lienAction ? (
+            <a href={lienAction} target="_blank" rel="noreferrer">
+              Ouvrir le lien de finalisation
+            </a>
+          ) : null}
+        </div>
+      ) : null}
       {erreur ? <p className="message message-erreur">{erreur}</p> : null}
 
       <table className="tableau">

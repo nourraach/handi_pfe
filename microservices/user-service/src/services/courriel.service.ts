@@ -16,6 +16,9 @@ export class CourrielService {
         port: env.smtpPort,
         secure: env.smtpSecure,
         auth: env.smtpUser ? { user: env.smtpUser, pass: env.smtpPass } : undefined,
+        connectionTimeout: 5000,
+        greetingTimeout: 5000,
+        socketTimeout: 8000,
       })
     : nodemailer.createTransport({
         jsonTransport: true,

@@ -1290,6 +1290,7 @@ const jobsStudioScopedStyles = `
   .jobs-simple-card__topMain {
     display: flex;
     align-items: flex-start;
+    justify-content: space-between;
     gap: 12px;
     min-width: 0;
     flex: 1 1 auto;
@@ -1297,6 +1298,7 @@ const jobsStudioScopedStyles = `
   }
 
   .jobs-simple-card__avatar {
+    order: 2;
     flex: 0 0 auto;
     width: 48px;
     height: 48px;
@@ -1312,6 +1314,7 @@ const jobsStudioScopedStyles = `
   }
 
   .jobs-simple-card__headerText {
+    order: 1;
     display: grid;
     gap: 6px;
     min-width: 0;
@@ -1330,8 +1333,7 @@ const jobsStudioScopedStyles = `
 
   .jobs-simple-card__title,
   .jobs-simple-card__company,
-  .jobs-simple-card__location,
-  .jobs-simple-card__missingText {
+  .jobs-simple-card__location {
     margin: 0;
   }
 
@@ -1431,26 +1433,6 @@ const jobsStudioScopedStyles = `
   .jobs-simple-card__pill--experience {
     background: rgba(97, 91, 193, 0.1);
     color: #5c56bf;
-  }
-
-  .jobs-simple-card__pill--match {
-    background: rgba(34, 176, 110, 0.1);
-    color: #1a8c59;
-  }
-
-  .jobs-simple-card__missingText {
-    color: #766c8c;
-    font-size: 0.8rem;
-    line-height: 1.35;
-    display: -webkit-box;
-    -webkit-line-clamp: 1;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-
-  .jobs-simple-card__missingLabel {
-    color: #31284a;
-    font-weight: 700;
   }
 
   .jobs-simple-card__footer {
@@ -2503,17 +2485,17 @@ export default function OffresPage() {
   const buildOfferTextForSummary = (offre: OffreEmploi) =>
     [
       `Titre: ${offre.titre}`,
-      `Entreprise: ${offre.nom_entreprise || "Non prÃ©cisÃ©"}`,
-      `Localisation: ${offre.localisation || "Non prÃ©cisÃ©"}`,
-      `Type de poste: ${offre.type_poste || "Non prÃ©cisÃ©"}`,
-      `Salaire minimum: ${String(offre.salaire_min ?? "Non prÃ©cisÃ©")}`,
-      `Salaire maximum: ${String(offre.salaire_max ?? "Non prÃ©cisÃ©")}`,
-      `CompÃ©tences requises: ${offre.competences_requises || "Non prÃ©cisÃ©"}`,
-      `ExpÃ©rience requise: ${offre.experience_requise || "Non prÃ©cisÃ©"}`,
-      `Niveau Ã©tude: ${offre.niveau_etude || "Non prÃ©cisÃ©"}`,
-      `Date limite: ${offre.date_limite || "Non prÃ©cisÃ©"}`,
+      `Entreprise: ${offre.nom_entreprise || "Non précisé"}`,
+      `Localisation: ${offre.localisation || "Non précisé"}`,
+      `Type de poste: ${offre.type_poste || "Non précisé"}`,
+      `Salaire minimum: ${String(offre.salaire_min ?? "Non précisé")}`,
+      `Salaire maximum: ${String(offre.salaire_max ?? "Non précisé")}`,
+      `Compétences requises: ${offre.competences_requises || "Non précisé"}`,
+      `Expérience requise: ${offre.experience_requise || "Non précisé"}`,
+      `Niveau étude: ${offre.niveau_etude || "Non précisé"}`,
+      `Date limite: ${offre.date_limite || "Non précisé"}`,
       "",
-      `Description: ${offre.description || "Non prÃ©cisÃ©"}`,
+      `Description: ${offre.description || "Non précisé"}`,
     ].join("\n");
 
   const resumerOffre = async (offre: OffreEmploi) => {
@@ -2530,16 +2512,16 @@ export default function OffresPage() {
       const data = (await response.json()) as { summary?: string; error?: string };
 
       if (!response.ok) {
-        throw new Error(data.error || "Impossible de rÃ©sumer cette offre.");
+        throw new Error(data.error || "Impossible de résumer cette offre.");
       }
 
       if (!data.summary) {
-        throw new Error("RÃ©sumÃ© vide reÃ§u.");
+        throw new Error("Résumé vide reçu.");
       }
 
       setSummaryByOfferId((current) => ({ ...current, [offre.id_offre]: data.summary as string }));
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Erreur pendant le rÃ©sumÃ©.";
+      const message = error instanceof Error ? error.message : "Erreur pendant le résumé.";
       setSummaryErrorByOfferId((current) => ({ ...current, [offre.id_offre]: message }));
     } finally {
       setSummaryLoadingOfferId((current) => (current === offre.id_offre ? null : current));
@@ -2700,16 +2682,6 @@ export default function OffresPage() {
         ) : (
           <div className="jobs-studio-grid is-list">
             {offresVisibles.map((offre) => {
-              const matchDetails = profilCorrespondanceCharge
-                ? computeMatchDetails(offre, profilCorrespondance)
-                : {
-                    percent: null as number | null,
-                    title: "Calcul en cours",
-                    skills: [] as string[],
-                    missingSkills: [] as string[],
-                    note: "Chargement du profil candidat...",
-                  };
-              const matchPercentLabel = matchDetails.percent === null ? "—" : `${matchDetails.percent}%`;
               const estFavori = favoris.has(offre.id_offre);
               const dejaPostule = candidatures.has(offre.id_offre);
 
@@ -2756,20 +2728,8 @@ export default function OffresPage() {
                       <span className="jobs-simple-card__pill jobs-simple-card__pill--experience">
                         Exp. {formatExperienceLabel(offre.experience_requise)}
                       </span>
-                      <span
-                        className="jobs-simple-card__pill jobs-simple-card__pill--match"
-                        aria-label={matchDetails.percent === null ? "Correspondance en cours" : `Match IA ${matchPercentLabel}`}
-                      >
-                        Match IA {matchPercentLabel}
-                      </span>
                     </div>
 
-                    <p className="jobs-simple-card__missingText" title={matchDetails.missingSkills.join(" • ") || "Profil bien aligne avec cette opportunite"}>
-                      <span className="jobs-simple-card__missingLabel">Competences a renforcer :</span>{" "}
-                      {matchDetails.missingSkills.length > 0
-                        ? matchDetails.missingSkills.slice(0, 4).join(" • ")
-                        : "Profil bien aligne avec cette opportunite"}
-                    </p>
                   </div>
 
                   <div className="jobs-simple-card__footer">
@@ -3018,13 +2978,13 @@ export default function OffresPage() {
               <Card tone="accent" padding="md">
                 <div className="stack-lg">
                   <div className="page-header-actions jobs-summary-head">
-                    <strong>RÃ©sumÃ© simplifiÃ© (IA)</strong>
+                    <strong>Résumé simplifié (IA)</strong>
                     <Button
                       variant="secondary"
                       onClick={() => void resumerOffre(offreEnDetails)}
                       disabled={summaryLoadingOfferId === offreEnDetails.id_offre}
                     >
-                      {summaryLoadingOfferId === offreEnDetails.id_offre ? "RÃ©sumÃ© en cours..." : "RÃ©sumer lâ€™offre"}
+                      {summaryLoadingOfferId === offreEnDetails.id_offre ? "Résumé en cours..." : "Résumer l'offre"}
                     </Button>
                   </div>
 

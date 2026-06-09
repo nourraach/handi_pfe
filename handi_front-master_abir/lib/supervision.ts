@@ -129,7 +129,7 @@ export interface OfferPerformance {
 
 export interface VisibleCandidate {
   candidate_reference: string;
-  candidate_name: string;
+  candidate_name?: string | null;
   application_id: string;
   candidate_user_id: string;
   stage: "shortlisted" | "hired";

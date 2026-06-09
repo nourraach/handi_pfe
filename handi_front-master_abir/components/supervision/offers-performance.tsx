@@ -34,7 +34,6 @@ export function OffersPerformanceView() {
                 <th>Entreprise</th>
                 <th>Offre</th>
                 <th>Region</th>
-                <th>Vues</th>
                 <th>Candidatures</th>
                 <th>Preselection</th>
                 <th>Acceptes</th>
@@ -51,7 +50,6 @@ export function OffersPerformanceView() {
                     </div>
                   </td>
                   <td>{offer.region}</td>
-                  <td>{offer.views_count}</td>
                   <td>{offer.applications_count}</td>
                   <td>{offer.shortlisted_count}</td>
                   <td>{offer.hired_count}</td>

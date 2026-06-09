@@ -9,6 +9,8 @@
  * Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6
  */
 
+import { RoleUtilisateur } from "../types/enums";
+
 export interface AuthorizationResult {
   allowed: boolean;
   reason?: string;
@@ -35,32 +37,34 @@ export function canAccessReportingResource(
   userRole: string,
   resourceType: ResourceType
 ): AuthorizationResult {
+  const normalizedRole = String(userRole || "").trim().toLowerCase();
+
   // Rule 1: Admin users have full access to everything
-  if (userRole === "ADMIN") {
+  if (normalizedRole === RoleUtilisateur.ADMIN) {
     return {
       allowed: true,
       reason: "Admin users have full access",
     };
   }
 
-  // Rule 2: Inspector access based on resource type
-  if (userRole === "INSPECTEUR") {
-    const inspectorAllowedResources: ResourceType[] = [
+  // Rule 2: Inspector and ANETI access based on resource type
+  if (normalizedRole === RoleUtilisateur.INSPECTEUR || normalizedRole === RoleUtilisateur.ANETI) {
+    const supervisionAllowedResources: ResourceType[] = [
       "ENTERPRISE_LIST",
       "JOB_OFFERS",
       "AGGREGATED_STATS",
       "RECRUITED_CANDIDATES",
     ];
 
-    if (inspectorAllowedResources.includes(resourceType)) {
+    if (supervisionAllowedResources.includes(resourceType)) {
       return {
         allowed: true,
-        reason: "Inspector can access aggregated and enterprise data",
+        reason: "Supervision roles can access aggregated and enterprise data",
       };
     } else {
       return {
         allowed: false,
-        reason: `Inspectors cannot access ${resourceType}`,
+        reason: `${normalizedRole} cannot access ${resourceType}`,
       };
     }
   }

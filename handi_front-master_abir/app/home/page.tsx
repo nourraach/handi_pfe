@@ -6,8 +6,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
-  ArrowRight,
-  Bookmark,
   CalendarClock,
   CheckCircle2,
   MessageCircle,
@@ -82,29 +80,6 @@ type WorkspaceContent = {
   actions: WorkspaceAction[];
 };
 
-type RecommendationItem = {
-  id: string;
-  job_offer_id: string;
-  score_final: number;
-  status: "pending" | "notified" | "viewed" | "applied" | "dismissed";
-  explanation: {
-    matchedSkills?: string[];
-    missingSkills?: string[];
-    preferenceMatches?: string[];
-    accessibilityMatches?: string[];
-    notes?: string[];
-  };
-  created_at: string;
-  offre: {
-    titre: string;
-    localisation: string;
-    type_poste: string;
-    salaire_min?: string | null;
-    salaire_max?: string | null;
-    nom_entreprise?: string | null;
-  };
-};
-
 type CandidateApplication = {
   id: string;
   titre: string;
@@ -127,15 +102,6 @@ type CandidateConversation = {
   lastMessage?: string | null;
   lastMessageAt?: string | null;
   createdAt?: string;
-};
-
-type SuggestedOffer = {
-  id: string;
-  titre: string;
-  entreprise: string;
-  typePoste: string;
-  localisation: string;
-  createdAt: string;
 };
 
 function isShowcaseWorkspaceRole(role: string) {
@@ -1126,13 +1092,6 @@ function AdminDashboardHome({
     { href: "/admin/statistiques", label: "Ouvrir le rapport d'analyse", icon: metricIcon("report") },
   ];
 
-  const commandKpis = [
-    { label: "Entreprises actives", value: activeCompanies, icon: metricIcon("jobs") },
-    { label: "Candidats recommandes", value: shortlisted, icon: metricIcon("candidates") },
-    { label: "Entretiens planifies", value: interviews, icon: metricIcon("clipboard") },
-    { label: "Nouveaux embauches", value: accepted, icon: metricIcon("hire") },
-  ];
-
   const platformActivity = [
     {
       id: "activity-shortlist",
@@ -1198,18 +1157,6 @@ function AdminDashboardHome({
         </section>
 
         {erreurStats ? <div className="message message-erreur">{erreurStats}</div> : null}
-
-        <section className="admin-command__kpis" aria-label="Indicateurs cles administrateur">
-          {commandKpis.map((item) => (
-            <article key={item.label} className="admin-command__metric">
-              <span aria-hidden="true">{item.icon}</span>
-              <div>
-                <strong>{item.value.toLocaleString()}</strong>
-                <p>{item.label}</p>
-              </div>
-            </article>
-          ))}
-        </section>
 
         <section className="admin-command__grid">
           <article className="admin-command__card admin-command__card--focus">
@@ -1297,13 +1244,9 @@ function CandidateHome({
   const [favoritesCount, setFavoritesCount] = useState<number | null>(null);
   const [interviewsCount, setInterviewsCount] = useState<number | null>(null);
   const [applicationsCount, setApplicationsCount] = useState<number | null>(null);
-  const [recommendations, setRecommendations] = useState<RecommendationItem[]>([]);
-  const [suggestedOffers, setSuggestedOffers] = useState<SuggestedOffer[]>([]);
   const [applications, setApplications] = useState<CandidateApplication[]>([]);
   const [upcomingInterviews, setUpcomingInterviews] = useState<CandidateInterview[]>([]);
   const [conversations, setConversations] = useState<CandidateConversation[]>([]);
-  const [loadingRecommendations, setLoadingRecommendations] = useState(false);
-  const [recommendationError, setRecommendationError] = useState<string | null>(null);
   const [applicationsError, setApplicationsError] = useState<string | null>(null);
   const [interviewsError, setInterviewsError] = useState<string | null>(null);
   const [favoritesError, setFavoritesError] = useState<string | null>(null);
@@ -1328,8 +1271,6 @@ function CandidateHome({
       setApplicationsError(null);
       setInterviewsError(null);
       setFavoritesError(null);
-      setRecommendationError(null);
-      setLoadingRecommendations(true);
 
       const candidaturesPromise = authenticatedFetch(construireUrlApi("/api/candidatures/mes-candidatures")).then(
         async (response) => {
@@ -1351,66 +1292,17 @@ function CandidateHome({
         return Array.isArray(payload?.donnees) ? payload.donnees : [];
       });
 
-      const recommendationsPromise = authenticatedFetch(construireUrlApi("/api/recommandations/candidat")).then(async (response) => {
-        const payload = await response.json().catch(() => ({}));
-        if (!response.ok) throw new Error(payload?.message || "Impossible de charger les recommandations.");
-        const rows = Array.isArray(payload?.donnees) ? payload.donnees : [];
-        return rows as RecommendationItem[];
-      });
-
       const conversationsPromise = authenticatedFetch(construireUrlApi("/api/chat/conversations")).then(async (response) => {
         const payload = await response.json().catch(() => ({}));
         if (!response.ok) throw new Error(payload?.message || "Impossible de charger les conversations.");
         return Array.isArray(payload?.donnees) ? payload.donnees : [];
       });
 
-      const suggestedOffersPromise = (async () => {
-        try {
-          const response = await fetch(construireUrlApi("/api/offres/publiques"), {
-            headers: { "Content-Type": "application/json" },
-          });
-          if (!response.ok) {
-            return [] as SuggestedOffer[];
-          }
-          const payload = await response.json().catch(() => ({}));
-          const offers = Array.isArray(payload?.donnees?.offres) ? payload.donnees.offres : [];
-
-          return offers
-            .map((item: Record<string, unknown>, index: number) => ({
-              id: String(item.id_offre || item.id || `offer-${index}`),
-              titre: String(item.titre || "Offre d'emploi"),
-              entreprise: String(item.nom_entreprise || "Entreprise"),
-              typePoste: String(item.type_poste || "Temps plein"),
-              localisation: String(item.localisation || "Tunisie"),
-              createdAt: String(item.created_at || ""),
-              statut: String(item.statut || ""),
-            }))
-            .filter((item: { statut: string }) => {
-              const normalized = normalizeStatus(item.statut);
-              return normalized === "active" || normalized === "ouverte" || normalized === "open" || item.statut === "";
-            })
-            .sort((a: { createdAt: string }, b: { createdAt: string }) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-            .slice(0, 6)
-            .map((item: { statut: string } & SuggestedOffer) => ({
-              id: item.id,
-              titre: item.titre,
-              entreprise: item.entreprise,
-              typePoste: item.typePoste,
-              localisation: item.localisation,
-              createdAt: item.createdAt,
-            }));
-        } catch {
-          return [] as SuggestedOffer[];
-        }
-      })();
-
-      const [candidaturesResult, interviewsResult, favorisResult, recommendationsResult, conversationsResult, suggestedOffersResult] = await Promise.allSettled([
+      const [candidaturesResult, interviewsResult, favorisResult, conversationsResult] = await Promise.allSettled([
         candidaturesPromise,
         interviewsPromise,
         favorisPromise,
-        recommendationsPromise,
         conversationsPromise,
-        suggestedOffersPromise,
       ]);
 
       if (!active) return;
@@ -1480,18 +1372,6 @@ function CandidateHome({
         setFavoritesError(favorisResult.reason instanceof Error ? favorisResult.reason.message : "Impossible de charger les favoris.");
       }
 
-      if (recommendationsResult.status === "fulfilled") {
-        const rows = recommendationsResult.value.filter((row) => row.status !== "dismissed");
-        setRecommendations(rows);
-      } else {
-        setRecommendations([]);
-        setRecommendationError(
-          recommendationsResult.reason instanceof Error
-            ? recommendationsResult.reason.message
-            : "Impossible de charger les recommandations.",
-        );
-      }
-
       if (conversationsResult.status === "fulfilled") {
         const mappedConversations = (conversationsResult.value as Array<Record<string, unknown>>).map((item, index) => ({
           id: String(item.id || `conv-${index}`),
@@ -1504,14 +1384,6 @@ function CandidateHome({
       } else {
         setConversations([]);
       }
-
-      if (suggestedOffersResult.status === "fulfilled") {
-        setSuggestedOffers(suggestedOffersResult.value);
-      } else {
-        setSuggestedOffers([]);
-      }
-
-      setLoadingRecommendations(false);
     };
 
     void loadDashboardData();
@@ -1527,8 +1399,7 @@ function CandidateHome({
   const interviewsValue = interviewsCount ?? shortlistAndInterview;
   const favoritesValue = favoritesCount ?? 0;
   const responseWaiting = Math.max(applicationsValue - (statsMap.pending || 0) - interviewsValue, 0);
-  const spotlightRecommendations = recommendations.slice(0, 3);
-  const dashboardErrorMessage = [erreurStats, applicationsError, interviewsError, favoritesError, recommendationError]
+  const dashboardErrorMessage = [erreurStats, applicationsError, interviewsError, favoritesError]
     .filter(Boolean)
     .join(" ");
 
@@ -1539,38 +1410,6 @@ function CandidateHome({
       </main>
     );
   }
-
-  const recommendationItems = spotlightRecommendations.length
-    ? spotlightRecommendations.map((recommendation) => {
-        const offer = recommendation.offre;
-        const publishedDate = recommendation.created_at
-          ? `Publie le ${formatDate(recommendation.created_at)}`
-          : "Publie recemment";
-        const fallbackTag = offer.type_poste || "Temps plein";
-        const matchSkills = Array.isArray(recommendation.explanation?.matchedSkills)
-          ? recommendation.explanation.matchedSkills.slice(0, 1)
-          : [];
-        const tags = [fallbackTag, ...matchSkills].slice(0, 2);
-
-        return {
-          id: recommendation.id,
-          title: offer.titre || "Poste recommande",
-          company: offer.nom_entreprise || "Entreprise inclusive",
-          tags: tags.length ? tags : ["Temps plein", "Hybride"],
-          published: publishedDate,
-          href: "/offres",
-          mark: buildOfferMark(offer.nom_entreprise),
-        };
-      })
-    : suggestedOffers.slice(0, 3).map((offer) => ({
-        id: offer.id,
-        title: offer.titre,
-        company: offer.entreprise,
-        tags: [offer.typePoste, offer.localisation].filter(Boolean),
-        published: offer.createdAt ? `Publie le ${formatDate(offer.createdAt)}` : "Publie recemment",
-        href: "/offres",
-        mark: buildOfferMark(offer.entreprise),
-      }));
 
   const recentActivity = (() => {
     const statusLabel = (status: string) => {
@@ -1700,77 +1539,12 @@ function CandidateHome({
         </div>
       </motion.section>
 
-      <section className="mt-7 grid gap-6 lg:grid-cols-12">
-        <motion.article
-          initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.45, delay: 0.2 }}
-          className="h-fit self-start rounded-[28px] border border-[#e8ddfb] bg-white/90 p-5 shadow-[0_16px_42px_-28px_rgba(53,6,62,0.45)] lg:col-span-8 lg:self-start"
-        >
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-[#23143a]" style={{ fontFamily: "var(--app-heading)" }}>
-              Offres suggérées
-            </h2>
-            <Link href="/offres" className="inline-flex items-center gap-1 text-sm font-medium text-[#5f31ac] hover:underline">
-              Voir toutes les offres
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
-
-          {loadingRecommendations ? (
-            <div className="rounded-2xl border border-dashed border-[#d8caf6] bg-[#faf7ff] p-5 text-sm text-[#6a5d82]">
-              Chargement des offres suggérées...
-            </div>
-          ) : recommendationItems.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-[#d8caf6] bg-[#faf7ff] p-5 text-sm text-[#6a5d82]">
-              Aucune offre suggérée disponible pour le moment.
-            </div>
-          ) : (
-            <ul className="grid items-start gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {recommendationItems.map((item, index) => (
-                <motion.li
-                  key={item.id}
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: 0.24 + index * 0.05 }}
-                  whileHover={{ y: -4 }}
-                  className="group rounded-2xl border border-[#ebe4fb] bg-gradient-to-b from-white to-[#f9f6ff] p-4 shadow-[0_10px_24px_-20px_rgba(53,6,62,0.5)] transition"
-                >
-                  <div className="mb-3 flex items-start justify-between gap-3">
-                    <div className="grid h-10 w-10 place-items-center rounded-xl bg-[#efe4ff] text-sm font-semibold text-[#4f2b83]">
-                      {item.mark}
-                    </div>
-                    <button
-                      type="button"
-                      className="rounded-lg p-1.5 text-[#6b5a87] transition hover:bg-[#efe7ff] hover:text-[#4f2b83]"
-                      aria-label={`Ajouter ${item.title} aux favoris`}
-                    >
-                      <Bookmark className="h-4 w-4" />
-                    </button>
-                  </div>
-                  <Link href={item.href} className="line-clamp-2 text-sm font-semibold text-[#25133d] group-hover:text-[#4f2b83]">
-                    {item.title}
-                  </Link>
-                  <p className="mt-1 text-xs text-[#6c607f]">{item.company}</p>
-                  <div className="mt-3 flex flex-wrap gap-1.5">
-                    {item.tags.map((tag, tagIndex) => (
-                      <span key={`${item.id}-${tag}-${tagIndex}`} className="rounded-full bg-[#f0e7ff] px-2.5 py-1 text-[11px] text-[#5f4a82]">
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                  <p className="mt-3 text-[11px] text-[#7f7297]">{item.published}</p>
-                </motion.li>
-              ))}
-            </ul>
-          )}
-        </motion.article>
-
+      <section className="mt-7">
         <motion.article
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45, delay: 0.25 }}
-          className="rounded-[28px] border border-[#e8ddfb] bg-white/90 p-5 shadow-[0_16px_42px_-28px_rgba(53,6,62,0.45)] lg:col-span-4"
+          className="rounded-[28px] border border-[#e8ddfb] bg-white/90 p-5 shadow-[0_16px_42px_-28px_rgba(53,6,62,0.45)]"
         >
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-lg font-semibold text-[#23143a]" style={{ fontFamily: "var(--app-heading)" }}>
@@ -1830,12 +1604,6 @@ function CandidateHome({
     </main>
   );
 }
-function buildOfferMark(company?: string | null) {
-  const clean = company?.trim() || "HT";
-  const parts = clean.split(/\s+/).filter(Boolean);
-  return (parts[0]?.[0] || "H") + (parts[1]?.[0] || parts[0]?.[1] || "T");
-}
-
 function asNumber(value: unknown, fallback = 0) {
   if (typeof value === "number") {
     return Number.isFinite(value) ? value : fallback;

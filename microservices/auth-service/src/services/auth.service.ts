@@ -303,9 +303,14 @@ export class AuthService {
   }
 
   async demanderReset(dto: DemandeResetMdpDto) {
-    const utilisateur = await this.utilisateurRepository.trouverParEmail(dto.email);
+    const email = dto.email?.trim().toLowerCase();
+    if (!email) {
+      throw new ErreurApi("Adresse email obligatoire.", 400);
+    }
+
+    const utilisateur = await this.utilisateurRepository.trouverParEmail(email);
     if (!utilisateur) {
-      return { message: "Si un compte existe, un email de reinitialisation a ete envoye." };
+      throw new ErreurApi("Aucun compte n'est associe a cette adresse email.", 404);
     }
 
     const token = crypto.randomBytes(24).toString("hex");
@@ -328,8 +333,17 @@ export class AuthService {
       };
     }
 
-    await this.courrielService.envoyerCourrielReset(utilisateur.email, utilisateur.nom, lien);
-    return { message: "Un email de reinitialisation a ete envoye." };
+    try {
+      await this.courrielService.envoyerCourrielReset(utilisateur.email, utilisateur.nom, lien);
+      return { message: "Un email de reinitialisation a ete envoye.", lien_reset: lien };
+    } catch (erreur) {
+      console.error("[auth-service] echec envoi email reset", { email: utilisateur.email, erreur });
+      return {
+        message: "Email non envoye. Un lien de reinitialisation a ete genere pour le test local.",
+        token,
+        lien_reset: lien,
+      };
+    }
   }
 
   async resetMotDePasse(dto: ResetMdpDto) {

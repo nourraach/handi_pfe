@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowRight,
   CalendarDays,
@@ -13,7 +13,6 @@ import {
   ExternalLink,
   MapPin,
   Video,
-  BriefcaseBusiness,
 } from "lucide-react";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -214,42 +213,12 @@ function formatCalendarLabel(date: Date) {
     .replace(/\.$/, "");
 }
 
-function CalendarIcon() {
-  return <CalendarDays aria-hidden="true" size={18} />;
-}
-
-function ClockIcon() {
-  return <Clock3 aria-hidden="true" size={18} />;
-}
-
-function VideoIcon() {
-  return <Video aria-hidden="true" size={18} />;
-}
-
-function LocationIcon() {
-  return <MapPin aria-hidden="true" size={18} />;
-}
-
-function CompanyIcon() {
-  return <BriefcaseBusiness aria-hidden="true" size={18} />;
-}
-
 function InterviewMarker({ tone }: { tone: InterviewTone }) {
   return (
     <span className={classes("candidate-interviews-marker", `candidate-interviews-marker--${tone}`)} aria-hidden="true">
       {tone === "green" ? <CheckCircle2 size={16} /> : <CalendarRange size={16} />}
     </span>
   );
-}
-
-function InterviewCardIcon({ type }: { type: EntretienCandidat["entretien"]["type"] }) {
-  if (type === "visio") {
-    return <VideoIcon />;
-  }
-  if (type === "presentiel") {
-    return <LocationIcon />;
-  }
-  return <ClockIcon />;
 }
 
 function buildCalendarCells(month: Date, interviews: EntretienCandidat[]) {
@@ -284,8 +253,12 @@ export default function MesEntretiensPage() {
   const [info, setInfo] = useState<string | null>(null);
   const [entretienEnAction, setEntretienEnAction] = useState<string | null>(null);
   const [selectedInterviewId, setSelectedInterviewId] = useState<string | null>(null);
+  const [selectedCalendarDate, setSelectedCalendarDate] = useState<Date | null>(null);
+  const selectedCalendarDateRef = useRef<Date | null>(null);
   const [calendarMonth, setCalendarMonth] = useState(() => startOfMonth(new Date()));
   const [statusFilter, setStatusFilter] = useState("all");
+
+  selectedCalendarDateRef.current = selectedCalendarDate;
 
   const charger = async () => {
     try {
@@ -328,7 +301,19 @@ export default function MesEntretiensPage() {
 
   const featuredInterview = upcomingEntretiens[0] ?? sortedEntretiens[0] ?? null;
 
+  const selectedDayInterviews = useMemo(() => {
+    if (!selectedCalendarDate) {
+      return [];
+    }
+
+    return sortedEntretiens.filter((item) => sameDay(new Date(item.entretien.date_heure), selectedCalendarDate));
+  }, [selectedCalendarDate, sortedEntretiens]);
+
   useEffect(() => {
+    if (selectedCalendarDateRef.current) {
+      return;
+    }
+
     if (!selectedInterviewId && featuredInterview) {
       setSelectedInterviewId(featuredInterview.entretien.id);
       const parsed = new Date(featuredInterview.entretien.date_heure);
@@ -339,11 +324,19 @@ export default function MesEntretiensPage() {
   }, [featuredInterview, selectedInterviewId]);
 
   const selectedInterview = useMemo(() => {
+    if (selectedCalendarDate) {
+      if (!selectedInterviewId) {
+        return selectedDayInterviews[0] ?? null;
+      }
+
+      return selectedDayInterviews.find((item) => item.entretien.id === selectedInterviewId) ?? selectedDayInterviews[0] ?? null;
+    }
+
     if (!selectedInterviewId) {
       return featuredInterview;
     }
     return sortedEntretiens.find((item) => item.entretien.id === selectedInterviewId) ?? featuredInterview;
-  }, [featuredInterview, selectedInterviewId, sortedEntretiens]);
+  }, [featuredInterview, selectedCalendarDate, selectedDayInterviews, selectedInterviewId, sortedEntretiens]);
 
   const selectedInterviewDate = selectedInterview ? new Date(selectedInterview.entretien.date_heure) : null;
   const selectedInterviewParts = formatDateParts(selectedInterview?.entretien.date_heure);
@@ -368,14 +361,17 @@ export default function MesEntretiensPage() {
   );
 
   const monthLabel = formatMonthTitle(calendarMonth);
-  const calendarDateSelection = selectedInterviewDate && sameDay(selectedInterviewDate, calendarMonth) ? selectedInterviewDate : selectedInterviewDate;
   const interviewCountLabel = upcomingEntretiens.length > 0 ? `${upcomingEntretiens.length} entretien${upcomingEntretiens.length > 1 ? "s" : ""} à venir` : "Aucun entretien à venir";
+  const selectedCalendarLabel = selectedCalendarDate ? formatCalendarLabel(selectedCalendarDate) : null;
 
   const onPickCalendarDay = (date: Date) => {
     const dayItems = sortedEntretiens.filter((item) => sameDay(new Date(item.entretien.date_heure), date));
+    setSelectedCalendarDate(date);
     setCalendarMonth(startOfMonth(date));
     if (dayItems.length > 0) {
       setSelectedInterviewId(dayItems[0].entretien.id);
+    } else {
+      setSelectedInterviewId(null);
     }
   };
 
@@ -404,7 +400,7 @@ export default function MesEntretiensPage() {
   };
 
   const filteredUpcoming = upcomingEntretiens.filter((item) => (statusFilter === "all" ? true : item.entretien.statut === statusFilter));
-  const quickList = listInterviews.length > 0 ? listInterviews : filteredUpcoming;
+  const quickList = selectedCalendarDate ? selectedDayInterviews : listInterviews.length > 0 ? listInterviews : filteredUpcoming;
 
   const featuredActionSecondary = selectedInterview?.candidature?.id || selectedInterview?.entretien.id_candidature
     ? `/candidat/candidatures/${selectedInterview.entretien.id_candidature || selectedInterview.candidature?.id}/preparation-entretien`
@@ -527,6 +523,11 @@ export default function MesEntretiensPage() {
                     <small>{selectedInterviewParts.year}</small>
                   </div>
                 </div>
+              ) : selectedCalendarDate ? (
+                <div className="candidate-interviews-empty-inline candidate-interviews-empty-day">
+                  <strong>Aucun entretien ce jour</strong>
+                  <p>Le {selectedCalendarLabel} ne contient aucun entretien planifié.</p>
+                </div>
               ) : null}
             </Card>
 
@@ -554,7 +555,7 @@ export default function MesEntretiensPage() {
                 {calendarCells.map((cell) => {
                   const cellDate = cell.date;
                   const isCurrentMonth = cell.inMonth;
-                  const selected = selectedInterviewDate ? sameDay(cellDate, selectedInterviewDate) : false;
+                  const selected = selectedCalendarDate ? sameDay(cellDate, selectedCalendarDate) : selectedInterviewDate ? sameDay(cellDate, selectedInterviewDate) : false;
                   const count = cell.items.length;
 
                   return (
@@ -583,6 +584,14 @@ export default function MesEntretiensPage() {
                       </p>
                     </div>
                   </>
+                ) : selectedCalendarDate ? (
+                  <>
+                    <span className="candidate-interviews-preview-dot" aria-hidden="true" />
+                    <div>
+                      <strong>{selectedCalendarLabel}</strong>
+                      <p>Aucun entretien planifié ce jour.</p>
+                    </div>
+                  </>
                 ) : (
                   <>
                     <span className="candidate-interviews-preview-dot" aria-hidden="true" />
@@ -598,7 +607,7 @@ export default function MesEntretiensPage() {
 
           <section className="candidate-interviews-list-section">
             <div className="candidate-interviews-list-head">
-              <h2>Tous vos entretiens</h2>
+              <h2>{selectedCalendarDate ? `Entretiens du ${selectedCalendarLabel}` : "Tous vos entretiens"}</h2>
               <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)} aria-label="Filtrer les entretiens par statut">
                 <option value="all">Tous les statuts</option>
                 <option value="planifie">À venir</option>
@@ -612,8 +621,8 @@ export default function MesEntretiensPage() {
             <Card padding="lg" className="candidate-interviews-timeline-card">
               {quickList.length === 0 ? (
                 <div className="candidate-interviews-empty-inline">
-                  <strong>Aucun entretien dans ce filtre</strong>
-                  <p>Essayez de changer le statut ou revenez sur tous les entretiens.</p>
+                  <strong>{selectedCalendarDate ? "Aucun entretien ce jour" : "Aucun entretien dans ce filtre"}</strong>
+                  <p>{selectedCalendarDate ? "Sélectionnez un autre jour du calendrier pour afficher ses entretiens." : "Essayez de changer le statut ou revenez sur tous les entretiens."}</p>
                 </div>
               ) : (
                 <div className="candidate-interviews-timeline">
@@ -632,6 +641,7 @@ export default function MesEntretiensPage() {
                         onClick={() => {
                           setSelectedInterviewId(item.entretien.id);
                           if (parsed?.raw) {
+                            setSelectedCalendarDate(parsed.raw);
                             setCalendarMonth(startOfMonth(parsed.raw));
                           }
                         }}

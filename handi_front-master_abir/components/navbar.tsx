@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
@@ -60,14 +60,11 @@ type CandidateIconName =
   | "favorites"
   | "applications"
   | "messages"
+  | "notifications"
   | "chatbot"
   | "profile"
   | "settings"
   | "accessibility";
-
-type CandidateProfilePayload = {
-  photo_profil_url?: string | null;
-};
 
 const ADMIN_AVATAR_SRC = "/avatar-admin.jpg";
 
@@ -137,6 +134,13 @@ function CandidateSidebarIcon({ name }: { name: CandidateIconName }) {
       return (
         <svg {...props}>
           <path d="M20 12a8 8 0 0 1-8 8H5l2-3.5A8 8 0 1 1 20 12Z" />
+        </svg>
+      );
+    case "notifications":
+      return (
+        <svg {...props}>
+          <path d="M6.5 9a5.5 5.5 0 1 1 11 0c0 4 1.7 5.3 2.5 6H4c.8-.7 2.5-2 2.5-6Z" />
+          <path d="M10 19a2 2 0 0 0 4 0" />
         </svg>
       );
     case "chatbot":
@@ -243,7 +247,6 @@ export function Navbar({
   const [profileMenuMaxHeight, setProfileMenuMaxHeight] = useState<number>(420);
   const [notificationsNonLues, setNotificationsNonLues] = useState(0);
   const [messagesNonLus, setMessagesNonLus] = useState(0);
-  const [candidateProfilePhoto, setCandidateProfilePhoto] = useState<string | null>(null);
   const [navigationMenuOuvert, setNavigationMenuOuvert] = useState<string | null>(null);
   const [keyboardBuffer, setKeyboardBuffer] = useState("");
   const [keyboardGuideVisible, setKeyboardGuideVisible] = useState(false);
@@ -253,6 +256,7 @@ export function Navbar({
   const isCandidate = utilisateur.role === "candidat";
   const isAdmin = utilisateur.role === "admin";
   const isEntreprise = utilisateur.role === "entreprise";
+  const isSupervisionRole = utilisateur.role === "inspecteur" || utilisateur.role === "aneti";
   const usesReferenceSidebar = isCandidate || isEntreprise || isAdmin;
   const hasCollapsibleSidebar = utilisateur.role === "candidat";
   const keyboardModeEnabled = settings.keyboardMoveMode;
@@ -360,13 +364,14 @@ export function Navbar({
       ] satisfies NavItem[];
     }
 
-    if (utilisateur.role === "inspecteur" || utilisateur.role === "aneti") {
+    if (isSupervisionRole) {
       return [
         { href: "/supervision", label: t("navbar.supervision") },
         { href: "/supervision/pipeline", label: "Entreprises" },
         { href: "/supervision/offers", label: "Offres" },
         { href: "/supervision/candidates", label: "Candidats" },
         { href: "/supervision/reports", label: "Rapports" },
+        { href: "/profil", label: "Profil" },
       ] satisfies NavItem[];
     }
 
@@ -375,28 +380,37 @@ export function Navbar({
       { href: "/admin/comptes", label: t("navbar.accounts") },
       { href: "/admin/tests-psychologiques", label: t("navbar.assessments") },
     ] satisfies NavItem[];
-  }, [messagesNonLus, notificationsNonLues, socialBadgeCount, t, utilisateur.role]);
+  }, [isSupervisionRole, messagesNonLus, notificationsNonLues, socialBadgeCount, t, utilisateur.role]);
 
   const primaryAction = useMemo(() => {
-    if (utilisateur.role === "inspecteur" || utilisateur.role === "aneti") {
+    if (isSupervisionRole) {
       return { href: "/supervision", label: t("navbar.openSupervision") };
     }
 
     return null;
-  }, [t, utilisateur.role]);
+  }, [isSupervisionRole, t]);
 
   const profilHref = utilisateur.role === "entreprise" ? "/entreprise/profil" : "/profil";
+  const brandHref = isSupervisionRole ? profilHref : "/home";
   const roleChipLabel = utilisateur.role === "admin" ? "Super Admin" : t(`common.roles.${utilisateur.role}`);
   const roleBrandSubtitle = utilisateur.role === "admin" ? "Inclusive Hiring Platform" : roleChipLabel;
-  const sidebarProfileImage = isAdmin ? ADMIN_AVATAR_SRC : candidateProfilePhoto || "/uploads/photo1.png";
+  const sidebarProfileImage = isAdmin ? ADMIN_AVATAR_SRC : "/uploads/photo1.png";
   type CandidateSidebarItem = {
     id: string;
     label: string;
     subtitle: string;
     icon: CandidateIconName;
-    href: string;
+    href?: string;
+    onClick?: () => void;
     badgeCount?: number;
   };
+
+  const ouvrirPanneauAccessibilite = useCallback(() => {
+    setMenuOuvert(false);
+    setProfilMenuOuvert(false);
+    setNavigationMenuOuvert(null);
+    triggerAccessibilityPanel("open");
+  }, []);
 
   const candidateSidebarItems = useMemo<CandidateSidebarItem[]>(
     () => [
@@ -405,11 +419,13 @@ export function Navbar({
       { id: "interviews", label: "Entretiens", subtitle: "Planning candidat", icon: "tests", href: "/candidat/entretiens" },
       { id: "tests", label: "Tests et évaluations", subtitle: "Progression", icon: "tests", href: "/candidat/tests-psychologiques" },
       { id: "messages", label: "Messagerie", subtitle: "Boîte de réception", icon: "messages", href: "/messages", badgeCount: messagesNonLus },
+      { id: "notifications", label: "Notifications", subtitle: "Alertes et rappels", icon: "notifications", href: "/notifications", badgeCount: notificationsNonLues },
       { id: "chatbot", label: "Chatbot IA", subtitle: "Aide contextuelle", icon: "chatbot", href: "/candidat/chatbot" },
       { id: "favorites", label: "Offres sauvegardées", subtitle: "À revoir plus tard", icon: "favorites", href: "/favoris" },
+      { id: "accessibility", label: "Réglages d'accessibilité", subtitle: "Options visuelles et navigation", icon: "accessibility", onClick: ouvrirPanneauAccessibilite },
       { id: "cv", label: "Mon CV", subtitle: "Profil et documents", icon: "cv", href: "/candidat/cv" },
     ],
-    [messagesNonLus],
+    [messagesNonLus, notificationsNonLues, ouvrirPanneauAccessibilite],
   );
 
   const adminSidebarItems: CandidateSidebarItem[] = [
@@ -432,8 +448,9 @@ export function Navbar({
       { id: "ent-interviews", label: "Entretiens", subtitle: "Planning et suivi", icon: "tests", href: "/entreprise/entretiens" },
       { id: "ent-reports-requests", label: "Demandes de rapport", subtitle: "Conformite", icon: "achievements", href: "/entreprise/reports-requests" },
       { id: "ent-messages", label: "Messagerie", subtitle: "Boîte de réception", icon: "messages", href: "/messages", badgeCount: messagesNonLus },
+      { id: "ent-notifications", label: "Notifications", subtitle: "Suivi et alertes", icon: "notifications", href: "/notifications", badgeCount: notificationsNonLues },
     ],
-    [messagesNonLus],
+    [messagesNonLus, notificationsNonLues],
   );
 
   const sidebarItems = isAdmin
@@ -578,48 +595,6 @@ export function Navbar({
       window.removeEventListener("storage", onStorage);
     };
   }, [pathname, utilisateur.id_utilisateur, utilisateur.role]);
-
-  useEffect(() => {
-    if (!isCandidate || !utilisateur.id_utilisateur) {
-      return;
-    }
-
-    let actif = true;
-
-    const chargerPhotoProfil = async () => {
-      try {
-        const response = await authenticatedFetch(
-          construireUrlApi(`/api/candidats/profil/${utilisateur.id_utilisateur}`),
-        );
-        const data = await response.json();
-
-        if (!response.ok || !actif) {
-          setCandidateProfilePhoto(null);
-          return;
-        }
-
-        const donnees = (data?.donnees || {}) as CandidateProfilePayload;
-        const photo = donnees.photo_profil_url;
-
-        if (!photo) {
-          setCandidateProfilePhoto(null);
-          return;
-        }
-
-        setCandidateProfilePhoto(photo.startsWith("data:") ? photo : construireUrlApi(photo));
-      } catch {
-        if (actif) {
-          setCandidateProfilePhoto(null);
-        }
-      }
-    };
-
-    void chargerPhotoProfil();
-
-    return () => {
-      actif = false;
-    };
-  }, [isCandidate, utilisateur.id_utilisateur]);
 
   useEffect(() => {
     const frameId = window.requestAnimationFrame(() => {
@@ -801,13 +776,6 @@ export function Navbar({
     router.push("/");
   };
 
-  const ouvrirPanneauAccessibilite = () => {
-    setMenuOuvert(false);
-    setProfilMenuOuvert(false);
-    setNavigationMenuOuvert(null);
-    triggerAccessibilityPanel("open");
-  };
-
   const naviguerVers = (chemin: string) => {
     setMenuOuvert(false);
     setProfilMenuOuvert(false);
@@ -896,50 +864,81 @@ export function Navbar({
             ) : null}
           </div>
 
-          <nav className="candidate-sidebar-ref__nav" aria-label={isAdmin ? "Admin navigation" : "Candidate navigation"}>
-            {sidebarItems.map((item) => {
-              const isActive = isPathActive(item.href);
-
-              return (
-                <button
-                  key={item.id}
-                  type="button"
-                  className={classes("candidate-sidebar-ref__item", isActive && "is-active", candidateSidebarCollapsed && "is-collapsed")}
-                  onClick={() => naviguerVers(item.href)}
-                  title={candidateSidebarCollapsed ? item.label : undefined}
-                >
-                  <span className="candidate-sidebar-ref__item-icon" aria-hidden="true">
-                    <CandidateSidebarIcon name={item.icon} />
-                  </span>
-                  <span className={classes("candidate-sidebar-ref__item-copy", candidateSidebarCollapsed && "is-collapsed")}>
-                    <strong>{item.label}</strong>
-                    <small>{item.subtitle}</small>
-                  </span>
-                  {item.badgeCount && item.badgeCount > 0 ? (
-                    <span className="candidate-sidebar-ref__item-badge">{item.badgeCount}</span>
-                  ) : null}
-                </button>
-              );
-            })}
-          </nav>
-
           {isCandidate ? (
-            <button
-              type="button"
-              className={classes("candidate-sidebar-ref__accessibility", candidateSidebarCollapsed && "is-collapsed")}
-              onClick={ouvrirPanneauAccessibilite}
-              title={candidateSidebarCollapsed ? t("accessibility.open") : undefined}
-              aria-label={t("accessibility.open")}
-            >
-              <span className="candidate-sidebar-ref__item-icon" aria-hidden="true">
-                <CandidateSidebarIcon name="accessibility" />
-              </span>
-              <span className={classes("candidate-sidebar-ref__accessibility-copy", candidateSidebarCollapsed && "is-collapsed")}>
-                <strong>{t("accessibility.open")}</strong>
-                <small>Options visuelles et navigation</small>
-              </span>
-            </button>
-          ) : null}
+            <div className="candidate-sidebar-ref__scroll">
+              <nav className="candidate-sidebar-ref__nav" aria-label="Candidate navigation">
+                {sidebarItems.map((item) => {
+                  const isActive = item.href ? isPathActive(item.href) : false;
+
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      className={classes("candidate-sidebar-ref__item", isActive && "is-active", candidateSidebarCollapsed && "is-collapsed")}
+                      onClick={() => {
+                        if (item.onClick) {
+                          item.onClick();
+                          return;
+                        }
+                        if (item.href) {
+                          naviguerVers(item.href);
+                        }
+                      }}
+                      title={candidateSidebarCollapsed ? item.label : undefined}
+                      aria-label={item.label}
+                    >
+                      <span className="candidate-sidebar-ref__item-icon" aria-hidden="true">
+                        <CandidateSidebarIcon name={item.icon} />
+                      </span>
+                      <span className={classes("candidate-sidebar-ref__item-copy", candidateSidebarCollapsed && "is-collapsed")}>
+                        <strong>{item.label}</strong>
+                        <small>{item.subtitle}</small>
+                      </span>
+                      {item.badgeCount && item.badgeCount > 0 ? (
+                        <span className="candidate-sidebar-ref__item-badge">{item.badgeCount}</span>
+                      ) : null}
+                    </button>
+                  );
+                })}
+              </nav>
+            </div>
+          ) : (
+            <nav className="candidate-sidebar-ref__nav" aria-label={isAdmin ? "Admin navigation" : "Enterprise navigation"}>
+              {sidebarItems.map((item) => {
+                const isActive = item.href ? isPathActive(item.href) : false;
+
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    className={classes("candidate-sidebar-ref__item", isActive && "is-active", candidateSidebarCollapsed && "is-collapsed")}
+                    onClick={() => {
+                      if (item.onClick) {
+                        item.onClick();
+                        return;
+                      }
+                      if (item.href) {
+                        naviguerVers(item.href);
+                      }
+                    }}
+                    title={candidateSidebarCollapsed ? item.label : undefined}
+                    aria-label={item.label}
+                  >
+                    <span className="candidate-sidebar-ref__item-icon" aria-hidden="true">
+                      <CandidateSidebarIcon name={item.icon} />
+                    </span>
+                    <span className={classes("candidate-sidebar-ref__item-copy", candidateSidebarCollapsed && "is-collapsed")}>
+                      <strong>{item.label}</strong>
+                      <small>{item.subtitle}</small>
+                    </span>
+                    {item.badgeCount && item.badgeCount > 0 ? (
+                      <span className="candidate-sidebar-ref__item-badge">{item.badgeCount}</span>
+                    ) : null}
+                  </button>
+                );
+              })}
+            </nav>
+          )}
 
           {(isCandidate || isEntreprise || isAdmin) ? (
             <>
@@ -952,7 +951,6 @@ export function Navbar({
                   width={44}
                   height={44}
                   className="candidate-sidebar-ref__profile-image"
-                  unoptimized={!isAdmin && !!candidateProfilePhoto?.startsWith("data:")}
                 />
                 <div className={classes("candidate-sidebar-ref__profile-copy", candidateSidebarCollapsed && "is-collapsed")}>
                   <strong>{utilisateur.nom}</strong>
@@ -1005,7 +1003,7 @@ return (
     <header className={classes("app-header", "app-theme", hasCollapsibleSidebar && "app-header-candidat")} ref={headerRef}>
       <div className="app-header-inner">
         <div className="candidate-brand-row">
-          <Link href="/home" className="brand-pill">
+          <Link href={brandHref} className="brand-pill">
             <span className="brand-mark" aria-hidden="true" />
             <span className={classes("brand-copy", isCandidate && candidateSidebarCollapsed && "brand-copy-collapsed")}>
               <strong>HandiTalents</strong>
@@ -1104,19 +1102,24 @@ return (
               className="profile-trigger"
               onClick={() => {
                 setNavigationMenuOuvert(null);
+                if (isSupervisionRole) {
+                  naviguerVers(profilHref);
+                  return;
+                }
                 setProfilMenuOuvert((open) => !open);
               }}
               type="button"
+              title={isSupervisionRole ? "Ouvrir mon profil" : undefined}
             >
               <span className="profile-avatar">{utilisateur.nom.charAt(0).toUpperCase()}</span>
               <span className="profile-meta">
                 <strong>{utilisateur.nom}</strong>
                 <span>{roleChipLabel}</span>
               </span>
-              <span className={classes("profile-caret", profilMenuOuvert && "profile-caret-open")} aria-hidden="true" />
+              {!isSupervisionRole ? <span className={classes("profile-caret", profilMenuOuvert && "profile-caret-open")} aria-hidden="true" /> : null}
             </button>
 
-            {profilMenuOuvert ? (
+            {profilMenuOuvert && !isSupervisionRole ? (
               <div
                 className={classes(
                   "profile-menu",

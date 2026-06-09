@@ -58,7 +58,21 @@ export class GestionUtilisateursService {
     `);
 
     const lien = `${env.frontendUrl}/reset?token=${token}`;
-    await this.courrielService.envoyerCourrielDefinitionMotDePasse(utilisateur.email, utilisateur.nom, lien);
+    if (!env.smtpHost) {
+      console.warn("[user-service] SMTP non configure: lien de definition de mot de passe genere en mode local", {
+        email: utilisateur.email,
+        lien,
+      });
+      return { emailEnvoye: false, lien_reset: lien, token };
+    }
+
+    try {
+      await this.courrielService.envoyerCourrielDefinitionMotDePasse(utilisateur.email, utilisateur.nom, lien);
+      return { emailEnvoye: true, lien_reset: lien, token };
+    } catch (erreur) {
+      console.error("[user-service] echec envoi email definition mot de passe", { email: utilisateur.email, erreur });
+      return { emailEnvoye: false, lien_reset: lien, token };
+    }
   }
 
   async listerUtilisateurs(query: ListeUtilisateursQueryDto) {
@@ -184,14 +198,16 @@ export class GestionUtilisateursService {
       delegation: champsTerritoriaux.delegation,
     });
 
-    await this.envoyerLienDefinitionMotDePasse({
+    const envoiFinalisation = await this.envoyerLienDefinitionMotDePasse({
       id_utilisateur: nouvelUtilisateur.id_utilisateur,
       email: nouvelUtilisateur.email,
       nom: nouvelUtilisateur.nom,
     });
 
     return {
-      message: "Utilisateur cree avec succes. Un email lui a ete envoye pour definir son mot de passe.",
+      message: envoiFinalisation.emailEnvoye
+        ? "Utilisateur cree avec succes. Un email lui a ete envoye pour definir son mot de passe."
+        : "Utilisateur cree avec succes. Email non envoye: utilisez le lien de finalisation ci-dessous.",
       donnees: {
         id_utilisateur: nouvelUtilisateur.id_utilisateur,
         nom: nouvelUtilisateur.nom,
@@ -200,6 +216,8 @@ export class GestionUtilisateursService {
         statut: nouvelUtilisateur.statut,
         gouvernorat: nouvelUtilisateur.gouvernorat || undefined,
         delegation: nouvelUtilisateur.delegation || undefined,
+        lien_reset: envoiFinalisation.emailEnvoye ? undefined : envoiFinalisation.lien_reset,
+        token: envoiFinalisation.emailEnvoye ? undefined : envoiFinalisation.token,
       },
     };
   }

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -679,24 +679,7 @@ export function AccessibilityWidget() {
 
   if (!portalReady) return null;
 
-  if (!open) {
-    return createPortal(
-      <button
-        type="button"
-        className="accessibility-launcher"
-        onClick={() => setOpen(true)}
-        aria-label="Ouvrir les options d'accessibilite"
-        aria-controls="accessibility-panel"
-      >
-        <span className="accessibility-launcher-icon" aria-hidden="true">A</span>
-        <span className="accessibility-launcher-copy">
-          <strong>Accessibilite</strong>
-          <small>Adapter l&apos;affichage</small>
-        </span>
-      </button>,
-      document.body,
-    );
-  }
+  if (!open) return null;
 
   const panel = (
     <>
@@ -729,7 +712,7 @@ export function AccessibilityWidget() {
         <div className="accessibility-panel-head-copy">
           <span className="accessibility-panel-head-icon" aria-hidden="true">A</span>
           <div>
-            <strong>Accessibilite</strong>
+            <strong>Accessibilité</strong>
             <p className="accessibility-panel-subtitle">Personnalisez l&apos;affichage, la lecture et la navigation</p>
           </div>
         </div>
@@ -1173,3 +1156,4 @@ export function AccessibilityWidget() {
 
   return createPortal(panel, document.body);
 }
+

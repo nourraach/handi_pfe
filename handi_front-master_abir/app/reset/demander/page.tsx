@@ -29,11 +29,11 @@ export default function DemanderResetPage() {
       if (!res.ok) throw new Error(data.message || "Erreur");
       if (data.donnees?.lien_reset) {
         setTestLink(data.donnees.lien_reset);
-        setMessage("SMTP non configuré : le lien ci-dessous est généré pour le test local.");
+        setMessage(data.message || "Un lien de réinitialisation a été généré.");
       } else if (data.donnees?.token) {
         setMessage(`Jeton de démonstration : ${data.donnees.token}`);
       } else {
-        setMessage("Si le compte existe, un e-mail ou un SMS de réinitialisation a été envoyé.");
+        setMessage("Un email de réinitialisation a été envoyé.");
       }
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : "Impossible d'envoyer le lien de réinitialisation.";

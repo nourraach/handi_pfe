@@ -37,6 +37,63 @@ type NotificationsPayload = {
   donnees?: NotificationItem[];
 };
 
+function formatDateFr(value?: string | null) {
+  if (!value) {
+    return "";
+  }
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  return new Intl.DateTimeFormat("fr-FR", {
+    dateStyle: "short",
+    timeStyle: "short",
+  }).format(date);
+}
+
+function normaliserTexteNotification(value: string) {
+  return value
+    .replace(/Application update/gi, "Mise à jour de candidature")
+    .replace(/Interview scheduled/gi, "Entretien planifié")
+    .replace(/Your interview preparation is ready/gi, "Votre préparation d'entretien est prête")
+    .replace(/Related role/gi, "Offre concernée")
+    .replace(/Scheduled for/gi, "Prévu le")
+    .replace(/Reason/gi, "Motif")
+    .replace(/Mise a jour de candidature/gi, "Mise à jour de candidature")
+    .replace(/Entretien planifie/gi, "Entretien planifié")
+    .replace(/Votre preparation d'entretien est prete/gi, "Votre préparation d'entretien est prête")
+    .replace(/n'a pas ete retenue/gi, "n'a pas été retenue")
+    .replace(/a ete preselectionnee/gi, "a été présélectionnée")
+    .replace(/a ete recue/gi, "a été reçue")
+    .replace(/en cours d'etude/gi, "en cours d'étude")
+    .replace(/a ete planifie/gi, "a été planifié")
+    .replace(/preparation d'entretien/gi, "préparation d'entretien")
+    .replace(/personnalisees/gi, "personnalisées")
+    .replace(/disponibles/gi, "disponibles")
+    .replace(/offre/gi, "offre");
+}
+
+function normaliserLibelleAction(value?: string) {
+  const label = value?.trim();
+  if (!label) {
+    return "";
+  }
+
+  const normalized = label.toLowerCase();
+  if (normalized.includes("questions") || normalized.includes("preparation")) {
+    return "Voir mes questions d'entretien";
+  }
+  if (normalized.includes("wellbeing") || normalized.includes("5 min")) {
+    return "Ouvrir ma préparation 5 min";
+  }
+  if (normalized.includes("open")) {
+    return "Ouvrir la section liée";
+  }
+  return normaliserTexteNotification(label);
+}
+
 export default function NotificationsPageProtegee() {
   return (
     <AuthenticatedWorkspace rolesAutorises={["admin", "candidat", "entreprise", "inspecteur", "aneti"]}>
@@ -134,7 +191,7 @@ function NotificationsPage() {
         : "/candidat/candidatures";
       return {
         href: notification.data?.cta?.href || fallbackHref,
-        label: notification.data?.cta?.label || "Voir mes questions d'entretien",
+        label: normaliserLibelleAction(notification.data?.cta?.label) || "Voir mes questions d'entretien",
       };
     }
 
@@ -144,7 +201,7 @@ function NotificationsPage() {
         : "/candidat/entretiens";
       return {
         href: notification.data?.cta?.href || fallbackHref,
-        label: notification.data?.cta?.label || "Ouvrir ma preparation 5 min",
+        label: normaliserLibelleAction(notification.data?.cta?.label) || "Ouvrir ma préparation 5 min",
       };
     }
 
@@ -197,6 +254,8 @@ function NotificationsPage() {
 
           {notifications.map((notification) => {
             const action = construireActionNotification(notification);
+            const titre = normaliserTexteNotification(notification.titre);
+            const message = normaliserTexteNotification(notification.message);
             return (
             <Card key={notification.id} padding="lg">
               <div className="notification-item">
@@ -205,30 +264,30 @@ function NotificationsPage() {
                     <span className={`status-pill ${notification.lu ? "message-neutre" : "message-info"}`}>
                       {notification.lu ? "Lue" : "Non lue"}
                     </span>
-                    <strong>{notification.titre}</strong>
+                    <strong>{titre}</strong>
                   </div>
                   <span className="texte-secondaire">
-                    {new Date(notification.created_at).toLocaleString("en-US")}
+                    {formatDateFr(notification.created_at)}
                   </span>
                 </div>
 
-                <p style={{ margin: 0 }}>{notification.message}</p>
+                <p style={{ margin: 0 }}>{message}</p>
 
                 {notification.data?.offre ? (
                   <div className="detail-box">
-                    <strong>Related role</strong>
+                    <strong>Offre concernée</strong>
                     <p>{notification.data.offre}</p>
                     {notification.data.date_heure ? (
                       <p style={{ marginTop: 8 }}>
-                        {new Date(notification.data.date_heure).toLocaleString("en-US")}
+                        {formatDateFr(notification.data.date_heure)}
                       </p>
                     ) : null}
                     {notification.data.scheduled_for ? (
                       <p style={{ marginTop: 8 }}>
-                        Scheduled for: {new Date(notification.data.scheduled_for).toLocaleString("en-US")}
+                        Prévu le : {formatDateFr(notification.data.scheduled_for)}
                       </p>
                     ) : null}
-                    {notification.data.motif ? <p style={{ marginTop: 8 }}>Reason: {notification.data.motif}</p> : null}
+                    {notification.data.motif ? <p style={{ marginTop: 8 }}>Motif : {notification.data.motif}</p> : null}
                   </div>
                 ) : null}
 
@@ -237,7 +296,7 @@ function NotificationsPage() {
                     variant="secondary"
                     onClick={() => void changerEtatLecture(notification.id, !notification.lu)}
                   >
-                    {notification.lu ? "Mark as unread" : "Mark as read"}
+                    {notification.lu ? "Marquer comme non lue" : "Marquer comme lue"}
                   </Button>
                   <ButtonLink href={action.href} variant="ghost">
                     {action.label}

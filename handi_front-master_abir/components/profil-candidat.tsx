@@ -619,7 +619,7 @@ export function ProfilCandidat({ utilisateur, lectureSeule = false }: ProfilCand
                     ? "..."
                     : softSkillsScore
                       ? `${softSkillsScore.score}%`
-                      : "Aucun resultat"}
+                      : "Aucun résultat"}
                 </span>
                 {softSkillsScore ? (
                   <button

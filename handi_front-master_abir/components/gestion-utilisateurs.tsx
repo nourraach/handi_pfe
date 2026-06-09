@@ -168,6 +168,7 @@ export function GestionUtilisateurs() {
   const [modeCreation, setModeCreation] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [erreur, setErreur] = useState<string | null>(null);
+  const [lienAction, setLienAction] = useState<string | null>(null);
 
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -253,6 +254,7 @@ export function GestionUtilisateurs() {
 
       if (response.ok) {
         setMessage(resultat.message || "Utilisateur cree avec succes.");
+        setLienAction(typeof resultat.donnees?.lien_reset === "string" ? resultat.donnees.lien_reset : null);
         setErreur(null);
         setModeCreation(false);
         void chargerUtilisateurs();
@@ -281,6 +283,7 @@ export function GestionUtilisateurs() {
 
       if (response.ok) {
         setMessage(resultat.message || "Utilisateur mis a jour avec succes.");
+        setLienAction(null);
         setErreur(null);
         setModeEdition(false);
         setUtilisateurSelectionne(null);
@@ -309,6 +312,7 @@ export function GestionUtilisateurs() {
 
       if (response.ok) {
         setMessage(`Statut mis a jour : ${getStatusLabel(nouveauStatut)}.`);
+        setLienAction(null);
         void chargerUtilisateurs();
       } else {
         setErreur(resultat.message || "Impossible de modifier le statut.");
@@ -337,6 +341,7 @@ export function GestionUtilisateurs() {
 
       if (response.ok) {
         setMessage(`Mot de passe reinitialise. Nouveau mot de passe : ${resultat.donnees.nouveauMotDePasse}`);
+        setLienAction(null);
       } else {
         setErreur(resultat.message || "Impossible de reinitialiser le mot de passe.");
       }
@@ -396,6 +401,11 @@ export function GestionUtilisateurs() {
       {message && (
         <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-md">
           {message}
+          {lienAction ? (
+            <a href={lienAction} className="mt-2 block font-semibold underline" target="_blank" rel="noreferrer">
+              Ouvrir le lien de finalisation
+            </a>
+          ) : null}
           <button onClick={() => setMessage(null)} className="float-right text-green-600 hover:text-green-800">
             x
           </button>
