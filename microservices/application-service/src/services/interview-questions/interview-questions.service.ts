@@ -3,6 +3,7 @@ import { db } from "../../db";
 import { candidatTable } from "../../db/schema";
 import { ErreurApi } from "../../utils/erreur-api";
 import { NotificationService } from "../notification.service";
+import { EntretienRepository } from "../../repositories/entretien.repository";
 import { GeminiInterviewQuestionsProvider } from "./gemini-interview-questions.provider";
 import { InterviewGapsAnalyzer } from "./interview-gaps.analyzer";
 import { buildFallbackDossier } from "./interview-questions.fallback";
@@ -39,6 +40,7 @@ export interface DossierView {
 
 export class InterviewQuestionsService {
   private repository = new InterviewQuestionsRepository();
+  private entretienRepository = new EntretienRepository();
   private analyzer = new InterviewGapsAnalyzer();
   private provider = new GeminiInterviewQuestionsProvider();
   private notificationService = new NotificationService();
@@ -50,7 +52,8 @@ export class InterviewQuestionsService {
   async scheduleGeneration(idCandidature: string): Promise<void> {
     const ctx = await this.repository.getGenerationContext(idCandidature);
     if (!ctx) return;
-    if (ctx.candidature.statut !== "shortlisted") return;
+    const isAccessible = await this.isPreparationAccessible(idCandidature, ctx.candidature.statut);
+    if (!isAccessible) return;
 
     await this.repository.upsertPending({
       idCandidature,
@@ -170,7 +173,8 @@ export class InterviewQuestionsService {
       throw new ErreurApi(403, "Acces non autorise a ce dossier");
     }
 
-    if (ctx.candidature.statut !== "shortlisted" && ctx.candidature.statut !== "interview_scheduled" && ctx.candidature.statut !== "accepted") {
+    const isAccessible = await this.isPreparationAccessible(idCandidature, ctx.candidature.statut);
+    if (!isAccessible) {
       return this.emptyView("not_eligible", ctx.offre.id, ctx.offre.titre);
     }
 
@@ -187,10 +191,16 @@ export class InterviewQuestionsService {
         console.error("[interview-prep] auto-resume failed", { idCandidature, err: err?.message });
         void this.repository.markFailed(idCandidature, String(err?.message || err));
       });
+      if (this.hasUsableDossier(row)) {
+        return this.rowToView(row, ctx.offre.id, ctx.offre.titre);
+      }
       return this.emptyView("processing", ctx.offre.id, ctx.offre.titre);
     }
 
     if (row.generation_status === "processing") {
+      if (this.hasUsableDossier(row)) {
+        return this.rowToView(row, ctx.offre.id, ctx.offre.titre);
+      }
       return this.emptyView("processing", ctx.offre.id, ctx.offre.titre);
     }
 
@@ -204,7 +214,8 @@ export class InterviewQuestionsService {
     if (ctx.candidat.id_utilisateur !== idUtilisateurRequester) {
       throw new ErreurApi(403, "Acces non autorise");
     }
-    if (ctx.candidature.statut !== "shortlisted" && ctx.candidature.statut !== "interview_scheduled") {
+    const isAccessible = await this.isPreparationAccessible(idCandidature, ctx.candidature.statut);
+    if (!isAccessible) {
       throw new ErreurApi(409, "Candidature non eligible a la regeneration");
     }
 
@@ -225,6 +236,11 @@ export class InterviewQuestionsService {
       console.error("[interview-prep] regenerate failed", { idCandidature, err: err?.message });
       void this.repository.markFailed(idCandidature, String(err?.message || err));
     });
+
+    const updatedRow = await this.repository.getByCandidature(idCandidature);
+    if (updatedRow && this.hasUsableDossier(updatedRow)) {
+      return this.rowToView(updatedRow, ctx.offre.id, ctx.offre.titre);
+    }
 
     return this.emptyView("processing", ctx.offre.id, ctx.offre.titre);
   }
@@ -249,6 +265,29 @@ export class InterviewQuestionsService {
     };
   }
 
+  private hasUsableDossier(row: DossierRow): boolean {
+    try {
+      const questions = row.questions_json ? JSON.parse(row.questions_json) : [];
+      return Array.isArray(questions) && questions.length > 0;
+    } catch {
+      return false;
+    }
+  }
+
+  private async isPreparationAccessible(idCandidature: string, statutCandidature: string): Promise<boolean> {
+    if (statutCandidature === "shortlisted") return true;
+
+    const entretien = await this.entretienRepository.obtenirEntretienActifParCandidature(idCandidature);
+    if (!entretien) {
+      return statutCandidature === "interview_scheduled";
+    }
+
+    const dateEntretien = new Date(entretien.date_heure);
+    if (Number.isNaN(dateEntretien.getTime())) return true;
+
+    return dateEntretien.getTime() >= Date.now();
+  }
+
   private rowToView(row: DossierRow, idOffre: string, titre: string): DossierView {
     const status = row.generation_status as DossierView["status"];
     const questions: InterviewQuestion[] = row.questions_json ? JSON.parse(row.questions_json) : [];
@@ -259,7 +298,7 @@ export class InterviewQuestionsService {
       status,
       source: (row.source as "gemini" | "fallback" | null) ?? null,
       offre: { id: idOffre, titre },
-      generated_at: row.generation_status === "ready" ? row.updated_at.toISOString() : null,
+      generated_at: questions.length > 0 ? row.updated_at.toISOString() : null,
       can_regenerate: row.generation_status === "ready" && !row.regenerated_once,
       questions,
       handicap_block,
